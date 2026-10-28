@@ -229,6 +229,7 @@ capability paths.
 - [OPC 10000-5](https://reference.opcfoundation.org/specs/OPC-10000-5/) — Base Information Model, including `FolderType` and `PropertyType`.
 - [OPC 10000-20](https://reference.opcfoundation.org/specs/OPC-10000-20/) — File Transfer, including `FileType` and its `Open` / `Read` / `Write` / `Close` Methods.
 - [xRegistry Federation](../federation/spec.md) — common read resolution, advertisements, selectors, identity and resolver errors.
+- [xRegistry Publication](../publication/spec.md) — OPTIONAL retained-publication behavior used by §10.4.
 - [OPC 10000-3, v1.05.06](https://reference.opcfoundation.org/specs/OPC-10000-3/v1.05.06/) — Address Space Model, including URI identities, NodeIds, References and TypeDefinitions.
 - [OPC 10000-4, v1.05.07](https://reference.opcfoundation.org/specs/OPC-10000-4/v1.05.07/) — Services, including Browse, BrowseNext, Read, Write, Call, TranslateBrowsePathsToNodeIds, `ExpandedNodeId` and StatusCodes.
 - [OPC 10000-5, v1.05.06](https://reference.opcfoundation.org/specs/OPC-10000-5/v1.05.06/) — Base Information Model, including namespace metadata and address-space files.
@@ -236,9 +237,9 @@ capability paths.
 - [OPC 10000-20, v1.05.06](https://reference.opcfoundation.org/specs/OPC-10000-20/v1.05.06/4.2) — File Transfer, including `FileType` and its `Open` / `Read` / `Write` / `Close` Methods.
 
 The companion dependency is identified by its model version, `0.11.0`, rather
-than a source-control revision. It remains a working draft and its current
-proposal may change before publication. This binding does not imply OPC
-Foundation adoption or a public release of that companion model.
+than a source-control revision. It remains a working draft subject to change
+before publication. This binding does not imply OPC Foundation adoption or a
+public release of that companion model.
 
 This binding and the companion draft use xRegistry Core and Events
 `v1.0-rc4` as their baseline. Section 9.1 records the binding's event
@@ -302,9 +303,10 @@ child of a Group represents a logical Resource. The Resource's
 Versions use the same domain resource file subtype. Their hierarchy,
 BrowseName and `Xid` permanently distinguish their roles.
 
-Property Variables under `Labels` represent labels and extension attributes
-for Registries, Groups and exact Versions. Resource Meta uses `MetaLabels`
-on the logical Resource.
+String-valued Property Variables under `Labels` represent labels for
+Registries, Groups and exact Versions. Resource Meta labels use `MetaLabels`
+on the logical Resource. Typed extension attributes use the native-document
+capability or a domain mapping.
 
 The logical Resource provides two views with different owners. Its
 `FileType` interface, normal Version Properties and `Labels` delegate to the
@@ -334,13 +336,13 @@ Object or base `DefaultVersionId` Property. Collection names come from the
 model rather than mandatory UA folders. Changing the default affects future
 logical opens; already-open handles remain pinned to their exact Version.
 
-This separates Core's [Meta entity](../../core/spec.md#meta-entity) and
-[default Version](../../core/spec.md#default-version-of-a-resource) from
+This separates Core's [Meta entity](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#meta-entity) and
+[default Version](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#default-version-of-a-resource) from
 the UA file view. [§5.14](#514-reading-and-updating-resource-metadata)
 describes updates to each owner. [§10.6](#106-companion-model-alignment)
 identifies the versioned domain mappings used here.
 
-Core [document-view export](../../core/spec.md#doc-flag) serializes this
+Core [document-view export](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#doc-flag) serializes this
 state without the Resource's delegated Version projection.
 
 A server MAY expose multiple Registries. Before applying this API, a client
@@ -369,7 +371,9 @@ The baseline operation model is:
 - Call the entity's `Delete(ExpectedEpoch)` Method to delete it and everything
   it contains.
 - Call `AddAttribute` or `RemoveAttribute` on `Labels` or `MetaLabels` for
-  supported labels and extension attributes.
+  supported string labels.
+- Use `NativeRegistryAccessType` or a domain mapping for typed extension
+  attributes.
 
 If an xRegistry function is not supported for an otherwise supported
 node, the server MUST return `Bad_NotSupported`, `Bad_UserAccessDenied`,
@@ -421,7 +425,7 @@ Regardless of that representation:
 
 A server MUST set each Group's, logical Resource's and exact Version's
 BrowseName to its identifier: `GroupId`, `ResourceId` or `VersionId`,
-respectively. `Name` is optional. When it is present, the Server sets
+respectively. `Name` is OPTIONAL. When it is present, the Server sets
 `DisplayName` to `Name`; when absent, it sets `DisplayName` to the same
 role-specific identifier used by `BrowseName`.
 
@@ -474,7 +478,7 @@ The read operation depends on the selected view:
   default-Version view.
 - For an exact Version document, use the exact Version `ResourceType`.
 
-Core's [Resource processing](../../core/spec.md#resource-processing-algorithm)
+Core's [Resource processing](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#resource-processing-algorithm)
 governs full replacement and partial updates. A full replacement targets the
 entity node or its creation parent. The server updates an existing entity.
 For an absent entity, it creates a `GroupType` folder or atomically creates
@@ -484,15 +488,14 @@ For omitted mutable Properties, `Labels` entries and Resource Meta
 `MetaLabels` entries, the server MUST delete, reset to default or leave
 unchanged only as Core or server-managed semantics specify.
 
-Partial updates change only explicitly named mutable attributes. An
-explicitly null attribute is removed where removal is supported. Clients
-Write writable Properties and mutate extension attributes or labels by
-calling
-`Labels.AddAttribute(Key: String, Value: String, ExpectedEpoch: UInt32)` or
-`Labels.RemoveAttribute(Key: String, ExpectedEpoch: UInt32)` on the entity's
-`Labels` `AttributesType` object. Resource Meta labels use the corresponding
-Methods on `MetaLabels` with `ExpectedEpoch` matched against `MetaEpoch`.
-Success/failure is conveyed by the Method Call StatusCode.
+Partial updates change only explicitly named mutable attributes. A null value
+requests removal or the attribute-specific reset defined by Core. Clients
+Write writable Properties and use `Labels.AddAttribute` or
+`Labels.RemoveAttribute` only for string-valued labels. Resource Meta labels
+use the corresponding Methods on `MetaLabels` with `ExpectedEpoch` matched
+against `MetaEpoch`. Typed extension values use `NativeRegistryAccessType`
+or a domain mapping; they do not pass through `AttributesType`. Success or
+failure is conveyed by the Service or Method Call StatusCode.
 
 Partial update MUST
 NOT patch arbitrary bytes inside a Resource document. Document changes
@@ -516,13 +519,13 @@ collection operation cannot be processed, the server SHOULD reject the
 whole operation without partial effects. If it cannot guarantee multi-node
 atomicity, it MUST advertise that limitation in `Capabilities`.
 
-[Nested collection processing](../../core/spec.md#updating-nested-registry-collections)
+[Nested collection processing](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#updating-nested-registry-collections)
 MUST process only the nested collection entries. It MUST NOT modify the
 owning entity's Properties. For example, processing Resources under a
 selected Group creates or updates `ResourceType` children without changing
 that Group's Properties.
 
-To [delete an entity](../../core/spec.md#deleting-entities), the client calls
+To [delete an entity](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#deleting-entities), the client calls
 `Delete(ExpectedEpoch: UInt32)` on its `GroupType` or `ResourceType` node:
 
 - Group deletion checks `ExpectedEpoch` against `Epoch`.
@@ -560,8 +563,10 @@ OPC UA represents fixed metadata as typed Property Values: strings use
 `ExpandedNodeId`, and `Epoch` and `MetaEpoch` use `UInt32`. The xRegistry
 `labels` are string-valued Property Variables under `Labels`, or under
 `MetaLabels` for Resource Meta. Extension attributes are not labels: a native
-document view preserves their declared UA value types and MUST NOT stringify
-them to fit an `AttributesType` container.
+document view preserves their JSON kinds and values through
+`RegistryValueDataType` subtypes, while a domain mapping uses its declared UA
+DataTypes. Neither representation MAY stringify typed values to fit an
+`AttributesType` container.
 
 An xRegistry `epoch` is an unsigned integer in the range 0 through
 4,294,967,295. Before a mutation increments one or more `Epoch` or `MetaEpoch`
@@ -593,7 +598,7 @@ The creation and mutation Method signatures used by this API are:
   `GetOrCreateResource` Methods defined by the xRegistry base model.
 - The `Delete` Method on `GroupType` and `ResourceType`.
 - The `AddAttribute` and `RemoveAttribute` Methods on `AttributesType`.
-- The optional native-document Methods on `NativeRegistryAccessType` as
+- The OPTIONAL native-document Methods on `NativeRegistryAccessType` as
   defined by the Version 0.11.0 companion model.
 - The inherited `Open` / `Read` / `Write` / `Close` Methods of `ResourceType`,
   whose exact argument definitions are normative in OPC 10000-20.
@@ -613,7 +618,7 @@ The creation and mutation Method signatures used by this API are:
 | Remove registry, group or version label | `Labels.RemoveAttribute(Key: String, ExpectedEpoch: UInt32)` | `Labels` is the entity or version's `AttributesType` object. `ExpectedEpoch` is matched against its `Epoch`. Success increments `Epoch` and updates `ModifiedAt`. |
 | Add/update Resource Meta label | `MetaLabels.AddAttribute(Key: String, Value: String, ExpectedEpoch: UInt32)` | `MetaLabels` is on the logical Resource. `ExpectedEpoch` is matched against `MetaEpoch`. Success increments `MetaEpoch` and updates `MetaModifiedAt`. |
 | Remove Resource Meta label | `MetaLabels.RemoveAttribute(Key: String, ExpectedEpoch: UInt32)` | `MetaLabels` is on the logical Resource. `ExpectedEpoch` is matched against `MetaEpoch`. Success increments `MetaEpoch` and updates `MetaModifiedAt`. |
-| Read or mutate typed extension attributes | `NativeRegistryAccessType.ReadDocument`, `WriteDocument` or `ApplyChanges` | Optional native-document capability. Values retain their RegistryValueDataType subtype and do not pass through string-valued `AttributesType` labels. |
+| Read or mutate typed extension attributes | `NativeRegistryAccessType.ReadDocument`, `WriteDocument` or `ApplyChanges` | OPTIONAL native-document capability. Values retain their RegistryValueDataType subtype and do not pass through string-valued `AttributesType` labels. |
 
 A new Resource and its first Version are created in the same xRegistry
 operation, never independently. Before returning, `CreateResource` and
@@ -635,7 +640,7 @@ Registries, Groups and exact Versions MAY expose `Labels`. Resource Meta
 owns `MetaLabels`, which is authoritative on the logical Resource. Clients
 call attribute Methods on the container that owns the attribute.
 
-The optional native-document capability is separate from label Methods.
+The OPTIONAL native-document capability is separate from label Methods.
 `ReadDocument` returns a typed native view; `WriteDocument` and
 `ApplyChanges` update typed values through the same validation, authorization,
 epoch and atomic-commit rules as compatibility writes. `OpenDocument`,
@@ -660,7 +665,7 @@ concurrency for content uses the exact Version's `Epoch`.
 To mutate Registry, Group or Version labels through `Labels.AddAttribute`
 and `Labels.RemoveAttribute`, the client supplies that entity's current
 `Epoch` as `ExpectedEpoch`, under the
-[Core epoch precondition](../../core/spec.md#epoch-flag).
+[Core epoch precondition](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#epoch-flag).
 If the supplied value is non-zero and unequal, the Method MUST fail with
 `Bad_InvalidState` and make no change. On success, `Epoch` increments and
 `ModifiedAt` is updated.
@@ -723,7 +728,7 @@ The base model Properties map to xRegistry attributes as follows.
 | `registryid` | `RegistryId` | `RegistryType` |
 | `specversion` | `SpecVersion` | `RegistryType` |
 | `capabilities` | authoritative `Capabilities` Object (`FileType`) for the complete JSON document; `CapabilitiesSnapshot` (`RegistryCapabilitiesSnapshotDataType`) is the canonical typed view for standard fields, while `CapabilitiesInfo` is a partial convenience view | `RegistryType` |
-| `model` | `Model` Object (`FileType`) for the JSON document; `NativeRegistryAccessType` may additionally expose its typed native document view | `RegistryType` |
+| `model` | `Model` Object (`FileType`) for the JSON document; `NativeRegistryAccessType` MAY additionally expose its typed native document view | `RegistryType` |
 | `<GROUP>id` | `GroupId` | `GroupType` |
 | `<RESOURCE>id` | `ResourceId` | `ResourceType` |
 | `versionid` | `VersionId` | `ResourceType` |
@@ -744,7 +749,7 @@ The base model Properties map to xRegistry attributes as follows.
 | `defaultversionsticky` | `MetaDefaultVersionSticky` (`Boolean`); absence means Core's default `false` | Resource Meta |
 | `readonly` | `MetaReadonly` (`Boolean`); Core's default is `false` | Resource Meta |
 | `compatibility` | `MetaCompatibility` (`String`) | Resource Meta |
-| `deprecated` | `MetaDeprecated` (`DeprecationDataType`) with typed optional fields | Resource Meta |
+| `deprecated` | `MetaDeprecated` (`DeprecationDataType`) with typed OPTIONAL fields | Resource Meta |
 | event `source` URL | `EventSourceUrl` | `RegistryType`, REQUIRED only for event-capable server conformance (§9.3) |
 
 Resource Meta is an xRegistry entity in its own right, not a Version
@@ -823,11 +828,11 @@ A client reads the selected `RegistryType` root by:
 - Browsing its group children.
 
 The base Properties include `RegistryId`, `SpecVersion`, `CapabilitiesSnapshot`,
-`CapabilitiesInfo`, `Xid`, `Epoch`, optional `Name`, `Description`,
+`CapabilitiesInfo`, `Xid`, `Epoch`, OPTIONAL `Name`, `Description`,
 `Documentation`, `CreatedAt` and `ModifiedAt`. `Capabilities` and `Model` are
 `FileType` component Objects, and `Labels` is an `AttributesType` Object.
-`CapabilitiesSnapshot` is required only for the corresponding companion
-conformance unit; `CapabilitiesInfo` remains an optional partial convenience
+`CapabilitiesSnapshot` is REQUIRED only for the corresponding companion
+conformance unit; `CapabilitiesInfo` remains an OPTIONAL partial convenience
 view.
 
 To serialize the Registry, the client applies §8. Collection counts require
@@ -851,13 +856,13 @@ partial view.
 A partial Registry update writes only included Properties. Included label
 changes use `Labels.AddAttribute` or `Labels.RemoveAttribute`; typed extension
 changes use `NativeRegistryAccessType.ApplyChanges` or the domain mapping.
-For null and removal, the operation:
-
-- Writes an explicit null value where the attribute permits null.
-- Removes a label with `Labels.RemoveAttribute` or a typed extension with a
-  native `Remove` change.
-- Fails with `Bad_NotSupported` if the attribute is mandatory or cannot be
-  removed.
+For null and removal, the Server applies Core's attribute-specific deletion
+or reset semantics. It removes a label with `Labels.RemoveAttribute` or a
+typed extension with a native `Remove` change. It MUST fail with
+`Bad_NotSupported` if the attribute is mandatory or cannot be removed.
+A native `Set` change containing `RegistryNullValueDataType` stores an
+explicit null member, while a native `Remove` deletes it. A native `Set`
+MUST NOT reinterpret that value as Core's removal request.
 
 The base `RegistryType` does not directly define `AddAttribute` or
 `RemoveAttribute`. Clients call those Methods on the Registry's `Labels`
@@ -901,7 +906,7 @@ Variant. Vendor and extension keys remain available only in the raw document
 or the native generic view.
 
 `CapabilitiesInfo` retains its existing `RegistryCapabilitiesDataType` layout
-as an optional, application-supplied partial convenience view. It is not a
+as an OPTIONAL, application-supplied partial convenience view. It is not a
 mapping of Core's canonical capabilities schema. A resolver MUST NOT infer
 an enabled capability from an old field name or treat an absent convenience
 field as a Core default. It MUST use `CapabilitiesSnapshot` for the canonical
@@ -1250,14 +1255,16 @@ exact Version NodeId or `Xid`, or any node's deletion role.
 `MetaDefaultVersionSticky` maps Core `defaultversionsticky`. When true,
 creating or removing another Version does not automatically replace the
 selected default; when false or absent, the Core `versionmode` rule selects
-the default. If a sticky selected Version is deleted, the Server selects the
-newest remaining Version as required by the companion model. A default change
+the default. Core rejects a true value when the Resource type sets
+`maxversions` to `1`; the OPC UA Property does not weaken that constraint.
+If a sticky selected Version is deleted, the Server selects the newest
+remaining Version as REQUIRED by the companion model. A default change
 updates Resource Meta only, not either Version's `Epoch`.
 
 `MetaReadonly` maps Core `readonly`, whose default is false. It is read-only
 to non-admin clients; the binding does not define how a Server identifies an
-admin client. `MetaCompatibility` maps the optional Core `compatibility`
-value. `MetaDeprecated` maps the optional Core `deprecated` object using
+admin client. `MetaCompatibility` maps the OPTIONAL Core `compatibility`
+value. `MetaDeprecated` maps the OPTIONAL Core `deprecated` object using
 `DeprecationDataType`: `Effective` and `Removal` are `DateTime`, and
 `Alternative` and `Documentation` are `UriString`. The Server MUST preserve
 these field types and presence; it MUST NOT encode the object as a String or
@@ -1343,9 +1350,10 @@ BrowseName MUST be its `versionid`.
 
 For partial metadata updates, only named version attributes are written. For
 full version representations, omitted mutable attributes are reset or removed
-according to xRegistry rules. Extension attributes and labels on `ResourceType`
-MAY be managed through `Labels.AddAttribute` and `Labels.RemoveAttribute` on the
-exact Version's `Labels` `AttributesType` object where supported.
+according to xRegistry rules. String labels on `ResourceType` MAY be managed through `Labels.AddAttribute`
+and `Labels.RemoveAttribute` on the exact Version's `Labels` `AttributesType`
+object where supported. Typed extension attributes use
+`NativeRegistryAccessType` or a domain mapping.
 
 For document-bearing Versions, the client writes the Version document if
 supplied and validates `ResourceId` and `VersionId`. The server updates
@@ -1432,18 +1440,18 @@ semantics, the server MUST reject an unknown or unsupported value with
 
 | xRegistry flag | OPC UA realization |
 |---|---|
-| [`inline`](../../core/spec.md#inline-flag) | Browse and Read the named child collections or Properties in the same client operation sequence. A domain export MAY inline server-side |
-| [`filter`](../../core/spec.md#filter-flag) | Filter collection Browse results by BrowseName, NodeClass, TypeDefinition and target NodeId. Read Properties or `Labels` only for predicates on values not present in the Browse result |
-| [`sort`](../../core/spec.md#sort-flag) | Client-side ordering of Browse results by a chosen attribute such as BrowseName, `VersionId` or `CreatedAt`, plus any additional Properties used as sort keys. OPC UA collection nodes remain unordered |
+| [`inline`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#inline-flag) | Browse and Read the named child collections or Properties in the same client operation sequence. A domain export MAY inline server-side |
+| [`filter`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#filter-flag) | Filter collection Browse results by BrowseName, NodeClass, TypeDefinition and target NodeId. Read Properties or `Labels` only for predicates on values not present in the Browse result |
+| [`sort`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#sort-flag) | Client-side ordering of Browse results by a chosen attribute such as BrowseName, `VersionId` or `CreatedAt`, plus any additional Properties used as sort keys. OPC UA collection nodes remain unordered |
 | pagination | Browse continuation points, `BrowseNext`, file `Read` length, and Read `IndexRange` |
-| [`doc`](../../core/spec.md#doc-flag) | Serialize using document shape, omitting redundant URL/count metadata as defined by xRegistry |
+| [`doc`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#doc-flag) | Serialize using document shape, omitting redundant URL/count metadata as defined by xRegistry |
 | `meta` | Read metadata Properties rather than document bytes. Equivalent to metadata operation mode for resources and versions |
 | `export` | Serialize the selected subtree as an xRegistry document |
-| [`epoch`](../../core/spec.md#epoch-flag) | Pass `ExpectedEpoch` to `Labels.AddAttribute` and `Labels.RemoveAttribute`. Pass Version/group `Epoch` or Resource `MetaEpoch` to `Delete`. For document replacement, use the epoch-matched sequence in §4.5.1. |
-| [`ignore`](../../core/spec.md#ignore-flag) | Server-side write processing option advertised in `Capabilities`. Unsupported ignore values fail with `Bad_InvalidArgument`. |
-| [`setdefaultversionid`](../../core/spec.md#setdefaultversionid-flag) | Domain-defined default-version update, normally a meta Property or Method |
-| [`specversion`](../../core/spec.md#specversion-flag) | Compare requested version against `SpecVersion` and `Capabilities`. Reject incompatible processing with `Bad_InvalidArgument` |
-| [`binary`](../../core/spec.md#binary-flag) | Prefer raw `Open`/`Read` bytes for documents. Metadata remains OPC UA typed Properties |
+| [`epoch`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#epoch-flag) | Pass `ExpectedEpoch` to `Labels.AddAttribute` and `Labels.RemoveAttribute`. Pass Version/group `Epoch` or Resource `MetaEpoch` to `Delete`. For document replacement, use the epoch-matched sequence in §4.5.1. |
+| [`ignore`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#ignore-flag) | Server-side write processing option advertised in `Capabilities`. Unsupported ignore values fail with `Bad_InvalidArgument`. |
+| [`setdefaultversionid`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#setdefaultversionid-flag) | Domain-defined default-version update, normally a meta Property or Method |
+| [`specversion`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#specversion-flag) | Compare requested version against `SpecVersion` and `Capabilities`. Reject incompatible processing with `Bad_InvalidArgument` |
+| [`binary`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#binary-flag) | Prefer raw `Open`/`Read` bytes for documents. Metadata remains OPC UA typed Properties |
 | `collections` | Include or omit collection members by Browse depth and serialization rules |
 
 ### 6.1. Filtering
@@ -1552,16 +1560,15 @@ implementation converts base Property BrowseNames to lower-case xRegistry
 attribute names. The domain registry model determines domain Property
 serialization.
 
-A server MUST preserve unknown extension attributes that it accepts, using
-domain extension Properties or Property Variables under the applicable
-`Labels` or `MetaLabels` `AttributesType` object. If the server cannot preserve
-an accepted extension attribute, it MUST reject the update rather than silently
-losing information.
+A server MUST preserve unknown typed extension attributes that it accepts in
+the native document or a domain mapping. It MUST use `Labels` or `MetaLabels`
+only for string-valued labels. If it cannot preserve an accepted extension
+attribute, it MUST reject the update rather than silently losing information.
 
 ## 8. Serialization / export-import
 
 Serialization uses native Browse/Read and FileTransfer results to construct
-the [Core document view](../../core/spec.md#doc-flag) of the selected
+the [Core document view](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#doc-flag) of the selected
 AddressSpace subtree. Those native results do not define another JSON schema.
 
 ### 8.1. Native metadata and navigation
@@ -1632,7 +1639,7 @@ semantics, including the following:
   attributes under the source identity; do not substitute the target's ID,
   XID or self reference, or follow a target `xref` transitively. If the target
   is inaccessible or dangling, expose only the source identity and `meta.xref`;
-  no local Version storage is required. Requests for an alias's Versions in
+  no local Version storage is REQUIRED. Requests for an alias's Versions in
   document view retain `cannot_doc_xref`, mapped to `unsupported_operation`
   by a resolver.
 - Include the requested collections, including empty maps, after completing
@@ -1727,7 +1734,7 @@ setting or changing the object uses `DeprecatedEventType`; removing it uses
 `UndeprecatedEventType`. The selected UA EventType identifies the transition;
 it does not introduce a separate Core `undeprecated` event.
 
-The Core deprecation event's optional `changed` list identifies modified
+The Core deprecation event's OPTIONAL `changed` list identifies modified
 top-level attributes of the deprecated object. The companion deprecation
 EventTypes have no `Changed` field, so the binding does not project that
 nested list onto them. When included, the corresponding `GroupUpdated` or
@@ -2092,7 +2099,7 @@ checks this mapping independently of a live connection.
 
 | Mechanism | Scope and semantics |
 | --- | --- |
-| Core [`meta.xref`](../../core/spec.md#cross-referencing-resources) | Same Registry, same Resource model type, one hop. Maps to `MetaXref`; Core defines target-attribute projection and source-relative identity/navigation. |
+| Core [`meta.xref`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/spec.md#cross-referencing-resources) | Same Registry, same Resource model type, one hop. Maps to `MetaXref`; Core defines target-attribute projection and source-relative identity/navigation. |
 | `OriginRegistry` plus `ExternalReference` | Federation context and a remote logical Resource target. `ExternalReference` is an `ExpandedNodeId`; resolve its table context and target FileType under the declared mapping. Neither is a Core metadata alias. |
 | `ResourceUrl` Property | Core `<RESOURCE>url`, identifying a Version's domain document through a defined retrieval mechanism. It does not designate remote Resource metadata. |
 
@@ -2100,12 +2107,12 @@ A local `xref` MUST remain the case-sensitive XID of a same-typed Resource in
 the same Registry, represented by `MetaXref`. It MUST NOT be an absolute URI
 or remote-node locator. Structurally identical Resource definitions do not
 establish a shared type. Imported/shared types follow Core
-[`ximportresources`](../../core/model.md#reuse-of-resource-definitions).
+[`ximportresources`](https://github.com/xregistry/spec/blob/v1.0-rc4/core/model.md#reuse-of-resource-definitions).
 When the target is accessible, the Server exposes the Core-derived target
 view under the source Resource's identity while retaining the source
 `ResourceId`, `Xid`, self reference and `MetaXref`. It MUST NOT follow a
 target `xref` transitively. When the target is inaccessible or dangling, the
-source identity and `MetaXref` remain readable; the Server is not required to
+source identity and `MetaXref` remain readable; the Server is not REQUIRED to
 detect the condition or provide local Version storage. The source's minimal
 serialization remains valid. `ExternalReference` MUST NOT substitute for
 `MetaXref`.
@@ -2156,7 +2163,7 @@ Per-node timestamps alone cannot establish cross-node atomicity.
 The OPTIONAL [publication extension](../publication/spec.md) provides
 retained exact Version documents rather than inferring a snapshot from
 these live indicators. Its descriptors select Registry access with
-`name: "opcua"`, the endpoint and the parameters in §10.1, followed by an
+`binding: "opcua"`, the endpoint and the parameters in §10.1, followed by an
 exact Version XID. Resolve that Version under the selected Registry root
 using §4.2, then read its raw document bytes using §5.13.1. This applies to
 the manifest and captured Registry JSON as well as domain documents. A
@@ -2177,7 +2184,7 @@ retention and atomicity. A successful multi-Property Write or a client-side
 read/write sequence does not prove atomic head replacement. An adapter
 without that guarantee MUST NOT advertise writable publication support.
 This extension assigns no new standard Method, Property or NodeId to the
-pinned companion model.
+Version 0.11.0 Draft companion model.
 
 ### 10.5. Namespace export is separate
 
@@ -2216,17 +2223,17 @@ base mappings this binding uses:
 | Resource Meta | `MetaXref`, `MetaDefaultVersionSticky`, `MetaReadonly`, `MetaCompatibility` and typed `MetaDeprecated`, alongside `MetaEpoch`, `MetaLabels`, `MetaCreatedAt` and `MetaModifiedAt`. |
 | Same-Registry `xref` | `MetaXref` holds a case-sensitive same-typed Resource XID; the Core-derived target view retains the source identity and does not follow aliases transitively. |
 | Federation | Resource-scoped `OriginRegistry` and `ExternalReference` identify remote origin context and target; neither substitutes for `MetaXref` or `ResourceUrl`. |
-| Names and identity | `Name` is optional; the role-specific identifier supplies `DisplayName` when it is absent. |
+| Names and identity | `Name` is OPTIONAL; the role-specific identifier supplies `DisplayName` when it is absent. |
 | Capabilities | Raw `Capabilities` is authoritative; `CapabilitiesSnapshot` is the canonical typed view, while `CapabilitiesInfo` remains a partial convenience view. |
-| Labels and extensions | `AttributesType` carries string labels. Native and domain extension values retain their UA types. |
-| Native documents | `NativeRegistryAccessType` provides optional typed read/write and snapshot operations; it does not replace FileType access. |
+| Labels and extensions | `AttributesType` carries string labels. The generic native view preserves extension JSON kinds and values; domain mappings use their declared UA DataTypes. |
+| Native documents | `XREG-NativeDocuments`, `XREG-NativeWrite` and `XREG-NativeSnapshots` separately govern typed reads, writes and bounded snapshots; none replaces FileType access. |
 | Events and epochs | Core `deprecation` maps to the companion's state-transition EventTypes under §9.1; UInt32 counter exhaustion fails atomically with `Bad_OutOfRange`. |
 
 These are unadopted working drafts. The companion model's conformance-unit
-requirements govern the members required for each claim; this binding adds
+requirements govern the members REQUIRED for each claim; this binding adds
 operation and transport requirements without making `Name` mandatory or
 turning a metadata-only Resource into a fabricated document. Native-document
-and snapshot capabilities remain optional unless their respective
+and snapshot capabilities remain OPTIONAL unless their respective
 conformance units are claimed.
 
 A server MAY expose local proxy Resource and Version Objects for a federated
@@ -2336,17 +2343,17 @@ server-side aliases for the Version 0.5 flat layout.
 These requirements define conformance to this working draft. They do not
 establish conformance to an adopted companion standard.
 
-The companion model's required fields depend on the claimed conformance unit:
+The companion model's REQUIRED fields depend on the claimed conformance unit:
 
-| Conformance unit | Required members relevant to this binding |
+| Conformance unit | REQUIRED members relevant to this binding |
 | --- | --- |
 | `XREG-Registry` | `RegistryId`, `Xid`, `Epoch`, `CreatedAt`, `ModifiedAt`, readable `SpecVersion` and the authoritative raw `Capabilities` FileType. |
 | `XREG-Group` | `GroupId`, `Xid`, `Epoch`, `CreatedAt` and `ModifiedAt`. |
-| `XREG-Resource` | For a local document Resource: `ResourceId`, `Xid`, selected `VersionId`, `MetaEpoch`, `MetaReadonly`, `MetaCreatedAt`, `MetaModifiedAt` and a `Versions` folder with at least one Version. Each Version requires `ResourceId`, its own `VersionId`, `Xid`, `Epoch`, `CreatedAt` and `ModifiedAt`. An xref Resource requires `ResourceId`, `Xid` and `MetaXref`; an accessible target supplies the Core-derived view, while a dangling target may expose only the source identity and `MetaXref`. |
+| `XREG-Resource` | For a local document Resource: `ResourceId`, `Xid`, selected `VersionId`, `MetaEpoch`, `MetaReadonly`, `MetaCreatedAt`, `MetaModifiedAt` and a `Versions` folder with at least one Version. Each Version MUST provide `ResourceId`, its own `VersionId`, `Xid`, `Epoch`, `CreatedAt` and `ModifiedAt`. An xref Resource MUST provide `ResourceId`, `Xid` and `MetaXref`; an accessible target supplies the Core-derived view, including `MetaReadonly`, while a dangling target MAY expose only the source identity and `MetaXref`. |
 | `XREG-Identity` | Stable, distinct NodeIds, BrowseNames, XIDs and role-specific identifiers for Groups, logical Resources and exact Versions. |
 | `XREG-MetadataResource` | `ResourceId`, `HasDocument = false`, `MaxVersions = 1` and the read-only `Metadata` FileType. |
 
-`Name`, `Description`, `Documentation` and `Labels` remain optional in
+`Name`, `Description`, `Documentation` and `Labels` remain OPTIONAL in
 these units. `XREG-Identity` does not make `Name` mandatory. A metadata-only
 catalog Resource MUST NOT claim `XREG-Resource` without its document-backed
 contract. If it claims `XREG-MetadataResource`, it MUST meet that unit's
