@@ -43,7 +43,7 @@ python -B -m pytest workingdrafts/models/wot/tests/test_wot_examples.py -q
 [schema.json](schema.json) defines the format with JSON Schema draft 2020-12
 and rejects unknown fields. The document maps stable case IDs such as
 `001-floor-met` to self-contained inputs and literal expected outcomes.
-Case numbers retain their original identities, so gaps are intentional.
+Case IDs are stable identifiers, not a contiguous sequence.
 Each case has these fields:
 
 | Field | Meaning |
@@ -143,7 +143,7 @@ Otherwise, a sticky default is authoritative and MUST be in range.
 Without a sticky default, the highest eligible SemVer wins. Generated
 `0.0.0-N` ids are prereleases and are never valid floors.
 
-## Retained cases
+## Cases
 
 ### Selection
 
@@ -204,7 +204,7 @@ Expected results MUST come from the specification, not from the resolver
 being checked. Run the standalone checker and pytest after a change.
 Files use UTF-8, LF and a final newline, with two-space JSON indentation.
 
-There is no directory checksum manifest. Source formatting is not a
-resolver-integrity test. These examples omit many error permutations,
-additional SemVer ordering cases and TD-generated assignment. They also
+These examples test resolver behavior, not source formatting. They omit many
+error permutations, additional SemVer ordering cases and TD-generated
+assignment. They also
 do not test stored-document digests, compatibility or deployed publication.

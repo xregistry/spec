@@ -464,6 +464,106 @@
         }
       }
     },
+    "/messagegroups": {
+      "get": {
+        "operationId": "getMessagegroupsAll",
+        "tags": [
+          "ResourceGroupCollection"
+        ],
+        "description": "Gets all resource groups. Supports optional filtering ('filter'), inlining ('inline'), and document view ('doc'). (See spec: Registry Collections, Inline, and Filter)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource groups that match the query (or all groups if no filter is specified).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/messagegroup"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/endpoints": {
+      "get": {
+        "operationId": "getEndpointsAll",
+        "tags": [
+          "ResourceGroupCollection"
+        ],
+        "description": "Gets all resource groups. Supports optional filtering ('filter'), inlining ('inline'), and document view ('doc'). (See spec: Registry Collections, Inline, and Filter)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource groups that match the query (or all groups if no filter is specified).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/endpoint"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
     "/messagegroups/{groupid}": {
       "parameters": [
         {
@@ -3168,7 +3268,11 @@
             "description": "Envelope metadata constraints",
             "properties": {
               "mode": {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "binary",
+                  "structured"
+                ]
               },
               "format": {
                 "type": "string"
@@ -3236,7 +3340,8 @@
               },
               "deployed": {
                 "type": "boolean",
-                "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication"
+                "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                "default": true
               },
               "node": {
                 "type": "string",
@@ -3244,7 +3349,8 @@
               },
               "durable": {
                 "type": "boolean",
-                "description": "Whether the AMQP node identified by 'node' is durable rather than transient. This is a property of the node, not of the link terminus and not of the message header field of the same name. Terminus durability is expressed by 'terminus-durability'"
+                "description": "Whether the AMQP node identified by 'node' is durable rather than transient. This is a property of the node, not of the link terminus and not of the message header field of the same name. Terminus durability is expressed by 'terminus-durability'",
+                "default": false
               },
               "link-properties": {
                 "type": "object",
@@ -3262,7 +3368,12 @@
               },
               "distribution-mode": {
                 "type": "string",
-                "description": "The AMQP source distribution mode. 'move' means a transferred message is removed from the node and is therefore seen by only one receiver. 'copy' means the message remains at the node after transfer and may also be transferred to other receivers. This does not describe message locking"
+                "description": "The AMQP source distribution mode. 'move' means a transferred message is removed from the node and is therefore seen by only one receiver. 'copy' means the message remains at the node after transfer and may also be transferred to other receivers. This does not describe message locking",
+                "default": "move",
+                "enum": [
+                  "move",
+                  "copy"
+                ]
               },
               "connection-capabilities": {
                 "type": "array",
@@ -3289,11 +3400,22 @@
               },
               "terminus-durability": {
                 "type": "string",
-                "description": "Durability mode for the applicable source/target terminus"
+                "description": "Durability mode for the applicable source/target terminus",
+                "enum": [
+                  "none",
+                  "configuration",
+                  "unsettled-state"
+                ]
               },
               "expiry-policy": {
                 "type": "string",
-                "description": "Expiry policy for the applicable source/target terminus"
+                "description": "Expiry policy for the applicable source/target terminus",
+                "enum": [
+                  "link-detach",
+                  "session-end",
+                  "connection-close",
+                  "never"
+                ]
               },
               "timeout": {
                 "type": "integer",
@@ -3302,11 +3424,20 @@
               },
               "sender-settle-mode": {
                 "type": "string",
-                "description": "AMQP sender settle mode requested for the link. It constrains the party that sends transfers over the link: the client for a producer endpoint, the remote node for a consumer endpoint"
+                "description": "AMQP sender settle mode requested for the link. It constrains the party that sends transfers over the link: the client for a producer endpoint, the remote node for a consumer endpoint",
+                "enum": [
+                  "unsettled",
+                  "settled",
+                  "mixed"
+                ]
               },
               "receiver-settle-mode": {
                 "type": "string",
-                "description": "AMQP receiver settle mode requested for the link. It constrains the party that receives transfers over the link: the remote node for a producer endpoint, the client for a consumer endpoint"
+                "description": "AMQP receiver settle mode requested for the link. It constrains the party that receives transfers over the link: the remote node for a producer endpoint, the client for a consumer endpoint",
+                "enum": [
+                  "first",
+                  "second"
+                ]
               }
             }
           }
@@ -3371,7 +3502,8 @@
               },
               "deployed": {
                 "type": "boolean",
-                "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication"
+                "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                "default": true
               },
               "topic": {
                 "type": "string",
@@ -3380,15 +3512,23 @@
               "qos": {
                 "type": "integer",
                 "minimum": 0,
-                "description": "The MQTT QoS level. May be 0, 1, or 2"
+                "description": "The MQTT QoS level. May be 0, 1, or 2",
+                "default": 0,
+                "enum": [
+                  0,
+                  1,
+                  2
+                ]
               },
               "retain": {
                 "type": "boolean",
-                "description": "The MQTT retain flag to use for publishers on ths endpoint"
+                "description": "The MQTT retain flag to use for publishers on ths endpoint",
+                "default": false
               },
               "cleansession": {
                 "type": "boolean",
-                "description": "The MQTT clean session flag to use for publishers on this endpoint"
+                "description": "The MQTT clean session flag to use for publishers on this endpoint",
+                "default": true
               },
               "topicfilter": {
                 "type": "string",
@@ -3466,7 +3606,8 @@
               },
               "deployed": {
                 "type": "boolean",
-                "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication"
+                "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                "default": true
               },
               "topic": {
                 "type": "string",
@@ -3475,11 +3616,18 @@
               "qos": {
                 "type": "integer",
                 "minimum": 0,
-                "description": "The MQTT QoS level. May be 0, 1, or 2"
+                "description": "The MQTT QoS level. May be 0, 1, or 2",
+                "default": 0,
+                "enum": [
+                  0,
+                  1,
+                  2
+                ]
               },
               "retain": {
                 "type": "boolean",
-                "description": "The MQTT retain flag to use for publishers on ths endpoint"
+                "description": "The MQTT retain flag to use for publishers on ths endpoint",
+                "default": false
               },
               "topicfilter": {
                 "type": "string",
@@ -3509,7 +3657,12 @@
               "retainhandling": {
                 "type": "integer",
                 "minimum": 0,
-                "description": "MQTT 5 retain-handling subscription mode"
+                "description": "MQTT 5 retain-handling subscription mode",
+                "enum": [
+                  0,
+                  1,
+                  2
+                ]
               },
               "willtopic": {
                 "type": "string",
@@ -3555,11 +3708,13 @@
                     },
                     "security.protocol": {
                       "type": "string",
-                      "description": "The Kafka security protocol"
+                      "description": "The Kafka security protocol",
+                      "default": "PLAINTEXT"
                     },
                     "sasl.mechanism": {
                       "type": "string",
-                      "description": "The Kafka SASL mechanism"
+                      "description": "The Kafka SASL mechanism",
+                      "default": "PLAIN"
                     }
                   }
                 }
@@ -3593,7 +3748,8 @@
               },
               "deployed": {
                 "type": "boolean",
-                "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication"
+                "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                "default": true
               },
               "topic": {
                 "type": "string",
@@ -3601,7 +3757,8 @@
               },
               "acks": {
                 "type": "integer",
-                "description": "The Apache Kafka acks setting to use. If no acks setting is specified, the default is 1"
+                "description": "The Apache Kafka acks setting to use. If no acks setting is specified, the default is 1",
+                "default": 1
               },
               "key": {
                 "type": "string",
@@ -3624,15 +3781,22 @@
               },
               "keyserializer": {
                 "type": "string",
-                "description": "The Kafka key serializer"
+                "description": "The Kafka key serializer",
+                "default": "org.apache.kafka.common.serialization.StringSerializer"
               },
               "valueserializer": {
                 "type": "string",
-                "description": "The Kafka value serializer"
+                "description": "The Kafka value serializer",
+                "default": "org.apache.kafka.common.serialization.StringSerializer"
               },
               "autooffsetreset": {
                 "type": "string",
-                "description": "Consumer offset reset behavior when no valid committed offset exists"
+                "description": "Consumer offset reset behavior when no valid committed offset exists",
+                "enum": [
+                  "earliest",
+                  "latest",
+                  "none"
+                ]
               },
               "enableautocommit": {
                 "type": "boolean",
@@ -3701,11 +3865,13 @@
               },
               "deployed": {
                 "type": "boolean",
-                "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication"
+                "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                "default": true
               },
               "method": {
                 "type": "string",
-                "description": "The HTTP method name"
+                "description": "The HTTP method name",
+                "default": "POST"
               },
               "headers": {
                 "type": "array",
@@ -3740,11 +3906,13 @@
               },
               "apikeyin": {
                 "type": "string",
-                "description": "Placement of API key metadata for HTTP when authorization.type is APIKey. Expected values: header or query"
+                "description": "Placement of API key metadata for HTTP when authorization.type is APIKey. Expected values: header or query",
+                "default": "header"
               },
               "plainscheme": {
                 "type": "string",
-                "description": "HTTP transport pattern when authorization.type is Plain. Expected values: basic, form, or query"
+                "description": "HTTP transport pattern when authorization.type is Plain. Expected values: basic, form, or query",
+                "default": "basic"
               },
               "plainusernamefield": {
                 "type": "string",
@@ -3817,7 +3985,8 @@
               },
               "deployed": {
                 "type": "boolean",
-                "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication"
+                "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                "default": true
               },
               "subject": {
                 "type": "string",

@@ -1,0 +1,281 @@
+{
+  "$schema": "https://json-structure.org/meta/extended/v0/#",
+  "$id": "https://xregistry.io/workingdrafts/publication/schemas/document-schema.struct.json",
+  "$uses": [
+    "JSONStructureAlternateNames"
+  ],
+  "name": "PublicationRegistryDocument",
+  "type": "object",
+  "properties": {
+    "publications": {
+      "type": "map",
+      "values": {
+        "type": {
+          "$ref": "#/definitions/Publications/Publication"
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "Publications": {
+      "ChannelMeta": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch of the object"
+          },
+          "self": {
+            "type": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "uri",
+            "description": "XID of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "uri",
+            "description": "Documentation URL"
+          },
+          "labels": {
+            "type": "map",
+            "values": {
+              "type": "string"
+            }
+          },
+          "createdat": {
+            "type": "datetime",
+            "description": "Creation time"
+          },
+          "modifiedat": {
+            "type": "datetime",
+            "description": "Modification time"
+          },
+          "scope": {
+            "type": "uri",
+            "description": "Publication scope; not a Group identity."
+          },
+          "head": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "uri"
+              },
+              "digest": {
+                "type": "string"
+              },
+              "size": {
+                "type": "uint32"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "url",
+              "digest",
+              "size"
+            ],
+            "description": "One authoritative manifest reference; requires an epoch-checked Meta update."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "scope",
+          "head"
+        ]
+      },
+      "Channel": {
+        "type": "object",
+        "properties": {
+          "channelid": {
+            "type": "string",
+            "description": "ID of the channel object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch of the object"
+          },
+          "self": {
+            "type": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "uri",
+            "description": "XID of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "uri",
+            "description": "Documentation URL"
+          },
+          "labels": {
+            "type": "map",
+            "values": {
+              "type": "string"
+            }
+          },
+          "createdat": {
+            "type": "datetime",
+            "description": "Creation time"
+          },
+          "modifiedat": {
+            "type": "datetime",
+            "description": "Modification time"
+          },
+          "meta": {
+            "type": {
+              "$ref": "#/definitions/Publications/ChannelMeta"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Snapshot": {
+        "type": "object",
+        "properties": {
+          "snapshotid": {
+            "type": "string",
+            "description": "ID of the snapshot object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch of the object"
+          },
+          "self": {
+            "type": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "uri",
+            "description": "XID of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "uri",
+            "description": "Documentation URL"
+          },
+          "labels": {
+            "type": "map",
+            "values": {
+              "type": "string"
+            }
+          },
+          "createdat": {
+            "type": "datetime",
+            "description": "Creation time"
+          },
+          "modifiedat": {
+            "type": "datetime",
+            "description": "Modification time"
+          },
+          "contenttype": {
+            "type": "string",
+            "enum": [
+              "application/json"
+            ],
+            "default": "application/json"
+          },
+          "snapshot": {
+            "type": "any",
+            "description": "Embedded snapshot document"
+          },
+          "snapshotbase64": {
+            "type": "binary",
+            "description": "Base64-encoded snapshot document"
+          },
+          "snapshoturl": {
+            "type": "uri",
+            "description": "URL of the snapshot document"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Publication": {
+        "type": "object",
+        "properties": {
+          "publicationid": {
+            "type": "string",
+            "description": "ID of the publication object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch of the object"
+          },
+          "self": {
+            "type": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "uri",
+            "description": "XID of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "uri",
+            "description": "Documentation URL"
+          },
+          "labels": {
+            "type": "map",
+            "values": {
+              "type": "string"
+            }
+          },
+          "createdat": {
+            "type": "datetime",
+            "description": "Creation time"
+          },
+          "modifiedat": {
+            "type": "datetime",
+            "description": "Modification time"
+          },
+          "channels": {
+            "type": "map",
+            "values": {
+              "type": {
+                "$ref": "#/definitions/Publications/Channel"
+              }
+            }
+          },
+          "snapshots": {
+            "type": "map",
+            "values": {
+              "type": {
+                "$ref": "#/definitions/Publications/Snapshot"
+              }
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

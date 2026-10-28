@@ -48,7 +48,7 @@ def build():
         "registry": manifest["registry"],
         "completeness": manifest["completeness"],
         "channel": {
-            "url": "https://publisher.example.test/publicationstores/team/channels/stable",
+            "url": "https://publisher.example.test/publications/team/channels/stable",
             "epoch": 12,
         },
     }

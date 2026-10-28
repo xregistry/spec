@@ -20,6 +20,10 @@ publish a set. Those workflows use the
 The companion's closure schema and checks validate shape. They do not establish
 deployed resolver conformance.
 
+The [generated model schemas](../../tools/README.md) describe Registry
+metadata in JSON Schema, JSON Structure, Avro and OpenAPI. Their fidelity
+checks include the Thing Model's Meta compatibility field.
+
 The [27 representative vectors](tests/resolution/README.md) test how the
 registry assigns versions and resolves references. Some cases test how the
 registry applies floors and matches caller pins. Others test how it honors
@@ -32,9 +36,9 @@ These examples do not provide exhaustive regression coverage.
 [Channel]: ../../publication/spec.md#publishing-and-opening-a-channel
 [Export]: ../../publication/spec.md#export-federation-and-binding-equivalence
 [Closure]: ../../publication/spec.md#domain-closure-and-compatibility
-[Publication]: publication/design.md#wot-channels-snapshots-and-dependency-bindings
+[Publication]: ../../publication/design/design.md#wot-channels-snapshots-and-dependency-bindings
 [Spec]: spec.md
 [Model]: model.json
 [Decisions]: decisions.md
-[Versioning]: publication/design.md#wot-versioning-design-overview
+[Versioning]: ../../publication/design/design.md#wot-versioning-design-overview
 [Samples]: samples/README.md

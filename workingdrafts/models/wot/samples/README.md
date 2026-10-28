@@ -3,8 +3,8 @@
 <!-- words: WoT thingdescriptiongroups thingmodelgroups fabrikam wotid derivedfrom byom contoso standardsbody maturity affordance minversion versionorigin -->
 <!-- words: factoryfloor inletpressure -->
 
-[registry.json](registry.json) combines the lamp and vendor-model scenarios
-in one document using the [WoT Registry model](../model.json).
+[registry.json](registry.json) contains lamp and vendor-model examples
+using the [WoT Registry model](../model.json).
 
 | Group | Content |
 | --- | --- |
@@ -13,9 +13,8 @@ in one document using the [WoT Registry model](../model.json).
 | `Contoso.Pumps` | Vendor-supplied pump and device Thing Models, including two compatible pump Versions. |
 
 A Consumer holding an authored identifier finds the Resource by querying
-`wotid`. The combined document includes both the lamp model and the Thing
-Description that conforms to it. It uses the full lamp documents rather than
-a second, shortened representation of the same identities.
+`wotid`. The Registry contains the complete lamp model and the Thing
+Description that conforms to it.
 
 Contoso stores its models as authored. Their `id` members and the pump's
 `tm:extends` link remain unchanged. Both models have `"maturity": "Vendor"`
@@ -38,5 +37,5 @@ The publication requests omit `versionorigin` because the model initializes
 it to `authored`. The registry remains responsible for assignment.
 
 [publication-closure.json](publication-closure.json) is a separate example
-of the [proposed closure envelope](../publication/design.md#selection-and-acceptance), not Registry
+of the [proposed closure envelope](../../../publication/design/design.md#selection-and-acceptance), not Registry
 content or a complete snapshot. Its checks validate shape only.

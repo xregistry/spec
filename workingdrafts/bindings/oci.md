@@ -1098,11 +1098,11 @@ documents. For an explicitly configured loopback HTTP test registry, add
 `--from-plain-http` to the retrieval `oras cp` command.
 
 An artifact copier can rewrite the destination's mutable `index.json`
-without changing the immutable graph. In the ORAS 1.3.0
-Distribution-to-layout exercise, every graph object retained its exact bytes,
-but the entry point omitted the root descriptor's `artifactType` and added
-entries for contained indexes and manifests. Those entries are not additional
-eligible Registry roots.
+without changing the immutable graph. The ORAS 1.3.0 Distribution-to-layout
+test checks every graph object's exact bytes while allowing the entry point
+to omit the root descriptor's `artifactType` and include entries for
+contained indexes and manifests. Those entries are not additional eligible
+Registry roots.
 
 The validation commands therefore select the reported root digest directly,
 not the copied tag or an unqualified default. The reader still verifies the

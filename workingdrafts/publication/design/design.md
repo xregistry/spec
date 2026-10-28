@@ -18,8 +18,8 @@ workflows. They cover:
 - Managing channels and snapshots
 - Exporting manifests and federating sources
 
-The existing [specification](../spec.md) defines SemVer rules. The
-[vectors](../tests/resolution/README.md) exercise that baseline.
+The existing [specification](../../models/wot/spec.md) defines SemVer rules. The
+[vectors](../../models/wot/tests/resolution/README.md) exercise that baseline.
 
 ### Decision and problem
 
@@ -292,7 +292,7 @@ Its value in the generic manifest's `extensions` map is a checked descriptor
 of a `wot-publication-closure/1` JSON document. A domain-complete publication
 lists that URI in `requiredExtensions`. A generic reader that does not
 understand it fails rather than claiming WoT-complete interpretation.
-The [schema](../schemas/publication-closure.schema.json) defines its shape.
+The [schema](../../models/wot/schemas/publication-closure.schema.json) defines its shape.
 
 `entries` lists Version XIDs from the captured Registry view.
 Each `bindings` record contains:
@@ -510,16 +510,16 @@ establish those WoT semantics. A mapping for OPC UA needs the same context
 and closure semantics, including append-only generated NodeIds. This design
 pass does not change the `1.1-draft` model or either .NET runtime.
 
-The [shape example](../samples/publication-closure.json) illustrates one binding,
+The [shape example](../../models/wot/samples/publication-closure.json) illustrates one binding,
 not an independently complete snapshot. Three schema checks cover its shape
 and malformed pointers/missing targets. They do not validate authored bytes
 or prove dependency closure.
 
-[Publication]: ../../../publication/spec.md
-[Publication manifest]: ../../../publication/spec.md#manifest-and-integrity
-[Publication channel]: ../../../publication/spec.md#publishing-and-opening-a-channel
-[Publication export]: ../../../publication/spec.md#export-federation-and-binding-equivalence
-[Publication closure]: ../../../publication/spec.md#domain-closure-and-compatibility
+[Publication]: ../spec.md
+[Publication manifest]: ../spec.md#manifest-and-integrity
+[Publication channel]: ../spec.md#publishing-and-opening-a-channel
+[Publication export]: ../spec.md#export-federation-and-binding-equivalence
+[Publication closure]: ../spec.md#domain-closure-and-compatibility
 
 ## WoT Versioning: Design and Operating Workflows
 
@@ -537,9 +537,9 @@ or prove dependency closure.
 
 This document proposes an informative design for review. It does not
 implement or make normative the incremental profile, vocabulary, diagnostics,
-or mappings described here. The [WoT specification](../spec.md) defines the
-SemVer baseline. The [model](../model.json) describes its data model. The
-[27 representative resolution vectors](../tests/resolution/README.md) test that
+or mappings described here. The [WoT specification](../../models/wot/spec.md) defines the
+SemVer baseline. The [model](../../models/wot/model.json) describes its data model. The
+[27 representative resolution vectors](../../models/wot/tests/resolution/README.md) test that
 baseline. They do not demonstrate that the incremental design works.
 
 The [two-page overview](#wot-versioning-design-overview) states the decision.
@@ -1697,7 +1697,7 @@ the mechanism and state/error trace above.
 
 Evidence labels:
 
-- `E0`: current [SemVer vectors](../tests/resolution/README.md) and checker.
+- `E0`: current [SemVer vectors](../../models/wot/tests/resolution/README.md) and checker.
   They exercise normalized assignment and selection. They do not test HTTP
   publication, compatibility checks, real digests, or migration.
 - `N-P`: planned publication/adapter integration evidence.
@@ -1715,7 +1715,7 @@ For E0, the existing examples include:
 - [Pin precedence][vector-049]
 - [TD major bounds][vector-050]
 
-Their current contract is in [../spec.md](../spec.md). They contain neither
+Their current contract is in [../spec.md](../../models/wot/spec.md). They contain neither
 incremental profiles nor deployment-vocabulary parsing.
 
 | Workflow IDs | Mechanisms | Evidence status |
@@ -1835,29 +1835,29 @@ Putting exact registry revisions into authored reference URLs binds them
 to one source's numbering. Keep authored requirements separate from the
 origin-scoped resolution record. Explicitly map independent copies.
 
-[Core versionmode]: ../../../../core/model.md#groupsstringresourcesstringversionmode
-[Core singleversionroot]: ../../../../core/model.md#groupsstringresourcesstringsingleversionroot
-[Core version IDs]: ../../../../core/spec.md#version-ids
-[Core versionid]: ../../../../core/spec.md#versionid-attribute
-[Core ancestorid]: ../../../../core/spec.md#ancestorid-attribute
-[Core defaults]: ../../../../core/spec.md#default-version-of-a-resource
-[Core sticky]: ../../../../core/spec.md#defaultversionsticky-attribute
+[Core versionmode]: ../../../core/model.md#groupsstringresourcesstringversionmode
+[Core singleversionroot]: ../../../core/model.md#groupsstringresourcesstringsingleversionroot
+[Core version IDs]: ../../../core/spec.md#version-ids
+[Core versionid]: ../../../core/spec.md#versionid-attribute
+[Core ancestorid]: ../../../core/spec.md#ancestorid-attribute
+[Core defaults]: ../../../core/spec.md#default-version-of-a-resource
+[Core sticky]: ../../../core/spec.md#defaultversionsticky-attribute
 [WoT proposal]: https://github.com/marcschier/wot-thing-description/pull/1
 [Publication acceptance]: #selection-and-acceptance
-[Publication manifest]: ../../../publication/spec.md#manifest-and-integrity
-[Publication channel]: ../../../publication/spec.md#publishing-and-opening-a-channel
-[Publication export]: ../../../publication/spec.md#export-federation-and-binding-equivalence
-[Publication closure]: ../../../publication/spec.md#domain-closure-and-compatibility
+[Publication manifest]: ../spec.md#manifest-and-integrity
+[Publication channel]: ../spec.md#publishing-and-opening-a-channel
+[Publication export]: ../spec.md#export-federation-and-binding-equivalence
+[Publication closure]: ../spec.md#domain-closure-and-compatibility
 [workflow-c01]: #c01-follow-the-newest-revision-in-a-line
 [workflow-c02]: #c02-require-a-features-minimum-revision
 [workflow-c14]: #c14-replay-an-exact-revision
 [workflow-a05]: #a05-set-a-sticky-default
 [workflow-a06]: #a06-diagnose-a-default-conflict
-[vector-026]: ../tests/resolution/README.md#pins
-[vector-036]: ../tests/resolution/README.md#assignment
-[vector-043]: ../tests/resolution/README.md#type-link-floors
-[vector-049]: ../tests/resolution/README.md#pins
-[vector-050]: ../tests/resolution/README.md#td-ranges
+[vector-026]: ../../models/wot/tests/resolution/README.md#pins
+[vector-036]: ../../models/wot/tests/resolution/README.md#assignment
+[vector-043]: ../../models/wot/tests/resolution/README.md#type-link-floors
+[vector-049]: ../../models/wot/tests/resolution/README.md#pins
+[vector-050]: ../../models/wot/tests/resolution/README.md#td-ranges
 [mechanism-d1]: #d1-fixed-endpoint-profiles
 [mechanism-d2]: #d2-identity-and-source-scope
 [mechanism-d3]: #d3-publication-and-durable-allocation
@@ -1867,6 +1867,6 @@ origin-scoped resolution record. Explicitly map independent copies.
 [mechanism-d7]: #d7-selection-defaults-and-exact-pins
 [mechanism-d8]: #d8-state-changes-recovery-and-migration
 [mechanism-d9]: #d9-implementation-responsibilities
-[pub-proposal]: ../../../publication/spec.md
+[pub-proposal]: ../spec.md
 [pub-closure]: #wot-channels-snapshots-and-dependency-bindings
 [wot-summary]: #wot-versioning-design-overview

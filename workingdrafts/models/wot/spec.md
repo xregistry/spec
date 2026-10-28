@@ -952,7 +952,7 @@ Rewriting is incompatible with these documents for three reasons:
   rewritten target no longer matches what any other WoT tool would look for.
 - A document copied between two registries would acquire two different
   identities for the same bytes, so neither registry could tell the copies
-  apart from genuinely distinct documents.
+  apart from distinct documents.
 
 The registry's own identity for a document — its `thingdescriptionid` or
 `thingmodelid`, and the `xid` those form — therefore lives *outside* the

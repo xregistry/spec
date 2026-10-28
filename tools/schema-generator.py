@@ -196,7 +196,7 @@ def generate_openapi(model_definition):
             path_template_copy = copy.deepcopy(path_template)
             replace_refs(path_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
             replace_ops(path_template_copy, "{%-groupNamePlural-%}", f"{pascal(group['plural'])}")
-            openapi["paths"][f"/{group['plural']}"]: path_template_copy
+            openapi["paths"][f"/{group['plural']}"] = path_template_copy
         openapi["paths"].pop(path)
 
         path = "/{%-groupNamePlural-%}/{groupid}"
@@ -235,6 +235,8 @@ def generate_openapi(model_definition):
             for _, resource in group.get("resources", {}).items():
                 resource = resolve_resource(group, resource)
                 meta_template_copy = copy.deepcopy(meta_template)
+                if resource.get("metaattributes"):
+                    replace_refs(meta_template_copy, "#/components/schemas/Meta", f"#/components/schemas/{resource['singular']}Meta")
                 replace_refs(meta_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}")
                 replace_refs(meta_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(meta_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
@@ -244,6 +246,9 @@ def generate_openapi(model_definition):
                 xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
                 xid_group_singular = model_definition["groups"][xid_group_plural]["singular"]
                 meta_template_copy = copy.deepcopy(meta_template)
+                imported_resource = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]
+                if imported_resource.get("metaattributes"):
+                    replace_refs(meta_template_copy, "#/components/schemas/Meta", f"#/components/schemas/{xid_resource_singular}Meta")
                 replace_refs(meta_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{xid_resource_singular}")
                 replace_refs(meta_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{xid_group_singular}")
                 replace_ops(meta_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(xid_resource_plural)}")
@@ -298,7 +303,8 @@ def generate_openapi(model_definition):
             for _, resource in group.get("resources", {}).items():
                 resource = resolve_resource(group, resource)
                 versions_template_copy = copy.deepcopy(versions_template)
-                replace_refs(versions_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}")
+                version_name = resource["singular"] + ("Version" if resource.get("maxversions", -1) != 1 else "")
+                replace_refs(versions_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{version_name}")
                 replace_refs(versions_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(versions_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}/versions"]= versions_template_copy
@@ -307,7 +313,9 @@ def generate_openapi(model_definition):
                 xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
                 xid_group_singular = model_definition["groups"][xid_group_plural]["singular"]
                 versions_template_copy = copy.deepcopy(versions_template)
-                replace_refs(versions_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{xid_resource_singular}")
+                imported_resource = resolve_resource(group, model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural])
+                version_name = xid_resource_singular + ("Version" if imported_resource.get("maxversions", -1) != 1 else "")
+                replace_refs(versions_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{version_name}")
                 replace_refs(versions_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{xid_group_singular}")
                 replace_ops(versions_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(xid_resource_plural)}")
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{xid_resource_plural}/{{resourceid}}/versions"]= versions_template_copy
@@ -319,7 +327,8 @@ def generate_openapi(model_definition):
             for _, resource in group.get("resources", {}).items():
                 resource = resolve_resource(group, resource)
                 versionid_template_copy = copy.deepcopy(versionid_template)
-                replace_refs(versionid_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}")
+                version_name = resource["singular"] + ("Version" if resource.get("maxversions", -1) != 1 else "")
+                replace_refs(versionid_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{version_name}")
                 replace_refs(versionid_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(versionid_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}/versions/{{versionid}}"]= versionid_template_copy
@@ -328,7 +337,9 @@ def generate_openapi(model_definition):
                 xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
                 xid_group_singular = model_definition["groups"][xid_group_plural]["singular"]
                 versionid_template_copy = copy.deepcopy(versionid_template)
-                replace_refs(versionid_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{xid_resource_singular}")
+                imported_resource = resolve_resource(group, model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural])
+                version_name = xid_resource_singular + ("Version" if imported_resource.get("maxversions", -1) != 1 else "")
+                replace_refs(versionid_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{version_name}")
                 replace_refs(versionid_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{xid_group_singular}")
                 replace_ops(versionid_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(xid_resource_plural)}")
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{xid_resource_plural}/{{resourceid}}/versions/{{versionid}}"]= versionid_template_copy
@@ -443,6 +454,11 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                 attr_schema["description"] = attr_props["description"]
             if "description" in attr_schema and attr_schema["description"] == "":
                 del attr_schema["description"]
+
+            if "default" in attr_props:
+                attr_schema["default"] = copy.deepcopy(attr_props["default"])
+            if attr_props.get("enum") and attr_props.get("strict", True) and attr_props["type"] != "array":
+                attr_schema["enum"] = copy.deepcopy(attr_props["enum"])
 
             if attr_props["type"] == "object" or attr_props["type"] == "map" or attr_props["type"] == "array":
                 if "item" in attr_props:
@@ -664,6 +680,16 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                             "required": ["versions"]
                         }
                     ]
+                resource_schema["properties"].update({
+                    "versionsurl": {"type": "string"},
+                    "versionscount": {"type": "integer"},
+                    "versions": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": f"{group_definition_prefix}{resource_name}Version"
+                        }
+                    }
+                })
 
                 # For OpenAPI: flat keys, for JSON Schema: nested structure
                 if for_openapi:
@@ -674,6 +700,20 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                     schema_definitions[f"{group_name}-schema"][f"{resource_name}Version"] = resource_version_schema
             else:
                 handle_attributes(resource_schema, attributes)
+
+            if resource.get("metaattributes"):
+                meta_schema = {
+                    "type": "object",
+                    "properties": copy.deepcopy(json_common_attributes)
+                }
+                handle_attributes(meta_schema, resource["metaattributes"])
+                resource_schema["properties"]["meta"] = {
+                    "$ref": f"{group_definition_prefix}{resource_name}Meta"
+                }
+                if for_openapi:
+                    schema_definitions[f"{resource_name}Meta"] = meta_schema
+                else:
+                    schema_definitions.setdefault(f"{group_name}-schema", {})[f"{resource_name}Meta"] = meta_schema
 
             # For OpenAPI: flat keys, for JSON Schema: nested structure
             if for_openapi:
@@ -765,6 +805,8 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
             schema["description"] = definition["description"]
         if definition.get("enum") and definition.get("strict", True):
             schema["enum"] = copy.deepcopy(definition["enum"])
+        if "default" in definition:
+            schema["default"] = copy.deepcopy(definition["default"])
 
     def value_schema(definition, namespace, suggested_name, require_reference=False):
         value_type = definition["type"]
@@ -925,6 +967,15 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                         "values": reference(namespace, version_type_name)
                     }
                 })
+            if resource.get("metaattributes"):
+                meta_type_name = resource_type_name + "Meta"
+                meta_schema = object_schema(
+                    {**common_attributes, **resource["metaattributes"]},
+                    namespace,
+                    meta_type_name
+                )
+                add_definition(namespace, meta_type_name, meta_schema)
+                resource_schema["properties"]["meta"] = reference(namespace, meta_type_name)
             add_definition(namespace, resource_type_name, resource_schema)
             resource_collections[resource_plural] = {
                 "type": "map",
@@ -1027,7 +1078,7 @@ def generate_avro_schema(model_definition) -> dict:
             break
         for _, resource in group.get("resources", {}).items():
             resource = resolve_resource(group, resource)
-            if "attributes" in resource and needs_generic_record(resource["attributes"]):
+            if any(needs_generic_record(resource.get(scope, {})) for scope in ("attributes", "metaattributes")):
                 generic_record_needed = True
                 break
         if generic_record_needed:
@@ -1040,7 +1091,7 @@ def generate_avro_schema(model_definition) -> dict:
         if type == "object":
             if "attributes" in item:
                 item_schema = { "type": "record", "name" : prefix+name+"Type", "fields": []}
-                handle_attributes(item_schema, item["attributes"], prefix)
+                handle_attributes(item_schema, item["attributes"], prefix+name)
                 resource_schema["type"] = item_schema
             else:
                 # Use GenericRecord reference (it's defined at document level if needed)
@@ -1105,7 +1156,9 @@ def generate_avro_schema(model_definition) -> dict:
                 attr_schema["doc"] = attr_props["description"]
 
             if attr_props["type"] == "object" or attr_props["type"] == "map" or attr_props["type"] == "array":
-                if "item" in attr_props:
+                if attr_props["type"] == "object" and "attributes" in attr_props:
+                    handle_item(attr_schema, "object", attr_props, pascal_attr_name, type_prefix)
+                elif "item" in attr_props:
                     # Pass enum values if this is an array with enum constraint
                     enum_values = attr_props.get("enum") if attr_props["type"] == "array" else None
                     handle_item(attr_schema, attr_props["type"], attr_props["item"], pascal_attr_name, type_prefix, enum_values)
@@ -1276,7 +1329,7 @@ def generate_avro_schema(model_definition) -> dict:
                     "fields": props
                 }
                 attributes = resource.get("attributes", {})
-                if resource.get("versions", 1) != 1:
+                if resource.get("maxversions", -1) != 1:
                     resource_version_schema = copy.deepcopy(resource_schema)
                     resource_version_schema["fields"].insert(0, {"name" : "versionid", "type": "string", "description": f"ID of the {resource_name} version"})
                     handle_attributes(resource_version_schema, attributes)
@@ -1307,6 +1360,15 @@ def generate_avro_schema(model_definition) -> dict:
                         })
                 else:
                     handle_attributes(resource_schema, attributes)
+
+                if resource.get("metaattributes"):
+                    meta_schema = {
+                        "type": "record",
+                        "name": pascal(resource_name)+"MetaType",
+                        "fields": copy.deepcopy(avro_common_attributes)
+                    }
+                    handle_attributes(meta_schema, resource["metaattributes"], pascal(resource_name)+"Meta")
+                    resource_schema["fields"].append({"name": "meta", "type": meta_schema})
 
                 resource_collection_fields.append({
                     "name": camel(resource["plural"]),
@@ -1455,7 +1517,7 @@ def main():
     if (args.type == 'json-schema'):
         json_schema = generate_json_schema(model_definition, schema_id=args.schema_id)
         if args.output:
-            with open(args.output, 'w', encoding='utf-8') as of:
+            with open(args.output, 'w', encoding='utf-8', newline='\n') as of:
                 json.dump(json_schema, of, indent=2)
         else:
             print(json.dumps(json_schema, indent=2))
@@ -1466,21 +1528,21 @@ def main():
             schema_name=args.schema_name
         )
         if args.output:
-            with open(args.output, 'w', encoding='utf-8') as of:
+            with open(args.output, 'w', encoding='utf-8', newline='\n') as of:
                 json.dump(json_structure, of, indent=2)
         else:
             print(json.dumps(json_structure, indent=2))
     elif (args.type == 'avro-schema'):
         avro_schema = generate_avro_schema(model_definition)
         if args.output:
-            with open(args.output, 'w') as of:
+            with open(args.output, 'w', encoding='utf-8', newline='\n') as of:
                 json.dump(avro_schema, of, indent=2)
         else:
             print(json.dumps(avro_schema, indent=2))
     elif (args.type == 'openapi'):
         openapi = generate_openapi(model_definition)
         if args.output:
-            with open(args.output, 'w') as of:
+            with open(args.output, 'w', encoding='utf-8', newline='\n') as of:
                 json.dump(openapi, of, indent=2)
         else:
             print(json.dumps(openapi, indent=2))

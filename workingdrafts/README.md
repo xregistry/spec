@@ -86,7 +86,7 @@ source for the federation and binding examples. Select one named example
 and generate a File mapping, a local Git repository or a native OCI artifact
 with [generate_examples.py](federation/tools/generate_examples.py). The
 generator does not start an HTTP or OPC UA server. Publication and domain
-model samples remain separate.
+models have their own sample directories.
 
 | Example | Content |
 | --- | --- |
@@ -137,7 +137,7 @@ Git output is a bare repository containing the mapping under `xregistry`,
 with a deterministic commit at `refs/heads/main` and an annotated
 `refs/tags/snapshot`. No remote is configured, and no Git push occurs.
 OCI defaults to `--reference snapshot` and `--page-size 256`. The smaller
-page size above reproduces the existing sharded `offline` graph and digest.
+page size above produces the sharded `offline` graph and its fixed digest.
 
 File and Git output put each record and index in its own file. Add
 `--inline` to embed all of them in `registry.json` instead. The
@@ -192,10 +192,10 @@ python -B -m pytest workingdrafts\bindings\tools workingdrafts\federation\tools 
 ```
 
 Tests distinguish exact document bytes, selected Version identity, complete
-graph validation and selective fetch traces. The suite keeps representative
+graph validation and selective fetch traces. The suite covers representative
 specification examples, not exhaustive helper regressions. It omits many
 filesystem races, URI variants, graph-budget boundaries and protocol error
-permutations. None of the retained observations alone establishes the
+permutations. None of these observations alone establishes the
 others. The [source-resolution helper](federation/tools/federation_resolution_examples.py)
 also checks local shadows and ordered source misses through in-memory reads.
 For a channel moving while a reader stays pinned, see the separate
@@ -217,10 +217,10 @@ open context provides a concrete snapshot pin without changing ordinary
 HTTP advertisements. Cross-binding equivalence requires a checked mapping,
 not equality of Registry IDs.
 
-The [WoT publication and versioning design](models/wot/publication/design.md)
+The [WoT publication and versioning design](publication/design/design.md)
 supplies the domain-specific closure design, schema, shape example, checks
 and version-selection rules. Its
-[overview](models/wot/publication/design.md#wot-versioning-design-overview)
+[overview](publication/design/design.md#wot-versioning-design-overview)
 explains how to assign document revisions, check compatibility and select
 live references.
 

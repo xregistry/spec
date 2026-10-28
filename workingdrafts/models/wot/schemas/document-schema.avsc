@@ -1,0 +1,876 @@
+{
+  "type": "record",
+  "name": "DocumentType",
+  "namespace": "io.xregistry",
+  "fields": [
+    {
+      "name": "genericRecordDefinition",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "GenericRecord",
+          "fields": [
+            {
+              "name": "object",
+              "type": {
+                "type": "map",
+                "values": [
+                  "null",
+                  "boolean",
+                  "int",
+                  "long",
+                  "float",
+                  "double",
+                  "bytes",
+                  "string",
+                  {
+                    "type": "array",
+                    "items": [
+                      "null",
+                      "boolean",
+                      "int",
+                      "long",
+                      "float",
+                      "double",
+                      "bytes",
+                      "string",
+                      "io.xregistry.GenericRecord"
+                    ]
+                  },
+                  "io.xregistry.GenericRecord"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "default": [],
+      "doc": "Internal field to define GenericRecord type for use in extension attributes"
+    },
+    {
+      "name": "thingdescriptiongroups",
+      "type": {
+        "type": "map",
+        "values": {
+          "type": "record",
+          "name": "ThingdescriptiongroupType",
+          "fields": [
+            {
+              "name": "thingdescriptiongroupid",
+              "type": "string",
+              "description": "ID of the thingdescriptiongroup object"
+            },
+            {
+              "name": "name",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Name of the object"
+            },
+            {
+              "name": "epoch",
+              "type": [
+                "int",
+                "null"
+              ],
+              "doc": "Epoch time of the object creation"
+            },
+            {
+              "name": "self",
+              "type": "string",
+              "doc": "URL of the object"
+            },
+            {
+              "name": "xid",
+              "type": "string",
+              "doc": "XID of the object"
+            },
+            {
+              "name": "description",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Description of the object"
+            },
+            {
+              "name": "documentation",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "URI of the documentation of the object"
+            },
+            {
+              "name": "labels",
+              "type": {
+                "type": "map",
+                "values": [
+                  "string",
+                  "null"
+                ]
+              },
+              "doc": "Labels for the object"
+            },
+            {
+              "name": "createdat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object creation"
+            },
+            {
+              "name": "modifiedat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object modification"
+            },
+            {
+              "name": "Extensions",
+              "type": {
+                "type": "map",
+                "name": "ExtensionsType",
+                "default": {},
+                "values": "io.xregistry.GenericRecord"
+              }
+            },
+            {
+              "name": "thingdescriptions",
+              "type": {
+                "type": "map",
+                "values": {
+                  "type": "record",
+                  "name": "ThingdescriptionType",
+                  "namespace": "io.xregistry.thingdescriptiongroups",
+                  "fields": [
+                    {
+                      "name": "thingdescriptionid",
+                      "type": "string",
+                      "description": "ID of the thingdescription object"
+                    },
+                    {
+                      "name": "name",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Name of the object"
+                    },
+                    {
+                      "name": "epoch",
+                      "type": [
+                        "int",
+                        "null"
+                      ],
+                      "doc": "Epoch time of the object creation"
+                    },
+                    {
+                      "name": "self",
+                      "type": "string",
+                      "doc": "URL of the object"
+                    },
+                    {
+                      "name": "xid",
+                      "type": "string",
+                      "doc": "XID of the object"
+                    },
+                    {
+                      "name": "description",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Description of the object"
+                    },
+                    {
+                      "name": "documentation",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "URI of the documentation of the object"
+                    },
+                    {
+                      "name": "labels",
+                      "type": {
+                        "type": "map",
+                        "values": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "doc": "Labels for the object"
+                    },
+                    {
+                      "name": "createdat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object creation"
+                    },
+                    {
+                      "name": "modifiedat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object modification"
+                    },
+                    {
+                      "name": "versions",
+                      "type": [
+                        {
+                          "type": "map",
+                          "values": {
+                            "type": "record",
+                            "name": "ThingdescriptionVersionType",
+                            "namespace": "io.xregistry.thingdescriptiongroups",
+                            "fields": [
+                              {
+                                "name": "versionid",
+                                "type": "string",
+                                "description": "ID of the thingdescription version"
+                              },
+                              {
+                                "name": "thingdescriptionid",
+                                "type": "string",
+                                "description": "ID of the thingdescription object"
+                              },
+                              {
+                                "name": "name",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "doc": "Name of the object"
+                              },
+                              {
+                                "name": "epoch",
+                                "type": [
+                                  "int",
+                                  "null"
+                                ],
+                                "doc": "Epoch time of the object creation"
+                              },
+                              {
+                                "name": "self",
+                                "type": "string",
+                                "doc": "URL of the object"
+                              },
+                              {
+                                "name": "xid",
+                                "type": "string",
+                                "doc": "XID of the object"
+                              },
+                              {
+                                "name": "description",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "doc": "Description of the object"
+                              },
+                              {
+                                "name": "documentation",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "doc": "URI of the documentation of the object"
+                              },
+                              {
+                                "name": "labels",
+                                "type": {
+                                  "type": "map",
+                                  "values": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "doc": "Labels for the object"
+                              },
+                              {
+                                "name": "createdat",
+                                "type": [
+                                  {
+                                    "type": "int",
+                                    "logicalType": "time-millis"
+                                  },
+                                  "null"
+                                ],
+                                "doc": "Time of the object creation"
+                              },
+                              {
+                                "name": "modifiedat",
+                                "type": [
+                                  {
+                                    "type": "int",
+                                    "logicalType": "time-millis"
+                                  },
+                                  "null"
+                                ],
+                                "doc": "Time of the object modification"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "Server-set origin of the Version id: authored from a SemVer version.instance, or generated as 0.0.0-N.",
+                                "name": "versionorigin"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "The document format. All Versions of a Thing Description share one format",
+                                "name": "format"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "The authored WoT identifier of this Thing Description - the value of the document's 'id' member, verbatim. It is the document's identity in the WoT identifier space and is distinct from the thingdescriptionid, which is the Resource id within this registry and is chosen by the client. All Versions of a Thing Description share one wotid; it MUST NOT encode a revision of the document it names",
+                                "name": "wotid"
+                              },
+                              {
+                                "type": {
+                                  "type": "array",
+                                  "name": "DerivedfromArrayType",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "name": "derivedfrom",
+                                "doc": "The authored WoT identifiers of the Thing Models this Thing Description extends or composes - authored identifiers, not xids, so a resolver matches them against the document's own references directly"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "The license the document is offered under, as an SPDX license expression or a URL. Advisory provenance metadata",
+                                "name": "license"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "The organization that published the document. Advisory provenance metadata",
+                                "name": "publisher"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "The standards organization that defines or endorses the document, where one does, for example 'W3C' or 'OPC Foundation'. Advisory provenance metadata",
+                                "name": "standardsbody"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "The canonical upstream location of the document, where it is also published outside this registry. Advisory provenance metadata",
+                                "name": "canonicalurl"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document",
+                                "name": "maturity"
+                              },
+                              {
+                                "name": "Extensions",
+                                "type": {
+                                  "type": "map",
+                                  "name": "ExtensionsType",
+                                  "default": {},
+                                  "values": "io.xregistry.GenericRecord"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "type": "record",
+                          "name": "ThingdescriptionVersionInfo",
+                          "fields": [
+                            {
+                              "name": "versionsUrl",
+                              "type": "string"
+                            },
+                            {
+                              "name": "versionCount",
+                              "type": "int"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "thingmodelgroups",
+      "type": {
+        "type": "map",
+        "values": {
+          "type": "record",
+          "name": "ThingmodelgroupType",
+          "fields": [
+            {
+              "name": "thingmodelgroupid",
+              "type": "string",
+              "description": "ID of the thingmodelgroup object"
+            },
+            {
+              "name": "name",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Name of the object"
+            },
+            {
+              "name": "epoch",
+              "type": [
+                "int",
+                "null"
+              ],
+              "doc": "Epoch time of the object creation"
+            },
+            {
+              "name": "self",
+              "type": "string",
+              "doc": "URL of the object"
+            },
+            {
+              "name": "xid",
+              "type": "string",
+              "doc": "XID of the object"
+            },
+            {
+              "name": "description",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Description of the object"
+            },
+            {
+              "name": "documentation",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "URI of the documentation of the object"
+            },
+            {
+              "name": "labels",
+              "type": {
+                "type": "map",
+                "values": [
+                  "string",
+                  "null"
+                ]
+              },
+              "doc": "Labels for the object"
+            },
+            {
+              "name": "createdat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object creation"
+            },
+            {
+              "name": "modifiedat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object modification"
+            },
+            {
+              "name": "Extensions",
+              "type": {
+                "type": "map",
+                "name": "ExtensionsType",
+                "default": {},
+                "values": "io.xregistry.GenericRecord"
+              }
+            },
+            {
+              "name": "thingmodels",
+              "type": {
+                "type": "map",
+                "values": {
+                  "type": "record",
+                  "name": "ThingmodelType",
+                  "namespace": "io.xregistry.thingmodelgroups",
+                  "fields": [
+                    {
+                      "name": "thingmodelid",
+                      "type": "string",
+                      "description": "ID of the thingmodel object"
+                    },
+                    {
+                      "name": "name",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Name of the object"
+                    },
+                    {
+                      "name": "epoch",
+                      "type": [
+                        "int",
+                        "null"
+                      ],
+                      "doc": "Epoch time of the object creation"
+                    },
+                    {
+                      "name": "self",
+                      "type": "string",
+                      "doc": "URL of the object"
+                    },
+                    {
+                      "name": "xid",
+                      "type": "string",
+                      "doc": "XID of the object"
+                    },
+                    {
+                      "name": "description",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Description of the object"
+                    },
+                    {
+                      "name": "documentation",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "URI of the documentation of the object"
+                    },
+                    {
+                      "name": "labels",
+                      "type": {
+                        "type": "map",
+                        "values": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "doc": "Labels for the object"
+                    },
+                    {
+                      "name": "createdat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object creation"
+                    },
+                    {
+                      "name": "modifiedat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object modification"
+                    },
+                    {
+                      "name": "versions",
+                      "type": [
+                        {
+                          "type": "map",
+                          "values": {
+                            "type": "record",
+                            "name": "ThingmodelVersionType",
+                            "namespace": "io.xregistry.thingmodelgroups",
+                            "fields": [
+                              {
+                                "name": "versionid",
+                                "type": "string",
+                                "description": "ID of the thingmodel version"
+                              },
+                              {
+                                "name": "thingmodelid",
+                                "type": "string",
+                                "description": "ID of the thingmodel object"
+                              },
+                              {
+                                "name": "name",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "doc": "Name of the object"
+                              },
+                              {
+                                "name": "epoch",
+                                "type": [
+                                  "int",
+                                  "null"
+                                ],
+                                "doc": "Epoch time of the object creation"
+                              },
+                              {
+                                "name": "self",
+                                "type": "string",
+                                "doc": "URL of the object"
+                              },
+                              {
+                                "name": "xid",
+                                "type": "string",
+                                "doc": "XID of the object"
+                              },
+                              {
+                                "name": "description",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "doc": "Description of the object"
+                              },
+                              {
+                                "name": "documentation",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "doc": "URI of the documentation of the object"
+                              },
+                              {
+                                "name": "labels",
+                                "type": {
+                                  "type": "map",
+                                  "values": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "doc": "Labels for the object"
+                              },
+                              {
+                                "name": "createdat",
+                                "type": [
+                                  {
+                                    "type": "int",
+                                    "logicalType": "time-millis"
+                                  },
+                                  "null"
+                                ],
+                                "doc": "Time of the object creation"
+                              },
+                              {
+                                "name": "modifiedat",
+                                "type": [
+                                  {
+                                    "type": "int",
+                                    "logicalType": "time-millis"
+                                  },
+                                  "null"
+                                ],
+                                "doc": "Time of the object modification"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "Server-set origin of the Version id: authored from a SemVer version.model, or generated as 0.0.0-N.",
+                                "name": "versionorigin"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "The document format. All Versions of a Thing Model share one format",
+                                "name": "format"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "The authored WoT identifier of this Thing Model, equal to its document id when present. It includes the major version and is stable across compatible revisions. It is distinct from the client-chosen thingmodelid.",
+                                "name": "wotid"
+                              },
+                              {
+                                "type": {
+                                  "type": "array",
+                                  "name": "DerivedfromArrayType",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "name": "derivedfrom",
+                                "doc": "The authored WoT identifiers of the Thing Models this Thing Model extends via 'tm:extends', composes via 'tm:submodel', or references via 'tm:ref' - authored identifiers, not xids, so a resolver matches them against the document's own references directly"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "The license the document is offered under, as an SPDX license expression or a URL. Advisory provenance metadata",
+                                "name": "license"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "The organization that published the document. Advisory provenance metadata",
+                                "name": "publisher"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "The standards organization that defines or endorses the document, where one does, for example 'W3C' or 'OPC Foundation'. Advisory provenance metadata",
+                                "name": "standardsbody"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "The canonical upstream location of the document, where it is also published outside this registry. Advisory provenance metadata",
+                                "name": "canonicalurl"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document",
+                                "name": "maturity"
+                              },
+                              {
+                                "name": "Extensions",
+                                "type": {
+                                  "type": "map",
+                                  "name": "ExtensionsType",
+                                  "default": {},
+                                  "values": "io.xregistry.GenericRecord"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "type": "record",
+                          "name": "ThingmodelVersionInfo",
+                          "fields": [
+                            {
+                              "name": "versionsUrl",
+                              "type": "string"
+                            },
+                            {
+                              "name": "versionCount",
+                              "type": "int"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "meta",
+                      "type": {
+                        "type": "record",
+                        "name": "ThingmodelMetaType",
+                        "fields": [
+                          {
+                            "name": "name",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "doc": "Name of the object"
+                          },
+                          {
+                            "name": "epoch",
+                            "type": [
+                              "int",
+                              "null"
+                            ],
+                            "doc": "Epoch time of the object creation"
+                          },
+                          {
+                            "name": "self",
+                            "type": "string",
+                            "doc": "URL of the object"
+                          },
+                          {
+                            "name": "xid",
+                            "type": "string",
+                            "doc": "XID of the object"
+                          },
+                          {
+                            "name": "description",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "doc": "Description of the object"
+                          },
+                          {
+                            "name": "documentation",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "doc": "URI of the documentation of the object"
+                          },
+                          {
+                            "name": "labels",
+                            "type": {
+                              "type": "map",
+                              "values": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "doc": "Labels for the object"
+                          },
+                          {
+                            "name": "createdat",
+                            "type": [
+                              {
+                                "type": "int",
+                                "logicalType": "time-millis"
+                              },
+                              "null"
+                            ],
+                            "doc": "Time of the object creation"
+                          },
+                          {
+                            "name": "modifiedat",
+                            "type": [
+                              {
+                                "type": "int",
+                                "logicalType": "time-millis"
+                              },
+                              "null"
+                            ],
+                            "doc": "Time of the object modification"
+                          },
+                          {
+                            "type": "string",
+                            "name": "compatibility"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -35,9 +35,8 @@ python -B tools\schema-generator.py --type avro-schema --output workingdrafts\mo
 python -B tools\schema-generator.py --type openapi --output workingdrafts\models\registry\schemas\openapi.json workingdrafts\models\registry\model.json
 ```
 
-The generator writes indented JSON. File output uses the host's text-mode
-line endings and has no final newline. Do not manually change generated
-definitions.
+The generator writes indented UTF-8 JSON with LF line endings and no final
+newline. Do not manually change generated definitions.
 
 ## Validation
 
@@ -61,9 +60,9 @@ Also perform the semantic checks specified in the domain for:
 
 ### JSON Schema
 
-The current schema describes the catalog collection and selected Group,
-Resource and Version fields. It does not describe a complete Core Registry
-root or connect the Version definition to a Resource's Versions collection.
+The schema describes the catalog collection and selected Group, Resource
+and Version fields, including the Resource's Versions collection. It does
+not describe a complete Core Registry root.
 
 The schema sets an absolute-URI format on navigation and relationship
 fields. That format does not define document-local pointers or catalog-root
@@ -86,10 +85,11 @@ validate every possible JSON Structure extension.
 ### Avro
 
 The `federationprofiles` and `relationships` arrays contain named records
-with their declared fields. Binding parameters use the generator's generic
-record representation. The generator does not generally make OPTIONAL
-attributes nullable or encode their absence defaults, so Avro validation
-does not establish the catalog's presence and selection semantics.
+with their declared fields. Binding parameters contain an extension map
+using the generator's generic record representation. The generator does not
+generally make OPTIONAL attributes nullable or encode their absence defaults,
+so Avro validation does not establish the catalog's presence and selection
+semantics.
 
 ### HTTP OpenAPI
 

@@ -1,8 +1,8 @@
 {
   "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
   "groups": {
-    "publicationstores": {
-      "singular": "publicationstore",
+    "publications": {
+      "singular": "publication",
       "description": "Organizational storage only; a Group is not a channel or snapshot.",
       "resources": {
         "channels": {

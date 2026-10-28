@@ -1,0 +1,400 @@
+{
+  "type": "record",
+  "name": "DocumentType",
+  "namespace": "io.xregistry",
+  "fields": [
+    {
+      "name": "publications",
+      "type": {
+        "type": "map",
+        "values": {
+          "type": "record",
+          "name": "PublicationType",
+          "fields": [
+            {
+              "name": "publicationid",
+              "type": "string",
+              "description": "ID of the publication object"
+            },
+            {
+              "name": "name",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Name of the object"
+            },
+            {
+              "name": "epoch",
+              "type": [
+                "int",
+                "null"
+              ],
+              "doc": "Epoch time of the object creation"
+            },
+            {
+              "name": "self",
+              "type": "string",
+              "doc": "URL of the object"
+            },
+            {
+              "name": "xid",
+              "type": "string",
+              "doc": "XID of the object"
+            },
+            {
+              "name": "description",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Description of the object"
+            },
+            {
+              "name": "documentation",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "URI of the documentation of the object"
+            },
+            {
+              "name": "labels",
+              "type": {
+                "type": "map",
+                "values": [
+                  "string",
+                  "null"
+                ]
+              },
+              "doc": "Labels for the object"
+            },
+            {
+              "name": "createdat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object creation"
+            },
+            {
+              "name": "modifiedat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object modification"
+            },
+            {
+              "name": "channels",
+              "type": {
+                "type": "map",
+                "values": {
+                  "type": "record",
+                  "name": "ChannelType",
+                  "namespace": "io.xregistry.publications",
+                  "fields": [
+                    {
+                      "name": "channelid",
+                      "type": "string",
+                      "description": "ID of the channel object"
+                    },
+                    {
+                      "name": "name",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Name of the object"
+                    },
+                    {
+                      "name": "epoch",
+                      "type": [
+                        "int",
+                        "null"
+                      ],
+                      "doc": "Epoch time of the object creation"
+                    },
+                    {
+                      "name": "self",
+                      "type": "string",
+                      "doc": "URL of the object"
+                    },
+                    {
+                      "name": "xid",
+                      "type": "string",
+                      "doc": "XID of the object"
+                    },
+                    {
+                      "name": "description",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Description of the object"
+                    },
+                    {
+                      "name": "documentation",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "URI of the documentation of the object"
+                    },
+                    {
+                      "name": "labels",
+                      "type": {
+                        "type": "map",
+                        "values": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "doc": "Labels for the object"
+                    },
+                    {
+                      "name": "createdat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object creation"
+                    },
+                    {
+                      "name": "modifiedat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object modification"
+                    },
+                    {
+                      "name": "meta",
+                      "type": {
+                        "type": "record",
+                        "name": "ChannelMetaType",
+                        "fields": [
+                          {
+                            "name": "name",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "doc": "Name of the object"
+                          },
+                          {
+                            "name": "epoch",
+                            "type": [
+                              "int",
+                              "null"
+                            ],
+                            "doc": "Epoch time of the object creation"
+                          },
+                          {
+                            "name": "self",
+                            "type": "string",
+                            "doc": "URL of the object"
+                          },
+                          {
+                            "name": "xid",
+                            "type": "string",
+                            "doc": "XID of the object"
+                          },
+                          {
+                            "name": "description",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "doc": "Description of the object"
+                          },
+                          {
+                            "name": "documentation",
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "doc": "URI of the documentation of the object"
+                          },
+                          {
+                            "name": "labels",
+                            "type": {
+                              "type": "map",
+                              "values": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "doc": "Labels for the object"
+                          },
+                          {
+                            "name": "createdat",
+                            "type": [
+                              {
+                                "type": "int",
+                                "logicalType": "time-millis"
+                              },
+                              "null"
+                            ],
+                            "doc": "Time of the object creation"
+                          },
+                          {
+                            "name": "modifiedat",
+                            "type": [
+                              {
+                                "type": "int",
+                                "logicalType": "time-millis"
+                              },
+                              "null"
+                            ],
+                            "doc": "Time of the object modification"
+                          },
+                          {
+                            "type": "string",
+                            "doc": "Publication scope; not a Group identity.",
+                            "name": "scope"
+                          },
+                          {
+                            "type": {
+                              "type": "record",
+                              "name": "ChannelMetaHeadType",
+                              "fields": [
+                                {
+                                  "type": "string",
+                                  "name": "url"
+                                },
+                                {
+                                  "type": "string",
+                                  "name": "digest"
+                                },
+                                {
+                                  "type": "int",
+                                  "name": "size"
+                                }
+                              ]
+                            },
+                            "name": "head",
+                            "doc": "One authoritative manifest reference; requires an epoch-checked Meta update."
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "snapshots",
+              "type": {
+                "type": "map",
+                "values": {
+                  "type": "record",
+                  "name": "SnapshotType",
+                  "namespace": "io.xregistry.publications",
+                  "fields": [
+                    {
+                      "name": "snapshotid",
+                      "type": "string",
+                      "description": "ID of the snapshot object"
+                    },
+                    {
+                      "name": "name",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Name of the object"
+                    },
+                    {
+                      "name": "epoch",
+                      "type": [
+                        "int",
+                        "null"
+                      ],
+                      "doc": "Epoch time of the object creation"
+                    },
+                    {
+                      "name": "self",
+                      "type": "string",
+                      "doc": "URL of the object"
+                    },
+                    {
+                      "name": "xid",
+                      "type": "string",
+                      "doc": "XID of the object"
+                    },
+                    {
+                      "name": "description",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Description of the object"
+                    },
+                    {
+                      "name": "documentation",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "URI of the documentation of the object"
+                    },
+                    {
+                      "name": "labels",
+                      "type": {
+                        "type": "map",
+                        "values": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "doc": "Labels for the object"
+                    },
+                    {
+                      "name": "createdat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object creation"
+                    },
+                    {
+                      "name": "modifiedat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object modification"
+                    },
+                    {
+                      "type": "string",
+                      "name": "contenttype"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

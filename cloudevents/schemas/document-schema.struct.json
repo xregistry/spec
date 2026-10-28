@@ -50,7 +50,8 @@
               "integer",
               "number",
               "boolean"
-            ]
+            ],
+            "default": "string"
           },
           "value": {
             "type": "string",
@@ -58,7 +59,8 @@
           },
           "required": {
             "type": "boolean",
-            "description": "Application property required"
+            "description": "Application property required",
+            "default": false
           }
         },
         "additionalProperties": false
@@ -78,7 +80,8 @@
               "integer",
               "number",
               "boolean"
-            ]
+            ],
+            "default": "string"
           },
           "value": {
             "type": "string",
@@ -86,7 +89,8 @@
           },
           "required": {
             "type": "boolean",
-            "description": "Annotation required"
+            "description": "Annotation required",
+            "default": false
           }
         },
         "additionalProperties": false
@@ -106,7 +110,8 @@
               "integer",
               "number",
               "boolean"
-            ]
+            ],
+            "default": "string"
           },
           "value": {
             "type": "string",
@@ -114,7 +119,8 @@
           },
           "required": {
             "type": "boolean",
-            "description": "Annotation required"
+            "description": "Annotation required",
+            "default": false
           }
         },
         "additionalProperties": false
@@ -134,7 +140,8 @@
               "integer",
               "number",
               "boolean"
-            ]
+            ],
+            "default": "string"
           },
           "value": {
             "type": "string",
@@ -142,7 +149,8 @@
           },
           "required": {
             "type": "boolean",
-            "description": "Footer required"
+            "description": "Footer required",
+            "default": false
           }
         },
         "additionalProperties": false
@@ -251,7 +259,8 @@
                     "description": "CloudEvents specversion is always required",
                     "enum": [
                       true
-                    ]
+                    ],
+                    "default": true
                   }
                 },
                 "additionalProperties": false,
@@ -268,7 +277,8 @@
                     "enum": [
                       "uritemplate",
                       "string"
-                    ]
+                    ],
+                    "default": "string"
                   },
                   "value": {
                     "type": "string",
@@ -279,7 +289,8 @@
                     "description": "CloudEvents id is always required",
                     "enum": [
                       true
-                    ]
+                    ],
+                    "default": true
                   }
                 },
                 "additionalProperties": false,
@@ -292,7 +303,8 @@
                     "type": "string"
                   },
                   "type": {
-                    "type": "string"
+                    "type": "string",
+                    "default": "string"
                   },
                   "value": {
                     "type": "string",
@@ -303,7 +315,8 @@
                     "description": "CloudEvents type is always required",
                     "enum": [
                       true
-                    ]
+                    ],
+                    "default": true
                   }
                 },
                 "additionalProperties": false,
@@ -320,7 +333,8 @@
                     "enum": [
                       "uritemplate",
                       "string"
-                    ]
+                    ],
+                    "default": "uritemplate"
                   },
                   "value": {
                     "type": "string",
@@ -331,7 +345,8 @@
                     "description": "CloudEvents source is always required",
                     "enum": [
                       true
-                    ]
+                    ],
+                    "default": true
                   }
                 },
                 "additionalProperties": false,
@@ -348,7 +363,8 @@
                     "enum": [
                       "uritemplate",
                       "string"
-                    ]
+                    ],
+                    "default": "uritemplate"
                   },
                   "value": {
                     "type": "string",
@@ -356,7 +372,8 @@
                   },
                   "required": {
                     "type": "boolean",
-                    "description": "CloudEvents subject required"
+                    "description": "CloudEvents subject required",
+                    "default": false
                   }
                 },
                 "additionalProperties": false,
@@ -372,14 +389,16 @@
                     "type": "string",
                     "enum": [
                       "timestamp"
-                    ]
+                    ],
+                    "default": "timestamp"
                   },
                   "value": {
                     "type": "string",
                     "description": "The timestamp value constraint."
                   },
                   "required": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "default": false
                   }
                 },
                 "additionalProperties": false,
@@ -392,14 +411,16 @@
                     "type": "string"
                   },
                   "type": {
-                    "type": "string"
+                    "type": "string",
+                    "default": "uritemplate"
                   },
                   "value": {
                     "type": "string",
                     "description": "The URI value constraint"
                   },
                   "required": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "default": false
                   }
                 },
                 "additionalProperties": false,
@@ -412,14 +433,16 @@
                     "type": "string"
                   },
                   "type": {
-                    "type": "string"
+                    "type": "string",
+                    "default": "string"
                   },
                   "value": {
                     "type": "string",
                     "description": "The content type value constraint"
                   },
                   "required": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "default": false
                   }
                 },
                 "additionalProperties": false,
@@ -477,7 +500,8 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.message-id required"
+                        "description": "AMQP properties.message-id required",
+                        "default": false
                       }
                     },
                     "additionalProperties": false,
@@ -499,7 +523,8 @@
                           "binary",
                           "string",
                           "uritemplate"
-                        ]
+                        ],
+                        "default": "string"
                       },
                       "value": {
                         "type": "string",
@@ -507,7 +532,8 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.user-id required"
+                        "description": "AMQP properties.user-id required",
+                        "default": false
                       }
                     },
                     "additionalProperties": false,
@@ -528,7 +554,8 @@
                         "enum": [
                           "string",
                           "uritemplate"
-                        ]
+                        ],
+                        "default": "uritemplate"
                       },
                       "value": {
                         "type": "string",
@@ -536,7 +563,8 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.to required"
+                        "description": "AMQP properties.to required",
+                        "default": false
                       }
                     },
                     "additionalProperties": false,
@@ -562,7 +590,8 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.subject required"
+                        "description": "AMQP properties.subject required",
+                        "default": false
                       }
                     },
                     "additionalProperties": false,
@@ -580,7 +609,8 @@
                         "enum": [
                           "string",
                           "uritemplate"
-                        ]
+                        ],
+                        "default": "uritemplate"
                       },
                       "value": {
                         "type": "string",
@@ -588,7 +618,8 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.reply-to required"
+                        "description": "AMQP properties.reply-to required",
+                        "default": false
                       }
                     },
                     "additionalProperties": false,
@@ -610,7 +641,8 @@
                           "binary",
                           "string",
                           "uritemplate"
-                        ]
+                        ],
+                        "default": "string"
                       },
                       "value": {
                         "type": "string",
@@ -618,7 +650,8 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP correlation-id required"
+                        "description": "AMQP correlation-id required",
+                        "default": false
                       }
                     },
                     "additionalProperties": false,
@@ -639,7 +672,8 @@
                         "enum": [
                           "string",
                           "uritemplate"
-                        ]
+                        ],
+                        "default": "string"
                       },
                       "value": {
                         "type": "string",
@@ -647,7 +681,8 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.content-type required"
+                        "description": "AMQP properties.content-type required",
+                        "default": false
                       }
                     },
                     "additionalProperties": false,
@@ -667,7 +702,8 @@
                         "description": "AMQP properties.content-encoding value type",
                         "enum": [
                           "string"
-                        ]
+                        ],
+                        "default": "string"
                       },
                       "value": {
                         "type": "string",
@@ -675,7 +711,8 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.content-encoding required"
+                        "description": "AMQP properties.content-encoding required",
+                        "default": false
                       }
                     },
                     "additionalProperties": false,
@@ -695,7 +732,8 @@
                         "description": "AMQP properties.absolute-expiry-time value type",
                         "enum": [
                           "timestamp"
-                        ]
+                        ],
+                        "default": "timestamp"
                       },
                       "value": {
                         "type": "string",
@@ -703,7 +741,8 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.absolute-expiry-time required"
+                        "description": "AMQP properties.absolute-expiry-time required",
+                        "default": false
                       }
                     },
                     "additionalProperties": false,
@@ -723,7 +762,8 @@
                         "description": "AMQP properties.creation-time value type",
                         "enum": [
                           "timestamp"
-                        ]
+                        ],
+                        "default": "timestamp"
                       },
                       "value": {
                         "type": "string",
@@ -731,7 +771,8 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.creation-time required"
+                        "description": "AMQP properties.creation-time required",
+                        "default": false
                       }
                     },
                     "additionalProperties": false,
@@ -752,7 +793,8 @@
                         "enum": [
                           "string",
                           "uritemplate"
-                        ]
+                        ],
+                        "default": "string"
                       },
                       "value": {
                         "type": "string",
@@ -760,7 +802,8 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.group-id required"
+                        "description": "AMQP properties.group-id required",
+                        "default": false
                       }
                     },
                     "additionalProperties": false,
@@ -780,7 +823,8 @@
                         "description": "AMQP group-sequence value type",
                         "enum": [
                           "integer"
-                        ]
+                        ],
+                        "default": "integer"
                       },
                       "value": {
                         "type": "string",
@@ -788,7 +832,8 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP group-sequence required"
+                        "description": "AMQP group-sequence required",
+                        "default": false
                       }
                     },
                     "additionalProperties": false,
@@ -809,7 +854,8 @@
                         "enum": [
                           "string",
                           "uritemplate"
-                        ]
+                        ],
+                        "default": "string"
                       },
                       "value": {
                         "type": "string",
@@ -817,7 +863,8 @@
                       },
                       "required": {
                         "type": "boolean",
-                        "description": "AMQP properties.reply-to-group-id required"
+                        "description": "AMQP properties.reply-to-group-id required",
+                        "default": false
                       }
                     },
                     "additionalProperties": false,
@@ -871,11 +918,13 @@
                 "properties": {
                   "durable": {
                     "type": "boolean",
-                    "description": "AMQP durable flag"
+                    "description": "AMQP durable flag",
+                    "default": false
                   },
                   "priority": {
                     "type": "integer",
-                    "description": "AMQP priority"
+                    "description": "AMQP priority",
+                    "default": 4
                   },
                   "ttl": {
                     "type": "integer",
@@ -884,6 +933,7 @@
                   "firstAcquirer": {
                     "type": "boolean",
                     "description": "AMQP first-acquirer flag",
+                    "default": false,
                     "altnames": {
                       "json": "first-acquirer"
                     }
@@ -891,6 +941,7 @@
                   "deliveryCount": {
                     "type": "integer",
                     "description": "AMQP delivery-count",
+                    "default": 0,
                     "altnames": {
                       "json": "delivery-count"
                     }
@@ -1354,7 +1405,8 @@
               },
               "deployed": {
                 "type": "boolean",
-                "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication"
+                "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                "default": true
               },
               "node": {
                 "type": "string",
@@ -1362,7 +1414,8 @@
               },
               "durable": {
                 "type": "boolean",
-                "description": "Whether the AMQP node identified by 'node' is durable rather than transient. This is a property of the node, not of the link terminus and not of the message header field of the same name. Terminus durability is expressed by 'terminus-durability'"
+                "description": "Whether the AMQP node identified by 'node' is durable rather than transient. This is a property of the node, not of the link terminus and not of the message header field of the same name. Terminus durability is expressed by 'terminus-durability'",
+                "default": false
               },
               "linkProperties": {
                 "type": "map",
@@ -1391,6 +1444,7 @@
                   "move",
                   "copy"
                 ],
+                "default": "move",
                 "altnames": {
                   "json": "distribution-mode"
                 }

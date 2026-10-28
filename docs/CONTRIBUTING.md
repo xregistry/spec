@@ -1,9 +1,10 @@
 # Contributing to xRegistry
 
 <!-- no verify-specs -->
-<!-- words: ci configs conventionalcommits dco developercertificate feb readme -->
+<!-- words: configs conventionalcommits dco developercertificate feb readme -->
 
-This page explains how to report issues, propose changes and format documents.
+This page contains information about reporting issues, how to suggest changes as
+well as the guidelines we follow for how our documents are formatted.
 
 ## Table of Contents
 
@@ -17,35 +18,37 @@ This page explains how to report issues, propose changes and format documents.
 
 ## Reporting an Issue
 
-If you have an idea but have not had time to write it up, open an
-[issue](https://github.com/xregistry/spec/issues). First check the existing
-[issues](https://github.com/xregistry/spec/issues) for a similar discussion.
+To report an issue, or to suggest an idea for a change that you haven't had time
+to write-up yet, open an [issue](https://github.com/xregistry/spec/issues). It
+is best to check our existing
+[issues](https://github.com/xregistry/spec/issues) first to see if a similar
+one has already been opened and discussed.
 
 ## Suggesting a Change
 
-To propose a change, open a
-[pull request](https://github.com/xregistry/spec/pulls) with the complete
-changes. Follow the
-[Spec Formatting Conventions](#spec-formatting-conventions).
+To suggest a change to this repository, submit a
+[pull request](https://github.com/xregistry/spec/pulls)(PR) with the complete
+set of changes you'd like to see. See the
+[Spec Formatting Conventions](#spec-formatting-conventions) section for the
+guidelines we follow for how documents are formatted.
 
 Please use [conventional commits](https://conventionalcommits.org) when writing
 commit messages.
 
-Sign each pull request as described in the Sign your work section.
+Each PR must be signed per the following section.
 
 ### Assigning and Owning work
 
-To take responsibility for an issue, comment on it with “#dibs” and ask to own
-the work. A maintainer will then add the Assigned label and add
-`Assigned to: @person` to the issue's first comment.
+If you want to own and work on an issue, add a comment or “#dibs” it asking
+about ownership. A maintainer will then add the Assigned label and modify the
+first comment in the issue to include `Assigned to: @person`
 
 ### Sign your work
 
 The sign-off is a simple line at the end of the explanation for the patch. Your
 signature certifies that you wrote the patch or otherwise have the right to pass
-it on as an open-source patch. If you can certify the following, add this line
-to every commit message (see
-[developercertificate.org](http://developercertificate.org/)):
+it on as an open-source patch. The rules are pretty simple: if you can certify
+the below (from [developercertificate.org](http://developercertificate.org/)):
 
 ```
 Developer Certificate of Origin
@@ -86,6 +89,8 @@ By making a contribution to this project, I certify that:
     this project or the open source license(s) involved.
 ```
 
+Then you just add a line to every git commit message:
+
     Signed-off-by: Joe Smith <joe.smith@email.com>
 
 Use your real name (sorry, no pseudonyms or anonymous contributions.)
@@ -93,8 +98,8 @@ Use your real name (sorry, no pseudonyms or anonymous contributions.)
 If you set your `user.name` and `user.email` git configs, you can sign your
 commit automatically with `git commit -s`.
 
-When `user.name` and `user.email` are configured, `git log` shows the author and
-sign-off:
+Note: If your git config information is set properly then viewing the `git log`
+information for your commit will look something like this:
 
 ```
 Author: Joe Smith <joe.smith@email.com>
@@ -105,27 +110,26 @@ Date:   Thu Feb 2 11:41:15 2018 -0800
     Signed-off-by: Joe Smith <joe.smith@email.com>
 ```
 
-In the example above, the `Author` and `Signed-off-by` lines match. If they do
-not, the automated DCO check rejects the pull request.
+Notice the `Author` and `Signed-off-by` lines match. If they don't your PR will
+be rejected by the automated DCO check.
 
 ## Spec Formatting Conventions
 
 Documents in this repository will adhere to the following rules:
 
-- Wrap lines at 80 columns when practical.
-- Use [RFC 2119](https://tools.ietf.org/html/rfc2119)
-  keywords to indicate normative requirements.
+- Lines are wrapped at 80 columns (when possible)
+- Specifications will use [RFC2119](https://tools.ietf.org/html/rfc2119)
+  keywords to indicate normative requirements
 
 ## Testing Changes Locally
 
-CI checks each pull request for:
+Each PR will run through some checks to verify everything looks ok. Checks
+include:
+- all links resolve successfully
+- no spelling errors are found
+- no tabs in markdown files
+- all RFC2119 keywords are in all-caps
 
-- Working links.
-- No spelling errors.
-- No tabs in Markdown files.
-- Uppercase RFC 2119 keywords.
-
-Run the same checks locally with either:
-
-- Python and Bash: `make -f tools/Makefile`
-- Docker: `make -f tools/Makefile docker`
+To test your changes locally you have 2 options:
+1 - `make -f tools/Makefile` - if you have Python/bash locally installed
+2 - `make -f tools/Makefile docker` - if you have Docker locally installed

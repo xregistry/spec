@@ -3,11 +3,11 @@
 <!-- words: aba bytewise cas contenttype crlf etag etags jsonld namespace -->
 <!-- words: offline readonly rebase rebasing readme subtrees walkthrough -->
 <!-- words: versionid versionids xids xref xregistry -->
-<!-- words: channelid originregistry originversion publicationstores -->
+<!-- words: channelid originregistry originversion publications -->
 <!-- words: REQUIREDEXTENSIONS reserialization workflow workflows -->
 <!-- words: workingdrafts -->
 <!-- words: sequencediagram -->
-<!-- words: viewversion publicationstore -->
+<!-- words: viewversion publication -->
 
 ## Abstract
 
@@ -54,7 +54,7 @@ fixes the 36 bytes of `intro` but does not inspect them for references. Some
 domains need more. A Web of Things (WoT) Thing Description (TD) can reference
 a Thing Model (TM), and a WoT consumer needs that TM in the exact Version the
 publisher validated. The
-[WoT companion](../models/wot/publication/design.md#wot-channels-snapshots-and-dependency-bindings) adds a closure extension
+[WoT companion](design/design.md#wot-channels-snapshots-and-dependency-bindings) adds a closure extension
 to the manifest that binds each recognized reference to an exact target
 Version. Its resolver then checks whether the caller accepts that target.
 Other domains define their own closure rules without changing channel or
@@ -88,14 +88,19 @@ enforces the rules that a Core model cannot express.
 The [model](model.json) defines the channel and snapshot Resource types as the
 `channels` and `snapshots` collections, with the singular names `channel` and
 `snapshot`. It places both in an example organizational Group type,
-`publicationstores`, whose singular name is `publicationstore`. The sample
+`publications`, whose singular name is `publication`. The sample
 channel `stable` belongs to the Group `team`, at
-`https://publisher.example.test/publicationstores/team/channels/stable`.
+`https://publisher.example.test/publications/team/channels/stable`.
 A deployment MAY import these Resource types into its existing organizational
 Group types using Core
 [`ximportresources`](../../core/model.md#reuse-of-resource-definitions).
 It MUST preserve the shared Resource definitions. Group IDs identify neither
 channels nor publication scopes.
+
+The [generated model schemas](../tools/README.md) describe this Registry
+metadata in JSON Schema, JSON Structure, Avro and OpenAPI. They are separate
+from the manifest and open-record schema below. Loading or validating against
+them does not enforce channel update or snapshot retention behavior.
 
 A channel is a metadata-only Resource. Its name is the ordinary `channelid`.
 Its Resource Meta contains:
@@ -442,7 +447,7 @@ is:
   },
   "completeness": "offline-complete",
   "channel": {
-    "url": "https://publisher.example.test/publicationstores/team/channels/stable",
+    "url": "https://publisher.example.test/publications/team/channels/stable",
     "epoch": 12
   }
 }

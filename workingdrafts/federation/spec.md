@@ -925,7 +925,7 @@ third generic completeness value.
 | Domain-validated publication | The domain profile's checked exact targets and acceptance rules | Compatibility from a channel name, or simultaneous capture of independent sources |
 
 For the last row, see the
-[WoT closure and acceptance design](../models/wot/publication/design.md#wot-channels-snapshots-and-dependency-bindings).
+[WoT closure and acceptance design](../publication/design/design.md#wot-channels-snapshots-and-dependency-bindings).
 The [publication examples](../publication/samples/README.md) exercise
 generic byte replay independently of domain closure.
 

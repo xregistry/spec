@@ -1,5 +1,5 @@
 all: docker models
-	@git diff --name-status --exit-code */schemas > /dev/null 2>&1 || \
+	@git diff --name-status --exit-code -- ':(glob)**/schemas/**' > /dev/null 2>&1 || \
 		( echo "schema files have been updated, make sure you commit them" ; \
 		  exit 1 )
 	@echo "All good!"
@@ -119,6 +119,18 @@ makeschema: loadpython
 	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/workingdrafts/models/registry/schemas/document-schema.struct.json --schema-name RegistryOfRegistriesDocument --output workingdrafts/models/registry/schemas/document-schema.struct.json workingdrafts/models/registry/model.json
 	@python tools/schema-generator.py --type avro-schema --output workingdrafts/models/registry/schemas/document-schema.avsc workingdrafts/models/registry/model.json
 	@python tools/schema-generator.py --type openapi --output workingdrafts/models/registry/schemas/openapi.json workingdrafts/models/registry/model.json
+	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/workingdrafts/models/openusd/schemas/document-schema.json --output workingdrafts/models/openusd/schemas/document-schema.json workingdrafts/models/openusd/model.json
+	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/workingdrafts/models/openusd/schemas/document-schema.struct.json --schema-name OpenUsdRegistryDocument --output workingdrafts/models/openusd/schemas/document-schema.struct.json workingdrafts/models/openusd/model.json
+	@python tools/schema-generator.py --type avro-schema --output workingdrafts/models/openusd/schemas/document-schema.avsc workingdrafts/models/openusd/model.json
+	@python tools/schema-generator.py --type openapi --output workingdrafts/models/openusd/schemas/openapi.json workingdrafts/models/openusd/model.json
+	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/workingdrafts/models/wot/schemas/document-schema.json --output workingdrafts/models/wot/schemas/document-schema.json workingdrafts/models/wot/model.json
+	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/workingdrafts/models/wot/schemas/document-schema.struct.json --schema-name WoTRegistryDocument --output workingdrafts/models/wot/schemas/document-schema.struct.json workingdrafts/models/wot/model.json
+	@python tools/schema-generator.py --type avro-schema --output workingdrafts/models/wot/schemas/document-schema.avsc workingdrafts/models/wot/model.json
+	@python tools/schema-generator.py --type openapi --output workingdrafts/models/wot/schemas/openapi.json workingdrafts/models/wot/model.json
+	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/workingdrafts/publication/schemas/document-schema.json --output workingdrafts/publication/schemas/document-schema.json workingdrafts/publication/model.json
+	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/workingdrafts/publication/schemas/document-schema.struct.json --schema-name PublicationRegistryDocument --output workingdrafts/publication/schemas/document-schema.struct.json workingdrafts/publication/model.json
+	@python tools/schema-generator.py --type avro-schema --output workingdrafts/publication/schemas/document-schema.avsc workingdrafts/publication/model.json
+	@python tools/schema-generator.py --type openapi --output workingdrafts/publication/schemas/openapi.json workingdrafts/publication/model.json
 	@echo
 
 docker:

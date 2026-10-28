@@ -1,4 +1,6 @@
 *.sh text eol=lf
+**/schemas/document-schema* text eol=lf
+**/schemas/openapi.json text eol=lf
 workingdrafts/federation/samples/examples.json text eol=lf
 workingdrafts/publication/samples/*.json text eol=lf
 workingdrafts/publication/samples/*.txt text eol=lf
