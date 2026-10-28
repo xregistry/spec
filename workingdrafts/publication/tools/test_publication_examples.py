@@ -177,13 +177,13 @@ def test_document_reader_checks_exact_raw_bytes(publication, raw):
     assert caught.value.code == "integrity_error"
 
 
-@pytest.mark.parametrize("change", ["default", "old-url", "credentials"])
-def test_rejects_non_version_or_legacy_reference(publication, change):
+@pytest.mark.parametrize("change", ["default", "url-only", "credentials"])
+def test_rejects_non_version_or_url_only_reference(publication, change):
     context, documents = publication
     pin = deepcopy(context["snapshot"])
     if change == "default":
         pin["reference"]["version"] = "/sets/manual/documents/intro"
-    elif change == "old-url":
+    elif change == "url-only":
         del pin["reference"]
         pin["url"] = "https://content.example.test/manifest.json"
     else:

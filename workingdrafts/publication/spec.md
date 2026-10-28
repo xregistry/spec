@@ -12,9 +12,9 @@
 ## Abstract
 
 This working draft defines publications for any xRegistry domain. A publication
-is the set of snapshots and channels maintained by a publisher under one scope
+is the set of snapshots and channels that a publisher maintains under one scope
 URI. A snapshot is an immutable captured Registry view. Its manifest is an
-immutable JSON file that binds the view to the exact bytes of its model,
+immutable JSON document that binds the view to the exact bytes of its model,
 metadata and selected documents. A channel is a mutable name, such as `stable`,
 whose head selects one manifest.
 
@@ -24,18 +24,16 @@ An HTTP binding uses Core document operations; an OPC UA binding uses native
 FileType reads. Publication does not require an HTTP facade or a separate
 content download service.
 
-Publication allows a publisher to replace a reviewed Registry state without
-changing the state seen by readers that already selected it. For example, a
-team can release a reviewed manual through `stable`, then publish an edit or
-roll it back while a reader pages through the original state. A live Registry
-can change between page requests, and a Core Version ID alone does not ensure
-that its document bytes remain unchanged.
-
 A reader opens a channel once and retains the selected manifest while the
 publisher advances or rolls back the channel. Compatibility is checked
 separately. Neither a channel nor a snapshot asserts compatibility.
 
 ## Overview
+
+Publication allows a publisher to replace a reviewed Registry state without
+changing the state seen by readers that already selected it. For example, a
+team can release a reviewed manual through `stable`, then publish an edit or
+roll it back while a reader pages through the original state.
 
 A live Registry serves its current state. That state is a poor release
 artifact:
@@ -105,11 +103,11 @@ scope `urn:example:manual-publication` and selects it with the channel
 `stable`. The [samples](samples/README.md) contain the exact bytes shown in
 this document.
 
-A generic snapshot fixes bytes without interpreting them.
-The example snapshot captures the 36 bytes of `intro` without inspecting its
-references. Domain interpretation can require additional information. A Web
-of Things (WoT) Thing Description (TD) can reference a Thing Model (TM), and a
-WoT consumer needs the exact TM Version that the publisher validated. The
+A generic snapshot fixes bytes without interpreting them. The example
+snapshot captures the 36 bytes of `intro` without inspecting its references.
+Domain interpretation can require additional information. A Web of Things
+(WoT) Thing Description (TD) can reference a Thing Model (TM), and a WoT
+consumer needs the exact TM Version that the publisher validated. The
 [WoT companion](design/design.md#wot-channels-snapshots-and-dependency-bindings)
 adds a manifest closure extension that binds each recognized reference to an
 exact target Version. Its resolver checks whether the caller accepts that
@@ -121,7 +119,7 @@ or snapshot identity.
 | Publication | Snapshots and channels that a publisher maintains under one scope. |
 | Scope | Absolute URI identifying a publication and its authority. |
 | Snapshot | Immutable captured Registry view as defined by Federation. |
-| Manifest | Immutable JSON file binding a snapshot's view to exact stored bytes. |
+| Manifest | Immutable JSON document binding a snapshot's view to exact stored bytes. |
 | Byte descriptor | `reference`, `digest` and `size` selecting and checking an exact Version's document bytes. |
 | Snapshot ID | SHA-256 digest of the exact manifest bytes. |
 | Channel | Scoped name whose authoritative head references one manifest. |
@@ -136,12 +134,17 @@ declaration.
 
 ## Model and Placement
 
-Publication state uses ordinary Core Resources. A channel Resource
-holds the mutable selection in its Meta; a snapshot Resource holds one
-immutable manifest. An object Resource stores captured Registry JSON,
-extension documents or copied domain bytes. Existing domain Versions can
-also supply retained content. A publication adapter enforces the behavior
-that a Core model cannot express.
+Publication state uses ordinary Core Resources:
+
+- A channel Resource holds the mutable selection in its Meta.
+- A snapshot Resource holds one immutable manifest.
+- An object Resource stores captured Registry JSON, extension documents or
+  copied domain bytes.
+
+Existing domain Versions can also supply retained content. A publication
+adapter enforces the behavior that a Core model cannot express.
+
+### Responsibilities and Prepared Content
 
 The publisher prepares the content and arranges for readers to retrieve it.
 It can be an authorized application or a release job. The publication adapter
@@ -161,13 +164,9 @@ Before selecting a snapshot through a channel, the publisher prepares:
 The captured Registry JSON is a stored representation of the selected view,
 not the live Registry endpoint. It is an ordinary Version document. For
 example, a publisher can obtain document-view JSON through Core export or
-assemble it from the selected content. Its capture classification describes how
-that state was obtained; exporting a live Registry does not by itself
+assemble it from the selected content. Its capture classification describes
+how that state was obtained; exporting a live Registry does not by itself
 establish atomic source capture.
-
-The captured view is the domain state being released. Its model need not
-include the publication store's control Resources. The publisher prepares
-that view before storing its manifest; the manifest does not describe itself.
 
 The Registry JSON and manifest serve different purposes. The Registry JSON
 describes the captured entities and their model. The manifest binds that
@@ -175,11 +174,45 @@ representation and the separately stored document bytes to their digests.
 Reading only the live Registry could observe later metadata changes; reading
 only the manifest would not supply the model and entity graph.
 
+The captured view is the domain state being released. Its model need not
+include the publication store's control Resources. The publisher prepares
+that view before storing its manifest; the manifest does not describe itself.
+
+### Storage Boundary
+
+The publisher is responsible for storing the referenced Version documents,
+directly or through its publication service. Setting `head` does not
+generate, upload or copy them. The publication adapter validates the prepared
+head before making it visible.
+
+This extension defines the representations and their publication behavior,
+not a general upload API for backing storage. An authorized publisher uses
+the Registry's supported create/write operations or an internal publishing
+process. The Registry can use a database, an object store or a file system
+internally. The interoperable retrieval contract remains an exact xRegistry
+Version document; an arbitrary downloadable file is not a publication
+reference. A read-only binding can expose content prepared through another
+interface without offering publication writes.
+
+Loading the model does not enforce publication immutability, conditional head
+updates, retention, digest identity or authorization. A publication adapter,
+such as a server module or storage layer in front of a Core store, MUST
+enforce those behaviors. A Core-only store MUST NOT advertise publication
+support merely because it loaded the model. Public APIs MAY be read-only.
+
+The executable samples implement none of these backing stores or upload
+operations. They associate exact Version references with local bytes in
+memory. Their `manifest.json` and `registry.json` names illustrate one
+snapshot. Publishing another snapshot does not authorize replacing bytes
+needed by retained snapshots or already-open readers; the retention rules in
+[Workflows and Lifecycle](#workflows-and-lifecycle) still apply.
+
+### Resource Types
+
 The [model](model.json) defines `channels`, `snapshots` and `objects`, with
 singular names `channel`, `snapshot` and `object`. It places them in an
 example organizational Group type, `publications`, whose singular name is
-`publication`. The sample
-channel `stable` belongs to the Group `team`, at
+`publication`. The sample channel `stable` belongs to the Group `team`, at
 `https://publisher.example.test/publications/team/channels/stable`.
 A deployment MAY import these Resource types into its existing organizational
 Group types using Core
@@ -238,56 +271,6 @@ for every release.
 A manifest MAY reference a manifest in another authorized Registry. Forks
 do not require copies of its document revisions.
 
-A publisher writes a manifest once, after preparing the content it describes.
-The storage and retrieval sequence is:
-
-1. The publisher stores the captured Registry JSON and selected document
-   bytes as Version documents, or reuses retained exact Versions. For example,
-   it stores `registry.json` at
-   `/publications/team/objects/registry-capture/versions/content` and retains
-   `intro` at `/sets/manual/documents/intro/versions/7`.
-2. The publisher constructs the manifest using those Version references
-   and the exact digests and sizes. It stores the manifest bytes as the
-   `manifest` Version of a new snapshot Resource.
-3. The publisher sets the channel's `head` to a descriptor for the stored
-   manifest through the conditional update described below. That reference
-   selects the snapshot's exact `manifest` Version through a supported
-   Registry binding. The digest and size identify the bytes independently
-   of their storage location.
-4. A reader reads `head` from the channel Meta, retrieves and checks the
-   manifest, then uses its descriptors to retrieve and check the captured
-   Registry JSON and the documents it needs.
-5. The reader retains the manifest and Registry descriptors in its open
-   record. Later reads and offline replay use that record instead of
-   reopening the channel.
-
-The publisher is responsible for storing the referenced Version documents,
-directly or through its publication service. Setting `head` does not
-generate, upload or copy them. The publication adapter
-validates the prepared head before making it visible.
-
-This extension defines the representations and their publication behavior,
-not a general upload API for backing storage. An authorized publisher uses
-the Registry's supported create/write operations or an internal publishing
-process. The Registry can use a database, an object store or a file system
-internally. The interoperable retrieval contract remains an exact xRegistry
-Version document; an arbitrary downloadable file is not a publication
-reference. A read-only binding can expose content prepared through another
-interface without offering publication writes.
-
-The executable samples implement none of these backing stores or upload
-operations. They associate exact Version references with local bytes in memory.
-Their `manifest.json` and `registry.json` names illustrate one snapshot.
-Publishing another snapshot does not authorize replacing bytes needed by
-retained snapshots or already-open readers; the retention rules below still
-apply.
-
-Loading the model does not enforce publication immutability, conditional head
-updates, retention, digest identity or authorization. A publication adapter,
-such as a server module or storage layer in front of a Core store, MUST
-enforce those behaviors. A Core-only store MUST NOT advertise publication
-support merely because it loaded the model. Public APIs MAY be read-only.
-
 The following graph distinguishes references from storage layout. Only the
 channel head moves; an open context retains the selected manifest and Registry
 descriptors. Reads do not depend on parent history, when present.
@@ -311,14 +294,15 @@ Registry JSON and every captured document. The digest of the exact manifest
 bytes is the Snapshot ID. A change to the state described by a manifest
 therefore produces another snapshot.
 
+### Byte Descriptors
+
 A reader needs to obtain the exact bytes that the publisher checked. A
 Version reference alone cannot identify those bytes: its content can change,
 while unchanged bytes can be shared by several snapshots or moved to another
 location. A byte descriptor separates access from byte identity. Its
 `reference` selects an exact Version, `digest` identifies the bytes and `size`
-gives their exact length.
-The channel's `head`, the manifest's `registry` field and each document's
-`content` use byte descriptors.
+gives their exact length. The channel's `head`, the manifest's `registry`
+field and each document's `content` use byte descriptors.
 
 A byte descriptor MUST contain `reference`, `digest` as `sha256:` followed
 by 64 lowercase hexadecimal characters, and non-negative integer byte `size`.
@@ -332,20 +316,28 @@ Its `reference` MUST contain `registry` and `version`:
 - `version` is an exact Version XID in that Registry. A consumer MUST NOT
   substitute a Resource's default Version or interpret a NodeId as the XID.
 
+A consumer MUST reject a descriptor that lacks these fields, such as one that
+supplies only a URL.
+
 The referenced Version MUST serve the stored document bytes, not a fresh
 serialization of entity metadata. This applies to Registry JSON and JSON
 manifests as well as binary documents. Snapshot manifests, captured Registry
 JSON, captured domain bytes and extension documents MUST be stored as
-Version documents. A consumer MUST reject the earlier draft's URL-only
-descriptor shape; the unmerged format names remain `/1`.
+Version documents.
 
-Git references MUST select a complete commit object ID, not a branch or tag.
-OCI references, including File OCI layouts, MUST select a digest, not a tag.
-File document-tree reads retain that binding's containment and change checks.
-HTTP and UA references rely on the publication adapter's retained immutable
-Versions; the binding endpoint and Core Version ID do not prove immutability.
-The same applies when a Registry uses external physical storage: its Version
-document operation still supplies the retained checked bytes.
+Each binding selects an exact Version in its own way:
+
+- Git references MUST select a complete commit object ID, not a branch or
+  tag.
+- OCI references, including File OCI layouts, MUST select a digest, not a
+  tag.
+- File document-tree reads retain that binding's containment and change
+  checks.
+- HTTP and UA references rely on the publication adapter's retained
+  immutable Versions; the binding endpoint and Core Version ID do not prove
+  immutability. The same applies when a Registry uses external physical
+  storage: its Version document operation still supplies the retained
+  checked bytes.
 
 For HTTP, resolve the Registry-root endpoint and exact Version XID through
 Core's document operation. For OPC UA, select and validate the endpoint,
@@ -374,6 +366,8 @@ integrity check MUST fail the read explicitly. A consumer MUST NOT retry
 through another binding, a live export or a newer channel head as automatic
 repair. Authorization and trust are supplied under caller policy, not by
 the descriptor.
+
+### Manifest Format
 
 The [schema](schemas/publication.json) defines format
 `xregistry-publication/1`. Every manifest has:
@@ -434,8 +428,8 @@ The running example's complete [manifest](samples/manifest.json) is:
 These 1137 bytes have the digest that the channel's `head` carries. The
 `registry` descriptor selects the 790-byte Registry JSON Version document.
 The one `documents` entry associates Version `7` of `intro` with its source
-and its 36 bytes.
-This manifest records no preparation history, so it has no `parent`.
+and its 36 bytes. This manifest records no preparation history, so it has no
+`parent`.
 
 Consumers MUST verify the exact size and SHA-256 of every descriptor they
 use. Manifest identity covers exact UTF-8 bytes, not parsed JSON equality.
@@ -449,12 +443,14 @@ Every `requiredExtensions` entry MUST identify an included extension.
 Unlisted extensions are OPTIONAL to generic readers. A caller requesting a
 domain profile still requires that profile's extension and validation.
 
+### Registry JSON and Document Associations
+
 The Registry descriptor covers the model, available model source and
 captured metadata. Registry JSON MUST use Core
-[document view](../../core/spec.md#doc-flag). It MUST contain
-a complete internal graph and sufficient model material, including immutable
-model includes, as specified by Federation. Its enabled capabilities MUST
-describe the captured view rather than the source server's write capabilities.
+[document view](../../core/spec.md#doc-flag). It MUST contain a complete
+internal graph and sufficient model material, including immutable model
+includes, as specified by Federation. Its enabled capabilities MUST describe
+the captured view rather than the source server's write capabilities.
 
 Each document association identifies one captured document:
 
@@ -476,19 +472,20 @@ An offline-complete manifest MUST supply every declared document in its
 scope, except aliases whose Core document operation resolves to another
 included Resource. Linked snapshots MAY reference exact Versions in another
 Registry, but MUST NOT claim bytes omitted from their offline package are
-offline available.
-An authored external link remains domain content. If its bytes are captured
-by this publication, the publisher stores them as a Version document too.
-Metadata-only types do not acquire documents by appearing in a manifest.
-Domain bytes MUST be captured through raw reads or byte-preserving Core
-[binary representation](../../core/spec.md#binary-flag), not JSON parsing
-and reserialization.
+offline available. An authored external link remains domain content. If its
+bytes are captured by this publication, the publisher stores them as a
+Version document too. Metadata-only types do not acquire documents by
+appearing in a manifest. Domain bytes MUST be captured through raw reads or
+byte-preserving Core [binary representation](../../core/spec.md#binary-flag),
+not JSON parsing and reserialization.
 
 A change to the model, captured metadata, document selection or extensions
 changes the manifest's checked graph and therefore its ID. A parent records
 preparation history only; it establishes neither compatibility nor numeric
 order and defines no merge algorithm. Reading a snapshot MUST NOT require
 reading its parent.
+
+### Capture Classification
 
 The `capture` classification describes how the selected state was obtained:
 
@@ -507,9 +504,14 @@ completeness. A consumer requiring atomic source capture MUST reject
 ## Publishing and Opening a Channel
 
 An authorized publisher makes a prepared snapshot visible through a channel
-by updating its `head`. The manifest and necessary content are written before
-that update; they become part of the channel's published state only when
-selected by `head`. An authorized publisher MUST perform these steps:
+by updating its `head`. A reader opens the channel once and keeps the
+snapshot it selected, whatever the channel selects later.
+
+### Publishing a Snapshot
+
+The manifest and necessary content are written before the head update; they
+become part of the channel's published state only when selected by `head`.
+An authorized publisher MUST perform these steps:
 
 1. Read the channel's Meta, retaining `scope`, `head` and `epoch`.
 2. Publish or reuse the desired document revisions. Capture or assemble the
@@ -517,57 +519,45 @@ selected by `head`. An authorized publisher MUST perform these steps:
 3. Construct a complete snapshot, validate its Core graph and applicable
    domain requirements, and store the necessary content as Version
    documents. Construct and store the manifest referencing that content as
-   described under [Model and Placement](#model-and-placement).
+   described under
+   [Responsibilities and Prepared Content](#responsibilities-and-prepared-content).
 4. Atomically replace `head` through a conditional update to the same Meta,
    supplying the `epoch` from step 1.
 
 S12 and S13 below are short labels for manifest descriptors, not literal
 snapshot IDs. S12 is the sample manifest, which `stable` selects at epoch 12.
-An author edits `intro`, and the publisher releases the edit as S13:
+It references the retained `intro` Version at
+`/sets/manual/documents/intro/versions/7` and the captured Registry JSON at
+`/publications/team/objects/registry-capture/versions/content`. An author
+edits `intro`, and the publisher releases the edit as S13:
 
 - Step 1 returns head S12 and epoch 12.
 - Step 2 stores the edited `intro` bytes as a new Version. Unchanged Versions
   and their bytes are reused.
-- Step 3 stores the new Registry JSON and any newly captured document bytes
-  as Version documents. The publisher constructs a manifest with descriptors
-  for those Versions and stores it as a new
-  snapshot Resource. Its digest is S13's Snapshot ID. The content is
-  available before the publisher attempts to move `stable`.
+- Step 3 stores the new Registry JSON, under another object identity than
+  S12's, and any newly captured document bytes as Version documents. The
+  publisher constructs a manifest with descriptors for those Versions and
+  stores it as the `manifest` Version of a new snapshot Resource. Its digest
+  is S13's Snapshot ID. The content is available before the publisher
+  attempts to move `stable`.
 - Step 4 sets `head` to S13 if the epoch is still 12. The adapter advances the
-  epoch, to 17 in the table at the end of this section.
+  epoch, to 17 in the [state table](#opening-a-channel).
+
+The reference in the new `head` selects the snapshot's exact `manifest`
+Version through a supported Registry binding. Its digest and size identify
+the bytes independently of their storage location.
 
 For HTTP, step 4 uses Core's
 [Meta update](../../core/http.md#patch-and-put-groupsgidresourcesridmeta).
 The expected epoch belongs to that channel's
 [Meta entity](../../core/spec.md#meta-entity), not the Registry root.
-The sequence below illustrates one publisher and reader.
-
-```mermaid
-sequenceDiagram
-    participant P as Publisher
-    participant C as Channel Meta
-    participant S as Immutable snapshot store
-    participant R as Reader
-    P->>C: Read head S12 and epoch E0
-    P->>S: Stage and validate S13 and necessary bytes
-    P->>C: Set head S13 if epoch still E0
-    alt Expected epoch matches
-        C-->>P: Head S13, epoch E1 greater than E0
-        R->>C: Open once
-        C-->>R: Select S13
-        R->>S: Verify S13 and retain its context
-        P->>C: Roll back to S12 if epoch still E1
-        C-->>P: Head S12, epoch E2 greater than E1
-        R->>S: Continue reading S13, not the channel
-    else Another publisher changed the epoch
-        C-->>P: mismatched_epoch, do not replace head
-    end
-```
 
 A failure before step 4 leaves the channel unchanged. In the example, an
 upload or validation failure in step 2 or 3 leaves `head` selecting S12.
 Unreferenced staged objects are not part of the channel's published state,
 so no transaction across document uploads is needed.
+
+### Head Update Rules
 
 The following rules govern step 4:
 
@@ -599,18 +589,48 @@ head can satisfy the publication objective without proving which request set
 it; a different head can reflect an intervening authorized update. Anonymous
 document publication retains its own API's retry semantics.
 
+### Opening a Channel
+
 An authorized reader opens a channel by reading its Meta once, verifying the
-manifest at `head`, and establishing the immutable context described in the
-next section. Every subsequent read and page request uses that selected
-snapshot. It MUST NOT reread the channel to fill missing members. Refresh is a
-new open operation.
+manifest at `head`, and establishing the immutable context described in
+[Open Context and Discovery](#open-context-and-discovery). Every subsequent
+read and page request uses that selected snapshot. It MUST NOT reread the
+channel to fill missing members. Refresh is a new open operation.
 
 A reader opening `stable` after step 4 reads head S13 and epoch 17. It fetches
 the manifest through the exact Version reference in `head` and checks its
 size and digest. It then fetches and checks the Registry JSON through the
-manifest's `registry` descriptor, and the document bytes it needs through their `content`
-descriptors. If any of these bytes are missing or fail their check, the read
-fails. The reader does not reopen the channel to repair it.
+manifest's `registry` descriptor, and the document bytes it needs through
+their `content` descriptors. If any of these bytes are missing or fail their
+check, the read fails. The reader does not reopen the channel to repair it.
+
+The reader retains the manifest and Registry descriptors in its open record.
+Later reads and offline replay use that record instead of reopening the
+channel.
+
+The sequence below illustrates one publisher and reader:
+
+```mermaid
+sequenceDiagram
+    participant P as Publisher
+    participant C as Channel Meta
+    participant S as Immutable snapshot store
+    participant R as Reader
+    P->>C: Read head S12 and epoch E0
+    P->>S: Stage and validate S13 and necessary bytes
+    P->>C: Set head S13 if epoch still E0
+    alt Expected epoch matches
+        C-->>P: Head S13, epoch E1 greater than E0
+        R->>C: Open once
+        C-->>R: Select S13
+        R->>S: Verify S13 and retain its context
+        P->>C: Roll back to S12 if epoch still E1
+        C-->>P: Head S12, epoch E2 greater than E1
+        R->>S: Continue reading S13, not the channel
+    else Another publisher changed the epoch
+        C-->>P: mismatched_epoch, do not replace head
+    end
+```
 
 These illustrative states summarize the sequence. Epochs increase. The chosen
 values do not require increments of one.
@@ -629,6 +649,8 @@ An open record carries the reader's snapshot selection beyond the request
 that opened the channel. It allows a later page request, another process or
 an offline replay to use the same snapshot without consulting the channel
 again.
+
+### Open Record
 
 The schema defines the `open` record with `format`, `scope`, `snapshot`,
 `registry`, `completeness`, OPTIONAL `channel` selection, and OPTIONAL
@@ -688,9 +710,10 @@ An open record is transport and access context. It is neither a new Core
 entity nor a replacement for `self`. The record supplies the information
 needed to retrieve the manifest and captured Registry JSON Version document.
 It MUST be available to the caller rather than kept only in logs. Library
-and native bindings MUST return
-the equivalent schema-defined record or report unsupported
-publication-context access.
+and native bindings MUST return the equivalent schema-defined record or
+report unsupported publication-context access.
+
+### OPC UA Access
 
 For OPC UA, the caller reads `scope`, the complete `head` and `MetaEpoch` on
 the selected channel Resource through the binding's Meta representation.
@@ -706,6 +729,8 @@ and retention rules. A native Meta extension update can be used only when it
 provides those guarantees. Separate UA Property writes or a batch of Write
 requests do not establish atomicity. Otherwise publication writes MUST be
 reported as unsupported; native read support does not imply write support.
+
+### HTTP Projection
 
 A publication HTTP projection MUST serve a snapshot-specific Registry root
 through Core HTTP. The root response MUST contain an HTTP `Link` with an
@@ -748,6 +773,8 @@ manifest associations.
 
 ## Export, Federation and Binding Equivalence
 
+### Export
+
 Export remains a binding operation over the selected view. For HTTP,
 Core [`GET /export`](../../core/http.md#get-export) remains the
 [document-view](../../core/spec.md#doc-flag) and inlining operation. On a
@@ -760,26 +787,18 @@ API serialization and exported JSON can have different bytes from the stored
 Registry descriptor while representing the same captured graph. Only the
 descriptor representation is checked with that descriptor's digest.
 
+### Offline Packages
+
 A byte-preserving offline export MUST include the manifest and all objects
 needed by its completeness claim. Captured bytes MUST NOT be rewritten
-when a package moves to another location.
-Publication readers MUST NOT fetch external objects during offline replay.
+when a package moves to another location. Publication readers MUST NOT fetch
+external objects during offline replay.
 
 The portable byte bundle is a directory with `publication-package.json`.
 Its schema-defined `context` supplies the open record. `objects` is an array
 of entries with an exact Version `reference` and a portable relative `path`.
 Each entry maps a stored document reference to its local bytes without
 rewriting that reference inside the manifest.
-
-Reference comparison MUST use the binding name, endpoint, validated parameters
-and decoded Version XID. Object-member order has no significance. Absent
-parameters equal an empty object; Git's omitted format path equals its defined
-default, and hexadecimal commit IDs compare in lowercase. Equivalent URI
-encodings in XIDs compare after one decoding step.
-Core's case-insensitive entity-name rules apply, while Version IDs retain
-their case-sensitive identity. Endpoint spelling and other parameter values
-remain explicit access context, not guessed aliases. A package MUST reject
-duplicate equivalent references, even if they name different local files.
 
 Paths use `/` between nonempty segments of ASCII letters, digits, underscores
 and hyphens, and end in a file name with one extension. Absolute paths,
@@ -789,8 +808,7 @@ traversal limits before reading.
 
 The `objects` array MUST cover the selected manifest, captured Registry
 JSON, associated documents and extensions needed for its completeness
-claim. Parent manifests
-are not needed merely to read the selected snapshot.
+claim. Parent manifests are not needed merely to read the selected snapshot.
 
 The checked [sample bundle](samples/publication-package.json) consists of
 five files. It includes both HTTP and UA manifest examples over the same
@@ -836,6 +854,26 @@ manifest. This extension adds no OCI role or Git directory-mapping field.
 A byte-bundle reader MUST NOT advertise unsupported native binding
 conformance.
 
+### Reference Comparison
+
+Reference comparison MUST use the binding name, endpoint, validated parameters
+and decoded Version XID:
+
+- Object-member order has no significance.
+- Absent parameters equal an empty object.
+- Git's omitted format path equals its defined default, and hexadecimal
+  commit IDs compare in lowercase.
+- Equivalent URI encodings in XIDs compare after one decoding step.
+- Core's case-insensitive entity-name rules apply, while Version IDs retain
+  their case-sensitive identity.
+- Endpoint spelling and other parameter values remain explicit access
+  context, not guessed aliases.
+
+A package MUST reject duplicate equivalent references, even if they name
+different local files.
+
+### Binding Equivalence
+
 A publication consumer MUST verify that any alternate Registry API or package
 represents the model, metadata and byte associations fixed by the manifest.
 An unchecked assertion that two endpoints share a Registry ID is insufficient.
@@ -843,27 +881,31 @@ Binding-specific Git commits, OCI digests and Snapshot IDs remain distinct.
 A binding without a checked mapping to the manifest MUST NOT claim that ID.
 
 Binding access fields inside a manifest contribute to its exact-byte identity.
-Changing HTTP references to UA references creates another manifest and Snapshot
-ID, even if the captured graph and document bytes agree. To expose one unchanged
-manifest through another binding, a caller needs an explicit access mapping
-with checked equivalence to the original exact Version references. This draft
-does not define an alternate-endpoint discovery protocol. Readers MUST NOT
-infer such a mapping from equal Registry IDs or silently substitute bindings.
+Changing HTTP references to UA references creates another manifest and
+Snapshot ID, even if the captured graph and document bytes agree. To expose
+one unchanged manifest through another binding, a caller needs an explicit
+access mapping with checked equivalence to the original exact Version
+references. This extension does not define an alternate-endpoint discovery
+protocol. Readers MUST NOT infer such a mapping from equal Registry IDs or
+silently substitute bindings.
 
-Federation MAY discover publication roots through existing HTTP advertisements,
-or serve checked packages through its other bindings. No new advertisement
-parameter is added. Existing bindings retain their own format and version
-rules. A publication reader can use the manifest and Registry descriptors
-directly without pretending to implement a native package binding.
+### Federated Sources
+
+Federation MAY discover publication roots through existing HTTP
+advertisements, or serve checked packages through its other bindings. No new
+advertisement parameter is added. Existing bindings retain their own format
+and version rules. A publication reader can use the manifest and Registry
+descriptors directly without pretending to implement a native package
+binding.
 
 When several sources form a view, each selected immutable source context,
 the interpreted view model and the exact composition policy MUST be captured
 to claim reproducible composition. The `sources` array records each source's
 snapshot and selected Registry access context. Policy and model records use
 checked extension descriptors. Their semantics MUST be supported by the
-producer or consumer that reconstructs the composition. A materialized producer-resolved
-snapshot can instead be consumed directly under its own complete Registry
-descriptor.
+producer or consumer that reconstructs the composition. A materialized
+producer-resolved snapshot can instead be consumed directly under its own
+complete Registry descriptor.
 
 Independently pinned sources do not establish one simultaneous capture.
 Federation precedence selects whole Resources, not compatible Versions or
@@ -891,6 +933,8 @@ request MUST fail. Readers MUST NOT search older snapshots for a compatible
 result. Raw exact retrieval remains distinct from validated consumption.
 
 ## Workflows and Lifecycle
+
+The rules above combine into the following workflows:
 
 - **Automated conversion.** Reuse unchanged Versions, store changed Versions,
   capture the complete set, then conditionally advance one head. Failure
@@ -930,7 +974,7 @@ validation alone cannot authorize publication.
 
 A read-conformant implementation supports checked descriptors, open context,
 scope and completeness, pinning and explicit failure. Write conformance also
-requires durable conditional heads, non-reused channel identities, immutable
+needs durable conditional heads, non-reused channel identities, immutable
 snapshot storage and the retention behavior above.
 
 [Examples and checks](samples/README.md) use in-memory state to demonstrate

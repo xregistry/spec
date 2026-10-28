@@ -16,8 +16,9 @@ document bytes as xRegistry Version documents, constructs and stores the
 manifest as the snapshot's `manifest` Version, then conditionally updates
 the channel. Every descriptor selects an exact Version through a Registry
 binding. The specification's
-[storage and retrieval sequence](../spec.md#model-and-placement) explains
-those responsibilities and the Registry's implementation-specific backing
+[storage boundary](../spec.md#storage-boundary) and
+[publishing sequence](../spec.md#publishing-a-snapshot) explain those
+responsibilities and the Registry's implementation-specific backing
 storage.
 
 Here, the checked-in files supply the captured content, and the sample
@@ -56,7 +57,7 @@ The suite checks:
 - Case-insensitive Resource collisions
 - Missing defaults and unsupported mandatory extensions
 - Exact Version dispatch, selected UA roots and unsupported bindings
-- Rejection of the earlier URL-only shape and mutable Git/OCI selectors
+- Rejection of URL-only descriptors and mutable Git/OCI selectors
 - Stale head writes and forks
 - Rollback epochs and non-reused deleted channel identities
 
