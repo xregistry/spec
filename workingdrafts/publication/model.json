@@ -14,8 +14,7 @@
             "scope": {
               "type": "uri",
               "required": true,
-              "immutable": true,
-              "description": "Publication scope; not a Group identity."
+              "description": "Immutable publication scope; not a Group identity."
             },
             "head": {
               "type": "object",
