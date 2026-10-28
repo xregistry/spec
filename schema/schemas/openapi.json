@@ -2159,6 +2159,27 @@
             "required": [
               "schemaurl"
             ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "schema"
+                  ]
+                },
+                {
+                  "required": [
+                    "schemabase64"
+                  ]
+                },
+                {
+                  "required": [
+                    "schemaurl"
+                  ]
+                }
+              ]
+            }
           }
         ],
         "required": [
