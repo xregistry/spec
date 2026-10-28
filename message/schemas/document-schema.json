@@ -28,7 +28,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -42,7 +42,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -61,7 +61,7 @@
           },
           "basemessage": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
           },
           "dataschemaformat": {
@@ -73,12 +73,12 @@
           },
           "dataschemauri": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry"
           },
           "dataschemaxid": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry."
           },
           "datacontenttype": {
@@ -1117,7 +1117,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -1131,7 +1131,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {

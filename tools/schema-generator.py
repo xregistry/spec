@@ -69,9 +69,9 @@ json_type_mapping = {
     "string": {"type": "string"},
     "object": {"type": "object"},
     "map": {"type": "object"},
-    "uri": {"type": "string", "format": "uri"},
-    "url": {"type": "string", "format": "uri"},
-    "xid": {"type": "string", "format": "uri"},
+    "uri": {"type": "string", "format": "uri-reference"},
+    "url": {"type": "string", "format": "uri-reference"},
+    "xid": {"type": "string", "format": "uri-reference"},
     "datetime": {"type": "string", "format": "date-time"},
     "integer": {"type": "integer"},
     "uinteger": {"type": "integer", "minimum": 0},
@@ -103,10 +103,10 @@ json_structure_type_mapping = {
 json_common_attributes = {
     "name": {"type": "string", "description": "Name of the object"},
     "epoch": {"type": "integer", "description": "Epoch time of the object creation"},
-    "self": {"type": "string", "format": "uri", "description": "URL of the object"},
+    "self": {"type": "string", "format": "uri-reference", "description": "URL of the object"},
     "xid": {"type": "string", "format": "xid", "description": "Relative URL of the object"},
     "description": {"type": "string", "description": "Description of the object"},
-    "documentation": {"type": "string", "format": "uri", "description": "URI of the documentation of the object"},
+    "documentation": {"type": "string", "format": "uri-reference", "description": "URI of the documentation of the object"},
     "labels": {"type": "object", "description": "Labels for the object"},
     "createdat": {"type": "string", "format": "date-time", "description": "Time of the object creation"},
     "modifiedat": {"type": "string", "format": "date-time", "description": "Time of the object modification"}
@@ -341,7 +341,7 @@ def generate_openapi(model_definition):
             group_singular = group["singular"]
             registry_entity_schema["properties"][f"{group_plural}url"] = {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": f"The URL for retrieving the {group_plural} (e.g. endpointsurl)."
             }
             registry_entity_schema["properties"][f"{group_plural}count"] = {
@@ -622,7 +622,7 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                                 resource_name+"url" : {
                                     "description": f"Linked {resource_name} object",
                                     "type": "string",
-                                    "format": "uri"
+                                    "format": "uri-reference"
                                 }
                             },
                             "required": [resource_name+"url"]
