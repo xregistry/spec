@@ -103,6 +103,8 @@ files
 filescount
 filesurl
 filesystem
+filetransfer
+filetype
 floorterm
 formatauthority
 gid
@@ -174,6 +176,7 @@ messagescount
 messagesurl
 metaattributes
 metadata
+metaepoch
 metaschema
 metaschemas
 metaurl
@@ -220,11 +223,15 @@ nans
 nats
 nbsp
 nginx
+nodeid
 noninlineable
 npm
+nsu
 oauth
 oci
 oldestnewest
+opc
+opcua
 openapi
 openid
 passthrough
@@ -245,6 +252,7 @@ readme
 readonly
 redis
 registryid
+registryroot
 replytopic
 repo
 repos
@@ -317,6 +325,7 @@ tls
 todo
 ttl
 typemap
+ua
 uint
 uinteger
 ulong
