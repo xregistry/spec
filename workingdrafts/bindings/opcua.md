@@ -833,6 +833,22 @@ The base model Properties map to xRegistry attributes as follows.
 | `deprecated` | `MetaDeprecated` (`DeprecationDataType`) with typed OPTIONAL fields | Resource Meta |
 | event `source` URL | `EventSourceUrl` | `RegistryType`, REQUIRED only for event-capable server conformance (§9.3) |
 
+The table above is authoritative for fixed and system Properties. A client
+mapping a model-defined Property BrowseName to an xRegistry attribute name
+MUST convert only ASCII uppercase letters (`A` through `Z`) to their
+lowercase counterparts. For a Resource Meta Property, the client MUST first
+remove the exact, case-sensitive `Meta` prefix. A client mapping a field of a
+structured `ExtensionObject` to an xRegistry attribute MUST apply the same
+ASCII conversion to the field name; it MUST NOT remove a `Meta` prefix from
+the field name. No other character is changed, and Unicode case folding MUST
+NOT be applied. The resulting attribute name MUST satisfy Core's
+attribute-name grammar.
+
+If two distinct Properties on the same entity map to the same xRegistry
+attribute path in the selected representation, including a collision with a
+mapping in the table above, the client's read MUST fail as ambiguous. It
+MUST NOT select a Property by Browse order or another tie-breaker.
+
 Resource Meta is an xRegistry entity in its own right, not a Version
 attribute or a nested implementation object. On the logical Resource, the
 `Meta` prefix distinguishes its OPC UA BrowseNames from delegated Version
@@ -1714,10 +1730,10 @@ In particular, an authored epoch in `RegistryMetadataDataType` uses
 `RegistryNumberValueDataType`; it MUST be an integer within the UInt32
 range before commit. The Property mapping does not change that native ABI.
 
-When serializing a complete entity for export or a protocol bridge, the
-implementation converts base Property BrowseNames to lower-case xRegistry
-attribute names. The domain registry model determines domain Property
-serialization.
+When serializing a complete entity for export or a protocol bridge, base
+Properties use the mappings in §4.6. Model-defined Properties and structured
+`ExtensionObject` fields use the domain mapping and name conversion specified
+there.
 
 A server MUST preserve unknown typed extension attributes that it accepts in
 the native document or a domain mapping. It MUST use `Labels` or `MetaLabels`
