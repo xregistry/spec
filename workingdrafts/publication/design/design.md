@@ -1022,8 +1022,8 @@ For OPC UA, OPC 10100 Connectivity maps these concepts as follows:
   floor and line MUST all hold for that exact Version.
 - `WoTResolvedDependencyTargetDataType` records the target's `VersionProfile` and
   effective `CompatibilityLine` with the exact pin.
-- Optional `WoTRefreshOptionsDataType.PublicationContext` has type
-  `WoTPublicationContextDataType`, with `Uri` and an optional
+- OPTIONAL `WoTRefreshOptionsDataType.PublicationContext` has type
+  `WoTPublicationContextDataType`, with `Uri` and an OPTIONAL
   `ManifestDigest`. Without a digest, `Uri` names a channel opened once per
   Refresh; the selected digest is reported in
   `WoTRefreshSummaryDataType.ManifestDigest`. With a digest, it identifies an

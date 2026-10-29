@@ -108,7 +108,7 @@ revision named by `document.versionid`. The checker compares the floor with
 that revision's `version.model` or `version.instance`, applying the TD major
 cap to `td-ref`. A missing authored version, or one below the floor or cap,
 returns `unsatisfied`. The checker never selects another stored Version, and
-local references take no pin. The document context must include the
+local references take no pin. The document context MUST include the
 containing `versionid`.
 
 A TD floor `X.Y.Z` sets the upper limit to `(X+1).0.0`, exclusive. Candidates
