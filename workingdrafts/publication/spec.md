@@ -921,6 +921,22 @@ revisions. It MUST identify the recognized reference kinds, source bases,
 target identities, mandatory validation and handling of cycles and external
 dependencies.
 
+For a profile that defines a closure extension, the producer MUST identify the
+entry documents from which the closure is evaluated. It MUST determine
+references from those documents and their transitive dependencies; the list of
+bindings alone is not evidence that the closure is complete. Each external
+reference occurrence in that closure MUST have exactly one binding to an exact
+target Version. A binding MUST identify its source Version and reference
+location using the profile's defined rules.
+
+Each entry, source Version and target Version MUST be represented by a document
+association in the captured Registry view. Bindings MUST be unique under the
+profile's binding key, MUST match the source bytes and MUST cover the complete
+reachable closure from the entries. A consumer MUST reject missing, duplicate,
+inconsistent or unreachable bindings and MUST NOT replace a bound target with
+a live or newer Version. The profile MUST define how a consumer determines
+that a target satisfies the reference and the caller's acceptance requirements.
+
 Consumers requesting such a profile MUST reject absent or unsupported closure
 data. Exact selection and compatibility validation are separate operations.
 A snapshot fixes what to evaluate. It does not waive an authored floor,

@@ -326,7 +326,20 @@ draft:
 - `td:subthing`
 - `td:ref`
 - TD `type` links
-- Projection-source references
+
+The W25 contract covers references authored in captured TD and TM document
+Versions. Projection-source inputs are outside this contract.
+
+#### Open decision: Which references can the closure bind?
+
+`tm:ref` is not sufficient to determine the target kind. Section 6.4 also uses
+it for a Schema Resource reference, while the proposed closure list does not
+include a TD `rel: "describedby"` link. The drafts do not decide whether schema
+references belong to this closure or only TD/TM composition references. They
+also do not define a target-identity check that covers both a WoT identifier
+and a Schema Resource Version. Resolve this boundary and mapping before making
+the WoT closure normative; the current operator list cannot establish that a
+pinned view is complete.
 
 The schema permits operator strings rather than defining another vocabulary;
 the existing vocabulary and contexts remain authoritative. An unknown
