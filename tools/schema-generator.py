@@ -1412,11 +1412,12 @@ def resolve_imports(basedir, node):
             import_file = os.path.join(basedir, file_ref)
             with open(import_file, encoding='utf-8') as file:
                 import_definition = json.load(file)
-            del node["$include"]
+            local_definition = {
+                key: value for key, value in node.items() if key != "$include"
+            }
             if obj_ref:
-                node.update(resolve_pointer(import_definition, obj_ref))
-            else:
-                node.update(import_definition)
+                import_definition = resolve_pointer(import_definition, obj_ref)
+            node = {**import_definition, **local_definition}
         for k,v in node.items():
             node[k] = resolve_imports(basedir, v)
     elif isinstance(node, list):

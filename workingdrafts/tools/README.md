@@ -15,6 +15,7 @@ WoT documents, and do not validate those document contents.
 | --- | --- | --- |
 | OpenUSD | [model.json](../models/openusd/model.json) | [JSON Schema](../models/openusd/schemas/document-schema.json), [JSON Structure](../models/openusd/schemas/document-schema.struct.json), [Avro](../models/openusd/schemas/document-schema.avsc), [OpenAPI](../models/openusd/schemas/openapi.json) |
 | WoT | [model.json](../models/wot/model.json) | [JSON Schema](../models/wot/schemas/document-schema.json), [JSON Structure](../models/wot/schemas/document-schema.struct.json), [Avro](../models/wot/schemas/document-schema.avsc), [OpenAPI](../models/wot/schemas/openapi.json) |
+| Media Endpoints | [model.json](../models/media-endpoints/model.json), [source record](../models/media-endpoints/source.json) | [JSON Schema](../models/media-endpoints/schemas/document-schema.json), [JSON Structure](../models/media-endpoints/schemas/document-schema.struct.json), [Avro](../models/media-endpoints/schemas/document-schema.avsc), [OpenAPI](../models/media-endpoints/schemas/openapi.json) |
 | Publication | [model.json](../publication/model.json) | [JSON Schema](../publication/schemas/document-schema.json), [JSON Structure](../publication/schemas/document-schema.struct.json), [Avro](../publication/schemas/document-schema.avsc), [OpenAPI](../publication/schemas/openapi.json) |
 | Registry of Registries | [model.json](../models/registry/model.json) | [Formats and limitations](../models/registry/schemas/README.md) |
 
@@ -68,7 +69,9 @@ compatibility. Avro does not generally encode OPTIONAL-field absence or
 model defaults. Conditional writes, immutability and Version selection need
 separate checks against the specifications. URI strings require semantic
 validation, and the JSON Structure checks are not a complete dialect
-validator.
+validator. The Media Endpoints schemas describe option structure; they do not
+enforce usage restrictions, producer-only applicability or cross-field media
+requirements from the draft.
 
 The [Publication envelope schema](../publication/schemas/publication.json)
 and [WoT closure schema](../models/wot/schemas/publication-closure.schema.json)

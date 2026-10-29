@@ -1,5 +1,6 @@
 """Schema generation preserves existing outputs and converts Avro object items."""
 
+import hashlib
 import json
 import re
 import subprocess
@@ -98,6 +99,7 @@ class TestGeneratedSchemas:
         'workingdrafts/models/registry',
         'workingdrafts/models/openusd',
         'workingdrafts/models/wot',
+        'workingdrafts/models/media-endpoints',
         'workingdrafts/publication',
     ])
     @pytest.mark.parametrize('schema_type,filename', FORMATS)
@@ -127,6 +129,96 @@ class TestGeneratedSchemas:
         assert parameters.fullname == 'io.xregistry.GenericRecord'
         assert relationship.fields_dict['target'].type.type == 'string'
         assert relationship.fields_dict['labels'].type.values.type == 'string'
+
+    def test_media_endpoints_source_provenance_matches_artifacts(self, tools_dir):
+        root = tools_dir.parent / 'workingdrafts' / 'models' / 'media-endpoints'
+        source = json.loads((root / 'source.json').read_text(encoding='utf-8'))
+        assert source['draft']['revision'] == '9613f002c82c9568fbefc5f1f0cf0490d6df572a'
+        assert source['draft']['gitBlob'] == '8e7e6d46c21e391c4dd611dbea92f40acf0231d3'
+        assert source['base']['revision'] == 'adf5b6a63e60c3baa78e844da8b7ce2a0d60c179'
+
+        for model in source['base']['models']:
+            content = (root / model['snapshot']).read_bytes()
+            assert hashlib.sha256(content).hexdigest() == model['sha256']
+
+        for filename, artifact in source['artifacts'].items():
+            content = (root / filename).read_bytes()
+            assert hashlib.sha256(content).hexdigest() == artifact['sha256']
+
+    def test_media_endpoints_model_composes_base_protocols_without_codec_enums(
+        self, tools_dir, tmp_path
+    ):
+        root = tools_dir.parent / 'workingdrafts' / 'models' / 'media-endpoints'
+        model = json.loads((root / 'model.json').read_text(encoding='utf-8'))
+        media_protocols = model['groups']['endpoints']['attributes']['protocol']['ifvalues']
+        media_protocols = {
+            name: value for name, value in media_protocols.items() if name != '$include'
+        }
+        expected_streamformats = {
+            'SRT': ['mpegts'],
+            'WebRTC': ['srtp'],
+            'RTSP/1.0': ['rtp', 'rtp-mpegts'],
+            'RTP/2': ['rtp', 'rtp-mpegts'],
+            'MPEGTS-UDP': ['mpegts'],
+            'RTMP/1.0': ['flv'],
+            'RIST-Simple/2020': ['rtp-mpegts'],
+            'RIST-Main/2024': ['rtp-mpegts'],
+        }
+        assert set(media_protocols) == {
+            'SRT', 'WebRTC', 'RTSP/1.0', 'RTSP/2.0', 'RTP/2', 'MPEGTS-UDP',
+            'RTMP/1.0', 'HLS', 'DASH', 'RIST-Simple/2020', 'RIST-Main/2024',
+        }
+
+        for name, values in expected_streamformats.items():
+            attributes = media_protocols[name]['siblingattributes']['protocoloptions']['attributes']
+            assert attributes['streamformat']['enum'] == values
+            for codec in ('videocodec', 'audiocodec'):
+                assert attributes[codec]['type'] == 'string'
+                assert 'enum' not in attributes[codec]
+
+        options = media_protocols['WebRTC']['siblingattributes']['protocoloptions']['attributes']
+        assert options['signaling']['required'] is True
+        assert options['signalingreference']['type'] == 'uri'
+        options = media_protocols['RTMP/1.0']['siblingattributes']['protocoloptions']['attributes']
+        assert options['application']['required'] is True
+        assert options['streamname']['required'] is True
+
+        schema = self.generate_schema(
+            [root / 'model.json'],
+            'json-schema',
+            tools_dir,
+            tmp_path,
+            ['--schema-id', 'https://xregistry.io/workingdrafts/models/media-endpoints/schemas/document-schema.json'],
+        )
+        endpoint = schema['definitions']['endpoint-schema']['endpoint']
+        branches = {}
+        for conditional in endpoint['allOf']:
+            for branch in conditional.get('oneOf', []):
+                properties = branch.get('properties', {})
+                protocol = properties.get('protocol', {})
+                for selector in protocol.get('enum', []):
+                    branches[selector] = properties
+
+        base = json.loads((root / 'sources' / 'endpoint-model.json').read_text(encoding='utf-8'))
+        base_protocols = base['groups']['endpoints']['attributes']['protocol']['ifvalues']
+        assert set(branches) == set(base_protocols) | set(media_protocols)
+        for selector in media_protocols:
+            properties = branches[selector]['protocoloptions']['properties']
+            actual = set(properties)
+            assert {'endpoints', 'authorization', 'deployed'} <= actual
+            for codec in ('videocodec', 'audiocodec'):
+                if codec in properties:
+                    assert properties[codec]['type'] == 'string'
+                    assert 'enum' not in properties[codec]
+
+        for selector in expected_streamformats:
+            options = branches[selector]['protocoloptions']['properties']
+            assert options['streamformat']['type'] == 'string'
+
+        for selector, value in base_protocols.items():
+            expected = set(value['siblingattributes']['protocoloptions']['attributes']) - {'*'}
+            actual = set(branches[selector]['protocoloptions']['properties'])
+            assert actual == expected
 
     @pytest.mark.parametrize('containers', [
         ('array',), ('map',), ('array', 'map'), ('map', 'array'),
