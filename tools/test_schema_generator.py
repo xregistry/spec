@@ -141,6 +141,37 @@ class TestSchemaGenerator:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
 
+    def test_array_item_enum_is_preserved_in_json_schema_and_avro(
+        self, tools_dir, tmp_path
+    ):
+        model_path = tmp_path / 'model.json'
+        model_path.write_text(json.dumps({
+            "groups": {
+                "endpoints": {
+                    "singular": "endpoint",
+                    "attributes": {
+                        "usage": {
+                            "type": "array",
+                            "item": {
+                                "type": "string",
+                                "enum": ["subscriber", "producer"]
+                            }
+                        }
+                    }
+                }
+            }
+        }), encoding='utf-8')
+
+        json_schema = self.generate_schema(model_path, 'json-schema', tools_dir)
+        usage = json_schema['definitions']['endpoint-schema']['endpoint']['properties']['usage']
+        assert usage['items']['enum'] == ['subscriber', 'producer']
+
+        avro_data = self.generate_schema(model_path, 'avro-schema', tools_dir)
+        schema = avro.schema.parse(json.dumps(avro_data))
+        usage = schema.fields_dict['endpoints'].type.values.fields_dict['usage'].type.items
+        assert usage.type == 'enum'
+        assert usage.symbols == ['subscriber', 'producer']
+
     def test_model_include_siblings_override_included_values(self, tools_dir, tmp_path):
         base_path = tmp_path / "base.json"
         base_path.write_text(json.dumps({

@@ -1,6 +1,7 @@
 """Schema generation preserves existing outputs and converts Avro object items."""
 
 import hashlib
+import importlib.util
 import json
 import re
 import subprocess
@@ -145,6 +146,20 @@ class TestGeneratedSchemas:
             content = (root / filename).read_bytes()
             assert hashlib.sha256(content).hexdigest() == artifact['sha256']
 
+        model_path = root / 'model.json'
+        generator_spec = importlib.util.spec_from_file_location(
+            'media_endpoints_schema_generator', tools_dir / 'schema-generator.py'
+        )
+        generator = importlib.util.module_from_spec(generator_spec)
+        generator_spec.loader.exec_module(generator)
+        resolved_model = generator.resolve_imports(str(root), json.loads(
+            model_path.read_text(encoding='utf-8')
+        ))
+        core_schema = json.loads(
+            (tools_dir.parent / 'core' / 'model.schema.json').read_text(encoding='utf-8')
+        )
+        jsonschema.Draft7Validator(core_schema).validate(resolved_model)
+
     def test_media_endpoints_model_composes_base_protocols_without_codec_enums(
         self, tools_dir, tmp_path
     ):
@@ -168,6 +183,9 @@ class TestGeneratedSchemas:
             'SRT', 'WebRTC', 'RTSP/1.0', 'RTSP/2.0', 'RTP/2', 'MPEGTS-UDP',
             'RTMP/1.0', 'HLS', 'DASH', 'RIST-Simple/2020', 'RIST-Main/2024',
         }
+        assert model['groups']['endpoints']['attributes']['usage']['item']['enum'] == [
+            'subscriber', 'consumer', 'producer'
+        ]
 
         for name, values in expected_streamformats.items():
             attributes = media_protocols[name]['siblingattributes']['protocoloptions']['attributes']
@@ -190,6 +208,22 @@ class TestGeneratedSchemas:
             tmp_path,
             ['--schema-id', 'https://xregistry.io/workingdrafts/models/media-endpoints/schemas/document-schema.json'],
         )
+        usage = schema['definitions']['endpoint-schema']['endpoint']['properties']['usage']
+        assert usage['items']['enum'] == ['subscriber', 'consumer', 'producer']
+        json_structure = self.generate_schema(
+            [root / 'model.json'],
+            'json-structure',
+            tools_dir,
+            tmp_path,
+            [
+                '--schema-id',
+                'https://xregistry.io/workingdrafts/models/media-endpoints/schemas/document-schema.struct.json',
+                '--schema-name',
+                'MediaEndpointRegistryDocument',
+            ],
+        )
+        usage = json_structure['definitions']['Endpoints']['Endpoint']['properties']['usage']
+        assert usage['items']['enum'] == ['subscriber', 'consumer', 'producer']
         endpoint = schema['definitions']['endpoint-schema']['endpoint']
         branches = {}
         for conditional in endpoint['allOf']:
@@ -199,7 +233,7 @@ class TestGeneratedSchemas:
                 for selector in protocol.get('enum', []):
                     branches[selector] = properties
 
-        base = json.loads((root / 'sources' / 'endpoint-model.json').read_text(encoding='utf-8'))
+        base = json.loads((root / 'sources' / 'endpoint-model.source.json').read_text(encoding='utf-8'))
         base_protocols = base['groups']['endpoints']['attributes']['protocol']['ifvalues']
         assert set(branches) == set(base_protocols) | set(media_protocols)
         for selector in media_protocols:

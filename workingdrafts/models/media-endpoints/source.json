@@ -17,23 +17,30 @@
       {
         "path": "endpoint/model.json",
         "gitBlob": "be4287fb1472d9ac6615e06ade469f216938ee29",
-        "snapshot": "sources/endpoint-model.json",
+        "snapshot": "sources/endpoint-model.source.json",
         "sha256": "e1acb299119866671bcc2b8561ddc240c7c85261740f91b732e13a799bd04f4b"
       },
       {
         "path": "message/model.json",
         "gitBlob": "5df13a2dbb11ccd0e8d8643e983dfbb71262051a",
-        "snapshot": "sources/message-model.json",
+        "snapshot": "sources/message-model.source.json",
         "sha256": "473ad3ea899db6ea4cf5c9a11014901be1eb947ec117fc750c40628f54fde2d9"
       }
     ]
   },
+  "modelAdjustments": [
+    {
+      "path": "groups.endpoints.attributes.usage",
+      "adjustment": "Move the enum from the array attribute to its scalar item.",
+      "reason": "Core model validation permits enum on scalar values, not on array attributes."
+    }
+  ],
   "artifacts": {
     "model.json": {
-      "sha256": "73630375886ed74f24a66f170ceddd9a63c4e21b962f385256480514381d05d9"
+      "sha256": "f8a0fa6cbd975f4c38ee211d291d5b64416bccc4d9a7242eaf4f9da34367cfa8"
     },
     "protocol-options.json": {
-      "sha256": "e08cae9592a3873e66391affda543253ff240c2dd2eb5c5d963d66cb6c93d36f"
+      "sha256": "4fcf905ad2ca26ea8ce03d5ee0a92338622733f313bbca8dd7543a7b2f04d8fb"
     }
   }
 }

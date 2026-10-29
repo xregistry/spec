@@ -24,13 +24,13 @@
         }
       },
       "authorization": {
-        "$include": "sources/endpoint-model.json#/groups/endpoints/attributes/protocol/ifvalues/HTTP/siblingattributes/protocoloptions/attributes/authorization"
+        "$include": "sources/endpoint-model.source.json#/groups/endpoints/attributes/protocol/ifvalues/HTTP/siblingattributes/protocoloptions/attributes/authorization"
       },
       "deployed": {
-        "$include": "sources/endpoint-model.json#/groups/endpoints/attributes/protocol/ifvalues/HTTP/siblingattributes/protocoloptions/attributes/deployed"
+        "$include": "sources/endpoint-model.source.json#/groups/endpoints/attributes/protocol/ifvalues/HTTP/siblingattributes/protocoloptions/attributes/deployed"
       },
       "*": {
-        "$include": "sources/endpoint-model.json#/groups/endpoints/attributes/protocol/ifvalues/HTTP/siblingattributes/protocoloptions/attributes/*"
+        "$include": "sources/endpoint-model.source.json#/groups/endpoints/attributes/protocol/ifvalues/HTTP/siblingattributes/protocoloptions/attributes/*"
       }
     }
   }

@@ -2,16 +2,29 @@
   "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
   "groups": {
     "messagegroups": {
-      "$include": "sources/message-model.json#/groups/messagegroups"
+      "$include": "sources/message-model.source.json#/groups/messagegroups"
     },
     "endpoints": {
-      "$include": "sources/endpoint-model.json#/groups/endpoints",
+      "$include": "sources/endpoint-model.source.json#/groups/endpoints",
       "attributes": {
-        "$include": "sources/endpoint-model.json#/groups/endpoints/attributes",
+        "$include": "sources/endpoint-model.source.json#/groups/endpoints/attributes",
+        "usage": {
+          "name": "usage",
+          "type": "array",
+          "description": "Client's expected usage of this endpoint. Single-role declarations are preferred. Mixed declarations are guidance-oriented metadata and should be used only when role semantics are unambiguous.",
+          "item": {
+            "type": "string",
+            "enum": [
+              "subscriber",
+              "consumer",
+              "producer"
+            ]
+          }
+        },
         "protocol": {
-          "$include": "sources/endpoint-model.json#/groups/endpoints/attributes/protocol",
+          "$include": "sources/endpoint-model.source.json#/groups/endpoints/attributes/protocol",
           "ifvalues": {
-            "$include": "sources/endpoint-model.json#/groups/endpoints/attributes/protocol/ifvalues",
+            "$include": "sources/endpoint-model.source.json#/groups/endpoints/attributes/protocol/ifvalues",
             "SRT": {
               "siblingattributes": {
                 "protocoloptions": {

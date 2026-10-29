@@ -415,8 +415,9 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                 if "description" in attr_schema and attr_schema["description"] == "":
                     del attr_schema["description"]
                 # Apply enum constraint to array items if provided
-                if enum_values is not None and len(enum_values) > 0:
-                    attr_schema["enum"] = enum_values
+                item_enum = enum_values if enum_values is not None else item.get("enum")
+                if item_enum:
+                    attr_schema["enum"] = copy.deepcopy(item_enum)
                 resource_schema["items"] = attr_schema
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
@@ -1068,11 +1069,12 @@ def generate_avro_schema(model_definition) -> dict:
                     resource_schema["type"]["items"] = item_schema["type"]
                 else:
                     # Apply enum constraint to array items if provided
-                    if enum_values is not None and len(enum_values) > 0:
+                    item_enum = enum_values if enum_values is not None else item.get("enum")
+                    if item_enum:
                         item_schema = {
                             "type": "enum",
                             "name": prefix+name+"EnumType",
-                            "symbols": enum_values
+                            "symbols": item_enum
                         }
                     resource_schema["type"]["items"] = item_schema
             else:
