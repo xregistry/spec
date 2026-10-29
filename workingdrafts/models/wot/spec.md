@@ -59,6 +59,7 @@ storing, managing and discovering W3C
       - [5.4.1. Floors and Pins](#541-floors-and-pins)
       - [5.4.2. Resolver Algorithm](#542-resolver-algorithm)
       - [5.4.3. Errors and Test Vectors](#543-errors-and-test-vectors)
+      - [5.4.4. Publication closure](#544-publication-closure)
   - [6. Relationships and Cross-References](#6-relationships-and-cross-references)
     - [6.1. Thing Description to Thing Model](#61-thing-description-to-thing-model)
     - [6.2. Thing Description to Thing Description](#62-thing-description-to-thing-description)
@@ -112,6 +113,11 @@ A WoT Registry is complementary to the xRegistry [Endpoint][xRegistry Endpoint],
   [Section 6.4](#64-thing-description-to-schema-registry).
 - A Thing Description MAY reference one or more Thing Models from which it
   is derived. See [Section 6.1](#61-thing-description-to-thing-model).
+
+The [xRegistry Publication working draft](../../publication/spec.md) defines
+immutable snapshots and domain-closure requirements. Section
+[5.4.4](#544-publication-closure) defines the WoT closure data needed to make
+a pinned WoT view reconstructible.
 
 This specification does not require the Registry to resolve or validate these
 cross-references. An implementation MAY check that a referent exists, but it
@@ -1143,6 +1149,45 @@ constraints. The
 [canonical resolution vectors](tests/resolution/README.md) define portable
 resolver inputs and expected outcomes, including write-side version
 assignment.
+
+#### 5.4.4. Publication closure
+
+A WoT publication that claims domain-complete closure MUST include the
+`http://opcfoundation.org/UA/WoT-Binding/publication-closure/1` extension as
+a REQUIRED manifest extension. Its document format is
+`wot-publication-closure/1`, as defined by the
+[closure schema](schemas/publication-closure.schema.json). The extension does
+not change the authored WoT documents or their reference semantics.
+
+Each `entries` item, binding `source` and binding `target` MUST be an exact
+Version XID in the captured Registry view. A target MUST identify one
+associated Version document, not a Resource XID, default-Version alias, WoT
+identifier or URL. The captured Registry model determines the target
+Resource's kind. A Consumer MUST validate that kind and target identity
+against the source occurrence using the mapping defined for that reference
+kind. The closure document does not add a target-kind field or authorize a
+different selection rule. If no such mapping is defined, the Consumer MUST
+reject the binding.
+
+A producer MUST derive the closure from the captured source document bytes,
+not from the binding list. Each external reference occurrence in the closure
+MUST have exactly one binding to its exact target Version. The binding's
+`source`, `pointer`, `operator` and `href` MUST identify that occurrence and
+preserve its authored reference. A Consumer MUST verify those values against
+the captured source bytes and MUST NOT resolve a missing binding against a
+live Registry, select a default Version, or replace the target with a newer
+Version.
+
+This specification does not define the complete set of WoT reference
+occurrences covered by this closure, a canonical `operator` encoding for link
+relations, or a target-identity mapping for every reference kind. In
+particular, `tm:ref` is used for Thing Model references and, in schema
+references described by [Section 6.4](#64-thing-description-to-schema-registry),
+Schema Resource references. Until those scope and mapping rules are defined,
+the extension alone does not establish WoT-complete closure. A producer MUST
+NOT claim that completeness unless it can identify and validate every
+in-scope reference under a defined mapping. A Consumer MUST reject a closure
+whose scope or target mapping it cannot validate.
 
 ## 6. Relationships and Cross-References
 

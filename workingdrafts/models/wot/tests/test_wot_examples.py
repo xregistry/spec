@@ -40,3 +40,22 @@ def test_missing_exact_target_rejected():
     del example["bindings"][0]["target"]
     with pytest.raises(jsonschema.ValidationError):
         jsonschema.validate(example, SCHEMA)
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("entries", "/thingmodelgroups/acme/thingmodels/pump"),
+        ("source", "urn:example:pump:v1"),
+        ("target", "https://example.test/thingmodels/base"),
+    ],
+)
+def test_closure_requires_exact_version_xids(field, value):
+    example = deepcopy(EXAMPLE)
+    if field == "entries":
+        example[field][0] = value
+    else:
+        example["bindings"][0][field] = value
+
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(example, SCHEMA)

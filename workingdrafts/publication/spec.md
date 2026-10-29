@@ -937,6 +937,14 @@ inconsistent or unreachable bindings and MUST NOT replace a bound target with
 a live or newer Version. The profile MUST define how a consumer determines
 that a target satisfies the reference and the caller's acceptance requirements.
 
+Each binding's target MUST identify one exact Version XID in the captured
+Registry view. The captured Registry model determines that Version's Resource
+kind; a consumer MUST NOT infer the kind from the XID text or the binding's
+operator alone. The domain profile MUST define how the source occurrence's
+identity and expected kind match the target. If a consumer cannot establish
+that match from the captured content and the profile's rules, it MUST reject
+the binding rather than resolve the reference against a live Registry.
+
 Consumers requesting such a profile MUST reject absent or unsupported closure
 data. Exact selection and compatibility validation are separate operations.
 A snapshot fixes what to evaluate. It does not waive an authored floor,
