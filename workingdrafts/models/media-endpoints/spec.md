@@ -50,8 +50,20 @@ unrecognized codec identifier solely because it does not recognize it.
 
 A validator MUST NOT infer codec/protocol/`streamformat` incompatibility beyond
 the media-kind check and the protocol's declared `streamformat` enumeration.
-This draft defines no codec/format compatibility matrix and therefore defines
-no normative compatibility-rejection vectors.
+This draft defines no codec/format compatibility matrix. Its validation
+vectors exercise only the media-kind and declared `streamformat` checks; they
+do not assert cross-property codec/format compatibility.
+
+The [validation vectors](tests/validation-vectors.json) are executable examples
+for these rules. They cover the codec identifiers explicitly used as model
+defaults, an unknown codec identifier, case-sensitive codec recognition,
+media-kind mismatch, and each protocol's declared `streamformat` rule. They do
+not define a codec vocabulary or compatibility matrix. Run them from the
+repository root with:
+
+```powershell
+python -B -m pytest workingdrafts\models\media-endpoints\tests -q
+```
 
 ## Runtime Compatibility
 
