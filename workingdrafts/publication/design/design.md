@@ -1005,7 +1005,7 @@ For OPC UA, OPC 10100 Connectivity maps these concepts as follows:
   profile-interpreted, and adds OPTIONAL `RequiredCompatibilityLine`.
   Projection-source requirements use the same fields; `uav:sourceDigest`
   and the profile-specific requirement both MUST hold.
-- `WoTResolvedDependencyTargetDataType` records the target's `Profile` and
+- `WoTResolvedDependencyTargetDataType` records the target's `VersionProfile` and
   effective `CompatibilityLine` with the exact pin.
 - Optional `WoTRefreshOptionsDataType.PublicationContext` has type
   `WoTPublicationContextDataType`, with `Uri` and an optional
