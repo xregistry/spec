@@ -316,30 +316,29 @@ come from the generic manifest's document associations. Profile and line
 expectations come from the captured trusted metadata. Duplicating them in
 each binding would introduce competing authorities.
 
-The profile recognizes these external references, all defined by the WoT
-draft:
+The profile recognizes these external dependency occurrences:
 
-- `tm:extends`
-- `tm:submodel`
-- `tm:ref`
-- `td:extends`
-- `td:subthing`
-- `td:ref`
-- TD `type` links
+- TM `tm:extends`, `tm:submodel`, and ordinary `tm:ref` references.
+- TD `td:extends`, `td:subthing`, ordinary `td:ref`, and links with
+  `rel: "type"`.
+- Projection Plans source-manifest entries, with target kind determined by
+  each entry's expected media type.
 
-The W25 contract covers references authored in captured TD and TM document
-Versions. Projection-source inputs are outside this contract.
+A Projection Plans selector uses `tm:ref` in both TD and TM envelopes to
+select an affordance from its declared manifest source. The manifest entry is
+the dependency occurrence; the selector does not create another target
+binding. An external ordinary `td:ref` remains a dependency and needs its own
+binding.
 
-#### Open decision: Which references can the closure bind?
+For a source-manifest entry, `operator` records `wotproj:projects`,
+`pointer` identifies that entry in the ordered array, and `href` preserves its
+authored value.
 
-`tm:ref` is not sufficient to determine the target kind. Section 6.4 also uses
-it for a Schema Resource reference, while the proposed closure list does not
-include a TD `rel: "describedby"` link. The drafts do not decide whether schema
-references belong to this closure or only TD/TM composition references. They
-also do not define a target-identity check that covers both a WoT identifier
-and a Schema Resource Version. Resolve this boundary and mapping before making
-the WoT closure normative; the current operator list cannot establish that a
-pinned view is complete.
+This profile does not cover Schema Resource references, including
+`rel: "describedby"` links or schema-context uses of `tm:ref`. The publication
+model defines no target-identity or acceptance contract for those references.
+A consumer that requires schema-reference closure needs another profile; this
+WoT closure descriptor alone does not establish it.
 
 The schema permits operator strings rather than defining another vocabulary;
 the existing vocabulary and contexts remain authoritative. An unknown
@@ -353,9 +352,12 @@ reference is document-local when its URI-reference resolves against the
 source document's base URI to that document before its fragment is applied.
 Local fragment references stay within their source document and need no
 external binding; every external occurrence needs exactly one binding.
-For a `links` item, `pointer` identifies that item. For `tm:ref`/`td:ref`,
-it identifies the object containing that member. Source bytes need to contain
-the stated operator and exact `href` at that object.
+For a `links` item, `pointer` identifies that item. For an ordinary
+`tm:ref`/`td:ref`, it identifies the object containing that member. For a
+projection source, it identifies the manifest entry. A projection selector's
+`tm:ref` is resolved within the bound source and has no separate binding
+occurrence. Source bytes need to contain the stated operator and exact `href`
+at the bound occurrence.
 
 The producer materializes external dependencies as exact Versions in the
 captured view and preserves their source associations. The binding key is
