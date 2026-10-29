@@ -82,6 +82,7 @@ deploymentid
 deprecatedeventtype
 deprecationdatatype
 derivedmqtt
+describedby
 deserialization
 deserialized
 deserializer
@@ -92,6 +93,7 @@ dirscount
 discount
 distributionmode
 dns
+edgeindex
 embeddings
 emoji
 endpointid
@@ -170,6 +172,7 @@ lifecycle
 lightbulb
 linkproperties
 linux
+manifestdigest
 mapname
 maxmaxversions
 maxversions
@@ -264,6 +267,7 @@ protocoloptions
 protocoloptionsendpoints
 pseudocode
 ptr
+publicationcontext
 pubsub
 qos
 rawdata
@@ -324,6 +328,7 @@ smartoven
 soaphub
 someattribute
 someattributes
+sourcedigest
 sourceregistry
 sparkplugb
 specurl
@@ -397,6 +402,14 @@ willmessage
 willtopic
 windgenerator
 wip
+wotdependencydatatype
+wotdocumenttype
+wotpublicationcontextdatatype
+wotrefreshoptionsdatatype
+wotrefreshsummarydatatype
+wotregistrytype
+wotresolveddependencytargetdatatype
+wotversionprofileenum
 writedocument
 wss
 www
