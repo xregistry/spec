@@ -2,6 +2,7 @@ acks
 amqp
 amqps
 ancestorid
+affordance
 api
 apicur
 apicurio
@@ -412,6 +413,7 @@ workingdrafts
 wotdependencydatatype
 wotdocumenttype
 wotpublicationcontextdatatype
+wotproj
 wotrefreshoptionsdatatype
 wotrefreshsummarydatatype
 wotregistrytype

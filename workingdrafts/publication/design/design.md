@@ -340,6 +340,11 @@ model defines no target-identity or acceptance contract for those references.
 A consumer that requires schema-reference closure needs another profile; this
 WoT closure descriptor alone does not establish it.
 
+The OPC UA WoT Binding also models cross-document `uav:dataTypeDefinitions`
+references for materialization. A publication claiming that profile's complete
+dependency closure needs a separate binding contract for those edges; this
+W3C-derived descriptor alone does not provide it.
+
 The schema permits operator strings rather than defining another vocabulary;
 the existing vocabulary and contexts remain authoritative. An unknown
 operator cannot satisfy closure validation. The producer follows the WoT
