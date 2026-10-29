@@ -1003,8 +1003,10 @@ For OPC UA, OPC 10100 Connectivity maps these concepts as follows:
   `inconsistent-publication`.
 - `WoTDependencyDataType` keeps `RequiredVersion` string-valued and
   profile-interpreted, and adds OPTIONAL `RequiredCompatibilityLine`.
-  Projection-source requirements use the same fields; `uav:sourceDigest`
-  and the profile-specific requirement both MUST hold.
+  Projection-source floors and lines use the same fields. The source entry's
+  `uav:sourceDigest` remains in the projection-plan bytes; compare it with the
+  `ContentDigest` in the target record with the same `EdgeIndex`. The digest,
+  floor and line MUST all hold for that exact Version.
 - `WoTResolvedDependencyTargetDataType` records the target's `VersionProfile` and
   effective `CompatibilityLine` with the exact pin.
 - Optional `WoTRefreshOptionsDataType.PublicationContext` has type
