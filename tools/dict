@@ -17,6 +17,7 @@ attributesstringitem
 attributesstringnamecharset
 attributesstringtarget
 attrs
+audiocodec
 authorityuri
 avro
 avrotize
@@ -262,6 +263,7 @@ pdf
 placeholders
 png
 pov
+powershell
 producerrecord
 protobuf
 protocoloptions
@@ -270,6 +272,7 @@ pseudocode
 ptr
 publicationcontext
 pubsub
+pytest
 qos
 rawdata
 readdocument
@@ -339,6 +342,7 @@ src
 ssl
 stakeholders
 storeid
+streamformat
 stringified
 stringify
 strictvalidation
@@ -392,6 +396,7 @@ versionmodes
 versionscount
 versionsurl
 vid
+videocodec
 vnd
 watchkam
 waterboiler
@@ -403,6 +408,7 @@ willmessage
 willtopic
 windgenerator
 wip
+workingdrafts
 wotdependencydatatype
 wotdocumenttype
 wotpublicationcontextdatatype
