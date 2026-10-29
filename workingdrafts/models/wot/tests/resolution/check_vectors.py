@@ -103,8 +103,44 @@ def resource_for(case, target):
     return matches[0]
 
 
+def resolve_local(case):
+    """Check a document-local reference against its containing revision."""
+    reference = case["reference"]
+    if "pin" in case or reference["kind"] not in ("ref", "td-ref"):
+        raise ValueError("a local reference is an unpinned tm:ref or td:ref")
+    document = case["document"]
+    resource = resource_for(case, reference["target"])
+    selected = next(
+        (v for v in resource["versions"] if v["versionid"] == document["versionid"]),
+        None,
+    )
+    if selected is None:
+        raise ValueError("the containing revision must be a stored Version")
+    floor = floor_for(case)
+    if floor is not None:
+        is_td = reference["kind"] == "td-ref"
+        authored = document.get("version.instance" if is_td else "version.model")
+        if authored is None:
+            raise OutcomeError("unsatisfied")
+        if WITH_BUILD.fullmatch(authored):
+            raise OutcomeError("invalid-version")
+        version = Version(authored)
+        if version < floor or (
+            is_td and version.core[0] >= floor.core[0] + 1
+        ):
+            raise OutcomeError("unsatisfied")
+    return {
+        "wotid": resource["wotid"],
+        "versionid": selected["versionid"],
+        "contentdigest": selected["contentdigest"],
+        "origin": ORIGIN,
+    }
+
+
 def resolve(case):
     """Execute spec 5.4.2 in its stated order; origin is resolver context."""
+    if case["reference"].get("local", False):
+        return resolve_local(case)
     resource = resource_for(case, case["reference"]["target"])
     versions = resource["versions"]
     pin = case.get("pin", {})

@@ -1053,6 +1053,17 @@ if present. An omitted floor MUST NOT produce `ambiguous-floor`.
 
 A non-SemVer implicit floor MUST produce `invalid-version`.
 
+A `tm:ref` or `td:ref` is document-local when its URI-reference, resolved
+against the containing document's base URI and with its fragment removed,
+identifies that same document. A document-local reference targets the
+containing revision being processed, not a Resource lookup. When it carries a
+floor, the resolver MUST compare the floor with that revision's
+`version.model` for `tm:ref` or `version.instance` for `td:ref`. A `td:ref`
+floor also applies the TD major cap. A missing authored version, or one below
+the floor or outside the cap, MUST produce `unsatisfied`. An invalid authored
+version MUST produce `invalid-version`. The resolver MUST NOT select another
+Version of the containing Resource to satisfy a local reference.
+
 A resolver MUST return `(wotid, versionid, contentdigest, origin)`, where
 `origin` identifies the registry from which the stored bytes were obtained
 and `contentdigest` is the digest of those bytes. A Consumer MAY retain this
@@ -1065,9 +1076,11 @@ MUST remain portable between registries.
 #### 5.4.2. Resolver Algorithm
 
 The caller selects a registry and Group scope identifying one Resource by
-`wotid`, following [Section 5.3](#53-lookup). For `tm:ref` or `td:ref`, the
-lookup target is the document identifier resolved from the reference URI,
-excluding any fragment. The fragment is applied after version selection.
+`wotid`, following [Section 5.3](#53-lookup). For an external `tm:ref` or
+`td:ref`, the lookup target is the document identifier resolved from the
+reference URI, excluding any fragment. The fragment is applied after version
+selection. A document-local reference follows Section 5.4.1 instead of this
+algorithm.
 Resource disambiguation across Groups precedes this algorithm.
 
 Core defines Resource defaults and Version lineage through
@@ -1118,7 +1131,7 @@ from `version.instance`. A TM Resource's is derived from `version.model`.
 |---|---|
 | `not-found` | Resource, pinned Version or sticky default is absent. |
 | `pin-mismatch` | The target Resource has no Version with the caller's digest. |
-| `unsatisfied` | No eligible Version exists, or the selected Version is below the floor or outside the TD major cap. |
+| `unsatisfied` | No eligible Version exists, the selected Version is below the floor or outside the TD major cap, or a local reference's containing revision fails its floor. |
 | `ambiguous-floor` | A TD has `version.model`, several type links and at least one link without its own floor. |
 | `invalid-floor` | A floor term is used with a reference to the other document kind. |
 | `version-mismatch` | A supplied publication `versionid` disagrees with the authored or generated assignment. |

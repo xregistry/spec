@@ -51,8 +51,8 @@ Each case has these fields:
 |---|---|
 | `description` | Explains what the case tests. |
 | `registry` | Resource snapshots keyed by `wotid`, each with a default selection and its Versions. |
-| `reference` | Resolution request with a `kind`, target `wotid`, and OPTIONAL `minVersion` and `floorTerm`. |
-| `document` | OPTIONAL Thing Description (TD) context for Thing Model (TM) `rel:type` links, with `version.model` and `typeLinks`. |
+| `reference` | Resolution request with a `kind`, target `wotid`, and OPTIONAL `minVersion`, `floorTerm` and `local`. |
+| `document` | OPTIONAL Thing Description (TD) context for Thing Model (TM) `rel:type` links, with `version.model` and `typeLinks`. For a local reference, the containing revision's `versionid` and its `version.model` or `version.instance`. |
 | `publish` | Publication request with `target` and OPTIONAL `versionid`, `targetKind`, `version.model`, and `version.instance`. |
 | `pin` | Caller pin: exactly one of `{ "digest": "sha256:..." }` or `{ "versionid": "1.0.0" }`. |
 | `allowPrerelease` | OPTIONAL caller flag that allows prerelease selection. By default, its value is `false`. |
@@ -100,6 +100,16 @@ The checker applies these floor rules:
   present.
 
 TD-to-TD references do not inherit an implicit floor.
+
+A `local: true` reference is a document-local `ref` or `td-ref`: its
+URI-reference resolves against the containing document's base URI to that
+document before its fragment is applied. Its target is the containing
+revision named by `document.versionid`. The checker compares the floor with
+that revision's `version.model` or `version.instance`, applying the TD major
+cap to `td-ref`. A missing authored version, or one below the floor or cap,
+returns `unsatisfied`. The checker never selects another stored Version, and
+local references take no pin. The document context must include the
+containing `versionid`.
 
 A TD floor `X.Y.Z` sets the upper limit to `(X+1).0.0`, exclusive. Candidates
 at or above that major, including prereleases, are out of range. An unfloored
@@ -167,6 +177,7 @@ Without a sticky default, the highest eligible SemVer wins. Generated
 | `005-digest-pin-mismatch` | Fail when the digest is absent. |
 | `026-pin-overrides-floor-and-sticky` | A Version-id pin overrides the floor and sticky default. |
 | `049-pin-bypasses-type-floor-derivation` | A pin bypasses type-link ambiguity and invalid implicit floors. |
+| `067-digest-pin-duplicate-highest-version` | For matching bytes, select the highest SemVer Version. |
 
 ### Type-link floors
 
@@ -186,6 +197,16 @@ Without a sticky default, the highest eligible SemVer wins. Generated
 | `055-td-prerelease-floor` | Admit eligible prereleases but exclude the next major's prereleases. |
 | `057-td-subthing-floor` | Cap a major-zero floor below 1.0.0. |
 | `063-tm-minversion-on-td-reference-invalid-floor` | Reject a TM floor term on a TD reference. |
+
+### Document-local references
+
+| ID | Behavior |
+| --- | --- |
+| `064-local-tm-ref-uses-containing-revision` | Return the containing revision, not a newer stored Version. |
+| `065-local-tm-ref-below-floor` | Fail when the containing TM is below the local floor. |
+| `066-local-td-ref-next-major` | Apply the TD major cap to the containing TD. |
+| `068-local-tm-ref-missing-authored-version` | Fail when a local TM floor has no authored model version to check. |
+| `069-local-tm-ref-invalid-authored-version` | Reject a malformed local TM model version. |
 
 ### Assignment
 

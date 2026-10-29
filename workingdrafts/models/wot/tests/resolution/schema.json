@@ -112,6 +112,9 @@
             "tm:minVersion",
             "td:minVersion"
           ]
+        },
+        "local": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -120,6 +123,28 @@
       ],
       "additionalProperties": false,
       "allOf": [
+        {
+          "if": {
+            "required": [
+              "local"
+            ],
+            "properties": {
+              "local": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "ref",
+                  "td-ref"
+                ]
+              }
+            }
+          }
+        },
         {
           "if": {
             "required": [
@@ -137,7 +162,13 @@
     "document": {
       "type": "object",
       "properties": {
+        "versionid": {
+          "type": "string"
+        },
         "version.model": {
+          "type": "string"
+        },
+        "version.instance": {
           "type": "string"
         },
         "typeLinks": {
@@ -160,8 +191,17 @@
           "minItems": 1
         }
       },
-      "required": [
-        "typeLinks"
+      "anyOf": [
+        {
+          "required": [
+            "typeLinks"
+          ]
+        },
+        {
+          "required": [
+            "versionid"
+          ]
+        }
       ],
       "additionalProperties": false
     },
@@ -425,6 +465,44 @@
           "properties": {
             "expect": {
               "$ref": "#/$defs/publishExpect"
+            }
+          }
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "reference": {
+                "properties": {
+                  "local": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "local"
+                ]
+              }
+            },
+            "required": [
+              "reference"
+            ]
+          },
+          "then": {
+            "required": [
+              "document"
+            ],
+            "properties": {
+              "document": {
+                "required": [
+                  "versionid"
+                ]
+              }
+            },
+            "not": {
+              "required": [
+                "pin"
+              ]
             }
           }
         }

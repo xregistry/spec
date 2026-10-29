@@ -335,7 +335,9 @@ draft's reference rules, so an interaction endpoint, documentation link or
 arbitrary application link is not a dependency solely because it has a URL.
 
 The producer enumerates references independently of the emitted binding
-table, applying the WoT draft's context, fragment and composition rules.
+table, applying the WoT draft's context, fragment and composition rules. A
+reference is document-local when its URI-reference resolves against the
+source document's base URI to that document before its fragment is applied.
 Local fragment references stay within their source document and need no
 external binding; every external occurrence needs exactly one binding.
 For a `links` item, `pointer` identifies that item. For `tm:ref`/`td:ref`,
@@ -373,8 +375,12 @@ For snapshot-bound composition, the resolver selects the bound exact revision
 before checking the source reference's constraints and the caller's acceptance.
 Incremental targets need to satisfy the declared compatibility line and any
 numeric floor. SemVer targets retain their target-kind floors, next-major
-bounds and prerelease rules. Conflicting trusted declarations cause failure.
-The snapshot fixes content without waiving those requirements. The raw
+bounds and prerelease rules. A bound revision that fails these checks
+produces `unsatisfied`. Absent or unsupported closure data, a missing binding
+or missing bound content produces `closure-incomplete`. Conflicting trusted
+declarations, or different bytes or fixed metadata claiming one source
+revision, produce `inconsistent-publication`. The snapshot fixes content
+without waiving those requirements. The raw
 exact-pin retrieval path remains separate from this
 [compatibility-checked composition][Publication closure].
 
@@ -824,16 +830,18 @@ the string-valued reference. Projection-source entries carry them on the
 entry whose declared target kind they constrain.
 
 Malformed floors produce `invalid-version`; conflicting syntax produces
-`invalid-floor`. A line selector for a SemVer target, a selector at an
-unsupported location or an invalid line URI also causes an explicit failure.
-These selectors are not ignored. Final protocol error mappings remain
-implementation contract work; this review defines no new Core error
-responses.
+`invalid-floor`. A floor without a line, or an unpinned incremental reference
+with neither, produces `compatibility-required`. An invalid line URI, a line
+selector for a SemVer target, or a selector at an unsupported location
+produces `invalid-line`. An unknown or unavailable target profile produces
+`unknown-profile`. These selectors are not ignored. The names identify domain
+outcomes; they do not define new Core error responses.
 
 An incremental target receives no implicit floor from the referencing
 document's `version.model` or `version.instance`. It has no SemVer major
-cap or prerelease filter. Document-local references check the containing
-revision's line/floor instead of substituting another document.
+cap or prerelease filter. A document-local reference checks the containing
+revision's line and floor instead of substituting another revision; a
+mismatch produces `unsatisfied`.
 
 SemVer retains its existing behavior, with deployed `uav:minVersion`
 normalized to the same floor:
@@ -983,12 +991,35 @@ The implementation extends existing .NET snapshots/APIs with profile and
 line context and reuses the SemVer implementation. Actual publication owners
 need review because a pure helper test cannot demonstrate durable allocation.
 
-For OPC UA, propose registry/provider `VersionProfile`, Version-level
-`CompatibilityLine`, and an OPTIONAL dependency `RequiredCompatibilityLine`.
-Keep `RequiredVersion` string-valued and profile-interpreted. Verify owners,
-modelling rules, field order, and OPTIONAL encodings against generated types
-before changing generators. Append NodeIds. Remain on `1.1-draft` with a new
-model identity/date. Regenerate model/types/tables/ledgers/CTT together.
+For OPC UA, OPC 10100 Connectivity maps these concepts as follows:
+
+- `WoTRegistryType.VersionProfile`, a read-only `WoTVersionProfileEnum`
+  (`SemVer` or `Incremental`), declares the local registry profile. Absence
+  means SemVer. A configured provider reports its profile through trusted
+  provider metadata.
+- `WoTDocumentType.CompatibilityLine` exposes a Version's effective line.
+  It comes from root `uav:compatibilityLine` or the `compatibilityline`
+  Version attribute supplied at creation; disagreement produces
+  `inconsistent-publication`.
+- `WoTDependencyDataType` keeps `RequiredVersion` string-valued and
+  profile-interpreted, and adds OPTIONAL `RequiredCompatibilityLine`.
+  Projection-source requirements use the same fields; `uav:sourceDigest`
+  and the profile-specific requirement both MUST hold.
+- `WoTResolvedDependencyTargetDataType` records the target's `Profile` and
+  effective `CompatibilityLine` with the exact pin.
+- Optional `WoTRefreshOptionsDataType.PublicationContext` has type
+  `WoTPublicationContextDataType`, with `Uri` and an optional
+  `ManifestDigest`. Without a digest, `Uri` names a channel opened once per
+  Refresh; the selected digest is reported in
+  `WoTRefreshSummaryDataType.ManifestDigest`. With a digest, it identifies an
+  exact snapshot. Every recognized dependency uses its captured binding
+  without provider, alias or older-snapshot fallback. Missing or unsupported
+  closure, binding or content, and a manifest-digest mismatch produce
+  `closure-incomplete`. Without a publication context, Refresh performs live
+  selection.
+
+NodeIds are appended on the `1.1-draft` track. The model, types, tables,
+ledgers and CTT cases are regenerated together.
 
 Provider acquisition, held-target fast paths, caches, snapshots, conversion,
 refresh and materialization need to apply the resolver's constraints.
@@ -1809,8 +1840,9 @@ Open implementation proof gates are:
    Reject unsupported writes instead of claiming helper-only support.
 3. Verify JSON-LD context, Turtle, schemas, reference parsing, and early
    diagnostics agree across registries and both implementations.
-4. Review OPC UA field ownership/encoding and regenerate append-only model
-   outputs on the `1.1-draft` track.
+4. Verify that the generated OPC UA model matches the
+   [D9](#d9-implementation-responsibilities) mapping, with NodeIds
+   appended on the `1.1-draft` track.
 
 This specification-first work adds the [generic publication proposal][pub-proposal].
 It also adds the [WoT closure design/schema][pub-closure]. The
