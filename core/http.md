@@ -3,6 +3,7 @@
 <!-- words: validatecompatibility validateformat -->
 <!-- words: compat formatvalidated compatibilityvalidated -->
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
+<!-- words: caf custommap hh tchar -->
 <!-- words: mymap myheader spacey -->
 
 ## Abstract
@@ -67,6 +68,8 @@ model and semantics that apply to all protocols.
   - [xRegistry Discovery](#xregistry-discovery)
 - [Request Flags / Query Parameters](#request-flags--query-parameters)
 - [HTTP Header Processing](#http-header-processing)
+  - [HTTP Header Names](#http-header-names)
+  - [HTTP Header Values](#http-header-values)
 - [Error Processing](#error-processing)
 
 ## Notations and Terminology
@@ -438,6 +441,9 @@ rules apply:
 
 - When this attribute is serialized as an HTTP header, it MUST use the name
   `Content-Type` and not `xRegistry-contenttype`.
+  Its value MUST follow the native media type grammar, including parameter
+  quoting, rather than the xRegistry metadata header encoding described in
+  [HTTP Header Values](#http-header-values).
 - On an update request when the xRegistry metadata appears in HTTP headers,
   unlike other attributes that will remain unchanged when not specified,
   this attribute MUST be erased if the incoming request does not include
@@ -1604,7 +1610,9 @@ Resource's xRegistry metadata MAY appear as HTTP headers in messages.
 
 On responses, unless otherwise stated, all top-level scalar attributes of the
 Resource SHOULD appear as HTTP headers where the header name is the name of the
-attribute prefixed with `xRegistry-`. Note, the optionality of this requirement
+attribute prefixed with `xRegistry-`. See the
+[HTTP Header Names](#http-header-names) section for more details.
+Note, the optionality of this requirement
 is not to allow for servers to decide whether or not to do so, rather it is to
 allow for [No-Code Servers](#no-code-servers) that might not be
 able to control the HTTP response headers.
@@ -1691,10 +1699,9 @@ Where:
   MUST be the same as the `self` URL.
 - The `Content-Location` header MAY appear, and if present, MUST reference
   the "default" Version.
-- `Content-Disposition` SHOULD be present and if so, its `filename` parameter
-  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
-  aware of xRegistry to know
-  the desired filename to use if the HTTP body were to be written to a file.
+- `Content-Disposition` SHOULD be present and, if present, MUST carry the
+  `<RESOURCE>id` in its `filename` parameter as specified in
+  [RFC6266, section 4](https://www.rfc-editor.org/rfc/rfc6266#section-4).
 
 Version serialization will look similar, but without the Resource-level
 attributes, and MUST be of the form:
@@ -1729,10 +1736,9 @@ Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 ```
 
 Where:
-- `Content-Disposition` SHOULD be present and if so, its `filename` parameter
-  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
-  aware of xRegistry to know
-  the desired filename to use if the HTTP body were to be written to a file.
+- `Content-Disposition` SHOULD be present and, if present, MUST carry the
+  `<RESOURCE>id` in its `filename` parameter as specified in
+  [RFC6266, section 4](https://www.rfc-editor.org/rfc/rfc6266#section-4).
 
 Scalar requested Version extension attributes MUST also appear as
 `xRegistry-` HTTP headers.
@@ -2023,10 +2029,9 @@ Where:
 - If `<RESOURCE>url` is present then it MUST have the same value as `Location`.
 - If `Content-Location` is present then it MUST be a URL to the Version of the
   Resource in the `versions` collection - same as `meta.defaultversionurl`.
-- `Content-Disposition` SHOULD be present and if so, its `filename` parameter
-  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
-  aware of xRegistry to know
-  the desired filename to use if the HTTP body were to be written to a file.
+- `Content-Disposition` SHOULD be present and, if present, MUST carry the
+  `<RESOURCE>id` in its `filename` parameter as specified in
+  [RFC6266, section 4](https://www.rfc-editor.org/rfc/rfc6266#section-4).
 
 **Examples:**
 
@@ -2167,10 +2172,9 @@ Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 ```
 
 Where:
-- `Content-Disposition` SHOULD be present and if so, its `filename` parameter
-  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
-  aware of xRegistry to know
-  the desired filename to use if the HTTP body were to be written to a file.
+- `Content-Disposition` SHOULD be present and, if present, MUST carry the
+  `<RESOURCE>id` in its `filename` parameter as specified in
+  [RFC6266, section 4](https://www.rfc-editor.org/rfc/rfc6266#section-4).
 
 **Examples:**
 
@@ -2200,7 +2204,7 @@ xRegistry-versionsurl: https://example.com/endpoints/ep1/messages/msg1/versions
 xRegistry-versionscount: 1
 Location: https://example.com/endpoints/ep1/messages/msg1
 Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/1
-Content-Disposition: msg1
+Content-Disposition: attachment; filename="msg1"
 
 { ... Definition of "Blob Created" event (document) excluded for brevity ... }
 ```
@@ -2346,10 +2350,9 @@ Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 ```
 
 Where:
-- `Content-Disposition` SHOULD be present and if so, its `filename` parameter
-  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
-  aware of xRegistry to know
-  the desired filename to use if the HTTP body were to be written to a file.
+- `Content-Disposition` SHOULD be present and, if present, MUST carry the
+  `<RESOURCE>id` in its `filename` parameter as specified in
+  [RFC6266, section 4](https://www.rfc-editor.org/rfc/rfc6266#section-4).
 
 **Examples:**
 
@@ -2376,7 +2379,7 @@ xRegistry-isdefault: true
 xRegistry-ancestorid: 1
 Location: https://example.com/endpoints/ep1/messages/msg1/versions/2
 Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/2
-Content-Disposition: msg1
+Content-Disposition: attachment; filename="msg1"
 
 { ... Definition of "Blob Created" event (document) excluded for brevity ... }
 ```
@@ -2850,10 +2853,9 @@ Content-Disposition: <DISPOSITION-TYPE>; filename="<RID>" ?
 ```
 
 Where:
-- `Content-Disposition` SHOULD be present and if so, its `filename` parameter
-  MUST be the `<RESOURCE>id` value. This allows for HTTP tooling that is not
-  aware of xRegistry to know
-  the desired filename to use if the HTTP body were to be written to a file.
+- `Content-Disposition` SHOULD be present and, if present, MUST carry the
+  `<RESOURCE>id` in its `filename` parameter as specified in
+  [RFC6266, section 4](https://www.rfc-editor.org/rfc/rfc6266#section-4).
 - `Location`, if present, and `<RESOURCE>url` MUST have the same value.
 
 **Examples:**
@@ -3033,7 +3035,7 @@ xRegistry-isdefault: true
 xRegistry-ancestorid: v1.0
 Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
 Content-Location: https://example.com/endpoints/ep1/messages/msg1/versions/v2.0
-Content-Disposition: msg1
+Content-Disposition: attachment; filename="msg1"
 
 { ... Definition of "Blob Created" event (document) excluded for brevity ... }
 ```
@@ -3246,29 +3248,60 @@ This query parameter MUST be serialized as:
 
 ## HTTP Header Processing
 
-### HTTP Header Names
-
 Native HTTP headers, such as `Content-Type`, retain their native syntax and
 encoding. The attribute-value rules below apply to `xRegistry-` headers.
 
-The allowable characters for HTTP header name differs from that of what
-xRegistry allows for map-key names. Therefore, any map-key name that appears
-as an HTTP header MUST have those non-HTTP compliant characters percent
-encoded.
+### HTTP Header Names
 
-HTTP allowable characters: ``0-9 a-z a-Z ! # $ % & ' * + - . ^ _ ` | ~``
+The map-key name character set allows colons (`:`), but HTTP header names do
+not. A colon in a map-key name MUST therefore be percent-encoded as `%3A`.
+HTTP field names remain case-insensitive
+([RFC9110, section 5.1](https://www.rfc-editor.org/rfc/rfc9110#section-5.1)).
 
-xRegistry allowable map-key names: `a-z 0-9 : - _ .`
+Map keys MUST be encoded as follows:
 
-Therefore colons (`:`) will need to be represented as: `%3A`.
+- Encode the original Unicode string as UTF-8, without case changes or Unicode
+  normalization. Invalid Unicode MUST generate an error
+  ([header_error](#header_error)), not replacement characters.
+- Emit ASCII letters, digits and the punctuation allowed by the HTTP
+  [`tchar` grammar](https://www.rfc-editor.org/rfc/rfc9110#section-5.6.2)
+  unchanged, except for `%`.
+- Encode every other byte as `%HH`, using exactly two hexadecimal digits for
+  the byte. This includes literal `%`, colons and all non-ASCII bytes.
+  Hexadecimal letters SHOULD be uppercase.
 
-Example:
+For example, `{"labels":{"a:b":"value","a.b":"other"}}` uses these fields:
 
-A map (`mymap`) with a key name of: `org:team` would appear as:
-
+```yaml
+xRegistry-labels.a%3Ab: value
+xRegistry-labels.a.b: other
 ```
-xRegistry-mymap-org%3Ateam: hr:dept1
-```
+
+The following table shows encodings. Rows using `custommap` illustrate
+additional characters only where an applicable model or extension admits those
+keys; this encoding does not itself permit them.
+
+| Attribute | Map key | HTTP field name |
+| --- | --- | --- |
+| `labels` | `owner` | `xRegistry-labels.owner` |
+| `labels` | `a:b` | `xRegistry-labels.a%3Ab` |
+| `labels` | `a.b` | `xRegistry-labels.a.b` |
+| `custommap` | `A` | `xRegistry-custommap.A` |
+| `custommap` | `a%3a` | `xRegistry-custommap.a%253a` |
+| `custommap` | `a%3A` | `xRegistry-custommap.a%253A` |
+| `custommap` | <code>caf&#xE9;</code> | `xRegistry-custommap.caf%C3%A9` |
+| `custommap` | <code>face&#x1F600;</code> | `xRegistry-custommap.face%F0%9F%98%80` |
+
+Receivers MUST decode these field names in this order:
+
+1. Validate HTTP field-name syntax and match the `xRegistry-` prefix. Split at
+   the first literal `.` before decoding the map key.
+2. Decode the map key's percent escapes exactly once, then decode the resulting
+   bytes as UTF-8. Hexadecimal digits of either case and valid but unnecessary
+   escapes MUST be accepted. Malformed escapes or invalid UTF-8 MUST generate
+   an error ([header_error](#header_error)). A plus sign is not a space.
+3. Do not decode the resulting key again. For example, `a%253A` decodes to
+   `a%3A`, not `a:`.
 
 ### HTTP Header Values
 

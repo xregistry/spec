@@ -58,15 +58,15 @@ be defined by the protocol binding being used.
 
 ## Server Response
 
-When a server returns a subset of records, it MAY include additional attributes
-to help the client retrieve the additional subsets of records.
+When a server returns a subset of records and more records remain, it MUST
+provide a `next` link so the client can retrieve the next subset. Other
+relations MAY be offered as described below.
 
 ### Server Attributes
 
-The following list of attributes MAY be included in a server's response to
-a client's request for a set of records. The location and syntax of how these
-attribute appear in response messages will be defined by the protocol binding
-being used.
+The following attributes describe a server's response to a request for a set
+of records. Their individual constraints and the protocol binding determine
+which attributes are present.
 
 Note: in the examples listed below, the use of certain query parameters
 in the sample response message's `Link` URL, such as `pos`, is an
@@ -77,15 +77,21 @@ specification.
 #### link
 
 - Type: `URI-Reference`
-- Description: A URI-Reference to another subset of records. The relationship
-  of the subset to the current subset MUST be specified by the
-  [`rel` attribute](#rel). This value is meant to be treated as an opaque
-  value by the client. If a client uses this value in a subsequent request
-  then it MUST use it as it was provided by the server. Any attempt to modify
-  its value, or attributes (such as query parameters), is not defined by this
+- Description: A URI-Reference to a subset of records. The relationship
+  of the target subset to the current subset MUST be specified by the `rel`
+  attribute. This value is meant to be treated as an opaque value by the
+  client. If a client uses this value in a subsequent request then it
+  MUST use it as it was provided by the server. Any attempt to modify its
+  value, or attributes (such as query parameters), is not defined by this
   specification and the results from the server are undefined.
 - Constraints:
   - REQUIRED if any pagination metadata is included in a response message.
+  - A `next` link MUST be present if more records remain after the current
+    subset, and MUST NOT be present at the end of the set.
+  - A `prev` link MUST NOT be present at the start of the set, and MAY be
+    present otherwise.
+  - `first` and `last` links are OPTIONAL, subject to the single-response
+    recommendations for [`rel`](#rel).
   - MUST be a URI-Reference as defined in
     [RFC3986](https://tools.ietf.org/html/rfc3986).
 - Examples:
@@ -98,9 +104,10 @@ specification.
 - Type: `String`
 - Description: A string representing the relationship between the records
   available via the `link` URI-Reference and the current subset of records.
-  This specification uses the following values as defined by
-  [Link Relations Registry](https://www.iana.org/assignments/link-relations):
-  in [RFC5988](https://tools.ietf.org/html/rfc5988):
+  This attribute adheres to the relation type as defined in section 3.3
+  of [RFC8288](https://www.rfc-editor.org/rfc/rfc8288#section-3.3).
+  This specification uses the following values, which are registered in the
+  [IANA Link Relation Types registry](https://www.iana.org/assignments/link-relations/link-relations.xhtml):
   - `next` - indicates the next subset of records in the sequence of records
     being returned.
   - `prev` - indicates the previous subset of records in the sequence of
@@ -119,8 +126,8 @@ specification.
   specification, additional values MAY be defined.
 - Constraints:
   - REQUIRED if the `link` attribute is present.
-  - If present, MUST be a non-empty string conformant with:
-    [Link Relations Registry](https://www.iana.org/assignments/link-relations).
+  - MUST be a non-empty string as defined by `relation-type` in
+   [RFC8288](https://www.rfc-editor.org/rfc/rfc8288#section-3.3).
   - If the current subset of records is not the last set of records for the
     pagination sequence, then a `next` Link attribute MUST be included in the
     response message.
@@ -154,13 +161,16 @@ specification.
   messages in the set.
 - Constraints:
   - OPTIONAL.
-  - If present, MUST be an unsigned integer.
+  - If present, MUST be an unsigned 64-bit integer. Zero is a valid count for
+    an empty result set.
   - STRONGLY RECOMMENDED to appear on the `self` Link attribute.
   - MAY be present for other Link attributes, and if so, it MUST be the same
     value for all Link attributes within the same message.
   - When the complete record set does not change for the lifetime of the
     pagination requests, then this value MUST be consistent across all `link`
     attributes and messages in which it appears.
+
+An omitted count does not mean zero.
 
 #### offset
 
@@ -231,21 +241,22 @@ Each successful response from the server MUST adhere to the following:
 - If the response does not include the start of the set of records, then the
   `prev` Link MAY be included in the response.
 - The `first` Link MAY appear in any response.
-- If the response refers to the end of the set of records, then the `next`
+- If no more records remain after the current subset, then the `next`
   Link MUST NOT be included in the response.
-- If the response does not refer to the end of the set of records, then the
+- If more records remain after the current subset, then the
   `next` Link MUST be included in the response.
 - The `last` Link MAY appear in any response.
 - The response MAY include the `expires` attribute in any response as an
-  HTTP "Expires" header. If present, it MUST adhere to the HTTP-date format
-  specified for
-  [Expires in RFC9111](https://www.rfc-editor.org/rfc/rfc9111.html#section-5.3).
+  HTTP "Expires" header. The generic attribute is a `Timestamp`; in this
+  binding its value MUST be converted to an HTTP-date, as defined in
+  [RFC9111, section 5.3](https://www.rfc-editor.org/rfc/rfc9111#section-5.3)
+  and [RFC9110, section 5.6.7](https://www.rfc-editor.org/rfc/rfc9110#section-5.6.7).
 - It is STRONGLY RECOMMENDED that all responses include the `self` Link with
   the `offset`, `limit` and `count` attributes.
 
 Links in server response messages MUST appear as HTTP headers using the format
-described in [RFC8288](https://tools.ietf.org/html/rfc8288), and adhere to
-the following form:
+described in [RFC8288](https://www.rfc-editor.org/rfc/rfc8288#section-3), and
+adhere to the following form:
 
 ```
 Link: <URL>;rel=STRING;offset=UINT;limit=UINT;count=UINT
@@ -292,10 +303,52 @@ Expires: Wed, 01 Dec 2021 16:00:00 GMT
 ```
 
 If the complete result set was only 5 records, then only the `self` Link header
-might included in the first response:
+might be included in the response:
 
 ```
 Link: <http://example.com?seq=29182>;rel=self;offset=0;limit=10;count=5
+```
+
+The following empty response omits the RECOMMENDED `self` Link and all
+pagination metadata. The example bodies below contain exactly the two bytes
+`[]`.
+
+Example 4:
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 2
+
+[]
+```
+
+A server can instead offer the RECOMMENDED `self` Link for that empty set and
+include a zero count. The `offset` attribute MUST NOT be present for an empty
+referenced set.
+
+Example 5:
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 2
+Link: <https://example.com/people?resultset=empty>;rel=self;count=0
+
+[]
+```
+
+An empty page does not necessarily indicate the end of the set. If more records
+remain, `next` is REQUIRED even when no count is included. The continuation in
+this example is opaque, including its percent escapes, punctuation and query
+parameters.
+
+Example 6:
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 2
+Link: <https://example.com/people?cursor=A%2fb%2Bc%3D,+;part=1&limit=7>;rel=next
+
+[]
 ```
 
 ### Iterating over the record set
@@ -305,6 +358,9 @@ returned from the server to iterate through the full set of records.
 Typically, the client will use the `next` Link from each response to retrieve
 the next subset of records until a response is returned without a `next` Link -
 indicating that it has reached the end.
+
+Absence of `count`, or an empty current page, MUST NOT be interpreted as the end
+when a `next` Link is present.
 
 For each record set returned, typically, the client will use the `self` Link's
 metadata in any end-user facing interfaces to indicate which page they are
