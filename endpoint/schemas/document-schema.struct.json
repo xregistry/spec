@@ -40,12 +40,12 @@
               "string",
               "uritemplate",
               "integer",
-              "number",
+              "decimal",
               "boolean"
             ]
           },
           "value": {
-            "type": "string",
+            "type": "any",
             "description": "Application property value"
           },
           "required": {
@@ -68,12 +68,12 @@
               "string",
               "uritemplate",
               "integer",
-              "number",
+              "decimal",
               "boolean"
             ]
           },
           "value": {
-            "type": "string",
+            "type": "any",
             "description": "Annotation value constraint"
           },
           "required": {
@@ -96,12 +96,12 @@
               "string",
               "uritemplate",
               "integer",
-              "number",
+              "decimal",
               "boolean"
             ]
           },
           "value": {
-            "type": "string",
+            "type": "any",
             "description": "Annotation value constraint"
           },
           "required": {
@@ -124,12 +124,12 @@
               "string",
               "uritemplate",
               "integer",
-              "number",
+              "decimal",
               "boolean"
             ]
           },
           "value": {
-            "type": "string",
+            "type": "any",
             "description": "Footer value constraint"
           },
           "required": {
@@ -454,18 +454,16 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types",
+                        "description": "AMQP properties.message-id declaration type from the xRegistry Core type system",
                         "enum": [
-                          "ulong",
-                          "uuid",
-                          "binary",
+                          "uinteger",
                           "string",
                           "uritemplate"
                         ]
                       },
                       "value": {
-                        "type": "string",
-                        "description": "AMQP properties.message-id value constraint. "
+                        "type": "any",
+                        "description": "AMQP properties.message-id value constraint"
                       },
                       "required": {
                         "type": "boolean",
@@ -488,14 +486,13 @@
                         "type": "string",
                         "description": "AMQP properties.user-id value type",
                         "enum": [
-                          "binary",
                           "string",
                           "uritemplate"
                         ]
                       },
                       "value": {
                         "type": "string",
-                        "description": "AMQP properties.user-id value constraint"
+                        "description": "AMQP properties.user-id value constraint as a base64-encoded string"
                       },
                       "required": {
                         "type": "boolean",
@@ -599,7 +596,6 @@
                         "type": "string",
                         "description": "AMQP correlation-id value type",
                         "enum": [
-                          "binary",
                           "string",
                           "uritemplate"
                         ]
