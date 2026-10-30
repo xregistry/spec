@@ -6,6 +6,7 @@
 <!-- words: matchversions excludeall -->
 <!-- words: myarray myobject -->
 <!-- words: href schemaregistry missingschema webpage -->
+<!-- words: bnvsba -->
 
 ## Abstract
 
@@ -1087,15 +1088,16 @@ of the existing entity. Then the existing entity would be deleted.
 ##### `self` Attribute
 
 - Type: URL
-- Description: A server-generated unique URL referencing the current entity.
-  - Each entity in the Registry MUST have a unique `self` URL value that
-    locates the entity in the Registry hierarchy and from where the entity can
-    be retrieved.
+- Description: A server-generated URL referencing the current entity.
+  - In API view, each entity in the Registry MUST have a unique `self` URL
+    value that locates the entity in the Registry hierarchy and from where the
+    entity can be retrieved.
   - When specified as an absolute URL, it MUST be based on the URL of the
     Registry root appended with the hierarchy path of the Registry
     entities/collections leading to the entity (its `xid` value).
-  - When specified as a relative URL, it MUST end with the entity's `xid`
-    value.
+  - When specified as a relative URL other than a document-view fragment
+    pointer, it MUST end with the entity's `xid` value. Document-view fragment
+    pointers are response-local and are not subject to this suffix requirement.
 
 - API View Constraints:
   - REQUIRED.
@@ -1113,7 +1115,8 @@ of the existing entity. Then the existing entity would be deleted.
 
 - Document View Constraints:
   - REQUIRED.
-  - MUST be immutable.
+  - Its value MAY differ between responses with different document roots;
+    however, its effective value MUST be immutable.
   - MUST be a relative URL of the form `#JSON-POINTER` where the `JSON-POINTER`
     locates this entity within the current document. See [Doc Flag](#doc-flag)
     for more information.
@@ -1984,7 +1987,7 @@ The following defines the specification-defined capabilities:
   character at that location in the string. Similar to a `.*` in regular
   expressions.
 
-  An error
+  When configuring this capability, an error
   ([capability_error](#capability_error)) MUST be generated if a specified
   key/format isn't in Capabilities `formats` list or the compatibility rule
   specified is not supported for that `format` (i.e. that combination of
@@ -3082,16 +3085,28 @@ and the following Meta-level attributes:
   relationship between the Resource's Versions and the server MUST NOT perform
   any `compatibility` checking.
 
+  A stored value is a compatibility claim, not a statement that the server has
+  verified it. The per-Version
+  [`compatibilityvalidated`](#compatibilityvalidated-attribute) attribute
+  reports whether the applicable checks were performed successfully.
+
 - Constraints:
   - OPTIONAL.
-  - If present, MUST be a case-insensitive non-empty value from the Registry's
+  - If present, MUST be a case-insensitive non-empty string.
+  - The Registry's
     [`capabilities.compatibilities`](#compatibilities-capability) values
-    for the set of `format` values used by the Versions of the Resource.
-  - When changing the value of this attribute, it MUST be applied to all
-    Versions of the Resource, and an error
-    ([compatibility_violation](#compatibility_violation)) MUST be generated
-    if any Version can not conform to the requirements of the specified
-    compatibility value.
+    describe which format/compatibility checks are available. Lack of an
+    applicable checker MUST NOT by itself reject a model-permitted claim
+    when compatibility checking is disabled or `strictvalidation` is `false`.
+    An enabled applicable check that is unavailable MUST follow the existing
+    [`compatibilityvalidated`](#compatibilityvalidated-attribute) rules for
+    strict rejection or an unchecked result with an explanation. Validation
+    status and reason attributes MUST follow their existing presence rules.
+  - When changing this attribute, the new claim applies to all Versions of
+    the Resource. Its enabled checks MUST be evaluated for all applicable
+    Versions, not only changed Versions. An actual failed check MUST generate
+    an error ([compatibility_violation](#compatibility_violation)) and reject
+    the entire operation, regardless of `strictvalidation`.
 
 #### `defaultversionid` Attribute
 - Type: String
@@ -3133,9 +3148,20 @@ For clarity, when processing a request that results in
 value, or value specified in the request, MUST be ignored for the purpose of
 setting its final value.
 
-Any attempt to set `defaultversionid` to a non-existing Version, after all
-Version processing for the current operation is completed, MUST generate an
-error ([unknown_id](#unknown_id)).
+After all Version processing for the operation, the Version selected as the
+Resource's final default MUST exist; otherwise an error
+([unknown_id](#unknown_id)) MUST be generated. A request's `defaultversionid`
+value that is ignored because the resulting `defaultversionsticky` is `false`,
+or replaced by a request flag, MUST NOT cause this error merely because that
+ignored value names a non-existing Version.
+
+A supplied non-null `defaultversionid` MUST still be a string with valid
+[Version identifier syntax](#singularid-id-attribute). During Resource
+creation, that value can also identify a Version to create, as specified by
+the [Resource processing algorithm](#resource-processing-algorithm). The
+final existence check does not change that earlier processing. The
+[non-sticky update example](./resource.md#update-resource-with-non-sticky-bad-defaultversionid)
+shows an ignored request value that does not cause an error.
 
 See [`defaultversionsticky` Attribute](#defaultversionsticky-attribute) below
 for the relationship between these two attribute.
@@ -3629,14 +3655,18 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `false`.
+  - MUST NOT be used to represent a non-empty document as the JSON value
+    `null`. Instead, `<RESOURCE>base64` MUST carry the original document bytes
+    so that a subsequent request does not interpret the document as empty.
+    This constraint applies even when a `json` mapping selects the
+    representation, and does not require the `binary` flag.
 
 #### `<RESOURCE>base64` Attribute
 - Type: String
 - Description: This attribute is a base64 encoding of the corresponding
-  Version's domain-specific document. If the Version's document (which is
-  stored as an array of bytes) is not conformant with the format being used
-  to serialize the Version (e.g. as a JSON value), then this attribute MUST be
-  used instead of the `<RESOURCE>` attribute.
+  Version's domain-specific document. If the document cannot be represented
+  using `<RESOURCE>` under the representation rules above, then
+  this attribute MUST be used instead.
 
 - Constraints:
   - If the Version's document is to be serialized and it is not empty,
@@ -3648,6 +3678,21 @@ the [`compatibility`](#compatibility-attribute) conformance checks, if
   - MUST NOT be present if the Resource type's
     [`hasdocument` aspect](./model.md#groupsstringresourcesstringhasdocument)
     is set to `false`.
+
+For example, the four document bytes `null` can be supplied through the
+document view or a non-null `<RESOURCE>base64` value. For a `file` Resource,
+the following metadata document field carries those bytes:
+
+```json
+{
+  "filebase64": "bnVsbA=="
+}
+```
+
+An explicit `"file": null` in a request still requests an empty document, as
+defined in [`<RESOURCE>*` Attribute Processing](#resource-attribute-processing).
+A JSON string whose contents are `null` has the JSON value `"null"`, not
+`null`, so this exception does not apply to it.
 
 ---
 
@@ -3924,6 +3969,14 @@ relative to the root of the Registry. Additionally, when those URLs are
 relative and reference a Resource or Version, any protocol-specific
 modifications to the URLs (e.g. the HTTP `$details` suffix) MUST NOT be
 present despite the semantics of the suffix being applied (as noted below).
+
+Each pointer MUST use the
+[URI fragment identifier representation of RFC6901](https://datatracker.ietf.org/doc/html/rfc6901#section-6):
+escape `~` as `~0` and `/` as `~1` within each reference token, then perform
+the UTF-8 and URI-fragment percent-encoding from that section.
+Reference tokens include entity IDs used as collection keys, not just
+attribute names. For example, the valid Resource ID `file~one` appears as
+`file~0one` in a JSON Pointer.
 
 When a relative URL references the root of the response, it MUST be `#`,
 which represents an empty JSON Pointer selecting the whole document, not
