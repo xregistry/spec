@@ -287,7 +287,346 @@
                 }
               }
             },
+            "AMQP": {
+              "siblingattributes": {
+                "protocoloptions": {
+                  "name": "protocoloptions",
+                  "type": "object",
+                  "namecharset": "extended",
+                  "description": "Configuration information for this endpoint",
+                  "attributes": {
+                    "endpoints": {
+                      "name": "endpoints",
+                      "type": "array",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "item": {
+                        "type": "object",
+                        "attributes": {
+                          "uri": {
+                            "name": "uri",
+                            "type": "uri",
+                            "description": "AMQP Addressing URI"
+                          },
+                          "*": {
+                            "name": "*",
+                            "type": "any"
+                          }
+                        }
+                      }
+                    },
+                    "authorization": {
+                      "name": "authorization",
+                      "type": "array",
+                      "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration",
+                      "item": {
+                        "type": "object",
+                        "attributes": {
+                          "type": {
+                            "name": "type",
+                            "type": "string",
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, X509Cert, and SASL are well-defined"
+                          },
+                          "mechanism": {
+                            "name": "mechanism",
+                            "type": "string",
+                            "description": "The SASL mechanism name when authorization.type is SASL (for example PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, OAUTHBEARER, or EXTERNAL)"
+                          },
+                          "resourceuri": {
+                            "name": "resourceuri",
+                            "type": "uri",
+                            "description": "The resource uri for which authorization shall be granted (if applicable)"
+                          },
+                          "authorityuri": {
+                            "name": "authorityuri",
+                            "type": "uri",
+                            "description": "The authority uri where authorization shall be requested (if applicable)"
+                          },
+                          "*": {
+                            "name": "*",
+                            "type": "any"
+                          }
+                        }
+                      }
+                    },
+                    "deployed": {
+                      "name": "deployed",
+                      "type": "boolean",
+                      "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "required": true,
+                      "default": true
+                    },
+                    "node": {
+                      "name": "node",
+                      "type": "string",
+                      "description": "The AMQP node name. Commonly the name of a queue or a topic. Corresponds to the 'address' in source or target of the attach frame."
+                    },
+                    "durable": {
+                      "name": "durable",
+                      "type": "boolean",
+                      "description": "Whether the AMQP node identified by 'node' is durable rather than transient. This is a property of the node, not of the link terminus and not of the message header field of the same name. Terminus durability is expressed by 'terminus-durability'",
+                      "required": true,
+                      "default": false
+                    },
+                    "link-properties": {
+                      "name": "link-properties",
+                      "type": "map",
+                      "description": "An optional map of AMQP link properties to use with the endpoint",
+                      "item": {
+                        "type": "string"
+                      }
+                    },
+                    "connection-properties": {
+                      "name": "connection-properties",
+                      "type": "map",
+                      "description": "An optional map of AMQP connection properties to use with the endpoint",
+                      "item": {
+                        "type": "string"
+                      }
+                    },
+                    "distribution-mode": {
+                      "name": "distribution-mode",
+                      "type": "string",
+                      "enum": [
+                        "move",
+                        "copy"
+                      ],
+                      "description": "The AMQP source distribution mode. 'move' means a transferred message is removed from the node and is therefore seen by only one receiver. 'copy' means the message remains at the node after transfer and may also be transferred to other receivers. This does not describe message locking",
+                      "required": true,
+                      "default": "move"
+                    },
+                    "connection-capabilities": {
+                      "name": "connection-capabilities",
+                      "type": "array",
+                      "description": "The AMQP capabilities to use with the endpoint",
+                      "item": {
+                        "type": "string"
+                      }
+                    },
+                    "node-capabilities": {
+                      "name": "node-capabilities",
+                      "type": "array",
+                      "description": "The AMQP node capabilities to use with the endpoint",
+                      "item": {
+                        "type": "string"
+                      }
+                    },
+                    "source-filters": {
+                      "name": "source-filters",
+                      "type": "map",
+                      "description": "AMQP source filters used for subscription/receive setup",
+                      "item": {
+                        "type": "any"
+                      }
+                    },
+                    "dynamic": {
+                      "name": "dynamic",
+                      "type": "boolean",
+                      "description": "Whether a dynamic source or target is requested"
+                    },
+                    "terminus-durability": {
+                      "name": "terminus-durability",
+                      "type": "string",
+                      "enum": [
+                        "none",
+                        "configuration",
+                        "unsettled-state"
+                      ],
+                      "description": "Durability mode for the applicable source/target terminus"
+                    },
+                    "expiry-policy": {
+                      "name": "expiry-policy",
+                      "type": "string",
+                      "enum": [
+                        "link-detach",
+                        "session-end",
+                        "connection-close",
+                        "never"
+                      ],
+                      "description": "Expiry policy for the applicable source/target terminus"
+                    },
+                    "timeout": {
+                      "name": "timeout",
+                      "type": "uinteger",
+                      "description": "Timeout in seconds for the applicable expiry policy"
+                    },
+                    "sender-settle-mode": {
+                      "name": "sender-settle-mode",
+                      "type": "string",
+                      "enum": [
+                        "unsettled",
+                        "settled",
+                        "mixed"
+                      ],
+                      "description": "AMQP sender settle mode requested for the link. It constrains the party that sends transfers over the link: the client for a producer endpoint, the remote node for a consumer endpoint"
+                    },
+                    "receiver-settle-mode": {
+                      "name": "receiver-settle-mode",
+                      "type": "string",
+                      "enum": [
+                        "first",
+                        "second"
+                      ],
+                      "description": "AMQP receiver settle mode requested for the link. It constrains the party that receives transfers over the link: the remote node for a producer endpoint, the client for a consumer endpoint"
+                    },
+                    "*": {
+                      "name": "*",
+                      "type": "any"
+                    }
+                  }
+                }
+              }
+            },
             "MQTT/5.0": {
+              "siblingattributes": {
+                "protocoloptions": {
+                  "name": "protocoloptions",
+                  "type": "object",
+                  "description": "Configuration information for this endpoint",
+                  "attributes": {
+                    "endpoints": {
+                      "name": "endpoints",
+                      "type": "array",
+                      "description": "The network addresses that are for communication with the endpoint. The endpoints are ordered by preference, with the first endpoint being the preferred endpoint. Some protocol implementations might not support multiple endpoints, in which case all but the first endpoint might be ignored. Whether the URI just identifies a network host or links directly to a resource managed by the network host is protocol specific",
+                      "item": {
+                        "type": "object",
+                        "attributes": {
+                          "uri": {
+                            "name": "uri",
+                            "type": "uri",
+                            "description": "MQTT URI (mqtt, mqtts, or ws scheme)"
+                          },
+                          "*": {
+                            "name": "*",
+                            "type": "any"
+                          }
+                        }
+                      }
+                    },
+                    "authorization": {
+                      "name": "authorization",
+                      "type": "array",
+                      "description": "Authorization options. These are hints for the adapter for interacting with the authorization endpoint. This is not a credentials configuration",
+                      "item": {
+                        "type": "object",
+                        "attributes": {
+                          "type": {
+                            "name": "type",
+                            "type": "string",
+                            "description": "The authentication/authorization type. OAuth2, Plain, APIKey, X509Cert, and SASL are well-defined"
+                          },
+                          "mechanism": {
+                            "name": "mechanism",
+                            "type": "string",
+                            "description": "The SASL mechanism name when authorization.type is SASL (for example PLAIN, SCRAM-SHA-256, SCRAM-SHA-512, OAUTHBEARER, or EXTERNAL)"
+                          },
+                          "resourceuri": {
+                            "name": "resourceuri",
+                            "type": "uri",
+                            "description": "The resource uri for which authorization shall be granted (if applicable)"
+                          },
+                          "authorityuri": {
+                            "name": "authorityuri",
+                            "type": "uri",
+                            "description": "The authority uri where authorization shall be requested (if applicable)"
+                          },
+                          "*": {
+                            "name": "*",
+                            "type": "any"
+                          }
+                        }
+                      }
+                    },
+                    "deployed": {
+                      "name": "deployed",
+                      "type": "boolean",
+                      "description": "If `true`, the endpoint metadata represents a public endpoint that is expected to be available for communication",
+                      "required": true,
+                      "default": true
+                    },
+                    "topic": {
+                      "name": "topic",
+                      "type": "string",
+                      "description": "The concrete MQTT topic name that is used for communication with the endpoint unless overridden by the message. It MUST NOT contain the '+' or '#' wildcard characters"
+                    },
+                    "qos": {
+                      "name": "qos",
+                      "type": "uinteger",
+                      "description": "The MQTT QoS level. May be 0, 1, or 2",
+                      "required": true,
+                      "default": 0,
+                      "enum": [
+                        0,
+                        1,
+                        2
+                      ]
+                    },
+                    "retain": {
+                      "name": "retain",
+                      "type": "boolean",
+                      "description": "The MQTT retain flag to use for publishers on ths endpoint",
+                      "required": true,
+                      "default": false
+                    },
+                    "topicfilter": {
+                      "name": "topicfilter",
+                      "type": "string",
+                      "description": "MQTT subscribe topic filter. MAY contain the '+' and '#' wildcard characters"
+                    },
+                    "cleanstart": {
+                      "name": "cleanstart",
+                      "type": "boolean",
+                      "description": "MQTT 5 clean start flag"
+                    },
+                    "sessionexpiryinterval": {
+                      "name": "sessionexpiryinterval",
+                      "type": "uinteger",
+                      "description": "MQTT 5 session expiry interval in seconds"
+                    },
+                    "sharedsubscriptiongroup": {
+                      "name": "sharedsubscriptiongroup",
+                      "type": "string",
+                      "description": "MQTT 5 shared subscription group. It MUST only be used together with 'topicfilter' and MUST NOT include the '$share/' prefix"
+                    },
+                    "nolocal": {
+                      "name": "nolocal",
+                      "type": "boolean",
+                      "description": "MQTT 5 no-local subscription flag"
+                    },
+                    "retainaspublished": {
+                      "name": "retainaspublished",
+                      "type": "boolean",
+                      "description": "MQTT 5 retain-as-published subscription flag"
+                    },
+                    "retainhandling": {
+                      "name": "retainhandling",
+                      "type": "uinteger",
+                      "enum": [
+                        0,
+                        1,
+                        2
+                      ],
+                      "description": "MQTT 5 retain-handling subscription mode"
+                    },
+                    "willtopic": {
+                      "name": "willtopic",
+                      "type": "string",
+                      "description": "The MQTT will topic to configure for publishers on this endpoint"
+                    },
+                    "willmessage": {
+                      "name": "willmessage",
+                      "type": "xid",
+                      "target": "/messagegroups/messages",
+                      "description": "The MQTT will message definition to configure for publishers on this endpoint. This MUST be a reference to a message definition"
+                    },
+                    "*": {
+                      "name": "*",
+                      "type": "any"
+                    }
+                  }
+                }
+              }
+            },
+            "MQTT": {
               "siblingattributes": {
                 "protocoloptions": {
                   "name": "protocoloptions",
