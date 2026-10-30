@@ -108,11 +108,14 @@ snapshot captures the 36 bytes of `intro` without inspecting its references.
 Domain interpretation can require additional information. A Web of Things
 (WoT) Thing Description (TD) can reference a Thing Model (TM), and a WoT
 consumer needs the exact TM Version that the publisher validated. The
-[WoT companion](design/design.md#wot-channels-snapshots-and-dependency-bindings)
-adds a manifest closure extension that binds each recognized reference to an
-exact target Version. Its resolver checks whether the caller accepts that
-target. Other domains define their own closure rules without changing channel
-or snapshot identity.
+[WoT companion design](design/design.md#wot-channels-snapshots-and-dependency-bindings)
+proposes a manifest closure extension that binds each recognized reference to
+an exact target Version and checks whether the caller accepts that target.
+The normative
+[WoT closure section](../models/wot/spec.md#544-publication-closure) records
+the prerequisites and unresolved mappings; the design does not establish a
+complete WoT closure profile. Other domains define their own closure rules
+without changing channel or snapshot identity.
 
 | Term | Meaning |
 | --- | --- |

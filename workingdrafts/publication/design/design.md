@@ -229,6 +229,14 @@ checks without adding a channel API or Group hierarchy. This is an
 informative implementation design, not an implemented WoT profile. The
 current SemVer specification and its vectors remain unchanged.
 
+The normative
+[WoT closure section](../../models/wot/spec.md#544-publication-closure)
+records the remaining mapping decisions. The dependency inventory and
+occurrence rules below are proposals, not a completed normative contract.
+In particular, the referenced Projection Plans proposal still uses an
+unassigned vocabulary, and a checked exact target does not supply the missing
+operator or document-URL identity rules.
+
 The generic proposal defines a reusable model, a manifest schema, conditional
 head semantics, a binding-aware open context and an offline byte bundle.
 Its manifest, captured Registry JSON, domain bytes and closure documents

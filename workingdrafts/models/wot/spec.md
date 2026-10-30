@@ -13,6 +13,7 @@
 <!-- words: toolchain byom contoso maturity publisher nosniff validateformat -->
 <!-- words: shortself -->
 <!-- words: allowprerelease contentdigest minversion prereleases unversioned versionorigin -->
+<!-- words: marcschier namespace sourcename uav viewversion -->
 
 ## Abstract
 
@@ -116,8 +117,9 @@ A WoT Registry is complementary to the xRegistry [Endpoint][xRegistry Endpoint],
 
 The [xRegistry Publication working draft](../../publication/spec.md) defines
 immutable snapshots and domain-closure requirements. Section
-[5.4.4](#544-publication-closure) defines the WoT closure data needed to make
-a pinned WoT view reconstructible.
+[5.4.4](#544-publication-closure) defines prerequisites for WoT publication
+closure and records the mapping decisions still needed to reconstruct a
+pinned WoT view. It does not yet define a complete WoT closure profile.
 
 This specification does not require the Registry to resolve or validate these
 cross-references. An implementation MAY check that a referent exists, but it
@@ -1152,6 +1154,13 @@ assignment.
 
 #### 5.4.4. Publication closure
 
+The requirements below constrain WoT closure data; they do not complete its
+reference mapping. The
+[publication design](../../publication/design/design.md#a-complete-wot-publication)
+proposes the dependency scope and occurrence representation. That design is
+informative. Passing the closure schema does not establish that a pinned WoT
+view is reconstructible.
+
 A WoT publication that claims domain-complete closure MUST include the
 `http://opcfoundation.org/UA/WoT-Binding/publication-closure/1` extension as
 a REQUIRED manifest extension. Its document format is
@@ -1178,16 +1187,55 @@ the captured source bytes and MUST NOT resolve a missing binding against a
 live Registry, select a default Version, or replace the target with a newer
 Version.
 
-This specification does not define the complete set of WoT reference
-occurrences covered by this closure, a canonical `operator` encoding for link
-relations, or a target-identity mapping for every reference kind. In
-particular, `tm:ref` is used for Thing Model references and, in schema
-references described by [Section 6.4](#64-thing-description-to-schema-registry),
-Schema Resource references. Until those scope and mapping rules are defined,
-the extension alone does not establish WoT-complete closure. A producer MUST
-NOT claim that completeness unless it can identify and validate every
-in-scope reference under a defined mapping. A Consumer MUST reject a closure
-whose scope or target mapping it cannot validate.
+The following mapping decisions remain unresolved. These are specification
+gaps, not implementation choices:
+
+1. **Dependency scope and classification.** The design proposes TM
+   `tm:extends`, `tm:submodel` and ordinary `tm:ref`; TD `td:extends`,
+   `td:subthing`, ordinary `td:ref` and `rel: "type"`; and projection
+   source-manifest entries. It excludes Schema Resource references and OPC UA
+   `uav:dataTypeDefinitions` materialization references. A normative rule is
+   still needed to distinguish an ordinary `tm:ref` from the schema use in
+   [Section 6.4](#64-thing-description-to-schema-registry) and a projection
+   selector, using the source bytes and captured context. Classifying it from
+   the bound target would let the binding list determine its own coverage.
+2. **Occurrence and operator representation.** The design proposes the binding
+   key `(source, pointer)`, with the pointer identifying a link object, an
+   object containing an ordinary reference, or a projection source entry.
+   The closure schema accepts any nonempty `operator` string. The profile
+   still needs to specify which spelling is recorded and how it is compared
+   with the source occurrence, including compact and expanded operator names.
+   A JSON-LD prefix declaration alone does not define expansion of link
+   `rel` strings; `type` is a link relation name.
+3. **Target identity for document URLs.**
+   [Section 5.4.2](#542-resolver-algorithm) already maps an external
+   `tm:ref` or `td:ref`, resolved against its base and without its fragment,
+   to `wotid`. However,
+   [Section 6.1](#61-thing-description-to-thing-model) also permits a type
+   link to a TM document-view URL, which need not equal that TM's `wotid`.
+   The closure profile needs to define how such a URL is matched to the
+   captured target, including Resource and exact-Version URLs after
+   relocation. Publication records `viewVersion`, origin identities, `base`
+   and a content retrieval descriptor, but defines no WoT URL-to-target
+   comparison rule. A byte location is not an authored identity.
+4. **Projection vocabulary and source mapping.** The
+   [Projection Plans proposal](https://github.com/marcschier/wot-thing-description/blob/f66f89ab59196be3d19b088692f9ce7c22e7785e/proposals/wot-projections/spec.md)
+   defines ordered source entries containing `wotproj:sourceName`, `href` and
+   an expected TD/TM media `type`. It matches a `tm:ref` selector to one
+   declared source before applying its affordance pointer; the source entry,
+   not the selector, is the proposed closure occurrence. Its Section 1.2
+   explicitly leaves the namespace and term names unassigned and uses
+   placeholder IRIs. The closure profile needs an assigned vocabulary and a
+   normative source-entry mapping before `wotproj:projects` can identify an
+   interoperable operator. This specification does not assign that
+   vocabulary by copying the proposal's example namespace.
+
+The extension alone therefore does not establish WoT-complete closure.
+A producer MUST NOT claim that completeness unless it can identify and
+validate every in-scope reference under a defined mapping. A Consumer MUST
+reject a closure whose scope or target mapping it cannot validate. The
+existing schema and sample check the descriptor's shape, not these missing
+semantic mappings.
 
 ## 6. Relationships and Cross-References
 
