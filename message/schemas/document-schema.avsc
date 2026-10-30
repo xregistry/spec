@@ -339,6 +339,42 @@
                         {
                           "type": "record",
                           "namespace": "io.xregistry.messagegroups",
+                          "name": "ProtocolHttp11Type",
+                          "fields": [
+                            {
+                              "type": "io.xregistry.GenericRecord",
+                              "name": "protocoloptions",
+                              "doc": "The HTTP message metadata constraints"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "record",
+                          "namespace": "io.xregistry.messagegroups",
+                          "name": "ProtocolHttp2Type",
+                          "fields": [
+                            {
+                              "type": "io.xregistry.GenericRecord",
+                              "name": "protocoloptions",
+                              "doc": "The HTTP message metadata constraints"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "record",
+                          "namespace": "io.xregistry.messagegroups",
+                          "name": "ProtocolHttp3Type",
+                          "fields": [
+                            {
+                              "type": "io.xregistry.GenericRecord",
+                              "name": "protocoloptions",
+                              "doc": "The HTTP message metadata constraints"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "record",
+                          "namespace": "io.xregistry.messagegroups",
                           "name": "ProtocolNATSType",
                           "fields": [
                             {

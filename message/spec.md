@@ -1068,6 +1068,11 @@ connection. The protocol is based on the
 [HTTP Message Format][HTTP Message Format] and is common across all versions of
 HTTP.
 
+The `protocol` values `HTTP/1.1`, `HTTP/2` and `HTTP/3` MAY be used to name
+the HTTP version explicitly. Each selects the same `protocoloptions`
+definitions as `HTTP`. This does not relax the requirement that messages
+use their Group's protocol.
+
 The [`protocoloptions`](#protocoloptions) object MAY contain several
 properties as defined below:
 

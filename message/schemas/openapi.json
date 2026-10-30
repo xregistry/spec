@@ -2955,6 +2955,255 @@
           "protocol"
         ]
       },
+      "protocol_HTTP_1_1": {
+        "properties": {
+          "protocol": {
+            "type": "string",
+            "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+            "enum": [
+              "HTTP/1.1"
+            ]
+          },
+          "protocoloptions": {
+            "type": "object",
+            "description": "The HTTP message metadata constraints",
+            "properties": {
+              "headers": {
+                "type": "array",
+                "description": "The HTTP headers",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The HTTP header name"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "The HTTP header value"
+                    },
+                    "required": {
+                      "type": "boolean",
+                      "description": "The HTTP header required"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              "query": {
+                "type": "array",
+                "description": "The HTTP query parameters",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The HTTP query parameter"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "The HTTP query parameter value"
+                    },
+                    "required": {
+                      "type": "boolean",
+                      "description": "The HTTP query parameter required"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              "path": {
+                "type": "string",
+                "format": "uri-template",
+                "description": "The HTTP path as a uri template"
+              },
+              "method": {
+                "type": "string",
+                "description": "The HTTP method"
+              }
+            }
+          }
+        },
+        "required": [
+          "protocol"
+        ]
+      },
+      "protocol_HTTP_2": {
+        "properties": {
+          "protocol": {
+            "type": "string",
+            "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+            "enum": [
+              "HTTP/2"
+            ]
+          },
+          "protocoloptions": {
+            "type": "object",
+            "description": "The HTTP message metadata constraints",
+            "properties": {
+              "headers": {
+                "type": "array",
+                "description": "The HTTP headers",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The HTTP header name"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "The HTTP header value"
+                    },
+                    "required": {
+                      "type": "boolean",
+                      "description": "The HTTP header required"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              "query": {
+                "type": "array",
+                "description": "The HTTP query parameters",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The HTTP query parameter"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "The HTTP query parameter value"
+                    },
+                    "required": {
+                      "type": "boolean",
+                      "description": "The HTTP query parameter required"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              "path": {
+                "type": "string",
+                "format": "uri-template",
+                "description": "The HTTP path as a uri template"
+              },
+              "method": {
+                "type": "string",
+                "description": "The HTTP method"
+              }
+            }
+          }
+        },
+        "required": [
+          "protocol"
+        ]
+      },
+      "protocol_HTTP_3": {
+        "properties": {
+          "protocol": {
+            "type": "string",
+            "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+            "enum": [
+              "HTTP/3"
+            ]
+          },
+          "protocoloptions": {
+            "type": "object",
+            "description": "The HTTP message metadata constraints",
+            "properties": {
+              "headers": {
+                "type": "array",
+                "description": "The HTTP headers",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The HTTP header name"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "The HTTP header value"
+                    },
+                    "required": {
+                      "type": "boolean",
+                      "description": "The HTTP header required"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              "query": {
+                "type": "array",
+                "description": "The HTTP query parameters",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The HTTP query parameter"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "The HTTP query parameter value"
+                    },
+                    "required": {
+                      "type": "boolean",
+                      "description": "The HTTP query parameter required"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ]
+                }
+              },
+              "path": {
+                "type": "string",
+                "format": "uri-template",
+                "description": "The HTTP path as a uri template"
+              },
+              "method": {
+                "type": "string",
+                "description": "The HTTP method"
+              }
+            }
+          }
+        },
+        "required": [
+          "protocol"
+        ]
+      },
       "protocol_NATS": {
         "properties": {
           "protocol": {
@@ -3092,6 +3341,9 @@
             "MQTT/5.0": "#/components/schemas/protocol_MQTT_5_0",
             "KAFKA": "#/components/schemas/protocol_KAFKA",
             "HTTP": "#/components/schemas/protocol_HTTP",
+            "HTTP/1.1": "#/components/schemas/protocol_HTTP_1_1",
+            "HTTP/2": "#/components/schemas/protocol_HTTP_2",
+            "HTTP/3": "#/components/schemas/protocol_HTTP_3",
             "NATS": "#/components/schemas/protocol_NATS"
           }
         }
