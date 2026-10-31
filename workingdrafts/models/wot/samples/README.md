@@ -2,6 +2,7 @@
 
 <!-- words: WoT thingdescriptiongroups thingmodelgroups fabrikam wotid derivedfrom byom contoso standardsbody maturity affordance minversion versionorigin -->
 <!-- words: factoryfloor inletpressure -->
+<!-- words: cloudevents wotversion wotdigest topology percent affordances standalone -->
 
 [registry.json](registry.json) illustrates document identity, compatible
 Versions and provenance metadata using the [WoT Registry model](../model.json).
@@ -40,3 +41,21 @@ it to `authored`. The registry remains responsible for assignment.
 [proposed closure envelope](../../../publication/design/design.md#selection-and-acceptance).
 It is neither Registry content nor a complete snapshot. Its checks validate
 shape only.
+
+[cloudevents.json](cloudevents.json) contains two standalone CloudEvents as
+sample data, not a transport batch. They refer to the lamp TD's resolved view
+using the [proposed WoT source profile](../spec.md#531-cloudevents-wot-source-resolution).
+The topology `factory-floor-01` is configured to use Group
+`Fabrikam.FactoryFloor.01`. The percent-decoded `wotid` selects Resource
+`urn.fabrikam.lamp.42`; the Resource id is not part of the event source.
+
+The first event pins `wotversion=1.0.0`, matching the lamp TD's
+`version.instance` and Registry `versionid`, and addresses
+`#/events/overheated` in the resolved TD. This sample's TD declares its
+affordances directly, so that pointer selects the locally declared event.
+The second event omits `wotversion` and uses `#` for the whole resolved TD.
+It selects the current default, which can change after publication.
+
+Neither event has separate `wotid`, `wotversion` or `wotdigest` attributes.
+The samples do not claim that the proposed closure envelope can reconstruct
+a composed TD or that an event version proves content integrity.

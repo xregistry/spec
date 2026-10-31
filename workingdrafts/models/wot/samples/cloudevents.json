@@ -1,0 +1,24 @@
+[
+  {
+    "specversion": "1.0",
+    "id": "lamp-42-overheated-1",
+    "source": "wot-td://factory-floor-01?wotid=urn%3Afabrikam%3Alamp%3A42;wotversion=1.0.0",
+    "type": "com.fabrikam.lamp.overheated",
+    "subject": "#/events/overheated",
+    "datacontenttype": "application/json",
+    "data": {
+      "temperature": 85
+    }
+  },
+  {
+    "specversion": "1.0",
+    "id": "lamp-42-overheated-2",
+    "source": "wot-td://factory-floor-01?wotid=urn%3Afabrikam%3Alamp%3A42",
+    "type": "com.fabrikam.lamp.overheated",
+    "subject": "#",
+    "datacontenttype": "application/json",
+    "data": {
+      "temperature": 86
+    }
+  }
+]

@@ -3,6 +3,7 @@
 from copy import deepcopy
 import json
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 import jsonschema
 import pytest
@@ -59,3 +60,73 @@ def test_closure_requires_exact_version_xids(field, value):
 
     with pytest.raises(jsonschema.ValidationError):
         jsonschema.validate(example, SCHEMA)
+
+
+@pytest.mark.parametrize(
+    ("index", "expected_query", "expected_subject"),
+    [
+        (
+            0,
+            {"wotid": "urn:fabrikam:lamp:42", "wotversion": "1.0.0"},
+            "#/events/overheated",
+        ),
+        (1, {"wotid": "urn:fabrikam:lamp:42"}, "#"),
+    ],
+    ids=["exact-version-affordance", "current-default-whole-td"],
+)
+def test_cloudevents_source_and_subject_match_lamp_td(
+    index, expected_query, expected_subject
+):
+    events = json.loads((ROOT / "samples" / "cloudevents.json").read_bytes())
+    assert len(events) == 2
+    event = events[index]
+    assert set(event) == {
+        "specversion",
+        "id",
+        "source",
+        "type",
+        "subject",
+        "datacontenttype",
+        "data",
+    }
+    assert event["specversion"] == "1.0"
+    assert event["id"] == f"lamp-42-overheated-{index + 1}"
+    assert event["type"] == "com.fabrikam.lamp.overheated"
+    assert event["datacontenttype"] == "application/json"
+
+    source = urlsplit(event["source"])
+    assert source.scheme == "wot-td"
+    assert source.netloc == "factory-floor-01"
+    assert source.path == source.fragment == ""
+    parameters = source.query.split(";")
+    assert len(parameters) == len(expected_query)
+    query = dict(unquote(value).split("=", 1) for value in parameters)
+    assert query == expected_query
+    assert "wotid=urn%3Afabrikam%3Alamp%3A42" in source.query
+
+    registry = json.loads((ROOT / "samples" / "registry.json").read_bytes())
+    resources = registry["thingdescriptiongroups"]["Fabrikam.FactoryFloor.01"][
+        "thingdescriptions"
+    ]
+    matches = [
+        value for value in resources.values() if value["wotid"] == query["wotid"]
+    ]
+    assert len(matches) == 1
+    resource = matches[0]
+    assert resource is resources["urn.fabrikam.lamp.42"]
+    td = resource["thingdescription"]
+    assert td["id"] == query["wotid"]
+    assert resource["versionid"] == td["version"]["instance"] == "1.0.0"
+    if "wotversion" in query:
+        assert query["wotversion"] == resource["versionid"]
+
+    assert event["subject"] == expected_subject
+    selected = td
+    pointer = unquote(event["subject"][1:])
+    for token in pointer.split("/")[1:]:
+        selected = selected[token.replace("~1", "/").replace("~0", "~")]
+    if index == 0:
+        assert selected is td["events"]["overheated"]
+    else:
+        assert selected is td
+    jsonschema.validate(event["data"], td["events"]["overheated"]["data"])

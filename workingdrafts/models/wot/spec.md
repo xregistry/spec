@@ -14,6 +14,7 @@
 <!-- words: shortself -->
 <!-- words: allowprerelease contentdigest minversion prereleases unversioned versionorigin -->
 <!-- words: marcschier namespace sourcename uav viewversion -->
+<!-- words: wotversion wotdigest topology percent dereferenceable -->
 
 ## Abstract
 
@@ -56,6 +57,7 @@ storing, managing and discovering W3C
       - [5.1.1. Breaking Changes and Successor Identifiers](#511-breaking-changes-and-successor-identifiers)
     - [5.2. Preserving Customer Documents](#52-preserving-customer-documents)
     - [5.3. Lookup](#53-lookup)
+      - [5.3.1. CloudEvents WoT Source Resolution](#531-cloudevents-wot-source-resolution)
     - [5.4. Versioned Reference Resolution](#54-versioned-reference-resolution)
       - [5.4.1. Floors and Pins](#541-floors-and-pins)
       - [5.4.2. Resolver Algorithm](#542-resolver-algorithm)
@@ -1005,7 +1007,7 @@ even when [`defaultversionsticky`][Core defaultversionsticky]
 is true. A registry MUST serve that default
 when no Version is named.
 
-For reference resolution, a resolver MUST use
+For WoT document reference resolution, a resolver MUST use
 [Section 5.4](#54-versioned-reference-resolution), not lexical id order,
 publication time or an assumption that the default satisfies the reference.
 
@@ -1016,6 +1018,94 @@ SHOULD use separate values, for example a
 like `urn:fabrikam:lamp@3` that every recipient has to take apart. The
 identifier stays a WoT identifier, and the version stays a `versionid` the
 recipient can put straight into a URL.
+
+A structured URI query is another way to carry distinct identifier and version
+parameters. It does not require duplicate transport headers. The proposed
+CloudEvents WoT profile below uses this representation; the general transport
+guidance above does not require separate CloudEvents context attributes.
+
+#### 5.3.1. CloudEvents WoT Source Resolution
+
+The CloudEvents WoT profile is proposed. A CloudEvent using this profile MUST
+carry Thing identity in `source` using the following logical URI form:
+
+```text
+wot-td://<topology>?wotid=<encoded-id>[;wotversion=<encoded-version>]
+```
+
+The brackets indicate an OPTIONAL parameter, not literal URI characters.
+`wot-td` is a proposed logical URI scheme, not a dereferenceable Registry URL.
+The topology identifies the resolver context. A deployment configures that
+context to select a Registry and Group scope; the URI does not prescribe their
+network location or the Resource's registry id.
+
+The `wotid` query parameter carries the Thing's WoT identifier. When present,
+`wotversion` carries an exact xRegistry `versionid`, not a minimum-version
+floor or the TD's `version.model`. Parameter values use RFC 3986 percent
+encoding so that delimiters within a value are not interpreted as query
+structure. The profile uses `;` to separate these parameters. For example:
+
+```text
+wot-td://factory-floor-01?wotid=urn%3Afabrikam%3Alamp%3A42;wotversion=1.0.0
+```
+
+These parameters are distinct values within `source`. There are no separate
+CloudEvents `wotid`, `wotversion` or `wotdigest` context attributes in this
+profile. This does not remove the Registry's `wotid` metadata attribute or
+equate it with `thingdescriptionid` or `versionid`.
+
+A configured resolver MUST select exactly one Thing Description Resource whose
+`wotid` equals the decoded identifier within its configured scope. A missing
+match MUST produce `not-found`; ambiguous matches MUST produce an error rather
+than selecting an arbitrary Resource. Group-scoped lookup and uniqueness
+follow [Section 5.3](#53-lookup).
+
+When `wotversion` is present, the resolver MUST select that exact Version or
+fail as `not-found`. When it is absent, the resolver MUST select the Resource's
+current Core default Version, including a sticky default, or fail as
+`not-found` if no default is available. It MUST NOT apply the floor or
+prerelease selection of Section 5.4 to this CloudEvents source selection.
+References within the selected TD still follow their applicable resolution
+rules. The unversioned source can therefore resolve to a different view after
+the default changes.
+
+For this profile, an explicit `wotversion` MUST identify a stable logical
+resolved TD view. A Producer MUST create a new publication Version of the
+selected Thing Description Resource when that view changes, including when
+its source closure changes. The new Version MUST follow
+[Section 1.3](#13-versioning), including assignment from an authored
+SemVer `version.instance` or the generated-id rules. A Producer MUST NOT reuse
+an authored instance version for a changed published view. This requirement
+applies to publication Versions used by this profile; it does not make all
+xRegistry Versions immutable or change Core's general update semantics.
+
+The resolved TD is the result of applying the applicable WoT resolution rules
+to the selected sources. Producing or publishing that result MUST NOT overwrite
+or rewrite stored authored source bytes
+([Section 5.2](#52-preserving-customer-documents)).
+
+The CloudEvents `subject` MUST address the resolved TD, not an unresolved
+source document. It MUST be an RFC 6901 URI-fragment JSON Pointer, with `#`
+addressing the whole resolved TD. For example, `#/events/overheated` addresses
+that event affordance in the resolved view. A Consumer MUST apply the pointer
+only after obtaining that view and MUST report failure if the pointer does not
+identify a value.
+
+A Consumer MAY retrieve the published resolved TD or reconstruct the same
+logical view from a complete pinned source closure and the applicable
+resolution rules. If the closure cannot establish that result, the Consumer
+MUST obtain the published view or report failure. It MUST NOT substitute live
+dependencies or a pointer into an unresolved source document.
+[Section 5.4.4](#544-publication-closure) records unresolved closure mappings;
+the existing closure extension and schema alone do not establish that such
+reconstruction is possible.
+
+The event carries no digest that proves TD content integrity. An explicit
+version identifies the stable view but is not a content-integrity check.
+Independent source and publication closure digests remain applicable.
+The [CloudEvents samples](samples/cloudevents.json) illustrate exact-version
+and current-default sources, with subjects addressing an affordance and the
+whole TD respectively.
 
 ### 5.4. Versioned Reference Resolution
 
