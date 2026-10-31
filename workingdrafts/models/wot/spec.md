@@ -1041,9 +1041,14 @@ network location or the Resource's registry id.
 
 The `wotid` query parameter carries the Thing's WoT identifier. When present,
 `wotversion` carries an exact xRegistry `versionid`, not a minimum-version
-floor or the TD's `version.model`. Parameter values use RFC 3986 percent
-encoding so that delimiters within a value are not interpreted as query
-structure. The profile uses `;` to separate these parameters. For example:
+floor or the TD's `version.model`. The `wotid` parameter MUST precede the
+OPTIONAL `wotversion` parameter, separated by `;`. Parameter values MUST use
+UTF-8 percent encoding with uppercase hexadecimal digits. In particular,
+`%`, `;`, `=`, `&`, `+` and `#` within a value MUST be percent-encoded so that
+they cannot be interpreted as query structure. A Consumer MUST reject
+malformed encoding, duplicate or unknown parameters, incorrect parameter
+order, and any fragment in `source`, including an empty fragment.
+For example:
 
 ```text
 wot-td://factory-floor-01?wotid=urn%3Afabrikam%3Alamp%3A42;wotversion=1.0.0

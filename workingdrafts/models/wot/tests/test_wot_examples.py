@@ -3,7 +3,8 @@
 from copy import deepcopy
 import json
 from pathlib import Path
-from urllib.parse import unquote, urlsplit
+import re
+from urllib.parse import quote, unquote, urlsplit
 
 import jsonschema
 import pytest
@@ -92,6 +93,10 @@ def test_cloudevents_source_and_subject_match_lamp_td(
     assert event["specversion"] == "1.0"
     assert event["id"] == f"lamp-42-overheated-{index + 1}"
     assert event["type"] == "com.fabrikam.lamp.overheated"
+    assert re.fullmatch(
+        r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)+",
+        event["type"],
+    )
     assert event["datacontenttype"] == "application/json"
 
     source = urlsplit(event["source"])
@@ -102,6 +107,11 @@ def test_cloudevents_source_and_subject_match_lamp_td(
     assert len(parameters) == len(expected_query)
     query = dict(unquote(value).split("=", 1) for value in parameters)
     assert query == expected_query
+    assert source.query == ";".join(
+        f"{key}={quote(value, safe='', encoding='utf-8', errors='strict')}"
+        for key, value in expected_query.items()
+    )
+    assert "#" not in event["source"]
     assert "wotid=urn%3Afabrikam%3Alamp%3A42" in source.query
 
     registry = json.loads((ROOT / "samples" / "registry.json").read_bytes())
