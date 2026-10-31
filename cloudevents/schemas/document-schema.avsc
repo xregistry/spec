@@ -55,6 +55,7 @@
         "values": {
           "type": "record",
           "name": "MessagegroupType",
+          "namespace": "io.xregistry.messagegroups",
           "fields": [
             {
               "name": "messagegroupid",
@@ -150,7 +151,7 @@
               "name": "Extensions",
               "type": {
                 "type": "map",
-                "name": "ExtensionsType",
+                "name": "MessagegroupExtensionsType",
                 "default": {},
                 "values": "io.xregistry.GenericRecord"
               },
@@ -256,7 +257,7 @@
                         {
                           "type": "record",
                           "namespace": "io.xregistry.messagegroups",
-                          "name": "EnvelopeCloudevents10Type",
+                          "name": "MessageEnvelopeCloudevents10Type",
                           "fields": [
                             {
                               "type": "io.xregistry.GenericRecord",
@@ -279,7 +280,7 @@
                         {
                           "type": "record",
                           "namespace": "io.xregistry.messagegroups",
-                          "name": "ProtocolAmqp10Type",
+                          "name": "MessageProtocolAmqp10Type",
                           "fields": [
                             {
                               "type": "io.xregistry.GenericRecord",
@@ -291,7 +292,7 @@
                         {
                           "type": "record",
                           "namespace": "io.xregistry.messagegroups",
-                          "name": "ProtocolMqtt311Type",
+                          "name": "MessageProtocolMqtt311Type",
                           "fields": [
                             {
                               "type": "io.xregistry.GenericRecord",
@@ -303,7 +304,7 @@
                         {
                           "type": "record",
                           "namespace": "io.xregistry.messagegroups",
-                          "name": "ProtocolMqtt50Type",
+                          "name": "MessageProtocolMqtt50Type",
                           "fields": [
                             {
                               "type": "io.xregistry.GenericRecord",
@@ -315,7 +316,7 @@
                         {
                           "type": "record",
                           "namespace": "io.xregistry.messagegroups",
-                          "name": "ProtocolKAFKAType",
+                          "name": "MessageProtocolKAFKAType",
                           "fields": [
                             {
                               "type": "io.xregistry.GenericRecord",
@@ -327,7 +328,7 @@
                         {
                           "type": "record",
                           "namespace": "io.xregistry.messagegroups",
-                          "name": "ProtocolHTTPType",
+                          "name": "MessageProtocolHTTPType",
                           "fields": [
                             {
                               "type": "io.xregistry.GenericRecord",
@@ -339,7 +340,7 @@
                         {
                           "type": "record",
                           "namespace": "io.xregistry.messagegroups",
-                          "name": "ProtocolNATSType",
+                          "name": "MessageProtocolNATSType",
                           "fields": [
                             {
                               "type": "io.xregistry.GenericRecord",
@@ -391,6 +392,7 @@
         "values": {
           "type": "record",
           "name": "EndpointType",
+          "namespace": "io.xregistry.endpoints",
           "fields": [
             {
               "name": "endpointid",
@@ -475,7 +477,7 @@
             {
               "type": {
                 "type": "array",
-                "name": "UsageArrayType",
+                "name": "EndpointUsageArrayType",
                 "items": {
                   "type": "string"
                 }
@@ -499,7 +501,7 @@
                 {
                   "type": "record",
                   "namespace": "io.xregistry.endpoints",
-                  "name": "EnvelopeCloudevents10Type",
+                  "name": "EndpointEnvelopeCloudevents10Type",
                   "fields": [
                     {
                       "type": "io.xregistry.GenericRecord",
@@ -517,7 +519,7 @@
                 {
                   "type": "record",
                   "namespace": "io.xregistry.endpoints",
-                  "name": "ProtocolAmqp10Type",
+                  "name": "EndpointProtocolAmqp10Type",
                   "fields": [
                     {
                       "type": "io.xregistry.GenericRecord",
@@ -529,7 +531,7 @@
                 {
                   "type": "record",
                   "namespace": "io.xregistry.endpoints",
-                  "name": "ProtocolMqtt50Type",
+                  "name": "EndpointProtocolMqtt50Type",
                   "fields": [
                     {
                       "type": "io.xregistry.GenericRecord",
@@ -541,7 +543,7 @@
                 {
                   "type": "record",
                   "namespace": "io.xregistry.endpoints",
-                  "name": "ProtocolMqtt311Type",
+                  "name": "EndpointProtocolMqtt311Type",
                   "fields": [
                     {
                       "type": "io.xregistry.GenericRecord",
@@ -553,7 +555,7 @@
                 {
                   "type": "record",
                   "namespace": "io.xregistry.endpoints",
-                  "name": "ProtocolHTTPType",
+                  "name": "EndpointProtocolHTTPType",
                   "fields": [
                     {
                       "type": "io.xregistry.GenericRecord",
@@ -565,7 +567,7 @@
                 {
                   "type": "record",
                   "namespace": "io.xregistry.endpoints",
-                  "name": "ProtocolKAFKAType",
+                  "name": "EndpointProtocolKAFKAType",
                   "fields": [
                     {
                       "type": "io.xregistry.GenericRecord",
@@ -577,7 +579,7 @@
                 {
                   "type": "record",
                   "namespace": "io.xregistry.endpoints",
-                  "name": "ProtocolNATSType",
+                  "name": "EndpointProtocolNATSType",
                   "fields": [
                     {
                       "type": "io.xregistry.GenericRecord",
@@ -592,7 +594,7 @@
             {
               "type": {
                 "type": "array",
-                "name": "MessagegroupsArrayType",
+                "name": "EndpointMessagegroupsArrayType",
                 "items": {
                   "type": "string"
                 }
@@ -604,7 +606,7 @@
               "name": "Extensions",
               "type": {
                 "type": "map",
-                "name": "ExtensionsType",
+                "name": "EndpointExtensionsType",
                 "default": {},
                 "values": "io.xregistry.GenericRecord"
               }
@@ -627,6 +629,7 @@
         "values": {
           "type": "record",
           "name": "SchemagroupType",
+          "namespace": "io.xregistry.schemagroups",
           "fields": [
             {
               "name": "schemagroupid",
@@ -716,7 +719,7 @@
               "name": "Extensions",
               "type": {
                 "type": "map",
-                "name": "ExtensionsType",
+                "name": "SchemagroupExtensionsType",
                 "default": {},
                 "values": "io.xregistry.GenericRecord"
               }
@@ -811,17 +814,205 @@
                       "doc": "Time of the object modification"
                     },
                     {
-                      "type": "string",
-                      "name": "format"
+                      "name": "versionid",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "description": "ID of the schema version",
+                      "default": null
+                    },
+                    {
+                      "name": "ancestorid",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "isdefault",
+                      "type": [
+                        "null",
+                        "boolean"
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "contenttype",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "default": null
+                    },
+                    {
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "name": "format",
+                      "default": null
                     },
                     {
                       "name": "Extensions",
-                      "type": {
-                        "type": "map",
-                        "name": "ExtensionsType",
-                        "default": {},
-                        "values": "io.xregistry.GenericRecord"
-                      }
+                      "type": [
+                        "null",
+                        {
+                          "type": "map",
+                          "name": "SchemaExtensionsType",
+                          "default": {},
+                          "values": "io.xregistry.GenericRecord"
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "versions",
+                      "type": [
+                        "null",
+                        {
+                          "type": "map",
+                          "values": {
+                            "type": "record",
+                            "name": "SchemaVersionType",
+                            "namespace": "io.xregistry.schemagroups",
+                            "fields": [
+                              {
+                                "name": "schemaid",
+                                "type": "string",
+                                "description": "ID of the schema object"
+                              },
+                              {
+                                "name": "name",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "doc": "Name of the object"
+                              },
+                              {
+                                "name": "epoch",
+                                "type": [
+                                  "int",
+                                  "null"
+                                ],
+                                "doc": "Epoch time of the object creation"
+                              },
+                              {
+                                "name": "self",
+                                "type": "string",
+                                "doc": "URL of the object"
+                              },
+                              {
+                                "name": "xid",
+                                "type": "string",
+                                "doc": "XID of the object"
+                              },
+                              {
+                                "name": "description",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "doc": "Description of the object"
+                              },
+                              {
+                                "name": "documentation",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "doc": "URI of the documentation of the object"
+                              },
+                              {
+                                "name": "labels",
+                                "type": {
+                                  "type": "map",
+                                  "values": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "doc": "Labels for the object"
+                              },
+                              {
+                                "name": "createdat",
+                                "type": [
+                                  {
+                                    "type": "int",
+                                    "logicalType": "time-millis"
+                                  },
+                                  "null"
+                                ],
+                                "doc": "Time of the object creation"
+                              },
+                              {
+                                "name": "modifiedat",
+                                "type": [
+                                  {
+                                    "type": "int",
+                                    "logicalType": "time-millis"
+                                  },
+                                  "null"
+                                ],
+                                "doc": "Time of the object modification"
+                              },
+                              {
+                                "name": "versionid",
+                                "type": "string",
+                                "description": "ID of the schema version"
+                              },
+                              {
+                                "name": "ancestorid",
+                                "type": "string"
+                              },
+                              {
+                                "name": "isdefault",
+                                "type": "boolean"
+                              },
+                              {
+                                "name": "contenttype",
+                                "type": [
+                                  "null",
+                                  "string"
+                                ],
+                                "default": null
+                              },
+                              {
+                                "type": "string",
+                                "name": "format"
+                              },
+                              {
+                                "name": "Extensions",
+                                "type": {
+                                  "type": "map",
+                                  "name": "SchemaVersionExtensionsType",
+                                  "default": {},
+                                  "values": "io.xregistry.GenericRecord"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "versionsurl",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "versionscount",
+                      "type": [
+                        "null",
+                        "long"
+                      ],
+                      "default": null
                     }
                   ]
                 }
