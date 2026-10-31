@@ -1,0 +1,322 @@
+{
+  "thingmodelgroups": {
+    "Fabrikam.Lighting": {
+      "description": "Reusable Thing Models for Fabrikam lighting products",
+      "thingmodels": {
+        "urn.fabrikam.lamp.v1": {
+          "description": "Generic dimmable lamp Thing Model",
+          "format": "JSON-LD/1.1",
+          "contenttype": "application/tm+json",
+          "versionid": "1.0.0",
+          "wotid": "urn:fabrikam:lamp:v1",
+          "publisher": "Fabrikam",
+          "license": "Apache-2.0",
+          "maturity": "Vendor",
+          "canonicalurl": "https://fabrikam.example/wot/tm/lamp/v1",
+          "thingmodel": {
+            "@context": [
+              "https://www.w3.org/2022/wot/td/v1.1",
+              {
+                "fabrikam": "https://fabrikam.example/wot/v1#"
+              }
+            ],
+            "@type": "tm:ThingModel",
+            "id": "urn:fabrikam:lamp:v1",
+            "title": "Fabrikam Lamp",
+            "description": "A reusable Thing Model for a dimmable lamp.",
+            "version": {
+              "model": "1.0.0"
+            },
+            "properties": {
+              "status": {
+                "title": "On/Off status",
+                "type": "string",
+                "enum": [
+                  "on",
+                  "off"
+                ],
+                "readOnly": true
+              },
+              "brightness": {
+                "title": "Brightness",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100,
+                "unit": "percent"
+              }
+            },
+            "actions": {
+              "toggle": {
+                "title": "Toggle the lamp on or off",
+                "synchronous": true
+              },
+              "setBrightness": {
+                "title": "Set the lamp brightness",
+                "input": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              }
+            },
+            "events": {
+              "overheated": {
+                "title": "Overheated",
+                "description": "Emitted when the lamp's temperature exceeds the safe threshold.",
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "temperature": {
+                      "type": "number",
+                      "unit": "degC"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Contoso.Pumps": {
+      "description": "Thing Models supplied by Contoso and stored unchanged",
+      "thingmodels": {
+        "example.contoso.tm.pump.v1": {
+          "meta": {
+            "defaultversionid": "1.1.0",
+            "defaultversionsticky": false,
+            "compatibility": "backward"
+          },
+          "versions": {
+            "1.0.0": {
+              "versionid": "1.0.0",
+              "description": "Vendor-supplied pump Thing Model, stored as authored",
+              "format": "JSON-LD/1.1",
+              "contenttype": "application/tm+json",
+              "wotid": "https://contoso.example/tm/pump/v1",
+              "derivedfrom": [
+                "https://contoso.example/tm/device/v1"
+              ],
+              "publisher": "Contoso",
+              "license": "https://contoso.example/licenses/tm",
+              "canonicalurl": "https://contoso.example/tm/pump/v1",
+              "maturity": "Vendor",
+              "thingmodel": {
+                "@context": "https://www.w3.org/2022/wot/td/v1.1",
+                "@type": "tm:ThingModel",
+                "id": "https://contoso.example/tm/pump/v1",
+                "title": "Contoso Pump",
+                "version": {
+                  "model": "1.0.0"
+                },
+                "links": [
+                  {
+                    "rel": "tm:extends",
+                    "href": "https://contoso.example/tm/device/v1",
+                    "tm:minVersion": "1.0.0",
+                    "type": "application/tm+json"
+                  }
+                ],
+                "properties": {
+                  "flowRate": {
+                    "type": "number",
+                    "unit": "l/min"
+                  }
+                }
+              }
+            },
+            "1.1.0": {
+              "versionid": "1.1.0",
+              "description": "Vendor-supplied pump Thing Model, stored as authored",
+              "format": "JSON-LD/1.1",
+              "contenttype": "application/tm+json",
+              "wotid": "https://contoso.example/tm/pump/v1",
+              "derivedfrom": [
+                "https://contoso.example/tm/device/v1"
+              ],
+              "publisher": "Contoso",
+              "license": "https://contoso.example/licenses/tm",
+              "canonicalurl": "https://contoso.example/tm/pump/v1",
+              "maturity": "Vendor",
+              "thingmodel": {
+                "@context": "https://www.w3.org/2022/wot/td/v1.1",
+                "@type": "tm:ThingModel",
+                "id": "https://contoso.example/tm/pump/v1",
+                "title": "Contoso Pump",
+                "version": {
+                  "model": "1.1.0"
+                },
+                "tm:optional": [
+                  "/properties/inletPressure"
+                ],
+                "links": [
+                  {
+                    "rel": "tm:extends",
+                    "href": "https://contoso.example/tm/device/v1",
+                    "tm:minVersion": "1.0.0",
+                    "type": "application/tm+json"
+                  }
+                ],
+                "properties": {
+                  "flowRate": {
+                    "type": "number",
+                    "unit": "l/min"
+                  },
+                  "inletPressure": {
+                    "type": "number",
+                    "unit": "bar"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "example.contoso.tm.device.v1": {
+          "description": "Base device Thing Model that the pump extends",
+          "format": "JSON-LD/1.1",
+          "contenttype": "application/tm+json",
+          "versionid": "1.0.0",
+          "wotid": "https://contoso.example/tm/device/v1",
+          "publisher": "Contoso",
+          "canonicalurl": "https://contoso.example/tm/device/v1",
+          "maturity": "Vendor",
+          "thingmodel": {
+            "@context": "https://www.w3.org/2022/wot/td/v1.1",
+            "@type": "tm:ThingModel",
+            "id": "https://contoso.example/tm/device/v1",
+            "title": "Contoso Device",
+            "version": {
+              "model": "1.0.0"
+            },
+            "properties": {
+              "serialNumber": {
+                "type": "string",
+                "readOnly": true
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "thingdescriptiongroups": {
+    "Fabrikam.FactoryFloor.01": {
+      "description": "All Things deployed on Fabrikam factory floor #1",
+      "thingdescriptions": {
+        "urn.fabrikam.lamp.42": {
+          "description": "Smart lamp instance #42 (above workbench A)",
+          "format": "JSON-LD/1.1",
+          "contenttype": "application/td+json",
+          "versionid": "1.0.0",
+          "wotid": "urn:fabrikam:lamp:42",
+          "derivedfrom": [
+            "urn:fabrikam:lamp:v1"
+          ],
+          "publisher": "Fabrikam",
+          "maturity": "Vendor",
+          "thingdescription": {
+            "@context": [
+              "https://www.w3.org/2022/wot/td/v1.1",
+              {
+                "fabrikam": "https://fabrikam.example/wot/v1#"
+              }
+            ],
+            "@type": "Thing",
+            "id": "urn:fabrikam:lamp:42",
+            "title": "Lamp #42 (workbench A)",
+            "version": {
+              "instance": "1.0.0",
+              "model": "1.0.0"
+            },
+            "links": [
+              {
+                "rel": "type",
+                "href": "https://example.com/thingmodelgroups/Fabrikam.Lighting/thingmodels/urn.fabrikam.lamp.v1",
+                "type": "application/tm+json"
+              }
+            ],
+            "securityDefinitions": {
+              "bearer_sc": {
+                "scheme": "bearer",
+                "format": "jwt"
+              }
+            },
+            "security": [
+              "bearer_sc"
+            ],
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "on",
+                  "off"
+                ],
+                "readOnly": true,
+                "forms": [
+                  {
+                    "href": "https://gw.fabrikam.example/floor01/lamp-42/status",
+                    "contentType": "application/json",
+                    "op": [
+                      "readproperty"
+                    ]
+                  }
+                ]
+              },
+              "brightness": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100,
+                "unit": "percent",
+                "forms": [
+                  {
+                    "href": "https://gw.fabrikam.example/floor01/lamp-42/brightness",
+                    "contentType": "application/json",
+                    "op": [
+                      "readproperty",
+                      "writeproperty"
+                    ]
+                  }
+                ]
+              }
+            },
+            "actions": {
+              "toggle": {
+                "synchronous": true,
+                "forms": [
+                  {
+                    "href": "https://gw.fabrikam.example/floor01/lamp-42/actions/toggle",
+                    "op": [
+                      "invokeaction"
+                    ]
+                  }
+                ]
+              }
+            },
+            "events": {
+              "overheated": {
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "temperature": {
+                      "type": "number",
+                      "unit": "degC"
+                    }
+                  }
+                },
+                "forms": [
+                  {
+                    "href": "mqtts://broker.fabrikam.example:8883/lamps/42/overheated",
+                    "contentType": "application/cloudevents+json",
+                    "op": [
+                      "subscribeevent"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

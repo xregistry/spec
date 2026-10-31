@@ -1,0 +1,348 @@
+{
+  "type": "record",
+  "name": "DocumentType",
+  "namespace": "io.xregistry",
+  "fields": [
+    {
+      "name": "genericRecordDefinition",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "GenericRecord",
+          "fields": [
+            {
+              "name": "object",
+              "type": {
+                "type": "map",
+                "values": [
+                  "null",
+                  "boolean",
+                  "int",
+                  "long",
+                  "float",
+                  "double",
+                  "bytes",
+                  "string",
+                  {
+                    "type": "array",
+                    "items": [
+                      "null",
+                      "boolean",
+                      "int",
+                      "long",
+                      "float",
+                      "double",
+                      "bytes",
+                      "string",
+                      "io.xregistry.GenericRecord"
+                    ]
+                  },
+                  "io.xregistry.GenericRecord"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "default": [],
+      "doc": "Internal field to define GenericRecord type for use in extension attributes"
+    },
+    {
+      "name": "categories",
+      "type": {
+        "type": "map",
+        "values": {
+          "type": "record",
+          "name": "CategoryType",
+          "fields": [
+            {
+              "name": "categoryid",
+              "type": "string",
+              "description": "ID of the category object"
+            },
+            {
+              "name": "name",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Name of the object"
+            },
+            {
+              "name": "epoch",
+              "type": [
+                "int",
+                "null"
+              ],
+              "doc": "Epoch time of the object creation"
+            },
+            {
+              "name": "self",
+              "type": "string",
+              "doc": "URL of the object"
+            },
+            {
+              "name": "xid",
+              "type": "string",
+              "doc": "XID of the object"
+            },
+            {
+              "name": "description",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Description of the object"
+            },
+            {
+              "name": "documentation",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "URI of the documentation of the object"
+            },
+            {
+              "name": "labels",
+              "type": {
+                "type": "map",
+                "values": [
+                  "string",
+                  "null"
+                ]
+              },
+              "doc": "Labels for the object"
+            },
+            {
+              "name": "createdat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object creation"
+            },
+            {
+              "name": "modifiedat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object modification"
+            },
+            {
+              "name": "Extensions",
+              "type": {
+                "type": "map",
+                "name": "ExtensionsType",
+                "default": {},
+                "values": "io.xregistry.GenericRecord"
+              }
+            },
+            {
+              "name": "registries",
+              "type": {
+                "type": "map",
+                "values": {
+                  "type": "record",
+                  "name": "RegistryType",
+                  "namespace": "io.xregistry.categories",
+                  "fields": [
+                    {
+                      "name": "registryid",
+                      "type": "string",
+                      "description": "ID of the registry object"
+                    },
+                    {
+                      "name": "name",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Name of the object"
+                    },
+                    {
+                      "name": "epoch",
+                      "type": [
+                        "int",
+                        "null"
+                      ],
+                      "doc": "Epoch time of the object creation"
+                    },
+                    {
+                      "name": "self",
+                      "type": "string",
+                      "doc": "URL of the object"
+                    },
+                    {
+                      "name": "xid",
+                      "type": "string",
+                      "doc": "XID of the object"
+                    },
+                    {
+                      "name": "description",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Description of the object"
+                    },
+                    {
+                      "name": "documentation",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "URI of the documentation of the object"
+                    },
+                    {
+                      "name": "labels",
+                      "type": {
+                        "type": "map",
+                        "values": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "doc": "Labels for the object"
+                    },
+                    {
+                      "name": "createdat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object creation"
+                    },
+                    {
+                      "name": "modifiedat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object modification"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "xRegistry HTTP Registry root URL.",
+                      "name": "xregurl"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "Human-facing website. Not a resolution advertisement.",
+                      "name": "weburl"
+                    },
+                    {
+                      "type": {
+                        "type": "array",
+                        "name": "RegistrytypesArrayType",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "name": "registrytypes",
+                      "doc": "Descriptive domain or model URI identifiers."
+                    },
+                    {
+                      "type": "string",
+                      "doc": "Administrative authority identifier. Not a trust claim.",
+                      "name": "authority"
+                    },
+                    {
+                      "type": {
+                        "type": "array",
+                        "name": "FederationprofilesArrayType",
+                        "items": {
+                          "type": "record",
+                          "name": "FederationprofilesType",
+                          "fields": [
+                            {
+                              "type": "string",
+                              "doc": "Nonempty, case-sensitive binding identifier.",
+                              "name": "binding"
+                            },
+                            {
+                              "type": "string",
+                              "doc": "Absolute, credential-free binding endpoint URI.",
+                              "name": "endpoint"
+                            },
+                            {
+                              "type": "int",
+                              "doc": "Lower values are preferred. Absence means 0.",
+                              "name": "priority"
+                            },
+                            {
+                              "type": "io.xregistry.GenericRecord",
+                              "name": "parameters",
+                              "doc": "Binding parameters. Absence means an empty object."
+                            }
+                          ]
+                        }
+                      },
+                      "name": "federationprofiles",
+                      "doc": "Ordered access advertisements for one logical Registry."
+                    },
+                    {
+                      "type": {
+                        "type": "array",
+                        "name": "RelationshipsArrayType",
+                        "items": {
+                          "type": "record",
+                          "name": "RelationshipsType",
+                          "fields": [
+                            {
+                              "type": "string",
+                              "doc": "Nonempty relationship identifier.",
+                              "name": "type"
+                            },
+                            {
+                              "type": "string",
+                              "doc": "Catalog-root Resource XID or absolute entry URI.",
+                              "name": "target"
+                            },
+                            {
+                              "type": {
+                                "type": "map",
+                                "name": "LabelsType",
+                                "values": "string"
+                              },
+                              "name": "labels",
+                              "doc": "Ordinary Core labels describing this relationship."
+                            }
+                          ]
+                        }
+                      },
+                      "name": "relationships",
+                      "doc": "Descriptive links to catalog entries, not instructions."
+                    },
+                    {
+                      "name": "Extensions",
+                      "type": {
+                        "type": "map",
+                        "name": "ExtensionsType",
+                        "default": {},
+                        "values": "io.xregistry.GenericRecord"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

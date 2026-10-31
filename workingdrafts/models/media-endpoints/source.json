@@ -1,0 +1,46 @@
+{
+  "draft": {
+    "repository": "https://github.com/xregistry/spec",
+    "pullRequest": 716,
+    "path": "workingdrafts/models/media-endpoints.md",
+    "revision": "9613f002c82c9568fbefc5f1f0cf0490d6df572a",
+    "gitBlob": "8e7e6d46c21e391c4dd611dbea92f40acf0231d3",
+    "version": "0.1",
+    "date": "2026-09-15",
+    "url": "https://github.com/xregistry/spec/blob/9613f002c82c9568fbefc5f1f0cf0490d6df572a/workingdrafts/models/media-endpoints.md"
+  },
+  "base": {
+    "repository": "https://github.com/xregistry/spec",
+    "revision": "adf5b6a63e60c3baa78e844da8b7ce2a0d60c179",
+    "date": "2026-08-18",
+    "models": [
+      {
+        "path": "endpoint/model.json",
+        "gitBlob": "be4287fb1472d9ac6615e06ade469f216938ee29",
+        "snapshot": "sources/endpoint-model.source.json",
+        "sha256": "e1acb299119866671bcc2b8561ddc240c7c85261740f91b732e13a799bd04f4b"
+      },
+      {
+        "path": "message/model.json",
+        "gitBlob": "5df13a2dbb11ccd0e8d8643e983dfbb71262051a",
+        "snapshot": "sources/message-model.source.json",
+        "sha256": "473ad3ea899db6ea4cf5c9a11014901be1eb947ec117fc750c40628f54fde2d9"
+      }
+    ]
+  },
+  "modelAdjustments": [
+    {
+      "path": "groups.endpoints.attributes.usage",
+      "adjustment": "Move the enum from the array attribute to its scalar item.",
+      "reason": "Core model validation permits enum on scalar values, not on array attributes."
+    }
+  ],
+  "artifacts": {
+    "model.json": {
+      "sha256": "f8a0fa6cbd975f4c38ee211d291d5b64416bccc4d9a7242eaf4f9da34367cfa8"
+    },
+    "protocol-options.json": {
+      "sha256": "4fcf905ad2ca26ea8ce03d5ee0a92338622733f313bbca8dd7543a7b2f04d8fb"
+    }
+  }
+}

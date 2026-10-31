@@ -1,0 +1,762 @@
+{
+  "type": "record",
+  "name": "DocumentType",
+  "namespace": "io.xregistry",
+  "fields": [
+    {
+      "name": "genericRecordDefinition",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "GenericRecord",
+          "fields": [
+            {
+              "name": "object",
+              "type": {
+                "type": "map",
+                "values": [
+                  "null",
+                  "boolean",
+                  "int",
+                  "long",
+                  "float",
+                  "double",
+                  "bytes",
+                  "string",
+                  {
+                    "type": "array",
+                    "items": [
+                      "null",
+                      "boolean",
+                      "int",
+                      "long",
+                      "float",
+                      "double",
+                      "bytes",
+                      "string",
+                      "io.xregistry.GenericRecord"
+                    ]
+                  },
+                  "io.xregistry.GenericRecord"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "default": [],
+      "doc": "Internal field to define GenericRecord type for use in extension attributes"
+    },
+    {
+      "name": "messagegroups",
+      "type": {
+        "type": "map",
+        "values": {
+          "type": "record",
+          "name": "MessagegroupType",
+          "fields": [
+            {
+              "name": "messagegroupid",
+              "type": "string",
+              "description": "ID of the messagegroup object"
+            },
+            {
+              "name": "name",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Name of the object"
+            },
+            {
+              "name": "epoch",
+              "type": [
+                "int",
+                "null"
+              ],
+              "doc": "Epoch time of the object creation"
+            },
+            {
+              "name": "self",
+              "type": "string",
+              "doc": "URL of the object"
+            },
+            {
+              "name": "xid",
+              "type": "string",
+              "doc": "XID of the object"
+            },
+            {
+              "name": "description",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Description of the object"
+            },
+            {
+              "name": "documentation",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "URI of the documentation of the object"
+            },
+            {
+              "name": "labels",
+              "type": {
+                "type": "map",
+                "values": [
+                  "string",
+                  "null"
+                ]
+              },
+              "doc": "Labels for the object"
+            },
+            {
+              "name": "createdat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object creation"
+            },
+            {
+              "name": "modifiedat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object modification"
+            },
+            {
+              "type": "string",
+              "doc": "Envelope format identifier that defines the common metadata information for the message. All definitions in this group share this envelope format. Mixed-envelope-format groups are not permitted. The predefined envelope format is CloudEvents/1.0",
+              "name": "envelope"
+            },
+            {
+              "type": "string",
+              "doc": "Protocol identifier that defines the transport message protocol. All definitions in this group share this protocol type. Mixed-protocol groups are not permitted. Predefined protocol formats are 'AMQP/1.0', 'MQTT/3.1.1', 'MQTT/5.0', 'KAFKA', 'HTTP', and 'NATS'",
+              "name": "protocol"
+            },
+            {
+              "name": "Extensions",
+              "type": {
+                "type": "map",
+                "name": "ExtensionsType",
+                "default": {},
+                "values": "io.xregistry.GenericRecord"
+              },
+              "doc": "Any other attribute that is common to all definitions in this group"
+            },
+            {
+              "name": "messages",
+              "type": {
+                "type": "map",
+                "values": {
+                  "type": "record",
+                  "name": "MessageType",
+                  "namespace": "io.xregistry.messagegroups",
+                  "fields": [
+                    {
+                      "name": "messageid",
+                      "type": "string",
+                      "description": "ID of the message object"
+                    },
+                    {
+                      "name": "name",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Name of the object"
+                    },
+                    {
+                      "name": "epoch",
+                      "type": [
+                        "int",
+                        "null"
+                      ],
+                      "doc": "Epoch time of the object creation"
+                    },
+                    {
+                      "name": "self",
+                      "type": "string",
+                      "doc": "URL of the object"
+                    },
+                    {
+                      "name": "xid",
+                      "type": "string",
+                      "doc": "XID of the object"
+                    },
+                    {
+                      "name": "description",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Description of the object"
+                    },
+                    {
+                      "name": "documentation",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "URI of the documentation of the object"
+                    },
+                    {
+                      "name": "labels",
+                      "type": {
+                        "type": "map",
+                        "values": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "doc": "Labels for the object"
+                    },
+                    {
+                      "name": "createdat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object creation"
+                    },
+                    {
+                      "name": "modifiedat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object modification"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition",
+                      "name": "basemessageuri"
+                    },
+                    {
+                      "name": "envelope",
+                      "type": [
+                        {
+                          "type": "record",
+                          "namespace": "io.xregistry.messagegroups",
+                          "name": "EnvelopeCloudevents10Type",
+                          "fields": [
+                            {
+                              "type": "io.xregistry.GenericRecord",
+                              "name": "envelopemetadata",
+                              "doc": "CloudEvents attribute declarations, adding constraints to the CloudEvents envelope not yet covered by the CloudEvents spec https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md"
+                            },
+                            {
+                              "type": "io.xregistry.GenericRecord",
+                              "name": "envelopeoptions",
+                              "doc": "Envelope metadata constraints"
+                            }
+                          ]
+                        }
+                      ],
+                      "doc": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups. The predefined envelope format is 'CloudEvents/1.0'"
+                    },
+                    {
+                      "name": "protocol",
+                      "type": [
+                        {
+                          "type": "record",
+                          "namespace": "io.xregistry.messagegroups",
+                          "name": "ProtocolAmqp10Type",
+                          "fields": [
+                            {
+                              "type": "io.xregistry.GenericRecord",
+                              "name": "protocoloptions",
+                              "doc": "AMQP message metadata constraints"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "record",
+                          "namespace": "io.xregistry.messagegroups",
+                          "name": "ProtocolMqtt311Type",
+                          "fields": [
+                            {
+                              "type": "io.xregistry.GenericRecord",
+                              "name": "protocoloptions",
+                              "doc": "MQTT message metadata constraints"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "record",
+                          "namespace": "io.xregistry.messagegroups",
+                          "name": "ProtocolMqtt50Type",
+                          "fields": [
+                            {
+                              "type": "io.xregistry.GenericRecord",
+                              "name": "protocoloptions",
+                              "doc": "MQTT message metadata constraints"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "record",
+                          "namespace": "io.xregistry.messagegroups",
+                          "name": "ProtocolKAFKAType",
+                          "fields": [
+                            {
+                              "type": "io.xregistry.GenericRecord",
+                              "name": "protocoloptions",
+                              "doc": "Apache Kafka message metadata constraints"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "record",
+                          "namespace": "io.xregistry.messagegroups",
+                          "name": "ProtocolHTTPType",
+                          "fields": [
+                            {
+                              "type": "io.xregistry.GenericRecord",
+                              "name": "protocoloptions",
+                              "doc": "The HTTP message metadata constraints"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "record",
+                          "namespace": "io.xregistry.messagegroups",
+                          "name": "ProtocolNATSType",
+                          "fields": [
+                            {
+                              "type": "io.xregistry.GenericRecord",
+                              "name": "protocoloptions",
+                              "doc": "NATS message metadata constraints"
+                            }
+                          ]
+                        }
+                      ],
+                      "doc": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "The schema format applicable to the message payload, equivalent to the 'format' attribute of the schema registry",
+                      "name": "dataschemaformat"
+                    },
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "doc": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry",
+                      "name": "dataschema"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry",
+                      "name": "dataschemauri"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry.",
+                      "name": "dataschemaxid"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "The content type for the message payload",
+                      "name": "datacontenttype"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "endpoints",
+      "type": {
+        "type": "map",
+        "values": {
+          "type": "record",
+          "name": "EndpointType",
+          "fields": [
+            {
+              "name": "endpointid",
+              "type": "string",
+              "description": "ID of the endpoint object"
+            },
+            {
+              "name": "name",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Name of the object"
+            },
+            {
+              "name": "epoch",
+              "type": [
+                "int",
+                "null"
+              ],
+              "doc": "Epoch time of the object creation"
+            },
+            {
+              "name": "self",
+              "type": "string",
+              "doc": "URL of the object"
+            },
+            {
+              "name": "xid",
+              "type": "string",
+              "doc": "XID of the object"
+            },
+            {
+              "name": "description",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Description of the object"
+            },
+            {
+              "name": "documentation",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "URI of the documentation of the object"
+            },
+            {
+              "name": "labels",
+              "type": {
+                "type": "map",
+                "values": [
+                  "string",
+                  "null"
+                ]
+              },
+              "doc": "Labels for the object"
+            },
+            {
+              "name": "createdat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object creation"
+            },
+            {
+              "name": "modifiedat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object modification"
+            },
+            {
+              "type": {
+                "type": "array",
+                "name": "UsageArrayType",
+                "items": {
+                  "type": "enum",
+                  "name": "UsageEnumType",
+                  "symbols": [
+                    "subscriber",
+                    "consumer",
+                    "producer"
+                  ]
+                }
+              },
+              "name": "usage",
+              "doc": "Client's expected usage of this endpoint. Single-role declarations are preferred. Mixed declarations are guidance-oriented metadata and should be used only when role semantics are unambiguous."
+            },
+            {
+              "type": "string",
+              "doc": "The name of the channel",
+              "name": "channel"
+            },
+            {
+              "type": "io.xregistry.GenericRecord",
+              "name": "deprecated",
+              "doc": "Indicates whether the endpoint is deprecated"
+            },
+            {
+              "name": "envelope",
+              "type": [
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "EnvelopeCloudevents10Type",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "envelopeoptions",
+                      "doc": "Envelope metadata constraints"
+                    }
+                  ]
+                }
+              ],
+              "doc": "Envelope metadata format identifier. If set, all definitions MUST use this format value"
+            },
+            {
+              "name": "protocol",
+              "type": [
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolAmqp10Type",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolMqtt50Type",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolMqtt311Type",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolHTTPType",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolKAFKAType",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolNATSType",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolSRTType",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this media endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolWebRTCType",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this media endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolRtsp10Type",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this media endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolRtsp20Type",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this media endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolRtp2Type",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this media endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolMpegtsUdpType",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this media endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolRtmp10Type",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this media endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolHLSType",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this media endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolDASHType",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this media endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolRistSimple2020Type",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this media endpoint"
+                    }
+                  ]
+                },
+                {
+                  "type": "record",
+                  "namespace": "io.xregistry.endpoints",
+                  "name": "ProtocolRistMain2024Type",
+                  "fields": [
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "protocoloptions",
+                      "doc": "Configuration information for this media endpoint"
+                    }
+                  ]
+                }
+              ],
+              "doc": "Endpoint protocol identifier. If set, all definitions MUST use this protocol value"
+            },
+            {
+              "type": {
+                "type": "array",
+                "name": "MessagegroupsArrayType",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "name": "messagegroups",
+              "doc": "The message groups that are supported by this endpoint. Relative references are XIDs within the same registry. Absolute URIs reference message groups in external registries."
+            },
+            {
+              "name": "Extensions",
+              "type": {
+                "type": "map",
+                "name": "ExtensionsType",
+                "default": {},
+                "values": "io.xregistry.GenericRecord"
+              }
+            },
+            {
+              "name": "messages",
+              "type": {
+                "type": "map",
+                "values": "io.xregistry.messagegroups.MessageType"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

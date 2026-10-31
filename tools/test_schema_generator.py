@@ -1,6 +1,7 @@
 """
 Tests for schema-generator.py to validate JSON Schema and Avro output conformance.
 """
+import importlib.util
 import json
 import os
 import re
@@ -139,6 +140,92 @@ class TestSchemaGenerator:
         finally:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
+
+    def test_array_item_enum_is_preserved_in_json_schema_and_avro(
+        self, tools_dir, tmp_path
+    ):
+        model_path = tmp_path / 'model.json'
+        model_path.write_text(json.dumps({
+            "groups": {
+                "endpoints": {
+                    "singular": "endpoint",
+                    "attributes": {
+                        "usage": {
+                            "type": "array",
+                            "item": {
+                                "type": "string",
+                                "enum": ["subscriber", "producer"]
+                            }
+                        }
+                    }
+                }
+            }
+        }), encoding='utf-8')
+
+        json_schema = self.generate_schema(model_path, 'json-schema', tools_dir)
+        usage = json_schema['definitions']['endpoint-schema']['endpoint']['properties']['usage']
+        assert usage['items']['enum'] == ['subscriber', 'producer']
+
+        avro_data = self.generate_schema(model_path, 'avro-schema', tools_dir)
+        schema = avro.schema.parse(json.dumps(avro_data))
+        usage = schema.fields_dict['endpoints'].type.values.fields_dict['usage'].type.items
+        assert usage.type == 'enum'
+        assert usage.symbols == ['subscriber', 'producer']
+
+    def test_model_include_siblings_override_included_values(self, tools_dir, tmp_path):
+        base_path = tmp_path / "base.json"
+        base_path.write_text(json.dumps({
+            "groups": {
+                "endpoints": {
+                    "attributes": {
+                        "usage": {"name": "usage", "type": "string"},
+                        "protocol": {
+                            "name": "protocol",
+                            "type": "string",
+                            "ifvalues": {
+                                "AMQP/1.0": {
+                                    "siblingattributes": {
+                                        "protocoloptions": {"type": "object"}
+                                    }
+                                }
+                            },
+                        },
+                    }
+                }
+            }
+        }), encoding="utf-8")
+        model = {
+            "groups": {
+                "endpoints": {
+                    "$include": "base.json#/groups/endpoints",
+                    "attributes": {
+                        "$include": "base.json#/groups/endpoints/attributes",
+                        "protocol": {
+                            "$include": "base.json#/groups/endpoints/attributes/protocol",
+                            "ifvalues": {
+                                "$include": "base.json#/groups/endpoints/attributes/protocol/ifvalues",
+                                "SRT": {
+                                    "siblingattributes": {
+                                        "protocoloptions": {"type": "object"}
+                                    }
+                                },
+                            },
+                        },
+                    },
+                }
+            }
+        }
+        spec = importlib.util.spec_from_file_location(
+            "schema_generator", tools_dir / "schema-generator.py"
+        )
+        generator = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(generator)
+
+        resolved = generator.resolve_imports(str(tmp_path), model)
+
+        attributes = resolved["groups"]["endpoints"]["attributes"]
+        assert attributes["usage"] == {"name": "usage", "type": "string"}
+        assert set(attributes["protocol"]["ifvalues"]) == {"AMQP/1.0", "SRT"}
 
     def test_message_model_avro_schema_valid(self, message_model, tools_dir):
         """Test that message model generates valid Avro schema."""

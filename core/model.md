@@ -335,6 +335,11 @@ The following describes the attributes of the Registry model:
   inconsistency is found then an error
   ([mismatched_version_attribute](spec.md#mismatched_version_attribute)) MUST
   be generated.
+- For string attributes, the values MUST be identical, including case. This
+  check does not apply the case-insensitive comparison rules used for string
+  filtering. A model that needs a different equivalence rule, such as
+  case-insensitive equality, MUST define it separately; `matchversions` does
+  not provide normalization.
 - This aspect MUST only be `true` for attribute definitions that:
   - Are within a [Resource type's versioned
     attributes](#groupsstringresourcesstringattributes) section.

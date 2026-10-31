@@ -1,0 +1,340 @@
+# xRegistry File Federation Binding
+
+<!-- words: filesystem symlinks reparse unc sha256 percent-encoded -->
+<!-- words: filenames href uri oid oci modelsource hasdocument -->
+<!-- words: documenttree filestore localhost posix py realpath symlink -->
+<!-- words: mnt nas -->
+<!-- words: powershell workingdrafts -->
+
+## Abstract
+
+This binding defines how a consumer reads a Registry snapshot from a selected
+filesystem directory. The directory contains either a document-tree mapping
+or an OCI image layout. Neither format requires an xRegistry server.
+
+**Status:** Unreleased working draft. This binding is not part of a released
+xRegistry specification.
+
+## Table of Contents
+
+- [Scope and Conventions](#scope-and-conventions)
+- [Motivation and Example](#motivation-and-example)
+- [Advertisement and File URI](#advertisement-and-file-uri)
+- [Layout Selection and Reads](#layout-selection-and-reads)
+- [Containment and Concurrent Changes](#containment-and-concurrent-changes)
+- [Errors and Conformance](#errors-and-conformance)
+- [References](#references)
+
+## Scope and Conventions
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+document are to be interpreted as described in
+[RFC2119](https://www.rfc-editor.org/rfc/rfc2119).
+
+The [federation contract](../federation/spec.md#read-operations),
+[Core 1.0-rc4](../../core/spec.md) and
+[Model 1.0-rc4](../../core/model.md) define the read semantics.
+Filesystem mutation, synchronization, file watchers and HTTP facades are
+outside the scope of this binding.
+
+## Motivation and Example
+
+A local snapshot supplies metadata and documents when a consumer cannot
+reach a remote service. Deployment tooling can use the same snapshot as a
+fixed input. The File binding reads it from an existing directory without
+requiring an xRegistry server to interpret requests.
+
+For example, `file:///D:/registry-snapshots/first` with
+`layout: "document-tree"` selects that directory's `registry.json`.
+A request for `/documents/main/assets/item/versions/v1` follows its
+record/index references and reads the selected bytes. Alternatively,
+`layout: "oci-layout"` and `reference: "release-1"` select one snapshot
+from an OCI layout at the same kind of local location.
+
+The directory can reside on local storage, network-attached storage (NAS)
+or another file share exposed by the operating system as a mounted
+filesystem. For example, `file:///mnt/team-registry` can select a mounted
+share on a POSIX host, while `file:///R:/team-registry` can select a Windows
+mapped drive. Mounting the share and configuring its credentials are
+operating-system tasks, not operations defined by this binding.
+
+These paths select shares that the operating system has already mounted.
+They do not enable remote-authority URIs such as `file://nas/team-registry`.
+The authority and containment rules below apply to mounted shares as well,
+including the restrictions on symlinks and reparse points.
+
+Consumers can read either format directly. A federating API server can also
+read the directory as a source and return ordinary xRegistry responses to its
+client. The shared [hosting models](../federation/spec.md#design-hosting-models)
+describe both arrangements.
+
+In either arrangement, the directory remains mutable unless its storage
+provides an immutable snapshot. The containment, digest and concurrent-change
+rules below therefore apply to both.
+
+To read a local example, generate the `portable` Registry from the
+[shared source](../federation/samples/examples.json). Run from the repository root
+with a new or empty destination outside the checkout:
+
+```powershell
+python -B -m workingdrafts.federation.tools.generate_examples file --example portable --output D:\temp\xregistry-file-portable
+python -B -m workingdrafts.bindings.tools.mapping_examples validate D:\temp\xregistry-file-portable
+python -B -m workingdrafts.bindings.tools.mapping_examples document D:\temp\xregistry-file-portable /documents/main/assets/item/versions/v1
+```
+
+The selected File root is `file:///D:/temp/xregistry-file-portable`, with
+`layout: "document-tree"`. There is no extra `xregistry` directory. Although
+the generator reports the root hash, the output directory remains mutable.
+A selective read checks only the bytes it references; the `validate`
+command checks the complete declared graph. For local OCI output, use the
+[OCI generation and reading commands](oci.md#generate-and-read-a-layout)
+with `layout: "oci-layout"` and the chosen reference.
+
+The [shared example instructions](../README.md#generating-and-reading-examples)
+list the other examples, dependencies and Linux path equivalents.
+
+## Advertisement and File URI
+
+`binding` MUST be `file`. The `endpoint` MUST be an absolute
+[RFC8089](https://www.rfc-editor.org/rfc/rfc8089) file URI identifying the
+selected directory. It MUST NOT contain credentials, a query or fragment.
+An absent authority or `localhost` means local access. Other authorities,
+including UNC (Universal Naming Convention) servers, MUST produce
+`policy_denied` in this binding.
+A separately named extension can define a remote filesystem access policy.
+An implementation MUST NOT infer such a policy from this profile.
+
+`parameters` contains only:
+
+| Parameter | Constraint |
+| --- | --- |
+| `layout` | REQUIRED, exactly `document-tree` or `oci-layout`. |
+| `reference` | REQUIRED for `oci-layout`, forbidden for `document-tree`. An OCI tag or `sha256` digest under the OCI binding. |
+
+An unknown selected parameter MUST produce `unsupported_operation`.
+The resolver MUST NOT infer a layout from the directory's files or switch
+layouts after a failure. When an OCI layout contains several snapshots,
+`reference` selects the root; directory-entry order does not.
+
+```json
+{
+  "binding": "file",
+  "endpoint": "file:///D:/registry-snapshots/first",
+  "parameters": {
+    "layout": "document-tree"
+  }
+}
+```
+
+```json
+{
+  "binding": "file",
+  "endpoint": "file:///var/lib/xregistry/layout",
+  "parameters": {
+    "layout": "oci-layout",
+    "reference": "release-1"
+  }
+}
+```
+
+The first example selects an absolute Windows drive path; the second selects
+an absolute POSIX path. If a host cannot interpret the selected native path,
+it MUST report `unsupported_operation` rather than reinterpret the path as
+a different filesystem root.
+Windows drive-relative paths and older `C|` spellings are not accepted.
+
+URI parsing MUST:
+
+- Validate escapes before decoding.
+- Decode UTF-8 exactly once.
+- Reject NUL/control characters, backslashes, encoded separators and
+  encoded dot/parent segments.
+
+After decoding, URI parsing MUST reject:
+
+- `.` and `..`.
+- Empty interior components.
+- Drive or device prefixes.
+- Alternate data streams.
+- Trailing spaces and dots.
+- Windows-reserved component names.
+
+These rejections apply where applicable. A single terminal slash is
+permitted for a directory URI.
+Decoding a second time MUST NOT turn a literal percent sequence into traversal.
+
+The selected directory's spelling locates the snapshot; it does not restrict
+Core IDs. Directory mappings keep entity IDs separate from existing native
+filenames, while OCI layouts use digest-based storage names.
+
+## Layout Selection and Reads
+
+For `document-tree`, the selected directory MUST contain `registry.json`.
+The [directory mapping format](mapping.md#record-and-index-documents)
+defines the record and index schemas and exact-byte representation. It also
+defines model and capabilities reads, label selection, Core document view,
+defaults and `xref`. Every internal `href` is
+[relative to this directory](mapping.md#root-and-storage-paths), including
+references in nested records. There is no implicit `xregistry` directory.
+
+Both layout modes carry the selected Registry's
+[resolution-owner capability](../federation/spec.md#signaling-who-performs-resolution).
+A consumer MUST NOT repeat catalog resolution for a `producer` view.
+Absence of the signal retains the default consumer-side process.
+
+A producer can add the mapping to an existing directory without moving its
+files. Metadata records and indexes can be embedded inline in `registry.json`,
+placed alongside existing files or kept in a separate metadata directory.
+Local document references can point anywhere inside the selected root. The
+format requires no `records/`, `indexes/` or `documents/` directory, and
+unreferenced files remain outside the Registry view.
+
+For `oci-layout`, consumers MUST use the
+[OCI binding's image-layout selection](oci.md#22-image-layout-selection)
+and [descriptor-graph rules](oci.md#4-containment-and-range-shards).
+
+The directory contains OCI `oci-layout`, `index.json`
+and `blobs`. `index.json` can advertise multiple Registry snapshot roots.
+`reference` selects and pins exactly one eligible root under that binding.
+
+The OCI binding's rules apply unchanged to:
+
+- Tag ambiguity.
+- Root artifact validation.
+- Nested indexes.
+- Descriptor bounds.
+- Range selection.
+- Size/digest verification.
+- Complete containment closure.
+
+This binding uses the OCI root-selection algorithm unchanged. A layout
+index is not a Distribution endpoint.
+
+The selected OCI root identifies one Registry; other roots in the directory
+are separate snapshots. Local layout access does not imply network blob
+retrieval. A missing internal blob causes failure even in a linked snapshot,
+because the base OCI layout's allowance for omitted blobs does not relax
+xRegistry closure.
+
+Both modes return the same logical Core metadata and document bytes, subject
+to the selected snapshot. Resource defaults come from Core metadata, not
+file modification time. See
+[Core default selection](../../core/spec.md#default-version-of-a-resource).
+Equal XIDs in different directories remain scoped
+to different Registry contexts.
+
+External domain-document links remain explicit. Retrieving one requires
+separate caller authorization, URI-base handling and integrity checking.
+Relative links MUST NOT silently become paths outside the selected root.
+
+Linked snapshots permit external-only domain documents. Offline-complete
+snapshots do not. Neither class implies following catalog advertisements,
+rewriting `xref` into a filesystem link, or fetching arbitrary domain links.
+
+## Containment and Concurrent Changes
+
+The caller MUST authorize a filesystem boundary before the resolver opens
+the selected directory. The resolver MUST verify that the directory is
+within that boundary, then constrain all internal reads to that selected
+root. A mere string prefix test is insufficient: `root-other` is not
+inside `root`.
+
+The resolver MUST check every directory component, including components of
+the selected root, for symlinks and Windows reparse points. Internal objects
+MUST be regular files. Consumers MUST NOT follow symlinks, junctions,
+mount-point reparse records or other path redirections. Consumers MUST NOT
+read device files, pipes, sockets and alternate data streams as snapshot
+content.
+Case folding, short-name aliases and reserved OS names MUST NOT select a
+different internal object. Git/File storage portability does not permit
+case-insensitive Core XID lookup.
+
+Before interpreting bytes, consumers MUST establish that the actual opened
+objects are contained within the selected root. When a hostile process can
+change paths concurrently, containment requires directory/handle-relative
+no-follow access, equivalent platform protection, or a private immutable
+copy made before resolution. Checking `realpath` before opening a mutable
+pathname is insufficient. Hard links also provide no immutability guarantee:
+a writer outside the directory can still change shared content.
+
+For document-tree reads, consumers MUST capture the root record once and
+retain its exact-byte SHA-256. Descendant references pin every consumed
+external record, index and document. The bytes of the containing file pin
+each inline record and index. For OCI reads, consumers MUST pin the
+selected root digest and verify every descriptor under the OCI binding.
+
+A directory that is read-only to the resolver can still change through
+another writer. Read-only access therefore does not establish an atomic
+snapshot.
+
+Consumers MUST detect changes during open/read operations,
+short reads and changes to already captured selection state. An observed
+change MUST produce `inconsistent_snapshot`. A stable descriptor mismatch
+is `integrity_error`.
+
+If the environment cannot guarantee a coherent read, the consumer MUST
+either capture a private stable snapshot or explicitly report the lack of
+an immutable filesystem pin. Consistent file timestamps alone are
+insufficient: the consumer MUST NOT use them to advertise an atomic capture
+of a live upstream Registry.
+
+For example, after capturing a root and its referenced descriptor:
+
+| Observed read | Outcome |
+| --- | --- |
+| A stable file has bytes different from the descriptor's size or digest | `integrity_error`. |
+| The file changes or truncates during the observed read | `inconsistent_snapshot`. |
+
+Neither outcome selects a newer root. A private stable snapshot is needed
+where the environment cannot provide coherent reads.
+
+A producer SHOULD construct a complete snapshot separately and then make
+it available atomically using platform-appropriate synchronization. Updating
+files in place while readers traverse them does not establish completeness.
+Retaining immutable old files can allow readers with an older pinned root
+to complete without mixing revisions.
+
+Origin MUST identify the file URI, layout and selected root hash/digest,
+plus the presence or absence of an immutable filesystem snapshot guarantee.
+It MUST NOT replace entity XIDs, Resource Version IDs or Core navigation.
+
+## Errors and Conformance
+
+| Condition | Outcome |
+| --- | --- |
+| Selected directory or initial document-tree root absent | `not_found`. |
+| Internally referenced file/blob absent | `invalid_package`. |
+| Byte length or digest mismatch | `integrity_error`. |
+| Observed concurrent mutation or truncated read | `inconsistent_snapshot`. |
+| Unauthorized root, traversal, symlink or reparse point | `policy_denied`. |
+| Unsupported layout operation or platform path form | `unsupported_operation`. |
+| Unsupported Core or package version | `unsupported_version`. |
+| Exhausted path, count or byte limit | `limit_exceeded`. |
+
+OCI root selection, entity absence and ambiguity use the OCI and common
+definitions. Other I/O failures produce `unavailable` unless a more specific
+outcome applies. A failure does not authorize switching layouts, retrying
+another profile or reporting a successful empty collection.
+
+A producer MUST provide a complete snapshot in one explicitly declared
+layout. A consumer MUST implement that layout's metadata/document semantics
+and all applicable containment and consistency rules. A consumer MUST
+identify which layouts it implements. Support for one does not imply the
+other. An offline-complete claim additionally requires the selected layout's
+offline content closure.
+
+The [document helper](tools/mapping_examples.py) implements only
+`document-tree`. `file_root(profile, boundary)` parses and checks a local
+advertisement, and `FileStore(root)` supplies exact bytes to `DocumentTree`.
+The fixture helper rejects `oci-layout` with `unsupported_operation`; the
+OCI helper implements that layout. The fixture helper does not provide a
+race-hardened production filesystem security boundary.
+
+## References
+
+- [Shared federation](../federation/spec.md).
+- [Directory mapping format](mapping.md).
+- [OCI layout and native binding](../bindings/oci.md).
+- [File URI scheme, RFC8089](https://www.rfc-editor.org/rfc/rfc8089).
+- [URI syntax, RFC3986](https://www.rfc-editor.org/rfc/rfc3986).

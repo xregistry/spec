@@ -1,0 +1,348 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://xregistry.io/workingdrafts/models/openusd/schemas/document-schema.json",
+  "properties": {
+    "usdassetgroups": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/usdassetgroup-schema/usdassetgroup"
+      }
+    },
+    "usdschemaplugingroups": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/usdschemaplugingroup-schema/usdschemaplugingroup"
+      }
+    }
+  },
+  "definitions": {
+    "usdassetgroup-schema": {
+      "usdassetVersion": {
+        "type": "object",
+        "properties": {
+          "versionid": {
+            "type": "string",
+            "description": "ID of the usdasset version"
+          },
+          "usdassetid": {
+            "type": "string",
+            "description": "ID of the usdasset object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "format": {
+            "type": "string",
+            "description": "The document format of this artifact. Orthogonal to assetkind, which records the artifact's role in the closure"
+          },
+          "assetidentifier": {
+            "type": "string",
+            "description": "The authored USD asset identifier, normalized relative to its asset container - the string a layer writes between @...@. It is the Resource source identity and the authority: the usdassetid is the symbolic identifier constructed from it, a one-way construction that is never inverted"
+          },
+          "assetkind": {
+            "type": "string",
+            "description": "The role this artifact plays in its container's composition closure. Exactly one usdasset in an asset container has the value RootLayer"
+          },
+          "dependson": {
+            "type": "array",
+            "description": "The asset identifiers this artifact directly references, in authored order - authored identifiers, not xids, so a resolver matches them against @...@ references directly",
+            "items": {
+              "type": "string"
+            }
+          },
+          "digest": {
+            "type": "string",
+            "description": "Lower-case hexadecimal digest of the exact document bytes a Consumer retrieves, computed with digestalg"
+          },
+          "digestalg": {
+            "type": "string",
+            "description": "The algorithm used to compute digest. REQUIRED when digest is present"
+          }
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "usdasset": {
+                "description": "Embedded usdasset object",
+                "oneOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "usdasset"
+            ]
+          },
+          {
+            "properties": {
+              "usdassetbase64": {
+                "description": "Embedded usdasset object as binary data",
+                "type": "string",
+                "format": "base64"
+              }
+            },
+            "required": [
+              "usdassetbase64"
+            ]
+          },
+          {
+            "properties": {
+              "usdasseturl": {
+                "description": "Linked usdasset object",
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "usdasseturl"
+            ]
+          }
+        ],
+        "required": [
+          "format",
+          "assetidentifier",
+          "assetkind"
+        ]
+      },
+      "usdasset": {
+        "type": "object",
+        "properties": {
+          "usdassetid": {
+            "type": "string",
+            "description": "ID of the usdasset object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          }
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "versionsurl": {
+                "type": "string"
+              },
+              "versionscount": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "versionsurl"
+            ]
+          },
+          {
+            "properties": {
+              "versions": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/definitions/usdassetgroup-schema/usdassetVersion"
+                }
+              }
+            },
+            "required": [
+              "versions"
+            ]
+          }
+        ]
+      },
+      "usdassetgroup": {
+        "type": "object",
+        "properties": {
+          "usdassetgroupid": {
+            "type": "string",
+            "description": "ID of the usdassetgroup object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "rootlayer": {
+            "type": "string",
+            "description": "The assetidentifier of this container's single RootLayer usdasset, so a Consumer finds the composition entry point without scanning the collection"
+          },
+          "usdassets": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/usdassetgroup-schema/usdasset"
+            }
+          }
+        }
+      }
+    },
+    "usdschemaplugingroup-schema": {
+      "usdschemaplugingroup": {
+        "type": "object",
+        "properties": {
+          "usdschemaplugingroupid": {
+            "type": "string",
+            "description": "ID of the usdschemaplugingroup object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "usdassets": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/usdassetgroup-schema/usdasset"
+            }
+          }
+        }
+      }
+    }
+  }
+}

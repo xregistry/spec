@@ -415,8 +415,9 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                 if "description" in attr_schema and attr_schema["description"] == "":
                     del attr_schema["description"]
                 # Apply enum constraint to array items if provided
-                if enum_values is not None and len(enum_values) > 0:
-                    attr_schema["enum"] = enum_values
+                item_enum = enum_values if enum_values is not None else item.get("enum")
+                if item_enum:
+                    attr_schema["enum"] = copy.deepcopy(item_enum)
                 resource_schema["items"] = attr_schema
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
@@ -999,17 +1000,17 @@ def generate_avro_schema(model_definition) -> dict:
     def needs_generic_record(attributes):
         """Check if any attribute requires GenericRecord type"""
         for attr_name, attr_props in attributes.items():
-            # Check for "*" extension attributes with "any" or "var" type
-            if attr_name == "*" and attr_props.get("type") in ["any", "var", "object"]:
+            if attr_props.get("type") in ["any", "var"] or \
+               (attr_name == "*" and attr_props.get("type") == "object"):
                 return True
-            # Consolidated check: If attribute is an extension ("*") with type "any", "var", or "object",
-            # or if attribute is type "object" without "item" or "attributes", GenericRecord is needed.
-            if (attr_name == "*" and attr_props.get("type") in ["any", "var", "object"]) or \
-               (attr_props.get("type") == "object" and "item" not in attr_props and "attributes" not in attr_props):
+            if attr_props.get("type") == "object" and "item" not in attr_props and "attributes" not in attr_props:
                 return True
             # Check nested attributes
             if "attributes" in attr_props:
                 if needs_generic_record(attr_props["attributes"]):
+                    return True
+            if "item" in attr_props:
+                if needs_generic_record({"item": attr_props["item"]}):
                     return True
             # Check ifvalues sibling attributes
             if "ifvalues" in attr_props:
@@ -1049,9 +1050,10 @@ def generate_avro_schema(model_definition) -> dict:
             resource_schema["type"] =  { "type": "map", "name": prefix+name+"Type","values": "" }
             if "type" in item:
                 item_schema = copy.deepcopy(avro_type_mapping[item["type"]])
-                if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
-                    if "item" in item:
-                        handle_item(item_schema, item["type"], item["item"], name+"Item", prefix)
+                if item["type"] == "object":
+                    handle_item(item_schema, "object", item, name+"Item", prefix)
+                elif item["type"] in ["map", "array"]:
+                    handle_item(item_schema, item["type"], item["item"], name+"Item", prefix)
                 resource_schema["type"]["values"] = item_schema["type"]
             else:
                 raise Exception("Map item must have a type specified")
@@ -1059,17 +1061,20 @@ def generate_avro_schema(model_definition) -> dict:
             resource_schema["type"] = { "type": "array", "name": prefix+name+"ArrayType", "items": "" }
             if "type" in item:
                 item_schema = copy.deepcopy(avro_type_mapping[item["type"]])
-                if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
-                    if "item" in item:
-                        handle_item(item_schema, item["type"], item["item"], name, prefix)
-                        resource_schema["type"]["items"] = item_schema["type"]
+                if item["type"] == "object":
+                    handle_item(item_schema, "object", item, name, prefix)
+                    resource_schema["type"]["items"] = item_schema["type"]
+                elif item["type"] in ["map", "array"]:
+                    handle_item(item_schema, item["type"], item["item"], name, prefix)
+                    resource_schema["type"]["items"] = item_schema["type"]
                 else:
                     # Apply enum constraint to array items if provided
-                    if enum_values is not None and len(enum_values) > 0:
+                    item_enum = enum_values if enum_values is not None else item.get("enum")
+                    if item_enum:
                         item_schema = {
                             "type": "enum",
                             "name": prefix+name+"EnumType",
-                            "symbols": enum_values
+                            "symbols": item_enum
                         }
                     resource_schema["type"]["items"] = item_schema
             else:
@@ -1409,11 +1414,12 @@ def resolve_imports(basedir, node):
             import_file = os.path.join(basedir, file_ref)
             with open(import_file, encoding='utf-8') as file:
                 import_definition = json.load(file)
-            del node["$include"]
+            local_definition = {
+                key: value for key, value in node.items() if key != "$include"
+            }
             if obj_ref:
-                node.update(resolve_pointer(import_definition, obj_ref))
-            else:
-                node.update(import_definition)
+                import_definition = resolve_pointer(import_definition, obj_ref)
+            node = {**import_definition, **local_definition}
         for k,v in node.items():
             node[k] = resolve_imports(basedir, v)
     elif isinstance(node, list):
