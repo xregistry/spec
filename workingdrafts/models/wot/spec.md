@@ -1043,7 +1043,8 @@ The `wotid` query parameter carries the Thing's WoT identifier. When present,
 `wotversion` carries an exact xRegistry `versionid`, not a minimum-version
 floor or the TD's `version.model`. The `wotid` parameter MUST precede the
 OPTIONAL `wotversion` parameter, separated by `;`. Parameter values MUST use
-UTF-8 percent encoding with uppercase hexadecimal digits. In particular,
+UTF-8 percent encoding with uppercase hexadecimal digits.
+RFC 3986 `unreserved` characters and `!$'()*,:@/?` MUST remain unescaped.
 `%`, `;`, `=`, `&`, `+` and `#` within a value MUST be percent-encoded so that
 they cannot be interpreted as query structure. A Consumer MUST reject
 malformed encoding, duplicate or unknown parameters, incorrect parameter
@@ -1051,7 +1052,7 @@ order, and any fragment in `source`, including an empty fragment.
 For example:
 
 ```text
-wot-td://factory-floor-01?wotid=urn%3Afabrikam%3Alamp%3A42;wotversion=1.0.0
+wot-td://factory-floor-01?wotid=urn:fabrikam:lamp:42;wotversion=1.0.0
 ```
 
 These parameters are distinct values within `source`. There are no separate

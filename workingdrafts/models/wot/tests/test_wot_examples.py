@@ -107,12 +107,13 @@ def test_cloudevents_source_and_subject_match_lamp_td(
     assert len(parameters) == len(expected_query)
     query = dict(unquote(value).split("=", 1) for value in parameters)
     assert query == expected_query
+    safe = "!$'()*,:@/?"
     assert source.query == ";".join(
-        f"{key}={quote(value, safe='', encoding='utf-8', errors='strict')}"
+        f"{key}={quote(value, safe=safe, encoding='utf-8', errors='strict')}"
         for key, value in expected_query.items()
     )
     assert "#" not in event["source"]
-    assert "wotid=urn%3Afabrikam%3Alamp%3A42" in source.query
+    assert "wotid=urn:fabrikam:lamp:42" in source.query
 
     registry = json.loads((ROOT / "samples" / "registry.json").read_bytes())
     resources = registry["thingdescriptiongroups"]["Fabrikam.FactoryFloor.01"][
