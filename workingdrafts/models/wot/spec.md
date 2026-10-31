@@ -15,6 +15,7 @@
 <!-- words: allowprerelease contentdigest minversion prereleases unversioned versionorigin -->
 <!-- words: marcschier namespace sourcename uav viewversion -->
 <!-- words: wotversion wotdigest topology percent dereferenceable -->
+<!-- words: vn -->
 
 ## Abstract
 
@@ -1120,6 +1121,26 @@ reconstruction is possible.
 The event carries no digest that proves TD content integrity. An explicit
 version identifies the stable view but is not a content-integrity check.
 Independent source and publication closure digests remain applicable.
+
+The CloudEvents `type` identifies the event's payload contract, not the
+Registry Resource or TD Version. The
+[CloudEvents WoT profile's type rules](https://github.com/cloudevents/spec/blob/a9b0cde4368d25189d97b5557141ed5795a1a10a/cloudevents/extensions/wot.md#type)
+define its dot-separated symbol and revision. Its final segment MUST be
+`vN`, where `N` is a positive decimal integer without leading zeros. The
+publication profile MUST assign the same revision to the same payload
+contract. A Producer MUST use a new revision when a member is added or
+removed, a member's type or meaning changes, or the payload envelope changes,
+even when the change is backwardly compatible.
+
+Changing an individual value or the presence of an already OPTIONAL member
+does not change the contract revision. Changing `wotversion`, `versionid` or
+`dataschema` alone does not change it either; a change to the payload contract
+still requires a new revision. This revision is independent of a TD's
+`version.instance` and a TM's `version.model`. The publication
+profile or binding defines the payload mapping and its contract revision;
+these rules do not change WoT Resource identity, Version assignment, or
+compatibility policy.
+
 The [CloudEvents samples](samples/cloudevents.json) illustrate exact-version
 and current-default sources, with subjects addressing an affordance and the
 whole TD respectively.

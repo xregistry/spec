@@ -61,6 +61,12 @@ affordances directly, so that pointer selects the locally declared event.
 The second event omits `wotversion` and uses `#` for the whole resolved TD.
 It selects the current default, which can change after publication.
 
+Both events use `com.fabrikam.lamp.overheated.v1`. Their payload contract
+defines a numeric `temperature` member; the different values and TD selection
+do not change that contract. The publication profile assigns the final `v1`
+segment independently of the TD's `version.instance` and Registry `versionid`.
+Adding a payload member, even an OPTIONAL one, requires a new contract revision.
+
 Neither event has separate `wotid`, `wotversion` or `wotdigest` attributes.
 The samples do not claim that the proposed closure envelope can reconstruct
 a composed TD or that an event version proves content integrity.

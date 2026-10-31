@@ -122,11 +122,15 @@ def test_cloudevents_source_and_subject_match_lamp_td(
     }
     assert event["specversion"] == "1.0"
     assert event["id"] == f"lamp-42-overheated-{index + 1}"
-    assert event["type"] == "com.fabrikam.lamp.overheated"
+    assert event["type"] == "com.fabrikam.lamp.overheated.v1"
     assert re.fullmatch(
         r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)+",
         event["type"],
     )
+    assert re.fullmatch(r"v[1-9][0-9]*", event["type"].rsplit(".", 1)[-1])
+    assert events[0]["type"] == events[1]["type"]
+    assert set(event["data"]) == {"temperature"}
+    assert type(event["data"]["temperature"]) is int
     assert event["datacontenttype"] == "application/json"
 
     source = urlsplit(event["source"])

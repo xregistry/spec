@@ -3,7 +3,7 @@
     "specversion": "1.0",
     "id": "lamp-42-overheated-1",
     "source": "https://factory.example.com/line1?wotid=urn:fabrikam:lamp:42;wotversion=1.0.0;site=north%2Fsouth#source-context",
-    "type": "com.fabrikam.lamp.overheated",
+    "type": "com.fabrikam.lamp.overheated.v1",
     "subject": "#/events/overheated",
     "datacontenttype": "application/json",
     "data": {
@@ -14,7 +14,7 @@
     "specversion": "1.0",
     "id": "lamp-42-overheated-2",
     "source": "../things/lamp-42?wotid=urn:fabrikam:lamp:42#",
-    "type": "com.fabrikam.lamp.overheated",
+    "type": "com.fabrikam.lamp.overheated.v1",
     "subject": "#",
     "datacontenttype": "application/json",
     "data": {
