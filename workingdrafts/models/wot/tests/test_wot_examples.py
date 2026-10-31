@@ -64,23 +64,49 @@ def test_closure_requires_exact_version_xids(field, value):
 
 
 @pytest.mark.parametrize(
-    ("index", "expected_query", "expected_subject"),
+    (
+        "index",
+        "expected_query",
+        "expected_subject",
+        "expected_scheme",
+        "expected_netloc",
+        "expected_path",
+        "expected_extra",
+        "expected_fragment",
+    ),
     [
         (
             0,
-            {
-                "wotid": "urn:fabrikam:lamp:42",
-                "wotversion": "1.0.0",
-                "x-example": "1",
-            },
+            {"wotid": "urn:fabrikam:lamp:42", "wotversion": "1.0.0"},
             "#/events/overheated",
+            "https",
+            "factory.example.com",
+            "/line1",
+            "site=north%2Fsouth",
+            "source-context",
         ),
-        (1, {"wotid": "urn:fabrikam:lamp:42"}, "#"),
+        (
+            1,
+            {"wotid": "urn:fabrikam:lamp:42"},
+            "#",
+            "",
+            "",
+            "../things/lamp-42",
+            None,
+            "",
+        ),
     ],
-    ids=["exact-version-affordance", "current-default-whole-td"],
+    ids=["absolute-source-fragment-and-extra", "relative-source-empty-fragment"],
 )
 def test_cloudevents_source_and_subject_match_lamp_td(
-    index, expected_query, expected_subject
+    index,
+    expected_query,
+    expected_subject,
+    expected_scheme,
+    expected_netloc,
+    expected_path,
+    expected_extra,
+    expected_fragment,
 ):
     events = json.loads((ROOT / "samples" / "cloudevents.json").read_bytes())
     assert len(events) == 2
@@ -104,22 +130,38 @@ def test_cloudevents_source_and_subject_match_lamp_td(
     assert event["datacontenttype"] == "application/json"
 
     source = urlsplit(event["source"])
-    assert source.netloc == "factory-floor-01"
-    assert source.path == source.fragment == ""
+    assert (source.scheme, source.netloc, source.path) == (
+        expected_scheme,
+        expected_netloc,
+        expected_path,
+    )
+    assert source.fragment == expected_fragment
+    assert "#" in event["source"]
     parameters = source.query.split(";")
-    query = dict(unquote(value).split("=", 1) for value in parameters)
+    parsed_parameters = [value.split("=", 1) for value in parameters]
+    query = {
+        name: unquote(value)
+        for name, value in parsed_parameters
+        if name in {"wotid", "wotversion"}
+    }
     assert query == expected_query
-    names = [unquote(value.split("=", 1)[0]) for value in parameters]
+    names = [name for name, _ in parsed_parameters]
     if "wotversion" in names:
-        assert names.index("wotid") < names.index("wotversion")
+        assert names[:2] == ["wotid", "wotversion"]
     else:
         assert names[0] == "wotid"
+    additional = [
+        f"{name}={value}"
+        for name, value in parsed_parameters
+        if name not in {"wotid", "wotversion"}
+    ]
+    assert additional == ([expected_extra] if expected_extra else [])
     safe = "!$'()*,:@/?"
-    assert source.query == ";".join(
+    expected_standardized = ";".join(
         f"{key}={quote(value, safe=safe, encoding='utf-8', errors='strict')}"
         for key, value in expected_query.items()
     )
-    assert "#" not in event["source"]
+    assert source.query.startswith(expected_standardized)
     assert "wotid=urn:fabrikam:lamp:42" in source.query
 
     registry = json.loads((ROOT / "samples" / "registry.json").read_bytes())

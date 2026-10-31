@@ -1027,44 +1027,49 @@ guidance above does not require separate CloudEvents context attributes.
 #### 5.3.1. CloudEvents WoT Source Resolution
 
 The CloudEvents WoT profile is proposed. A CloudEvent using this profile MUST
-carry Thing identity in the `source` URI using the query parameters below. The
-profile does not define a URI scheme: `source` MAY use any URI supported by
-CloudEvents. The following form is illustrative only:
-
-```text
-wot-td://<topology>?wotid=<encoded-id>[;wotversion=<encoded-version>]
-```
-
-The brackets indicate an OPTIONAL parameter, not literal URI characters.
-`wot-td://<topology>` is an example only. This profile does not define the
-`wot-td` scheme, and the example scheme is not intended for IANA registration.
-In this example, the topology identifies the resolver context. A deployment
-configures that context to select a Registry and Group scope; the URI does not
-prescribe their network location or the Resource's registry id.
+carry Thing identity in the `source` URI-reference using the query parameters
+below. The profile does not prescribe the URI scheme or the rest of the
+URI-reference. The `source` MUST conform to CloudEvents Core; it MAY be
+relative, although Core recommends an absolute URI. A fragment, including an
+empty fragment, is permitted. This profile does not assign it a meaning.
 
 The `wotid` query parameter carries the Thing's WoT identifier. When present,
 `wotversion` carries an exact xRegistry `versionid`, not a minimum-version
 floor or the TD's `version.model`. The `wotid` parameter MUST precede the
 OPTIONAL `wotversion` parameter, separated by `;`. Other query parameters MAY
-also be present; this profile does not define their meaning. Parameter values
-MUST use UTF-8 percent encoding with uppercase hexadecimal digits.
-RFC 3986 `unreserved` characters and `!$'()*,:@/?` MUST remain unescaped.
-`%`, `;`, `=`, `&`, `+` and `#` within a value MUST be percent-encoded so that
-they cannot be interpreted as query structure. A Consumer MUST reject
-malformed encoding, duplicate profile parameters, incorrect profile parameter
-order, and any fragment in `source`, including an empty fragment. A Consumer
-MUST NOT reject a `source` solely because it contains additional query
-parameters.
-For example:
+follow the standardized parameters. This profile does not assign them a
+meaning; a publication contract MAY define their semantics. A Consumer MUST
+NOT reject a `source` solely because it contains additional query parameters.
 
 ```text
-wot-td://factory-floor-01?wotid=urn:fabrikam:lamp:42;wotversion=1.0.0;x-example=1
+https://factory.example.com/line1?wotid=urn:fabrikam:lamp:42;wotversion=1.0.0;site=north
 ```
 
-These parameters are distinct values within `source`. There are no separate
-CloudEvents `wotid`, `wotversion` or `wotdigest` context attributes in this
-profile. This does not remove the Registry's `wotid` metadata attribute or
-equate it with `thingdescriptionid` or `versionid`.
+The standardized parameter names are case-sensitive and MUST appear literally.
+Each MUST use `name=value` with a non-empty value. `wotid` MUST appear exactly
+once; `wotversion` MUST NOT appear more than once. A Producer MUST place
+`wotid` first and, when present, `wotversion` immediately after it. Additional
+parameters MUST follow them.
+
+For standardized values, a Producer MUST use UTF-8 percent encoding with
+uppercase hexadecimal digits. RFC 3986 `unreserved` characters and
+`!$'()*,:@/?` MUST remain unescaped. `%`, `;`, `=`, `&`, `+` and `#` within a
+standardized value MUST be percent-encoded. A Producer MUST NOT use
+form-query encoding or encode a space as `+` for these values. These encoding
+requirements do not apply to additional parameters.
+
+A Consumer MUST split the query at `;` before decoding the standardized
+values. It MUST reject a missing or empty `wotid`, an empty `wotversion`, a
+duplicate standardized parameter, or a standardized parameter in the wrong
+position. For a standardized value, it MUST reject an invalid percent escape,
+invalid UTF-8, or an unescaped character outside the permitted set. It MUST
+percent-decode each standardized value exactly once and MUST NOT interpret `+`
+as a space. These validation rules do not apply to additional parameters.
+
+These are query parameters within `source`, not separate CloudEvents
+`wotid`, `wotversion` or `wotdigest` context attributes. This does not remove
+the Registry's `wotid` metadata attribute or equate it with
+`thingdescriptionid` or `versionid`.
 
 A configured resolver MUST select exactly one Thing Description Resource whose
 `wotid` equals the decoded identifier within its configured scope. A missing
