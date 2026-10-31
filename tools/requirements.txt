@@ -9,5 +9,5 @@ jsonpointer
 pytest
 pyyaml
 avro
-jsonschema
+jsonschema[format-nongpl]
 openapi-spec-validator>=0.7.1
