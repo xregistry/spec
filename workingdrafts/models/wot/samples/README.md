@@ -45,9 +45,12 @@ shape only.
 [cloudevents.json](cloudevents.json) contains two standalone CloudEvents as
 sample data, not a transport batch. They refer to the lamp TD's resolved view
 using the [proposed WoT source profile](../spec.md#531-cloudevents-wot-source-resolution).
-The topology `factory-floor-01` is configured to use Group
-`Fabrikam.FactoryFloor.01`. The percent-decoded `wotid` selects Resource
-`urn.fabrikam.lamp.42`; the Resource id is not part of the event source.
+In these examples, `wot-td` is illustrative only, and the topology
+`factory-floor-01` is configured to use Group `Fabrikam.FactoryFloor.01`.
+The percent-decoded `wotid` selects Resource `urn.fabrikam.lamp.42`; the
+Resource id is not part of the event source. The first source includes
+`x-example=1` to show that additional query parameters are permitted; this
+profile assigns it no meaning.
 
 The first event pins `wotversion=1.0.0`, matching the lamp TD's
 `version.instance` and Registry `versionid`, and addresses

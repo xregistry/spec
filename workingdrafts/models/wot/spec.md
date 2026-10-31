@@ -1027,32 +1027,38 @@ guidance above does not require separate CloudEvents context attributes.
 #### 5.3.1. CloudEvents WoT Source Resolution
 
 The CloudEvents WoT profile is proposed. A CloudEvent using this profile MUST
-carry Thing identity in `source` using the following logical URI form:
+carry Thing identity in the `source` URI using the query parameters below. The
+profile does not define a URI scheme: `source` MAY use any URI supported by
+CloudEvents. The following form is illustrative only:
 
 ```text
 wot-td://<topology>?wotid=<encoded-id>[;wotversion=<encoded-version>]
 ```
 
 The brackets indicate an OPTIONAL parameter, not literal URI characters.
-`wot-td` is a proposed logical URI scheme, not a dereferenceable Registry URL.
-The topology identifies the resolver context. A deployment configures that
-context to select a Registry and Group scope; the URI does not prescribe their
-network location or the Resource's registry id.
+`wot-td://<topology>` is an example only. This profile does not define the
+`wot-td` scheme, and the example scheme is not intended for IANA registration.
+In this example, the topology identifies the resolver context. A deployment
+configures that context to select a Registry and Group scope; the URI does not
+prescribe their network location or the Resource's registry id.
 
 The `wotid` query parameter carries the Thing's WoT identifier. When present,
 `wotversion` carries an exact xRegistry `versionid`, not a minimum-version
 floor or the TD's `version.model`. The `wotid` parameter MUST precede the
-OPTIONAL `wotversion` parameter, separated by `;`. Parameter values MUST use
-UTF-8 percent encoding with uppercase hexadecimal digits.
+OPTIONAL `wotversion` parameter, separated by `;`. Other query parameters MAY
+also be present; this profile does not define their meaning. Parameter values
+MUST use UTF-8 percent encoding with uppercase hexadecimal digits.
 RFC 3986 `unreserved` characters and `!$'()*,:@/?` MUST remain unescaped.
 `%`, `;`, `=`, `&`, `+` and `#` within a value MUST be percent-encoded so that
 they cannot be interpreted as query structure. A Consumer MUST reject
-malformed encoding, duplicate or unknown parameters, incorrect parameter
-order, and any fragment in `source`, including an empty fragment.
+malformed encoding, duplicate profile parameters, incorrect profile parameter
+order, and any fragment in `source`, including an empty fragment. A Consumer
+MUST NOT reject a `source` solely because it contains additional query
+parameters.
 For example:
 
 ```text
-wot-td://factory-floor-01?wotid=urn:fabrikam:lamp:42;wotversion=1.0.0
+wot-td://factory-floor-01?wotid=urn:fabrikam:lamp:42;wotversion=1.0.0;x-example=1
 ```
 
 These parameters are distinct values within `source`. There are no separate

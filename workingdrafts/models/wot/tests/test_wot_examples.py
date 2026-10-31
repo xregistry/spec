@@ -68,7 +68,11 @@ def test_closure_requires_exact_version_xids(field, value):
     [
         (
             0,
-            {"wotid": "urn:fabrikam:lamp:42", "wotversion": "1.0.0"},
+            {
+                "wotid": "urn:fabrikam:lamp:42",
+                "wotversion": "1.0.0",
+                "x-example": "1",
+            },
             "#/events/overheated",
         ),
         (1, {"wotid": "urn:fabrikam:lamp:42"}, "#"),
@@ -100,13 +104,16 @@ def test_cloudevents_source_and_subject_match_lamp_td(
     assert event["datacontenttype"] == "application/json"
 
     source = urlsplit(event["source"])
-    assert source.scheme == "wot-td"
     assert source.netloc == "factory-floor-01"
     assert source.path == source.fragment == ""
     parameters = source.query.split(";")
-    assert len(parameters) == len(expected_query)
     query = dict(unquote(value).split("=", 1) for value in parameters)
     assert query == expected_query
+    names = [unquote(value.split("=", 1)[0]) for value in parameters]
+    if "wotversion" in names:
+        assert names.index("wotid") < names.index("wotversion")
+    else:
+        assert names[0] == "wotid"
     safe = "!$'()*,:@/?"
     assert source.query == ";".join(
         f"{key}={quote(value, safe=safe, encoding='utf-8', errors='strict')}"

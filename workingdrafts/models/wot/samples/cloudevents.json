@@ -2,7 +2,7 @@
   {
     "specversion": "1.0",
     "id": "lamp-42-overheated-1",
-    "source": "wot-td://factory-floor-01?wotid=urn:fabrikam:lamp:42;wotversion=1.0.0",
+    "source": "wot-td://factory-floor-01?wotid=urn:fabrikam:lamp:42;wotversion=1.0.0;x-example=1",
     "type": "com.fabrikam.lamp.overheated",
     "subject": "#/events/overheated",
     "datacontenttype": "application/json",
