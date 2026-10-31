@@ -1011,6 +1011,10 @@ attributes. However, they MUST adhere to the following rules:
   For example, use of a model (or domain) specific prefix could be used to help
   avoid possible future conflicts.
 
+Avro namespaces beginning with `io.xregistry.` are reserved for types defined
+by xRegistry specifications; vendor-defined types MUST use namespaces outside
+this prefix.
+
 Use of an attribute (specification-defined, or extension) that does not
 conform to this specification MUST generate an error
 ([invalid_attribute](#invalid_attribute)).
