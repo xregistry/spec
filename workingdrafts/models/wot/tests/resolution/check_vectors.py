@@ -25,15 +25,31 @@ class OutcomeError(Exception):
     pass
 
 
+def compare_numeric(left, right):
+    if len(left) != len(right):
+        return -1 if len(left) < len(right) else 1
+    return (left > right) - (left < right)
+
+
+def increment_numeric(value):
+    digits = list(value)
+    for index in range(len(digits) - 1, -1, -1):
+        if digits[index] != "9":
+            digits[index] = chr(ord(digits[index]) + 1)
+            return "".join(digits)
+        digits[index] = "0"
+    return "1" + "".join(digits)
+
+
 @total_ordering
 class Version:
     """SemVer precedence: numeric core, release above prerelease, numeric identifiers."""
 
     def __init__(self, text):
         match = SEMVER.fullmatch(text)
-        if match is None or len(text) > 128:
+        if match is None:
             raise OutcomeError("invalid-version")
-        self.core = tuple(int(match[i]) for i in (1, 2, 3))
+        self.core = tuple(match[i] for i in (1, 2, 3))
         self.pre = match[4].split(".") if match[4] is not None else []
 
     def __eq__(self, other):
@@ -41,14 +57,16 @@ class Version:
 
     def __lt__(self, other):
         if self.core != other.core:
-            return self.core < other.core
+            for left, right in zip(self.core, other.core):
+                if left != right:
+                    return compare_numeric(left, right) < 0
         if not self.pre or not other.pre:
             return bool(self.pre) and not other.pre
         for left, right in zip(self.pre, other.pre):
             if left == right:
                 continue
             if left.isdigit() and right.isdigit():
-                return int(left) < int(right)
+                return compare_numeric(left, right) < 0
             if left.isdigit() != right.isdigit():
                 return left.isdigit()
             return left < right
@@ -80,15 +98,28 @@ def floor_for(case):
                 validate_floor(link["minVersion"])
         effective = validate_floor(floor) if floor is not None else None
         if model is not None:
-            implicit = validate_floor(model)
+            implicit = validate_authored_floor(model)
             if effective is None or effective < implicit:
                 effective = implicit
         return effective
     return validate_floor(floor) if floor is not None else None
 
 
+def parse_version_id(text):
+    if not CORE_ID.fullmatch(text):
+        raise OutcomeError("invalid-version")
+    return Version(text)
+
+
 def validate_floor(text):
     version = Version(text)
+    if GENERATED.fullmatch(text):
+        raise OutcomeError("invalid-version")
+    return version
+
+
+def validate_authored_floor(text):
+    version = parse_version_id(text)
     if GENERATED.fullmatch(text):
         raise OutcomeError("invalid-version")
     return version
@@ -100,7 +131,10 @@ def resource_for(case, target):
         raise OutcomeError("not-found")
     if len(matches) != 1:
         raise ValueError("vectors must scope each wotid to one Resource")
-    return matches[0]
+    resource = matches[0]
+    for version in resource["versions"]:
+        parse_version_id(version["versionid"])
+    return resource
 
 
 def resolve_local(case):
@@ -124,9 +158,10 @@ def resolve_local(case):
             raise OutcomeError("unsatisfied")
         if WITH_BUILD.fullmatch(authored):
             raise OutcomeError("invalid-version")
-        version = Version(authored)
+        version = parse_version_id(authored)
         if version < floor or (
-            is_td and version.core[0] >= floor.core[0] + 1
+            is_td
+            and compare_numeric(version.core[0], increment_numeric(floor.core[0])) >= 0
         ):
             raise OutcomeError("unsatisfied")
     return {
@@ -148,7 +183,7 @@ def resolve(case):
         eligible = [v for v in versions if v["contentdigest"] == pin["digest"]]
         if not eligible:
             raise OutcomeError("pin-mismatch")
-        selected = max(eligible, key=lambda v: Version(v["versionid"]))
+        selected = max(eligible, key=lambda v: parse_version_id(v["versionid"]))
     elif "versionid" in pin:
         selected = next((v for v in versions if v["versionid"] == pin["versionid"]), None)
         if selected is None:
@@ -156,32 +191,42 @@ def resolve(case):
     else:
         floor = floor_for(case)
         is_td = case["reference"]["kind"] in TD_REFERENCE_KINDS
-        upper = Version(f"{floor.core[0] + 1}.0.0") if is_td and floor is not None else None
+        upper = (
+            Version(f"{increment_numeric(floor.core[0])}.0.0")
+            if is_td and floor is not None
+            else None
+        )
         if resource["defaultversionsticky"]:
             selected = next((v for v in versions if v["versionid"] == resource["defaultversionid"]), None)
             if selected is None:
                 raise OutcomeError("not-found")
-            selected_version = Version(selected["versionid"])
-            if floor is not None and (selected_version < floor or (upper is not None and selected_version.core[0] >= upper.core[0])):
+            selected_version = parse_version_id(selected["versionid"])
+            if floor is not None and (
+                selected_version < floor
+                or (
+                    upper is not None
+                    and compare_numeric(selected_version.core[0], upper.core[0]) >= 0
+                )
+            ):
                 raise OutcomeError("unsatisfied")
         else:
             eligible = []
             for version in versions:
-                candidate = Version(version["versionid"])
+                candidate = parse_version_id(version["versionid"])
                 if candidate.pre and not case.get("allowPrerelease", False) and not (floor is not None and floor.pre):
                     continue
                 if floor is not None and candidate < floor:
                     continue
-                if upper is not None and candidate.core[0] >= upper.core[0]:
+                if upper is not None and compare_numeric(candidate.core[0], upper.core[0]) >= 0:
                     continue
                 eligible.append(version)
             if not eligible:
                 raise OutcomeError("unsatisfied")
-            selected = max(eligible, key=lambda v: Version(v["versionid"]))
-        selected_version = Version(selected["versionid"])
+            selected = max(eligible, key=lambda v: parse_version_id(v["versionid"]))
+        selected_version = parse_version_id(selected["versionid"])
         if floor is not None and selected_version < floor:
             raise OutcomeError("unsatisfied")
-        if upper is not None and selected_version.core[0] >= upper.core[0]:
+        if upper is not None and compare_numeric(selected_version.core[0], upper.core[0]) >= 0:
             raise OutcomeError("unsatisfied")
     return {"wotid": resource["wotid"], "versionid": selected["versionid"],
             "contentdigest": selected["contentdigest"], "origin": ORIGIN}
@@ -199,7 +244,7 @@ def publish(case):
     if document_version is not None and WITH_BUILD.fullmatch(document_version):
         raise OutcomeError("invalid-version")
     if document_version is not None and SEMVER.fullmatch(document_version):
-        Version(document_version)
+        parse_version_id(document_version)
         assigned, origin = document_version, "authored"
     else:
         occupied = {v["versionid"].lower() for v in resource["versions"]}
@@ -212,7 +257,8 @@ def publish(case):
     if resource["defaultversionsticky"]:
         default = resource["defaultversionid"]
     else:
-        default = max([v["versionid"] for v in resource["versions"]] + [assigned], key=Version)
+        default = max([v["versionid"] for v in resource["versions"]] + [assigned],
+                      key=parse_version_id)
     return {"assigned": {"versionid": assigned, "versionorigin": origin, "defaultversionid": default}}
 
 

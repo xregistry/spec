@@ -24,6 +24,76 @@ def test_resolution_vector(name):
     check_vectors.check_case(name, VECTORS[name])
 
 
+def test_long_semver_floor_is_not_limited_by_core_identifier_length():
+    target = "urn:example:pump:v1"
+    digest = "sha256:" + "0" * 64
+    floor = "1.0.0-" + "a" * 123
+    assert len(floor) > 128
+
+    check_vectors.check_case(
+        "long-semver-floor",
+        {
+            "registry": [
+                {
+                    "wotid": target,
+                    "defaultversionsticky": False,
+                    "defaultversionid": "1.0.0",
+                    "versions": [
+                        {
+                            "versionid": "1.0.0",
+                            "versionorigin": "authored",
+                            "contentdigest": digest,
+                        }
+                    ],
+                }
+            ],
+            "reference": {
+                "kind": "ref",
+                "target": target,
+                "minVersion": floor,
+            },
+            "expect": {
+                "result": {
+                    "wotid": target,
+                    "versionid": "1.0.0",
+                    "contentdigest": digest,
+                }
+            },
+        },
+    )
+
+
+def test_authored_semver_version_id_remains_core_length_limited():
+    target = "urn:example:pump:v1"
+    version = "1.0.0-" + "a" * 123
+
+    check_vectors.check_case(
+        "long-authored-version",
+        {
+            "registry": [
+                {
+                    "wotid": target,
+                    "defaultversionsticky": False,
+                    "defaultversionid": None,
+                    "versions": [],
+                }
+            ],
+            "publish": {
+                "target": target,
+                "version.model": version,
+            },
+            "expect": {"error": "invalid-version"},
+        },
+    )
+
+
+def test_large_semver_major_compares_without_integer_conversion_limit():
+    floor = check_vectors.Version("9" * 5000 + ".0.0")
+    candidate = check_vectors.Version("1.0.0")
+
+    assert candidate < floor
+
+
 def test_proposed_closure_shape():
     jsonschema.Draft202012Validator.check_schema(SCHEMA)
     jsonschema.validate(EXAMPLE, SCHEMA)

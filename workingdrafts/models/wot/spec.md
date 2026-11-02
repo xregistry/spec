@@ -1124,8 +1124,8 @@ Independent source and publication closure digests remain applicable.
 
 The CloudEvents `type` identifies the event's payload contract, not the
 Registry Resource or TD Version. The
-[CloudEvents WoT profile's type rules](https://github.com/cloudevents/spec/blob/a9b0cde4368d25189d97b5557141ed5795a1a10a/cloudevents/extensions/wot.md#type)
-define its dot-separated symbol and revision. Its final segment MUST be
+[unversioned CloudEvents WoT profile draft](https://github.com/cloudevents/spec/pull/1406)
+defines its dot-separated symbol and revision. Its final segment MUST be
 `vN`, where `N` is a positive decimal integer without leading zeros. The
 publication profile MUST assign the same revision to the same payload
 contract. A Producer MUST use a new revision when a member is added or
@@ -1154,9 +1154,9 @@ a version range. `tm:minVersion` is a member of `tm:extends` or
 `tm:submodel` links and a sibling of `tm:ref`. `td:minVersion` is a member
 of `td:extends` or `td:subthing` links and a sibling of `td:ref`.
 
-A floor MUST be a SemVer 2.0.0 string without build metadata and within Core's
-128-character [id limit][Core id constraints]. It MUST NOT have the generated
-`0.0.0-N` form.
+A floor MUST be a SemVer 2.0.0 string without build metadata. A floor is not a
+Core identifier, so Core's 128-character [id limit][Core id constraints] does
+not apply. It MUST NOT have the generated `0.0.0-N` form.
 Invalid syntax or a generated floor MUST produce `invalid-version`.
 `td:minVersion` on a TM reference and `tm:minVersion` on a TD-to-TD
 reference MUST produce `invalid-floor`.
@@ -1347,7 +1347,7 @@ gaps, not implementation choices:
    and a content retrieval descriptor, but defines no WoT URL-to-target
    comparison rule. A byte location is not an authored identity.
 4. **Projection vocabulary and source mapping.** The
-   [Projection Plans proposal](https://github.com/marcschier/wot-thing-description/blob/f66f89ab59196be3d19b088692f9ce7c22e7785e/proposals/wot-projections/spec.md)
+   [unversioned Projection Plans working draft](https://github.com/marcschier/wot-thing-description/blob/main/proposals/wot-projections/spec.md)
    defines ordered source entries containing `wotproj:sourceName`, `href` and
    an expected TD/TM media `type`. It matches a `tm:ref` selector to one
    declared source before applying its affordance pointer; the source entry,

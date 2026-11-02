@@ -226,8 +226,9 @@ for channels and immutable snapshots. Its
 Its [channel rules][Publication channel] define how publishers update heads
 and readers open channels. WoT defines dependency closure and compatibility
 checks without adding a channel API or Group hierarchy. This is an
-informative implementation design, not an implemented WoT profile. The
-current SemVer specification and its vectors remain unchanged.
+informative implementation design, not an implemented WoT profile.
+The current SemVer specification defines the baseline, and its 33-case
+representative corpus remains unchanged.
 
 The normative
 [WoT closure section](../../models/wot/spec.md#544-publication-closure)
@@ -544,7 +545,7 @@ The planned negative fixtures omit or replace edges after recomputing all
 digests. They also test wrong source bases, conflicting declarations, missing
 context material and a dependency added to an unrelated entry.
 
-Neither the generic proposal's tests nor the 27 representative SemVer vectors
+Neither the generic proposal's tests nor the 33 representative SemVer vectors
 establish those WoT semantics. A mapping for OPC UA needs the same context
 and closure semantics, including append-only generated NodeIds. This design
 pass does not change the `1.1-draft` model or either .NET runtime.
@@ -579,7 +580,7 @@ not implement that profile or make its vocabulary, diagnostics or mappings
 normative. The [WoT specification](../../models/wot/spec.md) defines the SemVer
 baseline, the [model](../../models/wot/model.json) describes its data model,
 and the
-[27 representative resolution vectors](../../models/wot/tests/resolution/README.md)
+[33 representative resolution vectors](../../models/wot/tests/resolution/README.md)
 test it. These vectors do not demonstrate the proposed incremental behavior.
 
 The [two-page overview](#wot-versioning-design-overview) states the decision.

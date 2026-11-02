@@ -25,7 +25,7 @@ metadata in JSON Schema, JSON Structure, Avro and OpenAPI. Reproduction and
 syntax checks do not establish complete model coverage; the generated
 descriptions do not validate the Thing Model's Meta compatibility field.
 
-The [27 representative vectors](tests/resolution/README.md) exercise version
+The [33 representative vectors](tests/resolution/README.md) exercise version
 assignment and reference resolution, including floors, caller pins, sticky
 defaults and prerelease selection. Run
 `python workingdrafts/models/wot/tests/resolution/check_vectors.py` from the
