@@ -257,7 +257,7 @@ public release of that companion model.
 
 This binding and the companion draft use xRegistry Core and Events
 `v1.0-rc4` as their baseline. Section 9.1 records the binding's event
-projection delta: Core's single `deprecation` action maps to the
+projection delta: Core's `deprecated` events map to the
 companion's state-specific OPC UA EventTypes without adding a Core event.
 
 ## 3. Terms and conventions
@@ -1893,11 +1893,11 @@ EventType:
 | `io.xregistry.capabilities.updated` | `CapabilitiesUpdatedEventType` | `Changed` |
 | `io.xregistry.group.created` | `GroupCreatedEventType` | `Epoch` |
 | `io.xregistry.group.updated` | `GroupUpdatedEventType` | `Epoch`, `Changed` |
-| `io.xregistry.group.deprecation` | `GroupDeprecatedEventType` when set or changed; `GroupUndeprecatedEventType` when removed | none |
+| `io.xregistry.group.deprecated` | `GroupDeprecatedEventType` when set or changed; `GroupUndeprecatedEventType` when removed | none |
 | `io.xregistry.group.deleted` | `GroupDeletedEventType` | none |
 | `io.xregistry.resource.created` | `ResourceCreatedEventType` | `Epoch`, `MetaEpoch` |
 | `io.xregistry.resource.updated` | `ResourceUpdatedEventType` | `Epoch`, `MetaEpoch`, `Changed` |
-| `io.xregistry.resource.deprecation` | `ResourceDeprecatedEventType` when set or changed; `ResourceUndeprecatedEventType` when removed | none |
+| `io.xregistry.resource.deprecated` | `ResourceDeprecatedEventType` when set or changed; `ResourceUndeprecatedEventType` when removed | none |
 | `io.xregistry.resource.deleted` | `ResourceDeletedEventType` | none |
 | `io.xregistry.version.created` | `VersionCreatedEventType` | `Epoch` |
 | `io.xregistry.version.updated` | `VersionUpdatedEventType` | `Epoch`, `Changed` |
@@ -1907,20 +1907,20 @@ The leaf EventType represents the canonical `type` natively. An event
 consumer determines that type from `EventType` and the companion model's
 type hierarchy.
 
-Core `v1.0-rc4` defines one `deprecation` action when the `deprecated` object
-is set, deleted or one of its attributes is updated. This binding maps that
-single Core action to the companion's distinct state-transition EventTypes:
-setting or changing the object uses `DeprecatedEventType`; removing it uses
-`UndeprecatedEventType`. The selected UA EventType identifies the transition;
-it does not introduce a separate Core `undeprecated` event.
+Core `v1.0-rc4` defines `deprecated` events when a Group's `deprecated`
+sub-object or a Resource's `meta.deprecated` sub-object is set, deleted or one
+of its attributes is updated. This binding maps those events to the
+companion's distinct state-transition EventTypes: setting or changing the
+object uses `DeprecatedEventType`; removing it uses `UndeprecatedEventType`.
+The selected UA EventType identifies the transition; it does not introduce a
+separate Core `undeprecated` event.
 
-The Core deprecation event's OPTIONAL `changed` list identifies modified
-top-level attributes of the deprecated object. The companion deprecation
-EventTypes have no `Changed` field, so the binding does not project that
-nested list onto them. When included, the corresponding `GroupUpdated` or
-`ResourceUpdated` companion event carries the Core `changed` names, including
-`deprecated` or `meta.deprecated`, respectively. These are the only
-deprecation-specific precedence rules; all other applicable Core event
+The Core `deprecated` events MUST NOT include a `changed` list. Core also
+requires a containing `group.updated` or `resource.updated` event; its
+`changed` list, if present, MUST include `deprecated` or `meta.deprecated`,
+respectively. The companion deprecated EventTypes have no `Changed` field, so
+the binding does not project a `changed` list onto them. These are the only
+deprecated-event-specific precedence rules; all other applicable Core event
 requirements remain in force.
 
 A server claiming `XREG-Events` conformance MUST implement every event that
@@ -1999,7 +1999,7 @@ it MAY omit `Changed` when those names cannot be disclosed.
 For document changes, the name is the domain Resource's singular attribute
 name, not its `base64` serialization variant. The xRegistry Events
 specification defines the names REQUIRED for parent-collection,
-default-version and deprecation changes.
+default-version and `deprecated` sub-object changes.
 
 Base operation responses have no interaction-correlation field, so their
 events' `CorrelationId` MUST be absent. A domain extension MAY populate it
@@ -2478,7 +2478,7 @@ base mappings this binding uses:
 | Capabilities | Raw `Capabilities` is authoritative; `CapabilitiesSnapshot` is the canonical typed view, while `CapabilitiesInfo` remains a partial convenience view. |
 | Labels and extensions | `AttributesType` carries string labels. The generic native view preserves extension JSON kinds and values; domain mappings use their declared UA DataTypes. |
 | Native documents | `XREG-NativeDocuments`, `XREG-NativeWrite` and `XREG-NativeSnapshots` separately govern typed reads, writes and bounded snapshots; none replaces FileType access. |
-| Events and epochs | Core `deprecation` maps to the companion's state-transition EventTypes under §9.1; UInt32 counter exhaustion fails atomically with `Bad_OutOfRange`. |
+| Events and epochs | Core `deprecated` events map to the companion's state-transition EventTypes under §9.1; UInt32 counter exhaustion fails atomically with `Bad_OutOfRange`. |
 
 These are unadopted working drafts. The companion model's conformance-unit
 requirements govern the members REQUIRED for each claim; this binding adds
