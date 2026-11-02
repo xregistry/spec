@@ -999,19 +999,21 @@ def generate_avro_schema(model_definition) -> dict:
     def needs_generic_record(attributes):
         """Check if any attribute requires GenericRecord type"""
         for attr_name, attr_props in attributes.items():
-            # Check for "*" extension attributes with "any" or "var" type
-            if attr_name == "*" and attr_props.get("type") in ["any", "var", "object"]:
+            if attr_props.get("type") in ["any", "var"] or \
+               (attr_name == "*" and attr_props.get("type") == "object"):
                 return True
-            # Consolidated check: If attribute is an extension ("*") with type "any", "var", or "object",
-            # or if attribute is type "object" without "item" or "attributes", GenericRecord is needed.
-            if (attr_name == "*" and attr_props.get("type") in ["any", "var", "object"]) or \
-               (attr_props.get("type") == "object" and "item" not in attr_props and "attributes" not in attr_props):
+            if (
+                attr_props.get("type") == "object"
+                and "item" not in attr_props
+                and "attributes" not in attr_props
+            ):
                 return True
-            # Check nested attributes
             if "attributes" in attr_props:
                 if needs_generic_record(attr_props["attributes"]):
                     return True
-            # Check ifvalues sibling attributes
+            if "item" in attr_props:
+                if needs_generic_record({"item": attr_props["item"]}):
+                    return True
             if "ifvalues" in attr_props:
                 for condition_props in attr_props["ifvalues"].values():
                     if "siblingattributes" in condition_props:
@@ -1071,6 +1073,8 @@ def generate_avro_schema(model_definition) -> dict:
                             "name": prefix+name+"EnumType",
                             "symbols": enum_values
                         }
+                    elif item["type"] in ["any", "var"]:
+                        item_schema = item_schema["type"]
                     resource_schema["type"]["items"] = item_schema
             else:
                 raise Exception("Array item must have a type specified")
