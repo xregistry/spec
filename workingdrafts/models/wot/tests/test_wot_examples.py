@@ -63,6 +63,82 @@ def test_long_semver_floor_is_not_limited_by_core_identifier_length():
     )
 
 
+def test_long_implicit_semver_floor_is_not_limited_by_core_identifier_length():
+    target = "urn:example:pump-model:v1"
+    digest = "sha256:" + "0" * 64
+    floor = "1.0.0-" + "a" * 123
+    assert len(floor) == 129
+
+    check_vectors.check_case(
+        "long-implicit-semver-floor",
+        {
+            "registry": [
+                {
+                    "wotid": target,
+                    "defaultversionsticky": False,
+                    "defaultversionid": "1.0.0",
+                    "versions": [
+                        {
+                            "versionid": "1.0.0",
+                            "versionorigin": "authored",
+                            "contentdigest": digest,
+                        }
+                    ],
+                }
+            ],
+            "reference": {
+                "kind": "type",
+                "target": target,
+            },
+            "document": {
+                "version.model": floor,
+                "typeLinks": [{"target": target}],
+            },
+            "expect": {
+                "result": {
+                    "wotid": target,
+                    "versionid": "1.0.0",
+                    "contentdigest": digest,
+                }
+            },
+        },
+    )
+
+
+def test_huge_implicit_semver_floor_with_no_matching_version_is_unsatisfied():
+    target = "urn:example:pump-model:v1"
+    floor = "9" * 5000 + ".0.0"
+
+    check_vectors.check_case(
+        "huge-implicit-semver-floor",
+        {
+            "registry": [
+                {
+                    "wotid": target,
+                    "defaultversionsticky": False,
+                    "defaultversionid": "1.0.0",
+                    "versions": [
+                        {
+                            "versionid": "1.0.0",
+                            "versionorigin": "authored",
+                            "contentdigest": "sha256:" + "0" * 64,
+                        }
+                    ],
+                }
+            ],
+            "reference": {
+                "kind": "type",
+                "target": target,
+            },
+            "document": {
+                "version.model": floor,
+                "typeLinks": [{"target": target}],
+            },
+            "expect": {"error": "unsatisfied"},
+        },
+    )
+
+
 def test_authored_semver_version_id_remains_core_length_limited():
     target = "urn:example:pump:v1"
     version = "1.0.0-" + "a" * 123

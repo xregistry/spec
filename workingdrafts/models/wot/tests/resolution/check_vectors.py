@@ -98,7 +98,7 @@ def floor_for(case):
                 validate_floor(link["minVersion"])
         effective = validate_floor(floor) if floor is not None else None
         if model is not None:
-            implicit = validate_authored_floor(model)
+            implicit = validate_floor(model)
             if effective is None or effective < implicit:
                 effective = implicit
         return effective
@@ -113,13 +113,6 @@ def parse_version_id(text):
 
 def validate_floor(text):
     version = Version(text)
-    if GENERATED.fullmatch(text):
-        raise OutcomeError("invalid-version")
-    return version
-
-
-def validate_authored_floor(text):
-    version = parse_version_id(text)
     if GENERATED.fullmatch(text):
         raise OutcomeError("invalid-version")
     return version
