@@ -646,7 +646,7 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
 
                 resource_schema.pop("oneOf", None)
                 resource_schema["properties"].update({
-                    "versionsurl": {"type": "string"},
+                    "versionsurl": {"type": "string", "format": "uri"},
                     "versionscount": {"type": "integer"},
                     "versions": {
                         "type": "object",

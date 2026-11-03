@@ -2186,7 +2186,8 @@
             "description": "Time of the object modification"
           },
           "versionsurl": {
-            "type": "string"
+            "type": "string",
+            "format": "uri"
           },
           "versionscount": {
             "type": "integer"
