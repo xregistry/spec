@@ -1282,12 +1282,10 @@ assignment.
 
 #### 5.4.4. Publication closure
 
-The requirements below constrain WoT closure data; they do not complete its
-reference mapping. The
-[publication design](../../publication/design/design.md#a-complete-wot-publication)
-proposes the dependency scope and occurrence representation. That design is
-informative. Passing the closure schema does not establish that a pinned WoT
-view is reconstructible.
+The requirements below define WoT closure data and its reference mapping.
+The [publication design](../../publication/design/design.md#a-complete-wot-publication)
+is informative. Passing the closure schema alone does not establish that a
+pinned WoT view is reconstructible.
 
 A WoT publication that claims domain-complete closure MUST include the
 `http://opcfoundation.org/UA/WoT-Binding/publication-closure/1` extension as
@@ -1306,9 +1304,9 @@ kind. The closure document does not add a target-kind field or authorize a
 different selection rule. If no such mapping is defined, the Consumer MUST
 reject the binding.
 
-A producer MUST derive the closure from the captured source document bytes,
-not from the binding list. Each external reference occurrence in the closure
-MUST have exactly one binding to its exact target Version. The binding's
+A Producer MUST derive the closure from the captured source document bytes,
+not from the binding list. Each in-scope external reference occurrence in the
+closure MUST have exactly one binding to its exact target Version. The binding's
 `source`, `pointer`, `operator` and `href` MUST identify that occurrence and
 preserve its authored reference. A Consumer MUST verify those values against
 the captured source bytes and MUST NOT resolve a missing binding against a
@@ -1325,9 +1323,9 @@ For a projection source it MUST identify the source-manifest entry.
 JSON Pointer escaping applies to the actual authored member names, including
 an alternative JSON-LD prefix. Array indexes MUST use their RFC 6901 spelling.
 
-Each reachable external occurrence MUST have exactly one binding. A Consumer
-MUST reject duplicate binding keys, including duplicates with the same
-target, and MUST reject bindings to local, unreachable or nonexistent
+Each reachable in-scope external occurrence MUST have exactly one binding.
+A Consumer MUST reject duplicate binding keys, including duplicates with the
+same target, and MUST reject bindings to local, unreachable or nonexistent
 occurrences. Two different occurrences referring to the same target remain
 distinct bindings. If one pointed-to object contains several in-scope
 reference members, including aliases for the same expanded member, a
@@ -1387,36 +1385,56 @@ occurrences remain separate dependencies. A marker, source entry or selector
 that fails the selected proposal's rules MUST NOT be accepted by supplying
 an otherwise well-shaped closure binding.
 
-The following mapping decisions remain unresolved. These are specification
-gaps, not implementation choices:
+Before validating closure bindings, the Producer and Consumer MUST determine
+candidate targets from the captured Registry model, Registry view and document
+associations. Target matching MUST use each candidate's Group and Resource
+identity, Resource kind, applicable `wotid`, original document URI base and
+document-view URI from the captured Registry metadata. Each URI identity MUST
+distinguish a Resource from an exact Version. `originRegistry` is provenance,
+not a document URI identity, and MUST NOT be used for target matching.
+Neither side MAY use closure binding
+targets, unrecorded retrieval locations or requests to a live Registry to
+choose a target.
 
-1. **Dependency scope and classification.** The design proposes TM
-   `tm:extends`, `tm:submodel` and ordinary `tm:ref`; TD `td:extends`,
-   `td:subthing`, ordinary `td:ref` and `rel: "type"`; and projection
-   source-manifest entries. It excludes Schema Resource references and OPC UA
-   `uav:dataTypeDefinitions` materialization references. A normative rule is
-   still needed to distinguish an ordinary `tm:ref` from the schema use in
-   [Section 6.4](#64-thing-description-to-schema-registry), using the source
-   bytes and captured context. Classifying it from
-   the bound target would let the binding list determine its own coverage.
-2. **Target identity for document URLs.**
-   [Section 5.4.2](#542-resolver-algorithm) already maps an external
-   `tm:ref` or `td:ref`, resolved against its base and without its fragment,
-   to `wotid`. However,
-   [Section 6.1](#61-thing-description-to-thing-model) also permits a type
-   link to a TM document-view URL, which need not equal that TM's `wotid`.
-   The closure profile needs to define how such a URL is matched to the
-   captured target, including Resource and exact-Version URLs after
-   relocation. Publication records `viewVersion`, origin identities, `base`
-   and a content retrieval descriptor, but defines no WoT URL-to-target
-   comparison rule. A byte location is not an authored identity.
+For each external reference occurrence, the Producer and Consumer MUST resolve
+the authored `href` against the source document's captured base and remove its
+fragment before matching captured URI identities. The operator's resolution
+rules determine whether a Resource or exact Version is selected. For
+`tm:ref` and `td:ref` references that identify a Resource by `wotid`, Section
+5.4.2 determines the selected Version. A document-view URI recorded as
+identifying an exact Version selects that Version; a Resource-level URI uses
+the captured view's selection state. The closure binding still MUST preserve
+the authored `href` unchanged. In every case, its target MUST identify the
+resulting Resource and exact Version.
 
-The extension alone therefore does not establish WoT-complete closure.
-A producer MUST NOT claim that completeness unless it can identify and
-validate every in-scope reference under a defined mapping. A Consumer MUST
-reject a closure whose scope or target mapping it cannot validate. The
-existing schema and sample check the descriptor's shape, not these missing
-semantic mappings.
+For an ordinary `tm:ref`, one unique identity match to a Thing Model Resource
+classifies the occurrence as an in-scope dependency. One unique match to a
+Schema Resource classifies it as a Schema reference outside this WoT closure
+profile; that occurrence MUST NOT have a closure binding. A match to another
+Resource kind is invalid. This classification uses captured model and URI
+identities, not a binding target. The Schema document itself is not thereby
+included in WoT closure or validated by this profile.
+
+A `links` occurrence with `rel: "describedby"` that identifies a Schema
+Resource is also outside this profile and MUST NOT have a closure binding.
+
+For `td:ref`, `type`, and the other operators, the captured Resource kind
+MUST agree with the target kind defined for that operator. A `type` link MAY
+identify a Thing Model by its `wotid` or by a captured document-view URI,
+including an exact-Version URI. A captured document URI is usable only at the
+Resource or Version scope recorded for it. If the resolved URI identifies
+more than one distinct Resource or Version, the mapping is ambiguous.
+Duplicate records for the same identity do not create ambiguity.
+
+If no captured identity matches or the match is ambiguous, the Producer MUST
+NOT claim domain-complete closure and the Consumer MUST reject such a claim.
+The binding list cannot resolve the ambiguity. This profile does not include
+Schema Resource documents or OPC UA `uav:dataTypeDefinitions` materialization
+references; another closure profile is needed to cover those dependencies.
+
+The schema and sample validate descriptor shape only. They do not verify that
+a publication covers every in-scope reference or binds it to the correct
+Version.
 
 ## 6. Relationships and Cross-References
 

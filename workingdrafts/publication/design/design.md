@@ -344,11 +344,11 @@ For a source-manifest entry, `operator` records the full experimental
 `pointer` identifies that entry in the ordered array, and `href` preserves its
 authored value. The compact prefix is not a canonical closure operator.
 
-This profile does not cover Schema Resource references, including
-`rel: "describedby"` links or schema-context uses of `tm:ref`. The publication
-model defines no target-identity or acceptance contract for those references.
-A consumer that requires schema-reference closure needs another profile; this
-WoT closure descriptor alone does not establish it.
+Captured Registry metadata determines target kind before the Consumer reads
+closure bindings. It can therefore classify a schema-context `tm:ref` as a
+Schema Resource reference without letting a binding choose its own scope.
+Schema Resource documents remain outside this WoT closure profile; a consumer
+that requires their content and dependencies needs another profile.
 
 The OPC UA WoT Binding also models cross-document `uav:dataTypeDefinitions`
 references for materialization. A publication claiming that profile's complete
@@ -362,12 +362,23 @@ the WoT
 draft's reference rules, so an interaction endpoint, documentation link or
 arbitrary application link is not a dependency solely because it has a URL.
 
-The producer enumerates references independently of the emitted binding
+The Producer and Consumer determine candidate targets from the captured
+Registry model, view and document associations before validating bindings.
+They match the Group and Resource identity, Resource kind, applicable
+`wotid`, original document URI base and document-view URI. `originRegistry`
+is provenance, not a document URI identity. The operator's rules determine
+whether a Resource or exact Version is selected. A unique match determines
+the Resource kind and whether the occurrence is in scope; a missing or
+ambiguous match prevents a domain-complete closure claim. A binding cannot
+choose its own target kind. A `type` link can therefore resolve through a
+captured TM document-view URI that differs from its `wotid`.
+
+The Producer enumerates references independently of the emitted binding
 table, applying the WoT draft's context, fragment and composition rules. A
 reference is document-local when its URI-reference resolves against the
 source document's base URI to that document before its fragment is applied.
 Local fragment references stay within their source document and need no
-external binding; every external occurrence needs exactly one binding.
+external binding; every in-scope external occurrence needs exactly one binding.
 For a `links` item, `pointer` identifies that item. For an ordinary
 `tm:ref`/`td:ref`, it identifies the object containing that member. For a
 projection source, it identifies the manifest entry. A projection selector's

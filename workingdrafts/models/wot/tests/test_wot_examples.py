@@ -4,7 +4,7 @@ from copy import deepcopy
 import json
 from pathlib import Path
 import re
-from urllib.parse import quote, unquote, urlsplit
+from urllib.parse import quote, unquote, urldefrag, urljoin, urlsplit
 
 import jsonschema
 import pytest
@@ -173,6 +173,228 @@ def test_large_semver_major_compares_without_integer_conversion_limit():
 def test_proposed_closure_shape():
     jsonschema.Draft202012Validator.check_schema(SCHEMA)
     jsonschema.validate(EXAMPLE, SCHEMA)
+
+
+def _classify_captured_reference(href, base, operator, identities):
+    resolved = urldefrag(urljoin(base, href)).url
+    matches = {
+        (identity["kind"], identity["resource"], identity.get("version"))
+        for identity in identities
+        if identity["identity_type"] in {"wotid", "base", "document-view"}
+        and identity["uri"] == resolved
+    }
+    if len(matches) != 1:
+        raise ValueError("The captured URI identity is missing or ambiguous.")
+
+    kind, resource, version = matches.pop()
+    if operator in {"tm:ref", "describedby"} and kind == "schema":
+        return "outside-profile", resource, version
+    expected_kind = {
+        "tm:ref": "thingmodel",
+        "td:ref": "thingdescription",
+        "type": "thingmodel",
+        "describedby": "schema",
+    }.get(operator)
+    if expected_kind is None or kind != expected_kind:
+        raise ValueError("The captured Resource kind does not match the operator.")
+    return "dependency", resource, version
+
+
+def test_closure_identity_classifies_tm_reference_from_wotid_without_binding():
+    identities = [
+        {
+            "uri": "urn:example:pump-model:v1",
+            "identity_type": "wotid",
+            "kind": "thingmodel",
+            "resource": "/thingmodelgroups/acme/thingmodels/pump",
+        }
+    ]
+
+    result = _classify_captured_reference(
+        "urn:example:pump-model:v1",
+        "https://registry.example/thingmodels/source",
+        "tm:ref",
+        identities,
+    )
+
+    assert result == (
+        "dependency",
+        "/thingmodelgroups/acme/thingmodels/pump",
+        None,
+    )
+
+
+def test_closure_identity_excludes_schema_reference_before_binding():
+    href = (
+        "../../schemagroups/acme/schemas/temperature/versions/1"
+        "#/properties/value"
+    )
+    identities = [
+        {
+            "uri": (
+                "https://registry.example/schemagroups/acme/schemas/"
+                "temperature/versions/1"
+            ),
+            "identity_type": "document-view",
+            "kind": "schema",
+            "resource": "/schemagroups/acme/schemas/temperature",
+            "version": "/schemagroups/acme/schemas/temperature/versions/1",
+        }
+    ]
+
+    result = _classify_captured_reference(
+        href,
+        "https://registry.example/thingmodels/pump/v1",
+        "tm:ref",
+        identities,
+    )
+
+    assert result == (
+        "outside-profile",
+        "/schemagroups/acme/schemas/temperature",
+        "/schemagroups/acme/schemas/temperature/versions/1",
+    )
+    assert href == (
+        "../../schemagroups/acme/schemas/temperature/versions/1"
+        "#/properties/value"
+    )
+
+
+def test_closure_identity_excludes_describedby_schema_link():
+    uri = "https://registry.example/schemas/temperature/versions/1"
+    identities = [
+        {
+            "uri": uri,
+            "identity_type": "document-view",
+            "kind": "schema",
+            "resource": "/schemagroups/acme/schemas/temperature",
+            "version": "/schemagroups/acme/schemas/temperature/versions/1",
+        }
+    ]
+
+    result = _classify_captured_reference(
+        uri,
+        "https://registry.example/things/oven",
+        "describedby",
+        identities,
+    )
+
+    assert result == (
+        "outside-profile",
+        "/schemagroups/acme/schemas/temperature",
+        "/schemagroups/acme/schemas/temperature/versions/1",
+    )
+
+
+def test_closure_identity_resolves_type_link_through_captured_view_url():
+    uri = "https://registry.example/thingmodels/pump/versions/2"
+    identities = [
+        {
+            "uri": uri,
+            "identity_type": "document-view",
+            "kind": "thingmodel",
+            "resource": "/thingmodelgroups/acme/thingmodels/pump",
+            "version": "/thingmodelgroups/acme/thingmodels/pump/versions/2",
+        }
+    ]
+
+    result = _classify_captured_reference(
+        uri + "#/properties/speed",
+        "https://registry.example/things/oven",
+        "type",
+        identities,
+    )
+
+    assert result == (
+        "dependency",
+        "/thingmodelgroups/acme/thingmodels/pump",
+        "/thingmodelgroups/acme/thingmodels/pump/versions/2",
+    )
+
+
+@pytest.mark.parametrize(
+    "identities",
+    [
+        [],
+        [
+            {
+                "uri": "https://registry.example/shared",
+                "identity_type": "wotid",
+                "kind": "thingmodel",
+                "resource": "/thingmodelgroups/acme/thingmodels/pump",
+            },
+            {
+                "uri": "https://registry.example/shared",
+                "identity_type": "document-view",
+                "kind": "schema",
+                "resource": "/schemagroups/acme/schemas/pump",
+            },
+        ],
+        [
+            {
+                "uri": "https://registry.example/shared",
+                "identity_type": "document-view",
+                "kind": "thingmodel",
+                "resource": "/thingmodelgroups/acme/thingmodels/pump",
+                "version": "/thingmodelgroups/acme/thingmodels/pump/versions/1",
+            },
+            {
+                "uri": "https://registry.example/shared",
+                "identity_type": "document-view",
+                "kind": "thingmodel",
+                "resource": "/thingmodelgroups/acme/thingmodels/pump",
+                "version": "/thingmodelgroups/acme/thingmodels/pump/versions/2",
+            },
+        ],
+    ],
+)
+def test_closure_identity_rejects_missing_or_ambiguous_mappings(identities):
+    with pytest.raises(ValueError):
+        _classify_captured_reference(
+            "https://registry.example/shared",
+            "https://registry.example/thingmodels/source",
+            "tm:ref",
+            identities,
+        )
+
+
+def test_duplicate_identity_records_for_the_same_target_are_not_ambiguous():
+    identity = {
+        "uri": "urn:example:pump-model:v1",
+        "identity_type": "wotid",
+        "kind": "thingmodel",
+        "resource": "/thingmodelgroups/acme/thingmodels/pump",
+    }
+
+    result = _classify_captured_reference(
+        identity["uri"],
+        "https://registry.example/thingmodels/source",
+        "tm:ref",
+        [identity, identity.copy()],
+    )
+
+    assert result == (
+        "dependency",
+        "/thingmodelgroups/acme/thingmodels/pump",
+        None,
+    )
+
+
+def test_closure_identity_does_not_match_origin_registry_provenance():
+    identity = {
+        "uri": "https://registry.example/shared",
+        "identity_type": "originRegistry",
+        "kind": "thingmodel",
+        "resource": "/thingmodelgroups/acme/thingmodels/pump",
+    }
+
+    with pytest.raises(ValueError):
+        _classify_captured_reference(
+            identity["uri"],
+            "https://registry.example/thingmodels/source",
+            "tm:ref",
+            [identity],
+        )
 
 
 @pytest.mark.parametrize(
