@@ -1101,13 +1101,20 @@ The resolved TD is the result of applying the applicable WoT resolution rules
 to the selected sources. Producing or publishing that result MUST NOT overwrite
 or rewrite stored authored source bytes
 ([Section 5.2](#52-preserving-customer-documents)).
+For a CloudEvent using this profile, the Document bytes of the selected
+publication Version MUST be that resolved TD view. A Producer MUST NOT select
+an authored source Version whose bytes do not represent the resolved view.
+When the resolved view differs from the authored source, the Producer MUST
+publish the resolved bytes as a publication Version and retain the authored
+source bytes separately. This applies both to the exact Version selected by
+`wotversion` and to the Core default selected when `wotversion` is absent.
 
 The CloudEvents `subject` MUST address the resolved TD, not an unresolved
 source document. It MUST be an RFC 6901 URI-fragment JSON Pointer, with `#`
 addressing the whole resolved TD. For example, `#/events/overheated` addresses
 that event affordance in the resolved view. A Consumer MUST apply the pointer
-only after obtaining that view and MUST report failure if the pointer does not
-identify a value.
+to the Document bytes of the selected publication Version and MUST report
+failure if the pointer does not identify a value.
 
 A Consumer MAY retrieve the published resolved TD or reconstruct the same
 logical view from a complete pinned source closure and the applicable
