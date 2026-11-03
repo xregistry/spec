@@ -970,10 +970,30 @@
                         }
                       },
                       "query": {
-                        "type": "object",
+                        "type": "array",
                         "description": "The HTTP query parameters",
-                        "additionalProperties": {
-                          "type": "string"
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "The HTTP query parameter"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": "string",
+                              "description": "The HTTP query parameter value"
+                            },
+                            "required": {
+                              "type": "boolean",
+                              "description": "The HTTP query parameter required"
+                            }
+                          },
+                          "required": [
+                            "name"
+                          ]
                         }
                       },
                       "path": {

@@ -1083,11 +1083,8 @@ HTTP allows for multiple headers with the same name. The `headers` property is
 therefore an array of objects with `name` and `value` properties. The `name`
 property is a string that MUST be a valid HTTP header name.
 
-The `query` property is a map of string keys to string values.
-
-Implementations migrating from the former array form MUST NOT silently collapse
-duplicate query names. The caller MUST choose the value to retain for each
-duplicate name.
+The `query` property is an array of objects with `name` and `value` properties.
+The `name` property is a string that MUST be a valid HTTP query parameter name.
 
 The `path` property is a URI template.
 
@@ -1114,9 +1111,12 @@ The following example defines a message that is sent over HTTP/1.1:
         "value": "application/json"
       }
     ],
-    "query": {
-      "foo": "bar"
-    },
+    "query": [
+      {
+        "name": "foo",
+        "value": "bar"
+      }
+    ],
     "path": "/foo/{bar}",
     "method": "POST"
   },
