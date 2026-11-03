@@ -2125,7 +2125,7 @@
           },
           "schemagroupsurl": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The URL for retrieving the schemagroups (e.g. endpointsurl)."
           },
           "schemagroupscount": {
@@ -2259,7 +2259,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -2273,7 +2273,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -2330,7 +2330,7 @@
               "schemaurl": {
                 "description": "Linked schema object",
                 "type": "string",
-                "format": "uri"
+                "format": "uri-reference"
               }
             },
             "required": [
@@ -2359,7 +2359,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -2373,7 +2373,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -2437,7 +2437,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -2451,7 +2451,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
