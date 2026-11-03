@@ -2950,7 +2950,7 @@
               },
               "status": {
                 "type": "string",
-                "description": "The HTTP status code"
+                "description": "The HTTP status code (e.g., \"200\")"
               }
             }
           }

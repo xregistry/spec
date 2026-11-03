@@ -1285,7 +1285,7 @@
                         },
                         "status": {
                           "name": "status",
-                          "description": "The HTTP status code",
+                          "description": "The HTTP status code (e.g., \"200\")",
                           "type": "string"
                         }
                       }
