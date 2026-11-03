@@ -35,7 +35,7 @@
               "https://raw.githubusercontent.com/marcschier/wot-thing-description/main/proposals/wot-projections/context.experimental-v1.jsonld#projects"
             ]
           },
-          "href": {"type": "string", "minLength": 1},
+          "href": {"type": "string"},
           "target": {"$ref": "#/$defs/versionXid"}
         },
         "additionalProperties": false

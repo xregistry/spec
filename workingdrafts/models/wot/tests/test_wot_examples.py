@@ -175,6 +175,41 @@ def test_proposed_closure_shape():
     jsonschema.validate(EXAMPLE, SCHEMA)
 
 
+def test_closure_shape_preserves_empty_external_reference_href():
+    source_uri = "https://models.example.test/source.json"
+    link = {
+        "rel": "tm:extends",
+        "href": "",
+        "@context": {"@base": "https://models.example.test/target.json"},
+    }
+    resolved = urljoin(link["@context"]["@base"], link["href"])
+    assert resolved == "https://models.example.test/target.json"
+    assert resolved != source_uri
+
+    example = deepcopy(EXAMPLE)
+    binding = example["bindings"][0]
+    binding["pointer"] = "/links/0"
+    binding["operator"] = link["rel"]
+    binding["href"] = link["href"]
+    jsonschema.validate(example, SCHEMA)
+    assert json.loads(json.dumps(example))["bindings"][0]["href"] == ""
+
+
+@pytest.mark.parametrize("href", [None, 0, [], {}])
+def test_closure_shape_still_requires_a_string_href(href):
+    example = deepcopy(EXAMPLE)
+    example["bindings"][0]["href"] = href
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(example, SCHEMA)
+
+
+def test_closure_shape_still_requires_the_href_member():
+    example = deepcopy(EXAMPLE)
+    del example["bindings"][0]["href"]
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(example, SCHEMA)
+
+
 def _classify_captured_reference(href, base, operator, identities):
     resolved = urldefrag(urljoin(base, href)).url
     matches = {
