@@ -415,8 +415,11 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                 if "description" in attr_schema and attr_schema["description"] == "":
                     del attr_schema["description"]
                 # Apply enum constraint to array items if provided
-                if enum_values is not None and len(enum_values) > 0:
-                    attr_schema["enum"] = enum_values
+                item_enum = enum_values
+                if item_enum is None and item.get("strict", True) is True:
+                    item_enum = item.get("enum")
+                if item_enum:
+                    attr_schema["enum"] = copy.deepcopy(item_enum)
                 resource_schema["items"] = attr_schema
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
@@ -1081,11 +1084,23 @@ def generate_avro_schema(model_definition) -> dict:
                         resource_schema["type"]["items"] = item_schema["type"]
                 else:
                     # Apply enum constraint to array items if provided
-                    if enum_values is not None and len(enum_values) > 0:
+                    item_enum = enum_values
+                    if item_enum is None and item.get("strict", True) is True:
+                        item_enum = item.get("enum")
+                    if item_enum and enum_values is None and (
+                        len(set(item_enum)) != len(item_enum)
+                        or not all(
+                            isinstance(value, str)
+                            and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", value)
+                            for value in item_enum
+                        )
+                    ):
+                        item_enum = None
+                    if item_enum:
                         item_schema = {
                             "type": "enum",
                             "name": prefix+name+"EnumType",
-                            "symbols": enum_values
+                            "symbols": item_enum
                         }
                     elif item["type"] in ["any", "var"]:
                         item_schema = item_schema["type"]
