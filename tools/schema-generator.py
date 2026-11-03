@@ -1049,7 +1049,9 @@ def generate_avro_schema(model_definition) -> dict:
             resource_schema["type"] =  { "type": "map", "name": prefix+name+"Type","values": "" }
             if "type" in item:
                 item_schema = copy.deepcopy(avro_type_mapping[item["type"]])
-                if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
+                if item["type"] == "object":
+                    handle_item(item_schema, "object", item, name+"Item", prefix)
+                elif item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
                         handle_item(item_schema, item["type"], item["item"], name+"Item", prefix)
                 resource_schema["type"]["values"] = item_schema["type"]
@@ -1059,7 +1061,10 @@ def generate_avro_schema(model_definition) -> dict:
             resource_schema["type"] = { "type": "array", "name": prefix+name+"ArrayType", "items": "" }
             if "type" in item:
                 item_schema = copy.deepcopy(avro_type_mapping[item["type"]])
-                if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
+                if item["type"] == "object":
+                    handle_item(item_schema, "object", item, name+"Item", prefix)
+                    resource_schema["type"]["items"] = item_schema["type"]
+                elif item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
                         handle_item(item_schema, item["type"], item["item"], name, prefix)
                         resource_schema["type"]["items"] = item_schema["type"]
