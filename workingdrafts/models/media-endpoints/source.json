@@ -24,11 +24,16 @@
         "path": "message/model.json",
         "gitBlob": "5df13a2dbb11ccd0e8d8643e983dfbb71262051a",
         "snapshot": "sources/message-model.source.json",
-        "sha256": "473ad3ea899db6ea4cf5c9a11014901be1eb947ec117fc750c40628f54fde2d9"
+        "sha256": "e0f6bbbedabf2781ea99d17e28139da4b1d22ede88526dbcf2eec860440bd748"
       }
     ]
   },
   "modelAdjustments": [
+    {
+      "path": "groups.messagegroups.resources.messages.attributes.protocol.ifvalues.HTTP.siblingattributes.protocoloptions.attributes",
+      "adjustment": "Change HTTP query from an array of named objects to a map of string values, and add the HTTP status string.",
+      "reason": "Aligns the embedded Message model with the corrected HTTP protocol declaration while preserving the original upstream revision and Git blob."
+    },
     {
       "path": "groups.endpoints.attributes.usage",
       "adjustment": "Move the enum from the array attribute to its scalar item.",

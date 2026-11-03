@@ -142,6 +142,25 @@ class TestGeneratedSchemas:
             content = (root / model['snapshot']).read_bytes()
             assert hashlib.sha256(content).hexdigest() == model['sha256']
 
+        message_source = next(
+            model for model in source['base']['models']
+            if model['path'] == 'message/model.json'
+        )
+        assert message_source['gitBlob'] == '5df13a2dbb11ccd0e8d8643e983dfbb71262051a'
+        message_model = json.loads((root / message_source['snapshot']).read_text(encoding='utf-8'))
+        http_options = message_model['groups']['messagegroups']['resources']['messages'][
+            'attributes'
+        ]['protocol']['ifvalues']['HTTP']['siblingattributes']['protocoloptions']['attributes']
+        assert http_options['query']['type'] == 'map'
+        assert http_options['query']['item']['type'] == 'string'
+        assert http_options['status']['type'] == 'string'
+        assert any(
+            adjustment['path'].endswith(
+                'protocol.ifvalues.HTTP.siblingattributes.protocoloptions.attributes'
+            )
+            for adjustment in source['modelAdjustments']
+        )
+
         for filename, artifact in source['artifacts'].items():
             content = (root / filename).read_bytes()
             assert hashlib.sha256(content).hexdigest() == artifact['sha256']
@@ -210,6 +229,17 @@ class TestGeneratedSchemas:
         )
         usage = schema['definitions']['endpoint-schema']['endpoint']['properties']['usage']
         assert usage['items']['enum'] == ['subscriber', 'consumer', 'producer']
+        message_schema = schema['definitions']['messagegroup-schema']['message']
+        http = next(
+            branch['properties']['protocoloptions']['properties']
+            for conditional in message_schema['allOf']
+            for branch in conditional.get('oneOf', [])
+            if 'properties' in branch
+            and 'HTTP' in branch['properties'].get('protocol', {}).get('enum', [])
+        )
+        assert http['query']['type'] == 'object'
+        assert http['query']['additionalProperties'] == {'type': 'string'}
+        assert http['status']['type'] == 'string'
         json_structure = self.generate_schema(
             [root / 'model.json'],
             'json-structure',
