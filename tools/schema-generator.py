@@ -999,19 +999,21 @@ def generate_avro_schema(model_definition) -> dict:
     def needs_generic_record(attributes):
         """Check if any attribute requires GenericRecord type"""
         for attr_name, attr_props in attributes.items():
-            # Check for "*" extension attributes with "any" or "var" type
-            if attr_name == "*" and attr_props.get("type") in ["any", "var", "object"]:
+            if attr_props.get("type") in ["any", "var"] or \
+               (attr_name == "*" and attr_props.get("type") == "object"):
                 return True
-            # Consolidated check: If attribute is an extension ("*") with type "any", "var", or "object",
-            # or if attribute is type "object" without "item" or "attributes", GenericRecord is needed.
-            if (attr_name == "*" and attr_props.get("type") in ["any", "var", "object"]) or \
-               (attr_props.get("type") == "object" and "item" not in attr_props and "attributes" not in attr_props):
+            if (
+                attr_props.get("type") == "object"
+                and "item" not in attr_props
+                and "attributes" not in attr_props
+            ):
                 return True
-            # Check nested attributes
             if "attributes" in attr_props:
                 if needs_generic_record(attr_props["attributes"]):
                     return True
-            # Check ifvalues sibling attributes
+            if "item" in attr_props:
+                if needs_generic_record({"item": attr_props["item"]}):
+                    return True
             if "ifvalues" in attr_props:
                 for condition_props in attr_props["ifvalues"].values():
                     if "siblingattributes" in condition_props:
@@ -1076,6 +1078,8 @@ def generate_avro_schema(model_definition) -> dict:
                             "name": prefix+name+"EnumType",
                             "symbols": enum_values
                         }
+                    elif item["type"] in ["any", "var"]:
+                        item_schema = item_schema["type"]
                     resource_schema["type"]["items"] = item_schema
             else:
                 raise Exception("Array item must have a type specified")
@@ -1147,23 +1151,10 @@ def generate_avro_schema(model_definition) -> dict:
                     resource_schema["fields"].append(field_schema)
             else:
                 if attr_name == "*":
-                    # For extension attributes, we need to handle named types properly
-                    # Named types cannot be defined inline in a map's values field
                     values_type = attr_schema["type"]
-
-                    # Handle the case where the type needs to be resolved
-                    if isinstance(values_type, dict) and "name" in values_type:
-                        # This is a named type (like GenericRecord) - use only the name as a reference
-                        values_type_ref = values_type["name"]
-                    elif isinstance(values_type, dict):
-                        # This is a complex unnamed type - should not happen but use as-is
-                        values_type_ref = values_type
-                    elif values_type == "record":
-                        # This is an incomplete object type - use GenericRecord reference
-                        # (GenericRecord is defined at document level if needed)
+                    if values_type == "record":
                         values_type_ref = avro_generic_record_qualified_name
                     else:
-                        # This is a simple type reference (string like "string", "int", etc.)
                         values_type_ref = values_type
 
                     field_schema = {
