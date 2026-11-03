@@ -1828,7 +1828,7 @@
         "tags": [
           "Resource"
         ],
-        "description": "Gets the resource (default version). Supports $details view via the 'doc' query parameter. (See spec: Retrieving a Resource and Retrieving a Resource as Metadata)",
+        "description": "Gets the resource (default version). Supports $details view via the 'doc' query parameter. (See spec: Retrieving a Resource and Retrieving a Resource as Metadata)\n\nPer-key map headers: `xRegistry-labels.<KEYNAME>`. Replace `<KEYNAME>` with the encoded key; encode values per the xRegistry HTTP Header Processing rules.",
         "responses": {
           "200": {
             "description": "The resource (or a redirect if a RESOURCEurl is set).",
@@ -1838,6 +1838,174 @@
                 "schema": {
                   "type": "string",
                   "format": "uri-reference"
+                }
+              },
+              "xRegistry-messageid": {
+                "description": "The messageid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-versionid": {
+                "description": "The versionid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-name": {
+                "description": "The name metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-description": {
+                "description": "The description metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-ancestorid": {
+                "description": "The ancestorid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-format": {
+                "description": "The format metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-formatvalidatedreason": {
+                "description": "The formatvalidatedreason metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-compatibilityvalidatedreason": {
+                "description": "The compatibilityvalidatedreason metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-self": {
+                "description": "The self metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-shortself": {
+                "description": "The shortself metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-documentation": {
+                "description": "The documentation metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-icon": {
+                "description": "The icon metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-xid": {
+                "description": "The xid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-epoch": {
+                "description": "The epoch metadata attribute (uinteger), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-isdefault": {
+                "description": "The isdefault metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-createdat": {
+                "description": "The createdat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-modifiedat": {
+                "description": "The modifiedat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-formatvalidated": {
+                "description": "The formatvalidated metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-compatibilityvalidated": {
+                "description": "The compatibilityvalidated metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-basemessage": {
+                "description": "The basemessage metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-envelope": {
+                "description": "The envelope metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-protocol": {
+                "description": "The protocol metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemaformat": {
+                "description": "The dataschemaformat metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemauri": {
+                "description": "The dataschemauri metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemaxid": {
+                "description": "The dataschemaxid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-datacontenttype": {
+                "description": "The datacontenttype metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-messageurl": {
+                "description": "The messageurl metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-metaurl": {
+                "description": "The metaurl metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
                 }
               }
             },
@@ -1874,7 +2042,7 @@
         "tags": [
           "Resource"
         ],
-        "description": "Creates or updates a resource. Accepts either the raw document (when $details is not used) or a full xRegistry metadata serialization (when $details is used). (See spec: Creating or Updating Resources and Versions, Resource Metadata vs Resource Document)",
+        "description": "Creates or updates a resource. Accepts either the raw document (when $details is not used) or a full xRegistry metadata serialization (when $details is used). (See spec: Creating or Updating Resources and Versions, Resource Metadata vs Resource Document)\n\nPer-key map headers: `xRegistry-labels.<KEYNAME>`. Replace `<KEYNAME>` with the encoded key; encode values per the xRegistry HTTP Header Processing rules.",
         "parameters": [
           {
             "in": "query",
@@ -1897,6 +2065,177 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "name": "xRegistry-messageid",
+            "in": "header",
+            "required": false,
+            "description": "The messageid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-versionid",
+            "in": "header",
+            "required": false,
+            "description": "The versionid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-name",
+            "in": "header",
+            "required": false,
+            "description": "The name metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-description",
+            "in": "header",
+            "required": false,
+            "description": "The description metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-ancestorid",
+            "in": "header",
+            "required": false,
+            "description": "The ancestorid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-format",
+            "in": "header",
+            "required": false,
+            "description": "The format metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-documentation",
+            "in": "header",
+            "required": false,
+            "description": "The documentation metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-icon",
+            "in": "header",
+            "required": false,
+            "description": "The icon metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-epoch",
+            "in": "header",
+            "required": false,
+            "description": "The epoch metadata attribute (uinteger), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-createdat",
+            "in": "header",
+            "required": false,
+            "description": "The createdat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-modifiedat",
+            "in": "header",
+            "required": false,
+            "description": "The modifiedat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-basemessage",
+            "in": "header",
+            "required": false,
+            "description": "The basemessage metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-envelope",
+            "in": "header",
+            "required": false,
+            "description": "The envelope metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-protocol",
+            "in": "header",
+            "required": false,
+            "description": "The protocol metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-dataschemaformat",
+            "in": "header",
+            "required": false,
+            "description": "The dataschemaformat metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-dataschemauri",
+            "in": "header",
+            "required": false,
+            "description": "The dataschemauri metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-dataschemaxid",
+            "in": "header",
+            "required": false,
+            "description": "The dataschemaxid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-datacontenttype",
+            "in": "header",
+            "required": false,
+            "description": "The datacontenttype metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-messageurl",
+            "in": "header",
+            "required": false,
+            "description": "The messageurl metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -1924,6 +2263,176 @@
                   "$ref": "#/components/schemas/message"
                 }
               }
+            },
+            "headers": {
+              "xRegistry-messageid": {
+                "description": "The messageid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-versionid": {
+                "description": "The versionid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-name": {
+                "description": "The name metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-description": {
+                "description": "The description metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-ancestorid": {
+                "description": "The ancestorid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-format": {
+                "description": "The format metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-formatvalidatedreason": {
+                "description": "The formatvalidatedreason metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-compatibilityvalidatedreason": {
+                "description": "The compatibilityvalidatedreason metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-self": {
+                "description": "The self metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-shortself": {
+                "description": "The shortself metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-documentation": {
+                "description": "The documentation metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-icon": {
+                "description": "The icon metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-xid": {
+                "description": "The xid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-epoch": {
+                "description": "The epoch metadata attribute (uinteger), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-isdefault": {
+                "description": "The isdefault metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-createdat": {
+                "description": "The createdat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-modifiedat": {
+                "description": "The modifiedat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-formatvalidated": {
+                "description": "The formatvalidated metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-compatibilityvalidated": {
+                "description": "The compatibilityvalidated metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-basemessage": {
+                "description": "The basemessage metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-envelope": {
+                "description": "The envelope metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-protocol": {
+                "description": "The protocol metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemaformat": {
+                "description": "The dataschemaformat metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemauri": {
+                "description": "The dataschemauri metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemaxid": {
+                "description": "The dataschemaxid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-datacontenttype": {
+                "description": "The datacontenttype metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-messageurl": {
+                "description": "The messageurl metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-metaurl": {
+                "description": "The metaurl metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              }
             }
           },
           "400": {
@@ -1945,7 +2454,7 @@
       },
       "post": {
         "summary": "Post new resource version",
-        "description": "Creates a new version of the resource. If the resource does not exist, it is created at version 1; if it exists, the new version is created (default version may be updated using setdefaultversionid). (See spec: Creating or Updating Resources and Versions, Default Version of a Resource)",
+        "description": "Creates a new version of the resource. If the resource does not exist, it is created at version 1; if it exists, the new version is created (default version may be updated using setdefaultversionid). (See spec: Creating or Updating Resources and Versions, Default Version of a Resource)\n\nPer-key map headers: `xRegistry-labels.<KEYNAME>`. Replace `<KEYNAME>` with the encoded key; encode values per the xRegistry HTTP Header Processing rules.",
         "operationId": "postMessagegroupMessage",
         "tags": [
           "Resource"
@@ -1971,6 +2480,177 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "name": "xRegistry-messageid",
+            "in": "header",
+            "required": false,
+            "description": "The messageid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-versionid",
+            "in": "header",
+            "required": false,
+            "description": "The versionid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-name",
+            "in": "header",
+            "required": false,
+            "description": "The name metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-description",
+            "in": "header",
+            "required": false,
+            "description": "The description metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-ancestorid",
+            "in": "header",
+            "required": false,
+            "description": "The ancestorid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-format",
+            "in": "header",
+            "required": false,
+            "description": "The format metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-documentation",
+            "in": "header",
+            "required": false,
+            "description": "The documentation metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-icon",
+            "in": "header",
+            "required": false,
+            "description": "The icon metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-epoch",
+            "in": "header",
+            "required": false,
+            "description": "The epoch metadata attribute (uinteger), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-createdat",
+            "in": "header",
+            "required": false,
+            "description": "The createdat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-modifiedat",
+            "in": "header",
+            "required": false,
+            "description": "The modifiedat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-basemessage",
+            "in": "header",
+            "required": false,
+            "description": "The basemessage metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-envelope",
+            "in": "header",
+            "required": false,
+            "description": "The envelope metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-protocol",
+            "in": "header",
+            "required": false,
+            "description": "The protocol metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-dataschemaformat",
+            "in": "header",
+            "required": false,
+            "description": "The dataschemaformat metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-dataschemauri",
+            "in": "header",
+            "required": false,
+            "description": "The dataschemauri metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-dataschemaxid",
+            "in": "header",
+            "required": false,
+            "description": "The dataschemaxid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-datacontenttype",
+            "in": "header",
+            "required": false,
+            "description": "The datacontenttype metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-messageurl",
+            "in": "header",
+            "required": false,
+            "description": "The messageurl metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -2002,6 +2682,170 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/message"
+                }
+              }
+            },
+            "headers": {
+              "xRegistry-messageid": {
+                "description": "The messageid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-versionid": {
+                "description": "The versionid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-name": {
+                "description": "The name metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-description": {
+                "description": "The description metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-ancestorid": {
+                "description": "The ancestorid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-format": {
+                "description": "The format metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-formatvalidatedreason": {
+                "description": "The formatvalidatedreason metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-compatibilityvalidatedreason": {
+                "description": "The compatibilityvalidatedreason metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-self": {
+                "description": "The self metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-shortself": {
+                "description": "The shortself metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-documentation": {
+                "description": "The documentation metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-icon": {
+                "description": "The icon metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-xid": {
+                "description": "The xid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-epoch": {
+                "description": "The epoch metadata attribute (uinteger), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-isdefault": {
+                "description": "The isdefault metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-createdat": {
+                "description": "The createdat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-modifiedat": {
+                "description": "The modifiedat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-formatvalidated": {
+                "description": "The formatvalidated metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-compatibilityvalidated": {
+                "description": "The compatibilityvalidated metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-basemessage": {
+                "description": "The basemessage metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-envelope": {
+                "description": "The envelope metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-protocol": {
+                "description": "The protocol metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemaformat": {
+                "description": "The dataschemaformat metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemauri": {
+                "description": "The dataschemauri metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemaxid": {
+                "description": "The dataschemaxid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-datacontenttype": {
+                "description": "The datacontenttype metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-messageurl": {
+                "description": "The messageurl metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -2147,7 +2991,7 @@
         "tags": [
           "Resource"
         ],
-        "description": "Gets the resource (default version). Supports $details view via the 'doc' query parameter. (See spec: Retrieving a Resource and Retrieving a Resource as Metadata)",
+        "description": "Gets the resource (default version). Supports $details view via the 'doc' query parameter. (See spec: Retrieving a Resource and Retrieving a Resource as Metadata)\n\nPer-key map headers: `xRegistry-labels.<KEYNAME>`. Replace `<KEYNAME>` with the encoded key; encode values per the xRegistry HTTP Header Processing rules.",
         "responses": {
           "200": {
             "description": "The resource (or a redirect if a RESOURCEurl is set).",
@@ -2157,6 +3001,174 @@
                 "schema": {
                   "type": "string",
                   "format": "uri-reference"
+                }
+              },
+              "xRegistry-messageid": {
+                "description": "The messageid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-versionid": {
+                "description": "The versionid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-name": {
+                "description": "The name metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-description": {
+                "description": "The description metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-ancestorid": {
+                "description": "The ancestorid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-format": {
+                "description": "The format metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-formatvalidatedreason": {
+                "description": "The formatvalidatedreason metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-compatibilityvalidatedreason": {
+                "description": "The compatibilityvalidatedreason metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-self": {
+                "description": "The self metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-shortself": {
+                "description": "The shortself metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-documentation": {
+                "description": "The documentation metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-icon": {
+                "description": "The icon metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-xid": {
+                "description": "The xid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-epoch": {
+                "description": "The epoch metadata attribute (uinteger), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-isdefault": {
+                "description": "The isdefault metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-createdat": {
+                "description": "The createdat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-modifiedat": {
+                "description": "The modifiedat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-formatvalidated": {
+                "description": "The formatvalidated metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-compatibilityvalidated": {
+                "description": "The compatibilityvalidated metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-basemessage": {
+                "description": "The basemessage metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-envelope": {
+                "description": "The envelope metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-protocol": {
+                "description": "The protocol metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemaformat": {
+                "description": "The dataschemaformat metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemauri": {
+                "description": "The dataschemauri metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemaxid": {
+                "description": "The dataschemaxid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-datacontenttype": {
+                "description": "The datacontenttype metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-messageurl": {
+                "description": "The messageurl metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-metaurl": {
+                "description": "The metaurl metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
                 }
               }
             },
@@ -2193,7 +3205,7 @@
         "tags": [
           "Resource"
         ],
-        "description": "Creates or updates a resource. Accepts either the raw document (when $details is not used) or a full xRegistry metadata serialization (when $details is used). (See spec: Creating or Updating Resources and Versions, Resource Metadata vs Resource Document)",
+        "description": "Creates or updates a resource. Accepts either the raw document (when $details is not used) or a full xRegistry metadata serialization (when $details is used). (See spec: Creating or Updating Resources and Versions, Resource Metadata vs Resource Document)\n\nPer-key map headers: `xRegistry-labels.<KEYNAME>`. Replace `<KEYNAME>` with the encoded key; encode values per the xRegistry HTTP Header Processing rules.",
         "parameters": [
           {
             "in": "query",
@@ -2216,6 +3228,177 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "name": "xRegistry-messageid",
+            "in": "header",
+            "required": false,
+            "description": "The messageid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-versionid",
+            "in": "header",
+            "required": false,
+            "description": "The versionid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-name",
+            "in": "header",
+            "required": false,
+            "description": "The name metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-description",
+            "in": "header",
+            "required": false,
+            "description": "The description metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-ancestorid",
+            "in": "header",
+            "required": false,
+            "description": "The ancestorid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-format",
+            "in": "header",
+            "required": false,
+            "description": "The format metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-documentation",
+            "in": "header",
+            "required": false,
+            "description": "The documentation metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-icon",
+            "in": "header",
+            "required": false,
+            "description": "The icon metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-epoch",
+            "in": "header",
+            "required": false,
+            "description": "The epoch metadata attribute (uinteger), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-createdat",
+            "in": "header",
+            "required": false,
+            "description": "The createdat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-modifiedat",
+            "in": "header",
+            "required": false,
+            "description": "The modifiedat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-basemessage",
+            "in": "header",
+            "required": false,
+            "description": "The basemessage metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-envelope",
+            "in": "header",
+            "required": false,
+            "description": "The envelope metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-protocol",
+            "in": "header",
+            "required": false,
+            "description": "The protocol metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-dataschemaformat",
+            "in": "header",
+            "required": false,
+            "description": "The dataschemaformat metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-dataschemauri",
+            "in": "header",
+            "required": false,
+            "description": "The dataschemauri metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-dataschemaxid",
+            "in": "header",
+            "required": false,
+            "description": "The dataschemaxid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-datacontenttype",
+            "in": "header",
+            "required": false,
+            "description": "The datacontenttype metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-messageurl",
+            "in": "header",
+            "required": false,
+            "description": "The messageurl metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -2243,6 +3426,176 @@
                   "$ref": "#/components/schemas/message"
                 }
               }
+            },
+            "headers": {
+              "xRegistry-messageid": {
+                "description": "The messageid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-versionid": {
+                "description": "The versionid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-name": {
+                "description": "The name metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-description": {
+                "description": "The description metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-ancestorid": {
+                "description": "The ancestorid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-format": {
+                "description": "The format metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-formatvalidatedreason": {
+                "description": "The formatvalidatedreason metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-compatibilityvalidatedreason": {
+                "description": "The compatibilityvalidatedreason metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-self": {
+                "description": "The self metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-shortself": {
+                "description": "The shortself metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-documentation": {
+                "description": "The documentation metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-icon": {
+                "description": "The icon metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-xid": {
+                "description": "The xid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-epoch": {
+                "description": "The epoch metadata attribute (uinteger), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-isdefault": {
+                "description": "The isdefault metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-createdat": {
+                "description": "The createdat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-modifiedat": {
+                "description": "The modifiedat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-formatvalidated": {
+                "description": "The formatvalidated metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-compatibilityvalidated": {
+                "description": "The compatibilityvalidated metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-basemessage": {
+                "description": "The basemessage metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-envelope": {
+                "description": "The envelope metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-protocol": {
+                "description": "The protocol metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemaformat": {
+                "description": "The dataschemaformat metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemauri": {
+                "description": "The dataschemauri metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemaxid": {
+                "description": "The dataschemaxid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-datacontenttype": {
+                "description": "The datacontenttype metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-messageurl": {
+                "description": "The messageurl metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-metaurl": {
+                "description": "The metaurl metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              }
             }
           },
           "400": {
@@ -2264,7 +3617,7 @@
       },
       "post": {
         "summary": "Post new resource version",
-        "description": "Creates a new version of the resource. If the resource does not exist, it is created at version 1; if it exists, the new version is created (default version may be updated using setdefaultversionid). (See spec: Creating or Updating Resources and Versions, Default Version of a Resource)",
+        "description": "Creates a new version of the resource. If the resource does not exist, it is created at version 1; if it exists, the new version is created (default version may be updated using setdefaultversionid). (See spec: Creating or Updating Resources and Versions, Default Version of a Resource)\n\nPer-key map headers: `xRegistry-labels.<KEYNAME>`. Replace `<KEYNAME>` with the encoded key; encode values per the xRegistry HTTP Header Processing rules.",
         "operationId": "postEndpointMessages",
         "tags": [
           "Resource"
@@ -2290,6 +3643,177 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "name": "xRegistry-messageid",
+            "in": "header",
+            "required": false,
+            "description": "The messageid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-versionid",
+            "in": "header",
+            "required": false,
+            "description": "The versionid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-name",
+            "in": "header",
+            "required": false,
+            "description": "The name metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-description",
+            "in": "header",
+            "required": false,
+            "description": "The description metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-ancestorid",
+            "in": "header",
+            "required": false,
+            "description": "The ancestorid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-format",
+            "in": "header",
+            "required": false,
+            "description": "The format metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-documentation",
+            "in": "header",
+            "required": false,
+            "description": "The documentation metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-icon",
+            "in": "header",
+            "required": false,
+            "description": "The icon metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-epoch",
+            "in": "header",
+            "required": false,
+            "description": "The epoch metadata attribute (uinteger), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-createdat",
+            "in": "header",
+            "required": false,
+            "description": "The createdat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-modifiedat",
+            "in": "header",
+            "required": false,
+            "description": "The modifiedat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-basemessage",
+            "in": "header",
+            "required": false,
+            "description": "The basemessage metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-envelope",
+            "in": "header",
+            "required": false,
+            "description": "The envelope metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-protocol",
+            "in": "header",
+            "required": false,
+            "description": "The protocol metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-dataschemaformat",
+            "in": "header",
+            "required": false,
+            "description": "The dataschemaformat metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-dataschemauri",
+            "in": "header",
+            "required": false,
+            "description": "The dataschemauri metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-dataschemaxid",
+            "in": "header",
+            "required": false,
+            "description": "The dataschemaxid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-datacontenttype",
+            "in": "header",
+            "required": false,
+            "description": "The datacontenttype metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "xRegistry-messageurl",
+            "in": "header",
+            "required": false,
+            "description": "The messageurl metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -2321,6 +3845,170 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/message"
+                }
+              }
+            },
+            "headers": {
+              "xRegistry-messageid": {
+                "description": "The messageid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-versionid": {
+                "description": "The versionid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-name": {
+                "description": "The name metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-description": {
+                "description": "The description metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-ancestorid": {
+                "description": "The ancestorid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-format": {
+                "description": "The format metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-formatvalidatedreason": {
+                "description": "The formatvalidatedreason metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-compatibilityvalidatedreason": {
+                "description": "The compatibilityvalidatedreason metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-self": {
+                "description": "The self metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-shortself": {
+                "description": "The shortself metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-documentation": {
+                "description": "The documentation metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-icon": {
+                "description": "The icon metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-xid": {
+                "description": "The xid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-epoch": {
+                "description": "The epoch metadata attribute (uinteger), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-isdefault": {
+                "description": "The isdefault metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-createdat": {
+                "description": "The createdat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-modifiedat": {
+                "description": "The modifiedat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-formatvalidated": {
+                "description": "The formatvalidated metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-compatibilityvalidated": {
+                "description": "The compatibilityvalidated metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-basemessage": {
+                "description": "The basemessage metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-envelope": {
+                "description": "The envelope metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-protocol": {
+                "description": "The protocol metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemaformat": {
+                "description": "The dataschemaformat metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemauri": {
+                "description": "The dataschemauri metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemaxid": {
+                "description": "The dataschemaxid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-datacontenttype": {
+                "description": "The datacontenttype metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-messageurl": {
+                "description": "The messageurl metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -3798,7 +5486,7 @@
         "tags": [
           "ResourceVersion"
         ],
-        "description": "Gets a specific version of a resource. Returns either the document (if not $details) or the metadata view. (See spec: Retrieving a Version and Retrieving a Version as Metadata)",
+        "description": "Gets a specific version of a resource. Returns either the document (if not $details) or the metadata view. (See spec: Retrieving a Version and Retrieving a Version as Metadata)\n\nPer-key map headers: `xRegistry-labels.<KEYNAME>`. Replace `<KEYNAME>` with the encoded key; encode values per the xRegistry HTTP Header Processing rules.",
         "responses": {
           "200": {
             "description": "The resource version.",
@@ -3812,6 +5500,170 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/message"
+                }
+              }
+            },
+            "headers": {
+              "xRegistry-messageid": {
+                "description": "The messageid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-versionid": {
+                "description": "The versionid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-name": {
+                "description": "The name metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-description": {
+                "description": "The description metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-ancestorid": {
+                "description": "The ancestorid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-format": {
+                "description": "The format metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-formatvalidatedreason": {
+                "description": "The formatvalidatedreason metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-compatibilityvalidatedreason": {
+                "description": "The compatibilityvalidatedreason metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-self": {
+                "description": "The self metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-shortself": {
+                "description": "The shortself metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-documentation": {
+                "description": "The documentation metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-icon": {
+                "description": "The icon metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-xid": {
+                "description": "The xid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-epoch": {
+                "description": "The epoch metadata attribute (uinteger), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-isdefault": {
+                "description": "The isdefault metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-createdat": {
+                "description": "The createdat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-modifiedat": {
+                "description": "The modifiedat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-formatvalidated": {
+                "description": "The formatvalidated metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-compatibilityvalidated": {
+                "description": "The compatibilityvalidated metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-basemessage": {
+                "description": "The basemessage metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-envelope": {
+                "description": "The envelope metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-protocol": {
+                "description": "The protocol metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemaformat": {
+                "description": "The dataschemaformat metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemauri": {
+                "description": "The dataschemauri metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemaxid": {
+                "description": "The dataschemaxid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-datacontenttype": {
+                "description": "The datacontenttype metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-messageurl": {
+                "description": "The messageurl metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
                 }
               }
             }
@@ -3909,7 +5761,7 @@
         "tags": [
           "ResourceVersion"
         ],
-        "description": "Gets a specific version of a resource. Returns either the document (if not $details) or the metadata view. (See spec: Retrieving a Version and Retrieving a Version as Metadata)",
+        "description": "Gets a specific version of a resource. Returns either the document (if not $details) or the metadata view. (See spec: Retrieving a Version and Retrieving a Version as Metadata)\n\nPer-key map headers: `xRegistry-labels.<KEYNAME>`. Replace `<KEYNAME>` with the encoded key; encode values per the xRegistry HTTP Header Processing rules.",
         "responses": {
           "200": {
             "description": "The resource version.",
@@ -3923,6 +5775,170 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/message"
+                }
+              }
+            },
+            "headers": {
+              "xRegistry-messageid": {
+                "description": "The messageid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-versionid": {
+                "description": "The versionid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-name": {
+                "description": "The name metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-description": {
+                "description": "The description metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-ancestorid": {
+                "description": "The ancestorid metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-format": {
+                "description": "The format metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-formatvalidatedreason": {
+                "description": "The formatvalidatedreason metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-compatibilityvalidatedreason": {
+                "description": "The compatibilityvalidatedreason metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-self": {
+                "description": "The self metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-shortself": {
+                "description": "The shortself metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-documentation": {
+                "description": "The documentation metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-icon": {
+                "description": "The icon metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-xid": {
+                "description": "The xid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-epoch": {
+                "description": "The epoch metadata attribute (uinteger), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-isdefault": {
+                "description": "The isdefault metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-createdat": {
+                "description": "The createdat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-modifiedat": {
+                "description": "The modifiedat metadata attribute (timestamp), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-formatvalidated": {
+                "description": "The formatvalidated metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-compatibilityvalidated": {
+                "description": "The compatibilityvalidated metadata attribute (boolean), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-basemessage": {
+                "description": "The basemessage metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-envelope": {
+                "description": "The envelope metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-protocol": {
+                "description": "The protocol metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemaformat": {
+                "description": "The dataschemaformat metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemauri": {
+                "description": "The dataschemauri metadata attribute (uri), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-dataschemaxid": {
+                "description": "The dataschemaxid metadata attribute (xid), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-datacontenttype": {
+                "description": "The datacontenttype metadata attribute (string), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "xRegistry-messageurl": {
+                "description": "The messageurl metadata attribute (url), serialized and percent-encoded according to the xRegistry HTTP Header Values rules. This schema describes the encoded wire value.",
+                "schema": {
+                  "type": "string"
                 }
               }
             }

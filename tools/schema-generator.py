@@ -429,8 +429,6 @@ def generate_openapi(model_definition):
                 resources.append((owner, owner["resources"][plural]))
             for owner, definition in resources:
                 resource = resolve_resource(owner, definition)
-                if not resource.get("hasdocument", True):
-                    continue
                 base = f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}"
                 for path, level in (
                     (base, "resource"), (base + "/versions/{versionid}", "version")
