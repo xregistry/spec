@@ -2953,7 +2953,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/messageVersion"
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/messageVersion"
+                  }
                 }
               }
             }
@@ -3099,7 +3102,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/messageVersion"
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/messageVersion"
+                  }
                 }
               }
             }
@@ -3245,7 +3251,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/schemaVersion"
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/schemaVersion"
+                  }
                 }
               }
             }

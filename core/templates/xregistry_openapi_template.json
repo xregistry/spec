@@ -1287,7 +1287,10 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "{%-resourceTypeReference-%}"
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "$ref": "{%-resourceTypeReference-%}"
+                                    }
                                 }
                             }
                         }
