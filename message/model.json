@@ -404,6 +404,7 @@
                                   "enum": [
                                     "uinteger",
                                     "string",
+                                    "binary",
                                     "uritemplate"
                                   ]
                                 },
@@ -435,16 +436,15 @@
                                   "description": "AMQP properties.user-id value type",
                                   "type": "string",
                                   "required": true,
-                                  "default": "string",
+                                  "default": "binary",
                                   "enum": [
-                                    "string",
-                                    "uritemplate"
+                                    "binary"
                                   ]
                                 },
                                 "value": {
                                   "name": "value",
-                                  "description": "AMQP properties.user-id value constraint as a base64-encoded string",
-                                  "type": "string"
+                                  "description": "AMQP properties.user-id binary value constraint",
+                                  "type": "binary"
                                 },
                                 "required": {
                                   "name": "required",
@@ -843,6 +843,7 @@
                                   "uritemplate",
                                   "integer",
                                   "decimal",
+                                  "number",
                                   "boolean"
                                 ],
                                 "required": true,
@@ -883,6 +884,7 @@
                                   "uritemplate",
                                   "integer",
                                   "decimal",
+                                  "number",
                                   "boolean"
                                 ],
                                 "required": true,
@@ -923,6 +925,7 @@
                                   "uritemplate",
                                   "integer",
                                   "decimal",
+                                  "number",
                                   "boolean"
                                 ],
                                 "required": true,
@@ -1004,6 +1007,7 @@
                                   "uritemplate",
                                   "integer",
                                   "decimal",
+                                  "number",
                                   "boolean"
                                 ],
                                 "required": true,
@@ -1098,8 +1102,8 @@
                         },
                         "correlation_data": {
                           "name": "correlation_data",
-                          "description": "MQTT correlation data as a base64-encoded string",
-                          "type": "string"
+                          "description": "MQTT correlation data",
+                          "type": "binary"
                         },
                         "content_type": {
                           "name": "content_type",
@@ -1160,7 +1164,7 @@
                         "key_base64": {
                           "name": "key_base64",
                           "description": "Binary Apache Kafka key as a base64 encoded string. Mutually exclusive with 'key'",
-                          "type": "string"
+                          "type": "binary"
                         },
                         "headers": {
                           "name": "headers",

@@ -33,6 +33,7 @@
               "uritemplate",
               "integer",
               "decimal",
+              "number",
               "boolean"
             ]
           },
@@ -61,6 +62,7 @@
               "uritemplate",
               "integer",
               "decimal",
+              "number",
               "boolean"
             ]
           },
@@ -89,6 +91,7 @@
               "uritemplate",
               "integer",
               "decimal",
+              "number",
               "boolean"
             ]
           },
@@ -117,6 +120,7 @@
               "uritemplate",
               "integer",
               "decimal",
+              "number",
               "boolean"
             ]
           },
@@ -450,6 +454,7 @@
                         "enum": [
                           "uinteger",
                           "string",
+                          "binary",
                           "uritemplate"
                         ]
                       },
@@ -478,13 +483,12 @@
                         "type": "string",
                         "description": "AMQP properties.user-id value type",
                         "enum": [
-                          "string",
-                          "uritemplate"
+                          "binary"
                         ]
                       },
                       "value": {
-                        "type": "string",
-                        "description": "AMQP properties.user-id value constraint as a base64-encoded string"
+                        "type": "binary",
+                        "description": "AMQP properties.user-id binary value constraint"
                       },
                       "required": {
                         "type": "boolean",

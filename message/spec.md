@@ -883,14 +883,18 @@ the headers, properties or attributes defined for a message:
     [xRegistry Core](../core/spec.md#data-types). Protocol definitions MAY
     further constrain the permitted types and values for a property.
 
+For AMQP `application-properties`, `message-annotations`,
+`delivery-annotations`, and `footer` declarations, `number` is retained as an
+alias for Core `decimal`. Implementations MUST treat both names as the same
+value type.
+
 The protocol tables below use Core declaration types. Native wire encodings
 and protocol-specific value constraints remain unchanged. UUID values and
 duration expressions use `string` with the syntax defined by the applicable
 protocol.
 
-Binary data uses `string` in xRegistry declarations. Unless a protocol section
-specifies a text encoding, the value after any permitted placeholder
-substitution MUST be base64 encoded as defined in
+Binary data uses the Core `binary` type in xRegistry declarations. When encoded
+as JSON, a binary value MUST use the Base64 representation defined in
 [RFC 4648, Section 4][RFC4648].
 
 ##### `value`
@@ -1196,7 +1200,7 @@ following properties are defined, with type constraints:
 | Property               | Type             | Description                                                                      |
 | ---------------------- | ---------------- | -------------------------------------------------------------------------------- |
 | `message-id`           | (see note below) | uniquely identifies a message within the message system                          |
-| `user-id`              | `string`         | base64-encoded identity of the user responsible for producing the message        |
+| `user-id`              | `binary`         | identity of the user responsible for producing the message                       |
 | `to`                   | `uritemplate`    | address of the node to send the message to                                       |
 | `subject`              | `string`         | message subject                                                                  |
 | `reply-to`             | `uritemplate`    | address of the node to which the receiver of this message ought to send replies  |
@@ -1208,8 +1212,9 @@ following properties are defined, with type constraints:
 | `group-sequence`       | `integer`        | position of this message within its group                                        |
 | `reply-to-group-id`    | `uritemplate`    | group-id to which the receiver of this message ought to send replies to          |
 
-The `message-id` permits the Core declaration types `uinteger`, `string`, and
-`uritemplate`. UUID values use strings, and binary identifiers use base64 strings.
+The `message-id` permits the Core declaration types `uinteger`, `string`,
+`binary`, and `uritemplate`. UUID values use strings. Binary values use the
+Base64 representation required for JSON serialization.
 The native identifier types remain those defined by
 [AMQP Message Properties][AMQP 1.0 Message Properties]. A `value` constraint
 for the `message-id` property SHOULD NOT be defined in the message definition
@@ -1293,7 +1298,7 @@ indicate whether the property is supported for the respective MQTT version.
 | `payload_format_indicator` | `integer`     | no         | yes      | Payload format indicator         |
 | `message_expiry_interval`  | `integer`     | no         | yes      | Message expiry interval          |
 | `response_topic`           | `uritemplate` | no         | yes      | Response topic                   |
-| `correlation_data`         | `string`      | no         | yes      | Base64-encoded correlation data  |
+| `correlation_data`         | `binary`      | no         | yes      | Correlation data                 |
 | `content_type`             | `string`      | no         | yes      | MIME content type of the payload |
 | `user_properties`          | `array`       | no         | yes      | User properties                  |
 
@@ -1344,7 +1349,7 @@ The following properties are defined:
 | `topic`      | `string`  | The topic the record will be appended to                                  |
 | `partition`  | `integer` | The partition to which the record is to be sent or has been received from |
 | `key`        | `string`  | The key that is associated with the record, UTF-8 encoded                 |
-| `key_base64` | `string`  | The key that is associated with the record as a base64 encoded string     |
+| `key_base64` | `binary`  | The key that is associated with the record as a base64 encoded string     |
 | `headers`    | `map`     | A map of headers to set on the record                                     |
 
 The `key` and `key_base64` properties are mutually exclusive and MUST NOT be

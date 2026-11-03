@@ -387,7 +387,8 @@
                               },
                               "value": {
                                 "type": "string",
-                                "description": "AMQP properties.user-id value constraint as a base64-encoded string"
+                                "format": "base64",
+                                "description": "AMQP properties.user-id binary value constraint"
                               },
                               "required": {
                                 "type": "boolean",
@@ -827,7 +828,8 @@
                       },
                       "correlation_data": {
                         "type": "string",
-                        "description": "MQTT correlation data as a base64-encoded string"
+                        "format": "base64",
+                        "description": "MQTT correlation data"
                       },
                       "content_type": {
                         "type": "string",
@@ -892,6 +894,7 @@
                       },
                       "key_base64": {
                         "type": "string",
+                        "format": "base64",
                         "description": "Binary Apache Kafka key as a base64 encoded string. Mutually exclusive with 'key'"
                       },
                       "headers": {
