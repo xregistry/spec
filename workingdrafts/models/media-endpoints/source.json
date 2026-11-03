@@ -18,13 +18,13 @@
         "path": "endpoint/model.json",
         "gitBlob": "be4287fb1472d9ac6615e06ade469f216938ee29",
         "snapshot": "sources/endpoint-model.source.json",
-        "sha256": "e1acb299119866671bcc2b8561ddc240c7c85261740f91b732e13a799bd04f4b"
+        "sha256": "a4f33c5f8d5a52202e523eb292340ddb2013a898c9197e1e3581f036dcb82442"
       },
       {
         "path": "message/model.json",
         "gitBlob": "5df13a2dbb11ccd0e8d8643e983dfbb71262051a",
         "snapshot": "sources/message-model.source.json",
-        "sha256": "e0f6bbbedabf2781ea99d17e28139da4b1d22ede88526dbcf2eec860440bd748"
+        "sha256": "7355faa56cebe030f08810dd7766f2321a4f4be30152d906be5948e8b74cec25"
       }
     ]
   },
@@ -33,6 +33,16 @@
       "path": "groups.messagegroups.resources.messages.attributes.protocol.ifvalues.HTTP.siblingattributes.protocoloptions.attributes",
       "adjustment": "Change HTTP query from an array of named objects to a map of string values, and add the HTTP status string.",
       "reason": "Aligns the embedded Message model with the corrected HTTP protocol declaration while preserving the original upstream revision and Git blob."
+    },
+    {
+      "path": "groups.messagegroups.resources.messages.attributes.protocol.ifvalues",
+      "adjustment": "Add HTTP/1.1, HTTP/2, and HTTP/3 selectors with the HTTP option constraints.",
+      "reason": "The Message specification names these HTTP versions as protocol selectors."
+    },
+    {
+      "path": "groups.endpoints.attributes.protocol.ifvalues",
+      "adjustment": "Add HTTP/1.1, HTTP/2, and HTTP/3 selectors with the HTTP option constraints.",
+      "reason": "Keep the embedded Endpoint protocol model aligned with the HTTP versions named by the Message specification."
     },
     {
       "path": "groups.endpoints.attributes.usage",

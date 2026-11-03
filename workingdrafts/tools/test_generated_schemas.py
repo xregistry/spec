@@ -160,6 +160,15 @@ class TestGeneratedSchemas:
             )
             for adjustment in source['modelAdjustments']
         )
+        assert any(
+            adjustment['path']
+            == 'groups.messagegroups.resources.messages.attributes.protocol.ifvalues'
+            for adjustment in source['modelAdjustments']
+        )
+        assert any(
+            adjustment['path'] == 'groups.endpoints.attributes.protocol.ifvalues'
+            for adjustment in source['modelAdjustments']
+        )
 
         for filename, artifact in source['artifacts'].items():
             content = (root / filename).read_bytes()
@@ -178,6 +187,48 @@ class TestGeneratedSchemas:
             (tools_dir.parent / 'core' / 'model.schema.json').read_text(encoding='utf-8')
         )
         jsonschema.Draft7Validator(core_schema).validate(resolved_model)
+
+    def test_http_protocol_version_selectors_reuse_http_options(self, tools_dir):
+        root = tools_dir.parent
+        media_root = root / 'workingdrafts' / 'models' / 'media-endpoints'
+        selectors = ('HTTP/1.1', 'HTTP/2', 'HTTP/3')
+        models = [
+            (
+                'message',
+                json.loads((root / 'message' / 'model.json').read_text(encoding='utf-8')),
+            ),
+            (
+                'message',
+                json.loads(
+                    (media_root / 'sources' / 'message-model.source.json').read_text(
+                        encoding='utf-8'
+                    )
+                ),
+            ),
+            (
+                'endpoint',
+                json.loads((root / 'endpoint' / 'model.json').read_text(encoding='utf-8')),
+            ),
+            (
+                'endpoint',
+                json.loads(
+                    (media_root / 'sources' / 'endpoint-model.source.json').read_text(
+                        encoding='utf-8'
+                    )
+                ),
+            ),
+        ]
+
+        for model_type, model in models:
+            if model_type == 'message':
+                protocol = model['groups']['messagegroups']['resources']['messages'][
+                    'attributes'
+                ]['protocol']['ifvalues']
+            else:
+                protocol = model['groups']['endpoints']['attributes']['protocol']['ifvalues']
+
+            for selector in selectors:
+                assert protocol[selector] == protocol['HTTP']
 
     def test_media_endpoints_model_composes_base_protocols_without_codec_enums(
         self, tools_dir, tmp_path
