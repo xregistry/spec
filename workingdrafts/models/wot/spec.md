@@ -1379,7 +1379,7 @@ opening a publication MUST NOT fetch live contexts.
 In a marked projection plan, each external source-manifest entry is a
 dependency occurrence, in its authored array order. Its binding MUST record
 that entry's `href` and the projection operator above. The entry's expected
-media `type` determines whether a TD or TM target is required; the Consumer
+media `type` determines whether the target is a TD or TM; the Consumer
 MUST verify the captured target's actual kind. A `tm:ref` affordance selector
 matched to that source under the selected proposal MUST use the entry's
 binding and MUST NOT have a second binding of its own. Ordinary `td:ref`
