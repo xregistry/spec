@@ -626,6 +626,15 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                                 }
                             },
                             "required": [resource_name+"url"]
+                        },
+                        {
+                            "not": {
+                                "anyOf": [
+                                    {"required": [resource_name]},
+                                    {"required": [resource_name+"base64"]},
+                                    {"required": [resource_name+"url"]}
+                                ]
+                            }
                         }
                     ]
                 }
