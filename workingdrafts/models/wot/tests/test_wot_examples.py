@@ -175,6 +175,49 @@ def test_proposed_closure_shape():
     jsonschema.validate(EXAMPLE, SCHEMA)
 
 
+@pytest.mark.parametrize(
+    "operator",
+    [
+        "tm:extends",
+        "tm:submodel",
+        "tm:ref",
+        "td:extends",
+        "td:subthing",
+        "td:ref",
+        "type",
+        "https://raw.githubusercontent.com/marcschier/wot-thing-description/"
+        "main/proposals/wot-projections/context.experimental-v1.jsonld#projects",
+    ],
+)
+def test_closure_shape_accepts_canonical_operator_strings(operator):
+    example = deepcopy(EXAMPLE)
+    example["bindings"][0]["operator"] = operator
+    jsonschema.validate(example, SCHEMA)
+
+
+@pytest.mark.parametrize(
+    "operator",
+    [
+        "",
+        None,
+        ["type"],
+        "TYPE",
+        "@type",
+        "td:type",
+        "model:ref",
+        "https://www.w3.org/2019/wot/tm#ref",
+        "https://www.w3.org/2019/wot/td#type",
+        "wotproj:projects",
+        "https://example.org/wot/projection#projects",
+    ],
+)
+def test_closure_shape_rejects_noncanonical_operator_strings(operator):
+    example = deepcopy(EXAMPLE)
+    example["bindings"][0]["operator"] = operator
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate(example, SCHEMA)
+
+
 @pytest.mark.parametrize("pointer", ["links/0"])
 def test_invalid_json_pointer_rejected(pointer):
     example = deepcopy(EXAMPLE)

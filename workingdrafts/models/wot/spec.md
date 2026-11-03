@@ -13,7 +13,7 @@
 <!-- words: toolchain byom contoso maturity publisher nosniff validateformat -->
 <!-- words: shortself -->
 <!-- words: allowprerelease contentdigest minversion prereleases unversioned versionorigin -->
-<!-- words: marcschier namespace sourcename uav viewversion -->
+<!-- words: marcschier namespace sourcename uav viewversion iri jsonld -->
 <!-- words: wotversion wotdigest topology percent dereferenceable -->
 <!-- words: vn -->
 
@@ -1315,6 +1315,78 @@ the captured source bytes and MUST NOT resolve a missing binding against a
 live Registry, select a default Version, or replace the target with a newer
 Version.
 
+The binding key MUST be `(source, pointer)`. Source identity follows Core's
+XID rules; pointer comparison MUST be case-sensitive. `pointer` MUST be an
+RFC 6901 JSON Pointer into the original captured JSON document, not a
+URI-fragment pointer or a pointer into expanded or resolved JSON-LD.
+For a `links` occurrence it MUST identify the link object. For an ordinary
+`tm:ref` or `td:ref` it MUST identify the object containing that member.
+For a projection source it MUST identify the source-manifest entry.
+JSON Pointer escaping applies to the actual authored member names, including
+an alternative JSON-LD prefix. Array indexes MUST use their RFC 6901 spelling.
+
+Each reachable external occurrence MUST have exactly one binding. A Consumer
+MUST reject duplicate binding keys, including duplicates with the same
+target, and MUST reject bindings to local, unreachable or nonexistent
+occurrences. Two different occurrences referring to the same target remain
+distinct bindings. If one pointed-to object contains several in-scope
+reference members, including aliases for the same expanded member, a
+Consumer MUST reject it as an ambiguous occurrence rather than choosing one.
+The binding's `href` MUST equal the source reference's JSON string value,
+including its fragment, without URI resolution or percent decoding.
+
+`operator` MUST use the canonical string in the following table. These
+strings are closure labels, not terms expanded through a context on the
+closure document:
+
+| Source occurrence | Canonical `operator` |
+| --- | --- |
+| Link with `rel: "tm:extends"` | `tm:extends` |
+| Link with `rel: "tm:submodel"` | `tm:submodel` |
+| Ordinary member expanding to `https://www.w3.org/2019/wot/tm#ref` | `tm:ref` |
+| Link with `rel: "td:extends"` | `td:extends` |
+| Link with `rel: "td:subthing"` | `td:subthing` |
+| Ordinary member expanding to `https://www.w3.org/2019/wot/td#ref` | `td:ref` |
+| TD link with `rel: "type"` | `type` |
+| Experimental projection source-manifest entry | `https://raw.githubusercontent.com/marcschier/wot-thing-description/main/proposals/wot-projections/context.experimental-v1.jsonld#projects` |
+
+A Consumer MUST compare canonical operators as exact strings and MUST reject
+unknown or mismatched operators. Member names MUST be interpreted under
+their captured effective JSON-LD contexts; the literal prefix alone does not
+establish a member's meaning. Link relations in the table are literal `rel`
+values. A prefix declaration MUST NOT turn another relation string into one
+of these values. In particular, `type` is a link relation, not `@type` or an
+IRI formed by appending `type` to the TD namespace. These representation rules
+do not change the composition semantics of the named operators.
+
+For example, `/properties/a~1b~0c` identifies the object under the authored
+property name `a/b~c`. If that object contains an ordinary reference spelled
+`model:ref`, expanding to `https://www.w3.org/2019/wot/tm#ref`, its binding
+records `operator: "tm:ref"` and retains the pointer's authored spelling.
+Recording `model:ref` as the binding operator is invalid. Binding `/links/0`
+twice is also invalid even if both records name the same Version. Omitting
+`/links/1` because it references that same Version leaves closure incomplete.
+
+The experimental projection mapping selects the
+[Projection Plans proposal at commit `79ddf72`](https://github.com/marcschier/wot-thing-description/blob/79ddf72d70eff97d9541afc83e20631cc3ba3567/proposals/wot-projections/spec.md)
+and its context artifact at that revision. This is a repository-controlled
+experiment, not a W3C or OPC Foundation vocabulary assignment. A Consumer
+MUST identify its projection marker and `projects` member by the expanded
+IRIs defined there. The former placeholder namespace is not an alias.
+Consumers MUST use captured contexts or a supported immutable context set;
+opening a publication MUST NOT fetch live contexts.
+
+In a marked projection plan, each external source-manifest entry is a
+dependency occurrence, in its authored array order. Its binding MUST record
+that entry's `href` and the projection operator above. The entry's expected
+media `type` determines whether a TD or TM target is required; the Consumer
+MUST verify the captured target's actual kind. A `tm:ref` affordance selector
+matched to that source under the selected proposal MUST use the entry's
+binding and MUST NOT have a second binding of its own. Ordinary `td:ref`
+occurrences remain separate dependencies. A marker, source entry or selector
+that fails the selected proposal's rules MUST NOT be accepted by supplying
+an otherwise well-shaped closure binding.
+
 The following mapping decisions remain unresolved. These are specification
 gaps, not implementation choices:
 
@@ -1324,18 +1396,10 @@ gaps, not implementation choices:
    source-manifest entries. It excludes Schema Resource references and OPC UA
    `uav:dataTypeDefinitions` materialization references. A normative rule is
    still needed to distinguish an ordinary `tm:ref` from the schema use in
-   [Section 6.4](#64-thing-description-to-schema-registry) and a projection
-   selector, using the source bytes and captured context. Classifying it from
+   [Section 6.4](#64-thing-description-to-schema-registry), using the source
+   bytes and captured context. Classifying it from
    the bound target would let the binding list determine its own coverage.
-2. **Occurrence and operator representation.** The design proposes the binding
-   key `(source, pointer)`, with the pointer identifying a link object, an
-   object containing an ordinary reference, or a projection source entry.
-   The closure schema accepts any nonempty `operator` string. The profile
-   still needs to specify which spelling is recorded and how it is compared
-   with the source occurrence, including compact and expanded operator names.
-   A JSON-LD prefix declaration alone does not define expansion of link
-   `rel` strings; `type` is a link relation name.
-3. **Target identity for document URLs.**
+2. **Target identity for document URLs.**
    [Section 5.4.2](#542-resolver-algorithm) already maps an external
    `tm:ref` or `td:ref`, resolved against its base and without its fragment,
    to `wotid`. However,
@@ -1346,17 +1410,6 @@ gaps, not implementation choices:
    relocation. Publication records `viewVersion`, origin identities, `base`
    and a content retrieval descriptor, but defines no WoT URL-to-target
    comparison rule. A byte location is not an authored identity.
-4. **Projection vocabulary and source mapping.** The
-   [unversioned Projection Plans working draft](https://github.com/marcschier/wot-thing-description/blob/main/proposals/wot-projections/spec.md)
-   defines ordered source entries containing `wotproj:sourceName`, `href` and
-   an expected TD/TM media `type`. It matches a `tm:ref` selector to one
-   declared source before applying its affordance pointer; the source entry,
-   not the selector, is the proposed closure occurrence. Its Section 1.2
-   explicitly leaves the namespace and term names unassigned and uses
-   placeholder IRIs. The closure profile needs an assigned vocabulary and a
-   normative source-entry mapping before `wotproj:projects` can identify an
-   interoperable operator. This specification does not assign that
-   vocabulary by copying the proposal's example namespace.
 
 The extension alone therefore does not establish WoT-complete closure.
 A producer MUST NOT claim that completeness unless it can identify and

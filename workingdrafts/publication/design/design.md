@@ -5,7 +5,7 @@
 <!-- words: minversion prereleases subthing ua uav versionorigin -->
 <!-- words: compatibilityline lockfile marcschier opcfoundation unversioned -->
 <!-- words: workflow workflows -->
-<!-- words: href namespace nodeids opc workaround -->
+<!-- words: href namespace nodeids opc workaround iri -->
 
 This document proposes an incremental versioning profile for WoT registries.
 No implementation exists yet. The
@@ -233,10 +233,10 @@ representative corpus remains unchanged.
 The normative
 [WoT closure section](../../models/wot/spec.md#544-publication-closure)
 records the remaining mapping decisions. The dependency inventory and
-occurrence rules below are proposals, not a completed normative contract.
-In particular, the referenced Projection Plans proposal still uses an
-unassigned vocabulary, and a checked exact target does not supply the missing
-operator or document-URL identity rules.
+occurrence rules below remain informative. The normative section now defines
+occurrence identity, canonical operators and the selected experimental
+Projection Plans mapping. Schema-reference classification and document-URL
+identity still need rules; a checked exact target does not supply them.
 
 The generic proposal defines a reusable model, a manifest schema, conditional
 head semantics, a binding-aware open context and an offline byte bundle.
@@ -339,9 +339,10 @@ the dependency occurrence; the selector does not create another target
 binding. An external ordinary `td:ref` remains a dependency and needs its own
 binding.
 
-For a source-manifest entry, `operator` records `wotproj:projects`,
+For a source-manifest entry, `operator` records the full experimental
+`projects` IRI selected by the normative WoT closure section,
 `pointer` identifies that entry in the ordered array, and `href` preserves its
-authored value.
+authored value. The compact prefix is not a canonical closure operator.
 
 This profile does not cover Schema Resource references, including
 `rel: "describedby"` links or schema-context uses of `tm:ref`. The publication
@@ -354,9 +355,10 @@ references for materialization. A publication claiming that profile's complete
 dependency closure needs a separate binding contract for those edges; this
 W3C-derived descriptor alone does not provide it.
 
-The schema permits operator strings rather than defining another vocabulary;
-the existing vocabulary and contexts remain authoritative. An unknown
-operator cannot satisfy closure validation. The producer follows the WoT
+The schema restricts operator strings to the normative closure labels;
+the source vocabulary and captured contexts determine which label applies.
+An unknown operator cannot satisfy closure validation. The producer follows
+the WoT
 draft's reference rules, so an interaction endpoint, documentation link or
 arbitrary application link is not a dependency solely because it has a URL.
 
@@ -551,9 +553,9 @@ and closure semantics, including append-only generated NodeIds. This design
 pass does not change the `1.1-draft` model or either .NET runtime.
 
 The [shape example](../../models/wot/samples/publication-closure.json) illustrates one binding,
-not an independently complete snapshot. Three schema checks cover its shape
-and malformed pointers/missing targets. They do not validate authored bytes
-or prove dependency closure.
+not an independently complete snapshot. Schema checks cover its shape,
+canonical operator strings, malformed pointers and missing targets. They do
+not validate authored bytes or prove dependency closure.
 
 [Publication]: ../spec.md
 [Publication manifest]: ../spec.md#manifest-and-integrity

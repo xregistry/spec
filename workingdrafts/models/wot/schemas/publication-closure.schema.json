@@ -23,7 +23,18 @@
             "type": "string",
             "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
           },
-          "operator": {"type": "string", "minLength": 1},
+          "operator": {
+            "enum": [
+              "tm:extends",
+              "tm:submodel",
+              "tm:ref",
+              "td:extends",
+              "td:subthing",
+              "td:ref",
+              "type",
+              "https://raw.githubusercontent.com/marcschier/wot-thing-description/main/proposals/wot-projections/context.experimental-v1.jsonld#projects"
+            ]
+          },
           "href": {"type": "string", "minLength": 1},
           "target": {"$ref": "#/$defs/versionXid"}
         },
