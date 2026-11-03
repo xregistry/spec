@@ -1213,8 +1213,9 @@ following properties are defined, with type constraints:
 | `reply-to-group-id`    | `uritemplate`    | group-id to which the receiver of this message ought to send replies to          |
 
 The `message-id` permits the Core declaration types `uinteger`, `string`,
-`binary`, and `uritemplate`. UUID values use strings. Binary values use the
-Base64 representation required for JSON serialization.
+`binary`, and `uritemplate`. UUID values use strings. When a binary value is
+encoded as JSON, its representation MUST use the Base64 encoding defined in
+[RFC 4648, Section 4][RFC4648].
 The native identifier types remain those defined by
 [AMQP Message Properties][AMQP 1.0 Message Properties]. A `value` constraint
 for the `message-id` property SHOULD NOT be defined in the message definition
