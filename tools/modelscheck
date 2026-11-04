@@ -51,7 +51,7 @@ for fn in `find . -name \*model.json`; do
     echo "# Model: $fn"
     modelForXR="$fn"
     if grep -q '"type"[[:space:]]*:[[:space:]]*"binary"' "$fn"; then
-        tmpModel=$(mktemp "$(dirname "$fn")/.model-compat-XXXXXX")
+        tmpModel=$(mktemp "$(dirname "$fn")/model-compat-XXXXXX.json")
         python - "$fn" "$tmpModel" <<'PY'
 import json
 import sys
