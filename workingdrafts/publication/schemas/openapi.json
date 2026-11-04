@@ -464,6 +464,121 @@
         }
       }
     },
+    "/publications": {
+      "get": {
+        "operationId": "getPublicationsAll",
+        "tags": [
+          "ResourceGroupCollection"
+        ],
+        "description": "Gets all resource groups. Supports optional filtering ('filter'), inlining ('inline'), and document view ('doc'). (See spec: Registry Collections, Inline, and Filter)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource groups that match the query (or all groups if no filter is specified).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/publication"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "postPublicationsAll",
+        "tags": [
+          "ResourceGroupCollection"
+        ],
+        "description": "Creates or updates multiple resource groups. (See spec: PATCH and POST /<GROUPS>)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "A map of resource groups keyed by groupid.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/publication"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created or updated resource groups.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/publication"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
     "/publications/{groupid}": {
       "parameters": [
         {
@@ -692,6 +807,68 @@
             "$ref": "#/components/responses/InternalServerError"
           }
         }
+      },
+      "post": {
+        "operationId": "postPublicationChannelsAll",
+        "tags": [
+          "ResourceCollection"
+        ],
+        "description": "Creates or updates multiple resources in a group. (See spec: PATCH and POST /<GROUPS>/<GID>/<RESOURCES>)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "A map of resource definitions keyed by resourceid.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/channel"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created or updated resources.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/channel"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
       }
     },
     "/publications/{groupid}/objects": {
@@ -765,6 +942,68 @@
             "$ref": "#/components/responses/InternalServerError"
           }
         }
+      },
+      "post": {
+        "operationId": "postPublicationObjectsAll",
+        "tags": [
+          "ResourceCollection"
+        ],
+        "description": "Creates or updates multiple resources in a group. (See spec: PATCH and POST /<GROUPS>/<GID>/<RESOURCES>)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "A map of resource definitions keyed by resourceid.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/object"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created or updated resources.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/object"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
       }
     },
     "/publications/{groupid}/snapshots": {
@@ -833,6 +1072,68 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "postPublicationSnapshotsAll",
+        "tags": [
+          "ResourceCollection"
+        ],
+        "description": "Creates or updates multiple resources in a group. (See spec: PATCH and POST /<GROUPS>/<GID>/<RESOURCES>)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "A map of resource definitions keyed by resourceid.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/snapshot"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created or updated resources.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/snapshot"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
           },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
@@ -3772,7 +4073,7 @@
           },
           "publicationsurl": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The URL for retrieving the publications (e.g. endpointsurl)."
           },
           "publicationscount": {
@@ -3902,7 +4203,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -3916,7 +4217,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -3952,7 +4253,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -3966,7 +4267,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -4020,12 +4321,33 @@
               "objecturl": {
                 "description": "Linked object object",
                 "type": "string",
-                "format": "uri"
+                "format": "uri-reference"
               }
             },
             "required": [
               "objecturl"
             ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "object"
+                  ]
+                },
+                {
+                  "required": [
+                    "objectbase64"
+                  ]
+                },
+                {
+                  "required": [
+                    "objecturl"
+                  ]
+                }
+              ]
+            }
           }
         ]
       },
@@ -4046,7 +4368,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -4060,7 +4382,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -4117,12 +4439,33 @@
               "snapshoturl": {
                 "description": "Linked snapshot object",
                 "type": "string",
-                "format": "uri"
+                "format": "uri-reference"
               }
             },
             "required": [
               "snapshoturl"
             ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "snapshot"
+                  ]
+                },
+                {
+                  "required": [
+                    "snapshotbase64"
+                  ]
+                },
+                {
+                  "required": [
+                    "snapshoturl"
+                  ]
+                }
+              ]
+            }
           }
         ]
       },
@@ -4143,7 +4486,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -4157,7 +4500,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {

@@ -32,7 +32,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -46,7 +46,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -65,12 +65,12 @@
           },
           "xregurl": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "xRegistry HTTP Registry root URL."
           },
           "weburl": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Human-facing website. Not a resolution advertisement."
           },
           "registrytypes": {
@@ -82,7 +82,7 @@
           },
           "authority": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Administrative authority identifier. Not a trust claim."
           },
           "federationprofiles": {
@@ -97,7 +97,7 @@
                 },
                 "endpoint": {
                   "type": "string",
-                  "format": "uri",
+                  "format": "uri-reference",
                   "description": "Absolute, credential-free binding endpoint URI."
                 },
                 "priority": {
@@ -129,7 +129,7 @@
                 },
                 "target": {
                   "type": "string",
-                  "format": "uri",
+                  "format": "uri-reference",
                   "description": "Catalog-root Resource XID or absolute entry URI."
                 },
                 "labels": {
@@ -165,7 +165,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -179,7 +179,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -243,7 +243,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -257,7 +257,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {

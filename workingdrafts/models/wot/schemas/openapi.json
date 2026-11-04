@@ -464,6 +464,236 @@
         }
       }
     },
+    "/thingdescriptiongroups": {
+      "get": {
+        "operationId": "getThingdescriptiongroupsAll",
+        "tags": [
+          "ResourceGroupCollection"
+        ],
+        "description": "Gets all resource groups. Supports optional filtering ('filter'), inlining ('inline'), and document view ('doc'). (See spec: Registry Collections, Inline, and Filter)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource groups that match the query (or all groups if no filter is specified).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/thingdescriptiongroup"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "postThingdescriptiongroupsAll",
+        "tags": [
+          "ResourceGroupCollection"
+        ],
+        "description": "Creates or updates multiple resource groups. (See spec: PATCH and POST /<GROUPS>)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "A map of resource groups keyed by groupid.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/thingdescriptiongroup"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created or updated resource groups.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/thingdescriptiongroup"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/thingmodelgroups": {
+      "get": {
+        "operationId": "getThingmodelgroupsAll",
+        "tags": [
+          "ResourceGroupCollection"
+        ],
+        "description": "Gets all resource groups. Supports optional filtering ('filter'), inlining ('inline'), and document view ('doc'). (See spec: Registry Collections, Inline, and Filter)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource groups that match the query (or all groups if no filter is specified).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/thingmodelgroup"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "postThingmodelgroupsAll",
+        "tags": [
+          "ResourceGroupCollection"
+        ],
+        "description": "Creates or updates multiple resource groups. (See spec: PATCH and POST /<GROUPS>)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "A map of resource groups keyed by groupid.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/thingmodelgroup"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created or updated resource groups.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/thingmodelgroup"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
     "/thingdescriptiongroups/{groupid}": {
       "parameters": [
         {
@@ -849,6 +1079,68 @@
             "$ref": "#/components/responses/InternalServerError"
           }
         }
+      },
+      "post": {
+        "operationId": "postThingdescriptiongroupThingdescriptionsAll",
+        "tags": [
+          "ResourceCollection"
+        ],
+        "description": "Creates or updates multiple resources in a group. (See spec: PATCH and POST /<GROUPS>/<GID>/<RESOURCES>)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "A map of resource definitions keyed by resourceid.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/thingdescription"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created or updated resources.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/thingdescription"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
       }
     },
     "/thingmodelgroups/{groupid}/thingmodels": {
@@ -917,6 +1209,68 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "postThingmodelgroupThingmodelsAll",
+        "tags": [
+          "ResourceCollection"
+        ],
+        "description": "Creates or updates multiple resources in a group. (See spec: PATCH and POST /<GROUPS>/<GID>/<RESOURCES>)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "A map of resource definitions keyed by resourceid.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/thingmodel"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created or updated resources.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/thingmodel"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
           },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
@@ -3017,7 +3371,7 @@
           },
           "thingdescriptiongroupsurl": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The URL for retrieving the thingdescriptiongroups (e.g. endpointsurl)."
           },
           "thingdescriptiongroupscount": {
@@ -3035,7 +3389,7 @@
           },
           "thingmodelgroupsurl": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The URL for retrieving the thingmodelgroups (e.g. endpointsurl)."
           },
           "thingmodelgroupscount": {
@@ -3175,7 +3529,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -3189,7 +3543,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -3239,7 +3593,7 @@
           },
           "canonicalurl": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The canonical upstream location of the document, where it is also published outside this registry. Advisory provenance metadata"
           },
           "maturity": {
@@ -3283,12 +3637,33 @@
               "thingdescriptionurl": {
                 "description": "Linked thingdescription object",
                 "type": "string",
-                "format": "uri"
+                "format": "uri-reference"
               }
             },
             "required": [
               "thingdescriptionurl"
             ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "thingdescription"
+                  ]
+                },
+                {
+                  "required": [
+                    "thingdescriptionbase64"
+                  ]
+                },
+                {
+                  "required": [
+                    "thingdescriptionurl"
+                  ]
+                }
+              ]
+            }
           }
         ],
         "required": [
@@ -3312,7 +3687,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -3326,7 +3701,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -3390,7 +3765,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -3404,7 +3779,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -3450,7 +3825,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -3464,7 +3839,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -3514,7 +3889,7 @@
           },
           "canonicalurl": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The canonical upstream location of the document, where it is also published outside this registry. Advisory provenance metadata"
           },
           "maturity": {
@@ -3558,12 +3933,33 @@
               "thingmodelurl": {
                 "description": "Linked thingmodel object",
                 "type": "string",
-                "format": "uri"
+                "format": "uri-reference"
               }
             },
             "required": [
               "thingmodelurl"
             ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "thingmodel"
+                  ]
+                },
+                {
+                  "required": [
+                    "thingmodelbase64"
+                  ]
+                },
+                {
+                  "required": [
+                    "thingmodelurl"
+                  ]
+                }
+              ]
+            }
           }
         ],
         "required": [
@@ -3587,7 +3983,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -3601,7 +3997,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -3665,7 +4061,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -3679,7 +4075,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {

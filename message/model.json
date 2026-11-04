@@ -1261,7 +1261,7 @@
                         },
                         "status": {
                           "name": "status",
-                          "description": "The HTTP status code",
+                          "description": "The HTTP status code (e.g., \"200\")",
                           "type": "string"
                         }
                       }
@@ -1327,7 +1327,7 @@
                         },
                         "status": {
                           "name": "status",
-                          "description": "The HTTP status code",
+                          "description": "The HTTP status code (e.g., \"200\")",
                           "type": "string"
                         }
                       }
@@ -1393,7 +1393,7 @@
                         },
                         "status": {
                           "name": "status",
-                          "description": "The HTTP status code",
+                          "description": "The HTTP status code (e.g., \"200\")",
                           "type": "string"
                         }
                       }
@@ -1459,7 +1459,7 @@
                         },
                         "status": {
                           "name": "status",
-                          "description": "The HTTP status code",
+                          "description": "The HTTP status code (e.g., \"200\")",
                           "type": "string"
                         }
                       }
@@ -1479,8 +1479,8 @@
                           "description": "The NATS subject",
                           "type": "uritemplate"
                         },
-                        "reply": {
-                          "name": "reply",
+                        "reply-to": {
+                          "name": "reply-to",
                           "description": "The NATS reply subject",
                           "type": "uritemplate"
                         },

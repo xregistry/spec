@@ -28,7 +28,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -42,7 +42,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -78,7 +78,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -92,7 +92,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -146,12 +146,33 @@
               "objecturl": {
                 "description": "Linked object object",
                 "type": "string",
-                "format": "uri"
+                "format": "uri-reference"
               }
             },
             "required": [
               "objecturl"
             ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "object"
+                  ]
+                },
+                {
+                  "required": [
+                    "objectbase64"
+                  ]
+                },
+                {
+                  "required": [
+                    "objecturl"
+                  ]
+                }
+              ]
+            }
           }
         ]
       },
@@ -172,7 +193,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -186,7 +207,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -243,12 +264,33 @@
               "snapshoturl": {
                 "description": "Linked snapshot object",
                 "type": "string",
-                "format": "uri"
+                "format": "uri-reference"
               }
             },
             "required": [
               "snapshoturl"
             ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "snapshot"
+                  ]
+                },
+                {
+                  "required": [
+                    "snapshotbase64"
+                  ]
+                },
+                {
+                  "required": [
+                    "snapshoturl"
+                  ]
+                }
+              ]
+            }
           }
         ]
       },
@@ -269,7 +311,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -283,7 +325,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {

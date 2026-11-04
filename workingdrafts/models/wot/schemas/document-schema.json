@@ -38,7 +38,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -52,7 +52,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -102,7 +102,7 @@
           },
           "canonicalurl": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The canonical upstream location of the document, where it is also published outside this registry. Advisory provenance metadata"
           },
           "maturity": {
@@ -146,12 +146,33 @@
               "thingdescriptionurl": {
                 "description": "Linked thingdescription object",
                 "type": "string",
-                "format": "uri"
+                "format": "uri-reference"
               }
             },
             "required": [
               "thingdescriptionurl"
             ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "thingdescription"
+                  ]
+                },
+                {
+                  "required": [
+                    "thingdescriptionbase64"
+                  ]
+                },
+                {
+                  "required": [
+                    "thingdescriptionurl"
+                  ]
+                }
+              ]
+            }
           }
         ],
         "required": [
@@ -175,7 +196,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -189,7 +210,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -253,7 +274,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -267,7 +288,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -315,7 +336,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -329,7 +350,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -379,7 +400,7 @@
           },
           "canonicalurl": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The canonical upstream location of the document, where it is also published outside this registry. Advisory provenance metadata"
           },
           "maturity": {
@@ -423,12 +444,33 @@
               "thingmodelurl": {
                 "description": "Linked thingmodel object",
                 "type": "string",
-                "format": "uri"
+                "format": "uri-reference"
               }
             },
             "required": [
               "thingmodelurl"
             ]
+          },
+          {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "thingmodel"
+                  ]
+                },
+                {
+                  "required": [
+                    "thingmodelbase64"
+                  ]
+                },
+                {
+                  "required": [
+                    "thingmodelurl"
+                  ]
+                }
+              ]
+            }
           }
         ],
         "required": [
@@ -452,7 +494,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -466,7 +508,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -530,7 +572,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -544,7 +586,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {

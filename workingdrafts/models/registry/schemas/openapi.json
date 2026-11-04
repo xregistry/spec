@@ -464,6 +464,121 @@
         }
       }
     },
+    "/categories": {
+      "get": {
+        "operationId": "getCategoriesAll",
+        "tags": [
+          "ResourceGroupCollection"
+        ],
+        "description": "Gets all resource groups. Supports optional filtering ('filter'), inlining ('inline'), and document view ('doc'). (See spec: Registry Collections, Inline, and Filter)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource groups that match the query (or all groups if no filter is specified).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/category"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "postCategoriesAll",
+        "tags": [
+          "ResourceGroupCollection"
+        ],
+        "description": "Creates or updates multiple resource groups. (See spec: PATCH and POST /<GROUPS>)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "A map of resource groups keyed by groupid.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/category"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created or updated resource groups.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/category"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
     "/categories/{groupid}": {
       "parameters": [
         {
@@ -687,6 +802,68 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "postCategoryRegistriesAll",
+        "tags": [
+          "ResourceCollection"
+        ],
+        "description": "Creates or updates multiple resources in a group. (See spec: PATCH and POST /<GROUPS>/<GID>/<RESOURCES>)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "A map of resource definitions keyed by resourceid.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/registry"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created or updated resources.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/registry"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
           },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
@@ -1948,7 +2125,7 @@
           },
           "categoriesurl": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The URL for retrieving the categories (e.g. endpointsurl)."
           },
           "categoriescount": {
@@ -2082,7 +2259,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -2096,7 +2273,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -2115,12 +2292,12 @@
           },
           "xregurl": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "xRegistry HTTP Registry root URL."
           },
           "weburl": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Human-facing website. Not a resolution advertisement."
           },
           "registrytypes": {
@@ -2132,7 +2309,7 @@
           },
           "authority": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Administrative authority identifier. Not a trust claim."
           },
           "federationprofiles": {
@@ -2147,7 +2324,7 @@
                 },
                 "endpoint": {
                   "type": "string",
-                  "format": "uri",
+                  "format": "uri-reference",
                   "description": "Absolute, credential-free binding endpoint URI."
                 },
                 "priority": {
@@ -2179,7 +2356,7 @@
                 },
                 "target": {
                   "type": "string",
-                  "format": "uri",
+                  "format": "uri-reference",
                   "description": "Catalog-root Resource XID or absolute entry URI."
                 },
                 "labels": {
@@ -2215,7 +2392,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -2229,7 +2406,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -2293,7 +2470,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -2307,7 +2484,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
