@@ -4,14 +4,14 @@ set -e
 
 function clean() {
     set +e
-    if [[ -n "$tmpModelDir" ]]; then
-        rm -rf -- "$tmpModelDir"
+    if [[ -n "$tmpModelRoot" ]]; then
+        rm -rf -- "$tmpModelRoot"
     fi
     echo "# Stopping server"
     docker rm -f xrserver > /dev/null
 }
 
-tmpModelDir=""
+tmpModelRoot=""
 
 badPatterns=(
   "required.*false"
@@ -46,14 +46,16 @@ docker run -qdti --name xrserver -p 8383:8080 $XRSERVER_IMAGE \
 while ! curl --silent --fail $XR_SERVER > /dev/null;do echo -n . && sleep 2;done
 echo ; echo
 
-# Validate all model.json files in the entire repo
-for fn in `find . -name \*model.json`; do
+mapfile -t modelFiles < <(find . -name \*model.json)
+tmpModelRoot=$(mktemp -d ./.model-compat-XXXXXX)
+
+# Keep relative $includes paths intact while adapting the model files.
+for fn in "${modelFiles[@]}"; do
     echo "# Model: $fn"
-    modelForXR="$fn"
-    if grep -q '"type"[[:space:]]*:[[:space:]]*"binary"' "$fn"; then
-        tmpModelDir=$(mktemp -d "$(dirname "$fn")/.model-compat-XXXXXX")
-        tmpModel="$tmpModelDir/model.json"
-        python - "$fn" "$tmpModel" <<'PY'
+    modelRelative="${fn#./}"
+    modelForXR="$tmpModelRoot/$modelRelative"
+    mkdir -p "$(dirname "$modelForXR")"
+    python - "$fn" "$modelForXR" <<'PY'
 import json
 import sys
 
@@ -73,8 +75,6 @@ with open(sys.argv[2], "w", encoding="utf-8") as target:
     json.dump(map_types(model), target, indent=2)
     target.write("\n")
 PY
-        modelForXR="$tmpModel"
-    fi
     echo "  # Verifying"
     $XR model verify "$modelForXR"
 
@@ -103,11 +103,6 @@ PY
         $XR delete $list
         echo "  # Deleting group models: $list"
         $XR model group delete $list
-    fi
-
-    if [[ -n "$tmpModelDir" ]]; then
-        rm -rf -- "$tmpModelDir"
-        tmpModelDir=""
     fi
 
 echo
