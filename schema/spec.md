@@ -487,6 +487,12 @@ Versions for a schema named `com.example.telemetrydata`:
 }
 ```
 
+In the following sections, a Schema Registry reference beginning with `/` is
+resolved relative to the root of the Registry. It identifies a schema Resource
+or Version, not an object within the Registry's metadata representation. The
+format-specific rules below describe how URI fragments select schema objects,
+including when the schema document is itself embedded in a registry document.
+
 #### 4.3.1. JSON Schema
 
 The [`format`](../core/spec.md#format-attribute) identifier for JSON Schema is
@@ -565,10 +571,16 @@ Examples:
 
 When a URI, like the Message Registry's
 [`dataschemauri`](../message/spec.md#dataschemauri), points to an Avro Schema
-document, it MAY use a URI fragment suffix `[:]{record-name}` to deep link into
-the schema document to reference a particular type definition. Otherwise the
-top-level object definition of the schema is used. The ':' character is used as
-a separator when the URI already contains a fragment.
+document directly, it MAY use a URI fragment `#{record-name}` to reference a
+particular record declaration. Otherwise the top-level object definition of the
+schema is used.
+
+If the schema document is itself selected by a URI fragment, such as a JSON
+Pointer into an xRegistry document, a record selector MAY be appended to that
+fragment using `:{record-name}`. In this compound fragment, the part before the
+record selector locates the schema document, and the record name selects a
+declaration within that schema. The colon is used only for this two-stage
+selection, not when the URI identifies the schema document directly.
 
 Examples:
 
@@ -576,11 +588,13 @@ Examples:
 `https://example.com/avro/telemetry.avsc#TelemetryEvent`, the URI fragment
 `#TelemetryEvent` references the record declaration of the `TelemetryEvent`
 record.
-- If the Avro schema document is a local Schema Registry reference like
-`#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata`, in
-which the reference is already in the form of a URI fragment, the suffix is
-appended, separated by a colon, for instance
-`.../com.example.telemetrydata:TelemetryEvent`.
+- If the Avro schema document is referenced relative to the Registry root,
+  `/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata#TelemetryEvent`
+  references the `TelemetryEvent` record in that schema document.
+- If the Avro schema document is embedded in a registry document,
+  `https://example.com/registry.json#/schemagroups/g1/schemas/s1/versions/1/schema:TelemetryEvent`
+  uses the JSON Pointer before `:TelemetryEvent` to locate the schema document,
+  then selects the `TelemetryEvent` record within it.
 
 #### 4.3.4. Protobuf Schema
 
@@ -598,10 +612,15 @@ with the declared version.
 A URI, like the Message Registry's
 [`dataschemauri`](../message/spec.md#dataschemauri), that points to a Protobuf
 Schema document MUST reference a Protobuf `message` declaration contained in the
-schema document. If the URI does not contain a fragment, the message name MUST
-be appended as a URI fragment using `#{message-name}`. If the URI already
-contains a fragment, the message name MUST be appended to the fragment using
-`:{message-name}`.
+schema document. When the URI identifies the schema document directly, the
+message name MUST be specified as a URI fragment using `#{message-name}`.
+
+If the schema document is itself selected by a URI fragment, such as a JSON
+Pointer into an xRegistry document, the message name MUST be appended to that
+fragment using `:{message-name}`. In this compound fragment, the part before
+the message selector locates the schema document, and the message name selects
+a declaration within that schema. The colon is used only for this two-stage
+selection, not when the URI identifies the schema document directly.
 
 Examples:
 
@@ -609,11 +628,13 @@ Examples:
   `https://example.com/protobuf/telemetry.proto`, the URI fragment
   `#TelemetryEvent` references the message declaration of the `TelemetryEvent`
   message.
-- If the Protobuf schema document is a local Schema Registry reference like
-  `#/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata`, in
-  which the reference is already in the form of a URI fragment, the suffix
-  is appended, separated by a colon, for instance
-  `.../com.example.telemetrydata:TelemetryEvent`.
+- If the Protobuf schema document is referenced relative to the Registry root,
+  `/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata#TelemetryEvent`
+  references the `TelemetryEvent` message in that schema document.
+- If the Protobuf schema document is embedded in a registry document,
+  `https://example.com/registry.json#/schemagroups/g1/schemas/s1/versions/1/schema:TelemetryEvent`
+  uses the JSON Pointer before `:TelemetryEvent` to locate the schema document,
+  then selects the `TelemetryEvent` message within it.
 
 #### 4.3.5. JSON Structure Schema
 
@@ -642,8 +663,9 @@ Examples:
 - `https://example.com/schemas/person.json#/definitions/Employee` uses the
   `#/definitions/Employee` fragment to reference the `Employee` type definition.
 - For local Schema Registry references like
-  `#/schemagroups/com.example.schemas/schemas/com.example.person/versions/1/definitions/Employee`,
-  append the JSON Pointer fragment to reference a specific type within that schema.
+  `/schemagroups/com.example.schemas/schemas/com.example.person/versions/1#/definitions/Employee`,
+  the path identifies the schema Version and the JSON Pointer fragment
+  `#/definitions/Employee` identifies the type within that schema document.
 
 
 
