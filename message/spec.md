@@ -1077,7 +1077,7 @@ properties as defined below:
 | `query`   | Map           | The HTTP query parameters   |
 | `path`    | `uritemplate` | The HTTP path               |
 | `method`  | `string`      | The HTTP method             |
-| `status`  | `string`      | The HTTP status code        |
+| `status`  | `string`      | The HTTP status code (e.g., "200") |
 
 HTTP allows for multiple headers with the same name. The `headers` property is
 therefore an array of objects with `name` and `value` properties. The `name`
@@ -1089,9 +1089,11 @@ The `path` property is a URI template.
 
 The `method` property is a string that MUST be a valid HTTP method.
 
-The `status` property is a string that MUST be a valid HTTP response
-code. The `status` and `method` properties are mutually exclusive and
-MUST NOT be present at the same time.
+The `status` property is a string containing the numeric HTTP response status
+code, such as `200`; it MUST NOT contain the reason phrase. After any
+placeholder substitution, it MUST be a valid HTTP response code. The `status`
+and `method` properties are mutually exclusive and MUST NOT be present at the
+same time.
 
 The values of all `string` and `uritemplate`-typed properties and headers and
 query elements MAY contain placeholders using the [RFC6570][RFC6570] Level 1
