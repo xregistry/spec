@@ -193,6 +193,66 @@ class TestSchemaGenerator:
         else:
             assert usage.type == 'string'
 
+    def test_binary_attribute_is_projected_to_schema_formats(self, tools_dir, tmp_path):
+        model = {
+            "groups": {
+                "things": {
+                    "singular": "thinggroup",
+                    "resources": {
+                        "things": {
+                            "singular": "thing",
+                            "attributes": {
+                                "payload": {
+                                    "type": "binary",
+                                    "required": True,
+                                    "default": "AQI=",
+                                    "enum": ["AQI=", "AwQ="],
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        model_path = tmp_path / 'model.json'
+        model_path.write_text(json.dumps(model), encoding='utf-8')
+
+        model_schema = json.loads(
+            (tools_dir.parent / 'core' / 'model.schema.json').read_text(
+                encoding='utf-8'
+            )
+        )
+        jsonschema.Draft7Validator(model_schema).validate(model)
+
+        json_schema = self.generate_schema(model_path, 'json-schema', tools_dir)
+        json_binary = json_schema['definitions']['thinggroup-schema'][
+            'thingVersion'
+        ]['properties']['payload']
+        assert json_binary['type'] == 'string'
+        assert json_binary['format'] == 'base64'
+
+        json_structure = self.generate_schema(
+            model_path, 'json-structure', tools_dir
+        )
+        thing_version = json_structure['definitions']['Things']['ThingVersion']
+        structure_binary = thing_version['properties']['payload']
+        assert structure_binary['type'] == 'binary'
+        assert structure_binary['enum'] == ['AQI=', 'AwQ=']
+
+        openapi = self.generate_schema(model_path, 'openapi', tools_dir)
+        openapi_binary = openapi['components']['schemas']['thingVersion'][
+            'properties'
+        ]['payload']
+        assert openapi_binary['type'] == 'string'
+        assert openapi_binary['format'] == 'base64'
+
+        avro_data = self.generate_schema(model_path, 'avro-schema', tools_dir)
+        avro_schema = avro.schema.parse(json.dumps(avro_data))
+        groups = avro_schema.fields_dict['things'].type.values
+        resource_map = groups.fields_dict['things'].type
+        payload = resource_map.values.fields_dict['payload']
+        assert payload.type.type == 'bytes'
+
     def test_message_model_avro_schema_valid(self, message_model, tools_dir):
         """Test that message model generates valid Avro schema."""
         schema_data = self.generate_schema(message_model, 'avro-schema', tools_dir)

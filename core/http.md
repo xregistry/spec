@@ -1609,6 +1609,12 @@ is not to allow for servers to decide whether or not to do so, rather it is to
 allow for [No-Code Servers](#no-code-servers) that might not be
 able to control the HTTP response headers.
 
+When a `binary` attribute is serialized as an HTTP header, its value MUST use
+the Base64 encoding defined for the
+[`binary` data type](./spec.md#attributes-and-extensions).
+As with other scalar attributes, the string serialization of the attribute name
+and encoded value MUST NOT exceed the 4096-byte limit defined in Core.
+
 The `<RESOURCE>` and `<RESOURCEbase64>` attributes MUST NOT be serialized as
 HTTP headers, even if their values can be considered "scalar", because their
 values will appear in the HTTP body.
