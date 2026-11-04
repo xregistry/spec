@@ -4,14 +4,14 @@ set -e
 
 function clean() {
     set +e
-    if [[ -n "$tmpModel" ]]; then
-        rm -f -- "$tmpModel"
+    if [[ -n "$tmpModelDir" ]]; then
+        rm -rf -- "$tmpModelDir"
     fi
     echo "# Stopping server"
     docker rm -f xrserver > /dev/null
 }
 
-tmpModel=""
+tmpModelDir=""
 
 badPatterns=(
   "required.*false"
@@ -51,7 +51,8 @@ for fn in `find . -name \*model.json`; do
     echo "# Model: $fn"
     modelForXR="$fn"
     if grep -q '"type"[[:space:]]*:[[:space:]]*"binary"' "$fn"; then
-        tmpModel=$(mktemp "$(dirname "$fn")/model-compat-XXXXXX.json")
+        tmpModelDir=$(mktemp -d "$(dirname "$fn")/.model-compat-XXXXXX")
+        tmpModel="$tmpModelDir/model.json"
         python - "$fn" "$tmpModel" <<'PY'
 import json
 import sys
@@ -104,9 +105,9 @@ PY
         $XR model group delete $list
     fi
 
-    if [[ -n "$tmpModel" ]]; then
-        rm -f -- "$tmpModel"
-        tmpModel=""
+    if [[ -n "$tmpModelDir" ]]; then
+        rm -rf -- "$tmpModelDir"
+        tmpModelDir=""
     fi
 
 echo
