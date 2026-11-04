@@ -1012,7 +1012,7 @@ attributes. However, they MUST adhere to the following rules:
   avoid possible future conflicts.
 
 Avro identifies a named type by its namespace and name, and a schema cannot
-contain multiple definitions of the same fullname
+contain multiple definitions of the same fully qualified name
 ([Avro name rules](https://avro.apache.org/docs/1.9.2/spec.html#names)).
 Resource singular names are unique only within their owning Group
 ([Core Model](./model.md#groupsstringresourcesstringsingular)), so a document
