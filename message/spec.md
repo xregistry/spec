@@ -1083,8 +1083,8 @@ HTTP allows for multiple headers with the same name. The `headers` property is
 therefore an array of objects with `name` and `value` properties. The `name`
 property is a string that MUST be a valid HTTP header name.
 
-The `query` property is an array of objects with `name` and `value` properties.
-The `name` property is a string that MUST be a valid HTTP query parameter name.
+The `query` property is a map of string query parameter names to string values.
+Each key MUST be a valid HTTP query parameter name.
 
 The `path` property is a URI template.
 
@@ -1096,12 +1096,12 @@ placeholder substitution, it MUST be a valid HTTP response code. The `status`
 and `method` properties are mutually exclusive and MUST NOT be present at the
 same time.
 
-The values of all `string` and `uritemplate`-typed properties and headers and
-query elements MAY contain placeholders using the [RFC6570][RFC6570] Level 1
+The values of all `string` and `uritemplate`-typed properties, HTTP headers, and
+query parameters MAY contain placeholders using the [RFC6570][RFC6570] Level 1
 URI Template syntax. When the same placeholder is used in multiple properties,
 the value of the placeholder is assumed to be identical.
 
-The following example defines a message that is sent over HTTP/1.1:
+The following example defines a message that is sent over HTTP:
 
 ```yaml
 {
@@ -1113,12 +1113,9 @@ The following example defines a message that is sent over HTTP/1.1:
         "value": "application/json"
       }
     ],
-    "query": [
-      {
-        "name": "foo",
-        "value": "bar"
-      }
-    ],
+    "query": {
+      "foo": "bar"
+    },
     "path": "/foo/{bar}",
     "method": "POST"
   },
