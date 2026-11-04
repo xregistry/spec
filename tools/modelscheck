@@ -51,7 +51,6 @@ tmpModelRoot=$(mktemp -d ./.model-compat-XXXXXX)
 
 # Keep relative $includes paths intact while adapting the model files.
 for fn in "${modelFiles[@]}"; do
-    echo "# Model: $fn"
     modelRelative="${fn#./}"
     modelForXR="$tmpModelRoot/$modelRelative"
     mkdir -p "$(dirname "$modelForXR")"
@@ -75,6 +74,12 @@ with open(sys.argv[2], "w", encoding="utf-8") as target:
     json.dump(map_types(model), target, indent=2)
     target.write("\n")
 PY
+done
+
+for fn in "${modelFiles[@]}"; do
+    echo "# Model: $fn"
+    modelRelative="${fn#./}"
+    modelForXR="$tmpModelRoot/$modelRelative"
     echo "  # Verifying"
     $XR model verify "$modelForXR"
 
