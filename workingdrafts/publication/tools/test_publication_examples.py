@@ -261,11 +261,17 @@ def test_missing_prepared_content_preserves_head(publication):
     assert channels.records == before
 
 
-def test_duplicate_view_version_fails_after_rehash(publication):
+@pytest.mark.parametrize("view_version", [
+    "/sets/manual/documents/intro/versions/7",
+    "/sets/MANUAL/documents/intro/versions/7",
+    "/sets/manual/documents/INTRO/versions/7",
+    "/sets/manual/documents/intro/versions/%37",
+])
+def test_duplicate_or_wrong_case_view_version_fails_after_rehash(publication, view_version):
     context, documents = publication
     manifest = json.loads(documents.read(context["snapshot"]["reference"]))
     other = deepcopy(manifest["documents"][0])
-    other["viewVersion"] = "/SETS/MANUAL/DOCUMENTS/INTRO/versions/7"
+    other["viewVersion"] = view_version
     manifest["documents"].append(other)
     pin = replace(documents, context["snapshot"], manifest)
     with pytest.raises(PublicationError) as caught:
@@ -273,32 +279,94 @@ def test_duplicate_view_version_fails_after_rehash(publication):
     assert caught.value.code == "invalid_package"
 
 
-@pytest.mark.parametrize("version", [
-    "/publications/team/snapshots/wrong/versions/manifest",
-    "/publications/team/snapshots/{digest}/versions/content",
+@pytest.mark.parametrize("view_version", [
+    "/sets/MANUAL/documents/intro/versions/7",
+    "/sets/manual/documents/INTRO/versions/7",
 ])
-def test_manifest_storage_identity_is_checked(publication, version):
+def test_wrong_case_view_version_does_not_match_the_captured_registry(publication, view_version):
+    context, documents = publication
+    manifest = json.loads(documents.read(context["snapshot"]["reference"]))
+    manifest["documents"][0]["viewVersion"] = view_version
+    pin = replace(documents, context["snapshot"], manifest)
+    with pytest.raises(PublicationError, match="duplicate or absent view Version") as caught:
+        check_snapshot(pin, documents.read)
+    assert caught.value.code == "invalid_package"
+
+
+def test_view_version_uniqueness_is_case_insensitive(publication):
+    context, documents = publication
+    manifest = json.loads(documents.read(context["snapshot"]["reference"]))
+    registry_pin = manifest["registry"]
+    registry = json.loads(documents.read(registry_pin["reference"]))
+    versions = registry["sets"]["manual"]["documents"]["intro"]["versions"]
+    versions["v1"] = deepcopy(versions["7"])
+    versions["V1"] = deepcopy(versions["7"])
+    manifest["registry"] = replace(documents, registry_pin, registry)
+    for version in ("v1", "V1"):
+        other = deepcopy(manifest["documents"][0])
+        other["viewVersion"] = "/sets/manual/documents/intro/versions/" + version
+        manifest["documents"].append(other)
+    pin = replace(documents, context["snapshot"], manifest)
+    with pytest.raises(PublicationError, match="duplicate or absent view Version") as caught:
+        check_snapshot(pin, documents.read)
+    assert caught.value.code == "invalid_package"
+
+
+@pytest.mark.parametrize("version,uppercase_digest", [
+    ("/publications/team/snapshots/wrong/versions/manifest", False),
+    ("/publications/team/snapshots/{digest}/versions/content", False),
+    ("/publications/team/objects/{digest}/versions/manifest", False),
+    ("/publications/team/snapshots/{digest}/versions/manifest", True),
+])
+def test_manifest_storage_identity_is_checked(publication, version, uppercase_digest):
     context, documents = publication
     pin = deepcopy(context["snapshot"])
     raw = documents.read(pin["reference"])
-    pin["reference"]["version"] = version.format(digest=pin["digest"][7:])
+    digest = pin["digest"][7:]
+    pin["reference"]["version"] = version.format(
+        digest=digest.upper() if uppercase_digest else digest,
+    )
     documents.put(pin["reference"], raw)
     with pytest.raises(PublicationError) as caught:
         check_snapshot(pin, documents.read)
     assert caught.value.code == "invalid_package"
 
 
-def test_reference_comparison_preserves_version_case(publication):
+@pytest.mark.parametrize("id_index", [2, 4, 6], ids=["group", "resource", "version"])
+def test_reference_comparison_preserves_id_case(publication, id_index):
     context, _ = publication
-    first = context["snapshot"]["reference"]
+    first = deepcopy(context["snapshot"]["reference"])
     equivalent = deepcopy(first)
     equivalent["registry"]["parameters"] = {}
-    equivalent["version"] = equivalent["version"].replace("/publications/team/", "/%70ublications/TEAM/")
+    equivalent["version"] = equivalent["version"].replace("/team/", "/%74eam/")
     assert reference_key(first) == reference_key(equivalent)
-    equivalent["version"] = equivalent["version"].replace("/manifest", "/Manifest")
-    assert reference_key(first) != reference_key(equivalent)
+    different = deepcopy(first)
+    parts = different["version"].split("/")
+    parts[id_index] = parts[id_index].upper()
+    different["version"] = "/".join(parts)
+    assert reference_key(first) != reference_key(different)
+    documents = VersionDocuments()
+    documents.put(first, b"exact")
+    assert documents.read(equivalent) == b"exact"
+    with pytest.raises(PublicationError) as caught:
+        documents.read(different)
+    assert caught.value.code == "unavailable"
     with pytest.raises(jsonschema.ValidationError):
         reference_key({**first, "version": first["version"] + "/extra"})
+
+
+def test_open_context_compares_decoded_registry_reference(publication):
+    context, documents = publication
+    context["registry"]["reference"]["version"] = (
+        context["registry"]["reference"]["version"].replace("/team/", "/%74eam/")
+    )
+    assert open_context(context, documents.read)["scope"] == context["scope"]
+    context["registry"]["reference"]["version"] = (
+        context["registry"]["reference"]["version"].replace("/%74eam/", "/TEAM/")
+    )
+    with pytest.raises(PublicationError, match="registry") as caught:
+        open_context(context, documents.read)
+    assert caught.value.code == "inconsistent_snapshot"
 
 
 def test_git_reference_comparison_uses_commit_and_default_path():
@@ -366,7 +434,7 @@ def test_package_rejects_duplicate_equivalent_reference(package_dir):
     def duplicate(package):
         other = deepcopy(package["objects"][0])
         other["reference"]["registry"]["parameters"] = {}
-        other["reference"]["version"] = other["reference"]["version"].replace("/team/", "/TEAM/")
+        other["reference"]["version"] = other["reference"]["version"].replace("/team/", "/%74eam/")
         other["path"] = "intro.txt"
         package["objects"].append(other)
 
@@ -374,6 +442,17 @@ def test_package_rejects_duplicate_equivalent_reference(package_dir):
     with pytest.raises(PublicationError) as caught:
         open_package(package_dir)
     assert caught.value.code == "invalid_package"
+
+
+def test_package_does_not_substitute_wrong_case_snapshot_reference(package_dir):
+    def change_case(package):
+        reference = package["objects"][0]["reference"]
+        reference["version"] = reference["version"].replace("/team/", "/TEAM/")
+
+    edit_package(package_dir, change_case)
+    with pytest.raises(PublicationError) as caught:
+        open_package(package_dir)
+    assert caught.value.code == "unavailable"
 
 
 @pytest.mark.parametrize("path", ["../intro.txt", "/intro.txt", "a\\intro.txt", "%2e%2e/intro.txt"])

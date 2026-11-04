@@ -56,7 +56,7 @@ def _xid_key(xid):
         parts = xid_parts(xid)
     except FederationError as error:
         raise PublicationError(error.code, str(error)) from error
-    return tuple(part.casefold() for part in parts[:4]) + parts[4:]
+    return tuple(parts)
 
 
 def reference_key(reference):
@@ -120,7 +120,8 @@ def check_snapshot(pin, read_document, supported_extensions=()):
     """Check integrity and simple containment for the supported example graph."""
     raw = checked_bytes(pin, read_document)
     parts = _xid_key(pin["reference"]["version"])
-    if parts[3] != pin["digest"][7:] or parts[-1] != "manifest":
+    if (parts[2] != "snapshots" or parts[3] != pin["digest"][7:]
+            or parts[-1] != "manifest"):
         raise PublicationError("invalid_package", "Manifest Version or Snapshot ID mismatch")
     manifest = _json(raw)
     validate("manifest", manifest)
@@ -146,11 +147,14 @@ def check_snapshot(pin, read_document, supported_extensions=()):
                                 f"/versions/{version}"
                             ))
     seen = set()
+    unique = set()
     for item in manifest["documents"]:
         key = _view_key(item["viewVersion"])
-        if key in seen or key not in expected:
+        unique_key = tuple(part.casefold() for part in key)
+        if unique_key in unique or key not in expected:
             raise PublicationError("invalid_package", "duplicate or absent view Version")
         seen.add(key)
+        unique.add(unique_key)
         checked_bytes(item["content"], read_document)
     if manifest["completeness"] == "offline-complete" and seen != expected:
         raise PublicationError("invalid_package", "missing document association")
@@ -169,9 +173,15 @@ def open_context(context, read_document, supported_extensions=()):
         _access_key(source["registry"])
         reference_key(source["snapshot"]["reference"])
     manifest = check_snapshot(context["snapshot"], read_document, supported_extensions)
-    for name in ("scope", "registry", "completeness"):
+    for name in ("scope", "completeness"):
         if context[name] != manifest[name]:
             raise PublicationError("inconsistent_snapshot", name)
+    selected = context["registry"]
+    captured = manifest["registry"]
+    if (reference_key(selected["reference"]) != reference_key(captured["reference"])
+            or selected["digest"] != captured["digest"]
+            or selected["size"] != captured["size"]):
+        raise PublicationError("inconsistent_snapshot", "registry")
     return manifest
 
 

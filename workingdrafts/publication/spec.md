@@ -867,8 +867,8 @@ and decoded Version XID:
 - Git's omitted format path equals its defined default, and hexadecimal
   commit IDs compare in lowercase.
 - Equivalent URI encodings in XIDs compare after one decoding step.
-- Core's case-insensitive entity-name rules apply, while Version IDs retain
-  their case-sensitive identity.
+- Group, Resource and Version IDs compare case-sensitively. Core's
+  case-insensitive uniqueness rule does not make different-case XIDs equal.
 - Endpoint spelling and other parameter values remain explicit access
   context, not guessed aliases.
 
