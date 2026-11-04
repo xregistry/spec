@@ -4,14 +4,9 @@ set -e
 
 function clean() {
     set +e
-    if [[ -n "$tmpModelRoot" ]]; then
-        rm -rf -- "$tmpModelRoot"
-    fi
     echo "# Stopping server"
     docker rm -f xrserver > /dev/null
 }
-
-tmpModelRoot=""
 
 badPatterns=(
   "required.*false"
@@ -32,12 +27,6 @@ if ! which xr > /dev/null 2>&1 ; then
     $XR_IMAGE -s localhost:8383"
 fi
 
-# The external xr validator predates Core's binary type. Validate the original
-# models against Core's schema, then use a temporary string-typed copy only for
-# the external validator and server.
-echo "# Validating models against the Core model schema"
-python tools/validate-models.py
-
 # Start an xrserver to test loading the models and sample data
 echo -n "# Starting xrserver"
 docker run -qdti --name xrserver -p 8383:8080 $XRSERVER_IMAGE \
@@ -46,42 +35,11 @@ docker run -qdti --name xrserver -p 8383:8080 $XRSERVER_IMAGE \
 while ! curl --silent --fail $XR_SERVER > /dev/null;do echo -n . && sleep 2;done
 echo ; echo
 
-mapfile -t modelFiles < <(find . -name \*model.json)
-tmpModelRoot=$(mktemp -d ./.model-compat-XXXXXX)
-
-# Keep relative $includes paths intact while adapting the model files.
-for fn in "${modelFiles[@]}"; do
-    modelRelative="${fn#./}"
-    modelForXR="$tmpModelRoot/$modelRelative"
-    mkdir -p "$(dirname "$modelForXR")"
-    python - "$fn" "$modelForXR" <<'PY'
-import json
-import sys
-
-def map_types(value):
-    if isinstance(value, dict):
-        return {
-            key: "string" if key == "type" and item == "binary" else map_types(item)
-            for key, item in value.items()
-        }
-    if isinstance(value, list):
-        return [map_types(item) for item in value]
-    return value
-
-with open(sys.argv[1], encoding="utf-8") as source:
-    model = json.load(source)
-with open(sys.argv[2], "w", encoding="utf-8") as target:
-    json.dump(map_types(model), target, indent=2)
-    target.write("\n")
-PY
-done
-
-for fn in "${modelFiles[@]}"; do
+# Validate all model.json files in the entire repo
+for fn in `find . -name \*model.json`; do
     echo "# Model: $fn"
-    modelRelative="${fn#./}"
-    modelForXR="$tmpModelRoot/$modelRelative"
     echo "  # Verifying"
-    $XR model verify "$modelForXR"
+    $XR model verify $fn
 
     # Look for anti-patterns in the model
     for pattern in "${badPatterns[@]}" ; do
@@ -92,7 +50,7 @@ for fn in "${modelFiles[@]}"; do
     done
 
     echo "  # Loading"
-    $XR model update "$modelForXR"
+    $XR model update $fn
 
     dir=$(dirname $fn)
     echo "  # Looking for samples (*.xreg.json) in: $dir"
@@ -112,3 +70,4 @@ for fn in "${modelFiles[@]}"; do
 
 echo
 done
+
