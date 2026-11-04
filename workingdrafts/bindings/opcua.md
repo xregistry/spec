@@ -1913,10 +1913,12 @@ object uses `DeprecatedEventType`; removing it uses `UndeprecatedEventType`.
 The selected UA EventType identifies the transition; it does not introduce a
 separate Core `undeprecated` event.
 
-The Core `deprecated` events MUST NOT include a `changed` list. Core also
-requires a containing `group.updated` or `resource.updated` event; its
-`changed` list, if present, MUST include `deprecated` or `meta.deprecated`,
-respectively. The companion deprecated EventTypes have no `Changed` field, so
+The Core `deprecated` events MUST NOT include a `changed` list. A change
+that generates a `deprecated` event also generates a `group.updated` or
+`resource.updated` event unless the precedence rules in Section 9.4 select
+`created` or `deleted` for the same subject. The `updated` event's `changed`
+list, if present, MUST include `deprecated` or `meta.deprecated`, respectively.
+The companion deprecated EventTypes have no `Changed` field, so
 the binding does not project a `changed` list onto them. These are the only
 deprecated-event-specific precedence rules; all other applicable Core event
 requirements remain in force.
