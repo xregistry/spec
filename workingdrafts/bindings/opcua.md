@@ -1814,14 +1814,12 @@ semantics, including the following:
   Core's `doc` flag requires their removal.
 - Preserve each Meta entity's default-Version choice. Do not select the
   greatest Version ID or infer ancestry from Browse order.
-- Keep a local `xref` as the source Resource's identity and `meta.xref`.
-  When its same-Registry target is accessible, expose the Core-derived target
-  attributes under the source identity; do not substitute the target's ID,
-  XID or self reference, or follow a target `xref` transitively. If the target
-  is inaccessible or dangling, expose only the source identity and `meta.xref`;
-  no local Version storage is REQUIRED. Requests for an alias's Versions in
-  document view retain `cannot_doc_xref`, mapped to `unsupported_operation`
-  by a resolver.
+- For a Resource with a local `xref`, retain the source ID, XID, self
+  reference and `meta.xref`. In document view, exclude the target Resource's
+  attributes whether the target is accessible, dangling or itself an alias.
+  An alias does not require local Version storage. Requests for an alias's
+  Versions or Versions collection in document view retain `cannot_doc_xref`,
+  mapped to `unsupported_operation` by a resolver.
 - Include the requested collections, including empty maps, after completing
   their Browse continuation sequences. OPTIONAL counts, if emitted, MUST
   describe the included collection.
