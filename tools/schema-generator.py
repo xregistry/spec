@@ -214,11 +214,7 @@ def generate_openapi(model_definition):
             kind = definition.get("type")
             if kind in scalar_header_types:
                 fields["xRegistry-" + name] = {
-                    "description": (
-                        f"The {name} metadata attribute ({kind}), serialized and "
-                        "percent-encoded according to the xRegistry HTTP Header "
-                        "Values rules. This schema describes the encoded wire value."
-                    ),
+                    "description": f"The {name} attribute.",
                     "schema": {"type": "string"},
                 }
             elif kind == "map" and definition.get("item", {}).get("type") in scalar_header_types:
