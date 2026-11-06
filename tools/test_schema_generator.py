@@ -149,6 +149,62 @@ class TestSchemaGenerator:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
 
+    @pytest.mark.parametrize('strict', [True, False], ids=['strict-default', 'advisory'])
+    def test_array_item_enum_is_projected_to_schema_formats(self, tools_dir, tmp_path, strict):
+        item = {
+            "type": "string",
+            "enum": ["subscriber", "producer"]
+        }
+        if not strict:
+            item["strict"] = False
+        model_path = tmp_path / 'model.json'
+        model_path.write_text(json.dumps({
+            "groups": {
+                "endpoints": {
+                    "singular": "endpoint",
+                    "attributes": {
+                        "usage": {
+                            "type": "array",
+                            "item": item
+                        }
+                    }
+                }
+            }
+        }), encoding='utf-8')
+
+        json_schema = self.generate_schema(model_path, 'json-schema', tools_dir)
+        usage = json_schema['definitions']['endpoint-schema']['endpoint']['properties']['usage']
+        if strict:
+            assert usage['items']['enum'] == ['subscriber', 'producer']
+        else:
+            assert 'enum' not in usage['items']
+
+        json_structure = self.generate_schema(model_path, 'json-structure', tools_dir)
+        usage = json_structure['definitions']['Endpoints']['Endpoint']['properties']['usage']
+        if strict:
+            assert usage['items']['enum'] == ['subscriber', 'producer']
+        else:
+            assert 'enum' not in usage['items']
+
+        openapi = self.generate_schema(model_path, 'openapi', tools_dir)
+        usage = openapi['components']['schemas']['endpoint']['properties']['usage']
+        if strict:
+            assert usage['items']['enum'] == ['subscriber', 'producer']
+        else:
+            assert 'enum' not in usage['items']
+
+        avro_data = self.generate_schema(model_path, 'avro-schema', tools_dir)
+        schema = avro.schema.parse(json.dumps(avro_data))
+        usage = schema.fields_dict['endpoints'].type.values.fields_dict['usage'].type
+        if isinstance(usage, avro.schema.UnionSchema):
+            usage = next(branch for branch in usage.schemas if branch.type != 'null')
+        usage = usage.items
+        if strict:
+            assert usage.type == 'enum'
+            assert usage.symbols == ['subscriber', 'producer']
+        else:
+            assert usage.type == 'string'
+
     def test_message_model_avro_schema_valid(self, message_model, tools_dir):
         """Test that message model generates valid Avro schema."""
         schema_data = self.generate_schema(message_model, 'avro-schema', tools_dir)

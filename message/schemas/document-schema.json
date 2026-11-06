@@ -1162,6 +1162,10 @@
                       "method": {
                         "type": "string",
                         "description": "The HTTP method"
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "The HTTP status code (e.g., \"200\")"
                       }
                     }
                   }
@@ -1188,7 +1192,7 @@
                         "format": "uri-template",
                         "description": "The NATS subject"
                       },
-                      "reply": {
+                      "reply-to": {
                         "type": "string",
                         "format": "uri-template",
                         "description": "The NATS reply subject"

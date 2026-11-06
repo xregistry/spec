@@ -734,7 +734,7 @@ def generate_openapi(model_definition):
             group_singular = group["singular"]
             registry_entity_schema["properties"][f"{group_plural}url"] = {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": f"The URL for retrieving the {group_plural} (e.g. endpointsurl)."
             }
             registry_entity_schema["properties"][f"{group_plural}count"] = {
@@ -810,8 +810,12 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                     attr_schema["description"] = item["description"]
                 if "description" in attr_schema and attr_schema["description"] == "":
                     del attr_schema["description"]
-                if enum_values is not None:
-                    attr_schema["enum"] = copy.deepcopy(enum_values)
+                # Apply enum constraint to array items if provided
+                array_item_enum = enum_values
+                if array_item_enum is None and item.get("strict", True) is True:
+                    array_item_enum = item.get("enum")
+                if array_item_enum:
+                    attr_schema["enum"] = copy.deepcopy(array_item_enum)
                 resource_schema["items"] = attr_schema
                 if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
@@ -1519,6 +1523,47 @@ def generate_avro_schema(model_definition) -> dict:
         dict: The generated Avro schema.
     """
 
+    # Pre-scan to determine if GenericRecord is needed anywhere
+    def needs_generic_record(attributes):
+        """Check if any attribute requires GenericRecord type"""
+        for attr_name, attr_props in attributes.items():
+            if attr_props.get("type") in ["any", "var"] or \
+               (attr_name == "*" and attr_props.get("type") == "object"):
+                return True
+            if (
+                attr_props.get("type") == "object"
+                and "item" not in attr_props
+                and "attributes" not in attr_props
+            ):
+                return True
+            if "attributes" in attr_props:
+                if needs_generic_record(attr_props["attributes"]):
+                    return True
+            if "item" in attr_props:
+                if needs_generic_record({"item": attr_props["item"]}):
+                    return True
+            if "ifvalues" in attr_props:
+                for condition_props in attr_props["ifvalues"].values():
+                    if "siblingattributes" in condition_props:
+                        if needs_generic_record(condition_props["siblingattributes"]):
+                            return True
+        return False
+
+    # Check if GenericRecord is needed in the entire model
+    generic_record_needed = False
+    for _, group in model_definition.get("groups", {}).items():
+        if "attributes" in group and needs_generic_record(group["attributes"]):
+            generic_record_needed = True
+            break
+        for _, resource in group.get("resources", {}).items():
+            resource = resolve_resource(group, resource)
+            if "attributes" in resource and needs_generic_record(resource["attributes"]):
+                generic_record_needed = True
+                break
+        if generic_record_needed:
+            break
+
+    avro_generic_record_emitted = False
     record_types = set()
     enum_types = {}
 
@@ -1576,7 +1621,7 @@ def generate_avro_schema(model_definition) -> dict:
                 item_schema = copy.deepcopy(avro_type_mapping[item["type"]])
                 if item["type"] == "object":
                     handle_item(item_schema, "object", item, name+"Item", prefix, namespace)
-                elif item["type"] in ("map", "array"):
+                elif item["type"] in ("map", "array") and "item" in item:
                     handle_item(item_schema, item["type"], item["item"], name+"Item", prefix, namespace)
                 elif enum_values is not None:
                     restriction = enum_type(enum_values, prefix + name + "EnumType", namespace)
@@ -1592,7 +1637,7 @@ def generate_avro_schema(model_definition) -> dict:
                 if item["type"] == "object":
                     handle_item(item_schema, "object", item, name+"Item", prefix, namespace)
                     resource_schema["type"]["items"] = item_schema["type"]
-                elif item["type"] in ("map", "array"):
+                elif item["type"] in ("map", "array") and "item" in item:
                     handle_item(item_schema, item["type"], item["item"], name+"Item", prefix, namespace)
                     resource_schema["type"]["items"] = item_schema["type"]
                 else:
@@ -1683,13 +1728,19 @@ def generate_avro_schema(model_definition) -> dict:
             else:
                 if attr_name == "*":
                     # Map values can define a record inline; do not discard that definition.
+                    values_type = attr_schema["type"]
+                    if values_type == "record":
+                        values_type_ref = avro_generic_record_qualified_name
+                    else:
+                        values_type_ref = values_type
+
                     field_schema = {
                             "name": "Extensions",
                             "type":  {
                                "type": "map",
                                "name": type_prefix+"ExtensionsType",
                                "default": {},
-                               "values": attr_schema["type"]
+                               "values": values_type_ref
                              }}
                     if "description" in attr_props:
                         field_schema["doc"] = attr_props["description"]

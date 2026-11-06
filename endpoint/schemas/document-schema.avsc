@@ -2267,6 +2267,15 @@
                                       "doc": "The HTTP method",
                                       "name": "method",
                                       "default": null
+                                    },
+                                    {
+                                      "type": [
+                                        "null",
+                                        "string"
+                                      ],
+                                      "doc": "The HTTP status code (e.g., \"200\")",
+                                      "name": "status",
+                                      "default": null
                                     }
                                   ]
                                 }
@@ -2305,7 +2314,7 @@
                                         "string"
                                       ],
                                       "doc": "The NATS reply subject",
-                                      "name": "reply",
+                                      "name": "replyTo",
                                       "default": null
                                     },
                                     {
