@@ -207,6 +207,56 @@ class TestSchemaGenerator:
         except Exception as e:
             pytest.fail(f"Avro schema validation failed: {e}")
 
+    def test_avro_resource_names_are_scoped_by_group(self, tools_dir, tmp_path):
+        """Keep same-named resources in different groups as distinct records."""
+        model = {
+            'groups': {
+                'firstgroups': {
+                    'singular': 'firstgroup',
+                    'resources': {
+                        'things': {
+                            'singular': 'thing',
+                            'attributes': {'firstvalue': {'type': 'string'}}
+                        }
+                    }
+                },
+                'secondgroups': {
+                    'singular': 'secondgroup',
+                    'resources': {
+                        'things': {
+                            'singular': 'thing',
+                            'attributes': {'secondvalue': {'type': 'string'}}
+                        }
+                    }
+                }
+            }
+        }
+        model_path = tmp_path / 'model.json'
+        model_path.write_text(json.dumps(model), encoding='utf-8')
+        schema_data = self.generate_schema(model_path, 'avro-schema', tools_dir)
+
+        avro.schema.parse(json.dumps(schema_data))
+        groups = {
+            field['name']: field['type']['values']
+            for field in schema_data['fields']
+            if field['name'] in {'firstgroups', 'secondgroups'}
+        }
+
+        for group_name, attribute_name in (
+            ('firstgroups', 'firstvalue'),
+            ('secondgroups', 'secondvalue')
+        ):
+            resource_collection = next(
+                field for field in groups[group_name]['fields']
+                if field['name'] == 'things'
+            )
+            resource_type = resource_collection['type']['values']
+            assert resource_type['namespace'] == f'io.xregistry.{group_name}'
+            assert resource_type['name'] == 'ThingType'
+            assert attribute_name in {
+                field['name'] for field in resource_type['fields']
+            }
+
     def test_message_model_avro_has_generic_record(self, message_model, tools_dir):
         """Test that message model with extensions includes GenericRecord definition."""
         schema_data = self.generate_schema(message_model, 'avro-schema', tools_dir)
