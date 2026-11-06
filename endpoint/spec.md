@@ -247,7 +247,7 @@ this form:
         "format": "<STRING>" ?                    # e.g. application/json
       },
 
-      "protocol": "<STRING>", ?                   # e.g. HTTP/1.1
+      "protocol": "<STRING>", ?                   # e.g. HTTP
       "protocoloptions": {
         "<STRING>": <JSON-VALUE> *
 
@@ -762,7 +762,7 @@ Example:
 
 ```yaml
 {
-  "protocol": "HTTP/1.1",
+  "protocol": "HTTP",
   "protocoloptions": {
     "method": "POST"
   },
@@ -784,7 +784,7 @@ Example:
 
 ```yaml
 {
-  "protocol": "HTTP/1.1",
+  "protocol": "HTTP",
   "protocoloptions": {
     "method": "POST"
   },
