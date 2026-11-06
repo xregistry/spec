@@ -135,17 +135,14 @@ endpoint with a single, embedded message definition using an embedded Protobuf
       "createdat": "2024-04-30T12:00:00Z",
       "modifiedat": "2024-05-01T12:00:00Z",
 
-      "usage": "consumer",
-      "format": "CloudEvents/1.0",
-
-      "config": {
-        "protocol": "MQTT/5.0",
+      "usage": [ "consumer" ],
+      "envelope": "CloudEvents/1.0",
+      "protocol": "MQTT/5.0",
+      "protocoloptions": {
         "endpoints": [
           { "uri": "mqtt://mqtt.example.com:1883" }
         ],
-        "options": {
-          "topic": "{deviceid}/telemetry"
-        }
+        "topic": "{deviceid}/telemetry"
       },
 
       "messagesurl": "https://example.com/endpoints/com.example.telemetry/messages",
@@ -163,8 +160,8 @@ endpoint with a single, embedded message definition using an embedded Protobuf
           "modifiedat": "2024-05-01T12:00:00Z",
           "ancestorid": "1.0",
 
-          "format": "CloudEvents/1.0",
-          "metadata": {
+          "envelope": "CloudEvents/1.0",
+          "envelopemetadata": {
             "id": {
               "type": "string",
               "required": true
@@ -185,7 +182,7 @@ endpoint with a single, embedded message definition using an embedded Protobuf
             }
           },
 
-          "dataschemaformat": "Protobuf/3.0",
+          "dataschemaformat": "Protobuf/3",
           "dataschema": "syntax = \"proto3\"; message Metrics { float metric = 1; }",
           "datacontenttype": "application/x-protobuf",
 
@@ -226,17 +223,14 @@ other scenarios:
       "createdat": "2024-04-30T12:00:00Z",
       "modifiedat": "2024-05-01T12:00:00Z",
 
-      "usage": "consumer",
-      "format": "CloudEvents/1.0",
-
-      "config": {
-        "protocol": "MQTT/5.0",
+      "usage": [ "consumer" ],
+      "envelope": "CloudEvents/1.0",
+      "protocol": "MQTT/5.0",
+      "protocoloptions": {
         "endpoints": [
-            { "uri": "mqtt://mqtt.example.com:1883" }
+          { "uri": "mqtt://mqtt.example.com:1883" }
         ],
-        "options": {
-            "topic": "{deviceid}/telemetry"
-        }
+        "topic": "{deviceid}/telemetry"
       },
 
       "messagegroups": [ "#/messagegroups/com.example.telemetryEvents" ],
@@ -272,8 +266,8 @@ other scenarios:
           "modifiedat": "2024-05-01T12:00:00Z",
           "ancestorid": "1.0",
 
-          "format": "CloudEvents/1.0",
-          "metadata": {
+          "envelope": "CloudEvents/1.0",
+          "envelopemetadata": {
             "id": {
               "type": "string",
               "required": true
@@ -324,7 +318,7 @@ other scenarios:
         "com.example.telemetrydata": {
           "schemaid": "com.example.telemetrydata",
           "versionid": "1.0",
-          "self": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata",
+          "self": "https://example.com/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata$details",
           "xid": "/schemagroups/com.example.telemetry/schemas/com.example.telemetrydata",
           "epoch": 5,
           "isdefault": true,
@@ -351,9 +345,9 @@ other scenarios:
 
 The example's `dataschemauri` uses a path relative to the Registry root to
 identify the Schema Version. Its `#Metrics` fragment selects the Protobuf
-message declaration and is interpreted by the client, not sent to the server.
-See [Protobuf Schema](../schema/spec.md#434-protobuf-schema) for the selector
-rules.
+`message` declaration within that Version, as defined by the
+[Protobuf reference rule](../schema/spec.md#434-protobuf-schema). The fragment
+is interpreted by the client and is not sent to the server.
 
 If we assume the message definitions and schemas to reside at an API endpoint,
 an endpoint definition might just reference the associated message definition
@@ -374,10 +368,10 @@ group with a deep link to the respective object in the service:
       "createdat": "2024-04-30T12:00:00Z",
       "modifiedat": "2024-05-01T12:00:00Z",
 
-      "usage": "consumer",
-      "format": "CloudEvents/1.0",
-
-      "config": {
+      "usage": [ "consumer" ],
+      "envelope": "CloudEvents/1.0",
+      "protocol": "MQTT/5.0",
+      "protocoloptions": {
         # ... details ...
       },
 
@@ -409,10 +403,10 @@ link will first reference the file and then the object within the file, using
       "createdat": "2024-04-30T12:00:00Z",
       "modifiedat": "2024-05-01T12:00:00Z",
 
-      "usage": "consumer",
-      "format": "CloudEvents/1.0",
-
-      "config": {
+      "usage": [ "consumer" ],
+      "envelope": "CloudEvents/1.0",
+      "protocol": "MQTT/5.0",
+      "protocoloptions": {
         # ... details ...
       },
 

@@ -479,6 +479,7 @@
                 "items": {
                   "type": "enum",
                   "name": "UsageEnumType",
+                  "namespace": "io.xregistry",
                   "symbols": [
                     "subscriber",
                     "consumer",
