@@ -29,7 +29,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -43,7 +43,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -62,7 +62,7 @@
           },
           "basemessage": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
           },
           "dataschemaformat": {
@@ -74,12 +74,12 @@
           },
           "dataschemauri": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry"
           },
           "dataschemaxid": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Contains the xid of the owning xRegistry Schema Resource or Version in the same Registry. The object selector in dataschemauri does not change that owning entity."
           },
           "datacontenttype": {
@@ -1005,6 +1005,10 @@
                       "method": {
                         "type": "string",
                         "description": "The HTTP method"
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "The HTTP status code (e.g., \"200\")"
                       }
                     }
                   }
@@ -1031,7 +1035,7 @@
                         "format": "uri-template",
                         "description": "The NATS subject"
                       },
-                      "reply": {
+                      "reply-to": {
                         "type": "string",
                         "format": "uri-template",
                         "description": "The NATS reply subject"
@@ -1119,7 +1123,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -1133,7 +1137,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
