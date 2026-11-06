@@ -343,9 +343,11 @@ other scenarios:
 }
 ```
 
-The `#Metrics` fragment selects the Protobuf `message` declaration within the
-referenced Schema Version, as defined by the
-[Protobuf reference rule](../schema/spec.md#434-protobuf-schema).
+The example's `dataschemauri` uses a path relative to the Registry root to
+identify the Schema Version. Its `#Metrics` fragment selects the Protobuf
+`message` declaration within that Version, as defined by the
+[Protobuf reference rule](../schema/spec.md#434-protobuf-schema). The fragment
+is interpreted by the client and is not sent to the server.
 
 If we assume the message definitions and schemas to reside at an API endpoint,
 an endpoint definition might just reference the associated message definition
@@ -416,8 +418,11 @@ link will first reference the file and then the object within the file, using
 }
 ```
 
-All other references to other objects in the registry can be expressed in the
-same way.
+JSON Pointer fragments can identify metadata entities within a registry file.
+To select a type within a schema reached through such a fragment, follow the
+format-specific compound-fragment rules in
+[Schema Formats](../schema/spec.md#43-schema-formats). The direct Protobuf
+reference above instead uses a Registry-root-relative path and `#Metrics`.
 
 While the CloudEvents Registry is primarily motivated by enabling development
 of CloudEvents-based event flows, the registry is not limited to CloudEvents.

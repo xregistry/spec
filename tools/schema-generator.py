@@ -69,9 +69,9 @@ json_type_mapping = {
     "string": {"type": "string"},
     "object": {"type": "object"},
     "map": {"type": "object"},
-    "uri": {"type": "string", "format": "uri"},
-    "url": {"type": "string", "format": "uri"},
-    "xid": {"type": "string", "format": "uri"},
+    "uri": {"type": "string", "format": "uri-reference"},
+    "url": {"type": "string", "format": "uri-reference"},
+    "xid": {"type": "string", "format": "uri-reference"},
     "datetime": {"type": "string", "format": "date-time"},
     "integer": {"type": "integer"},
     "uinteger": {"type": "integer", "minimum": 0},
@@ -103,10 +103,10 @@ json_structure_type_mapping = {
 json_common_attributes = {
     "name": {"type": "string", "description": "Name of the object"},
     "epoch": {"type": "integer", "description": "Epoch time of the object creation"},
-    "self": {"type": "string", "format": "uri", "description": "URL of the object"},
+    "self": {"type": "string", "format": "uri-reference", "description": "URL of the object"},
     "xid": {"type": "string", "format": "xid", "description": "Relative URL of the object"},
     "description": {"type": "string", "description": "Description of the object"},
-    "documentation": {"type": "string", "format": "uri", "description": "URI of the documentation of the object"},
+    "documentation": {"type": "string", "format": "uri-reference", "description": "URI of the documentation of the object"},
     "labels": {"type": "object", "description": "Labels for the object"},
     "createdat": {"type": "string", "format": "date-time", "description": "Time of the object creation"},
     "modifiedat": {"type": "string", "format": "date-time", "description": "Time of the object modification"}
@@ -295,7 +295,7 @@ def generate_openapi(model_definition):
             path_template_copy = copy.deepcopy(path_template)
             replace_refs(path_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
             replace_ops(path_template_copy, "{%-groupNamePlural-%}", f"{pascal(group['plural'])}")
-            openapi["paths"][f"/{group['plural']}"]: path_template_copy
+            openapi["paths"][f"/{group['plural']}"] = path_template_copy
         openapi["paths"].pop(path)
 
         path = "/{%-groupNamePlural-%}/{groupid}"
@@ -440,7 +440,7 @@ def generate_openapi(model_definition):
             group_singular = group["singular"]
             registry_entity_schema["properties"][f"{group_plural}url"] = {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": f"The URL for retrieving the {group_plural} (e.g. endpointsurl)."
             }
             registry_entity_schema["properties"][f"{group_plural}count"] = {
@@ -722,10 +722,19 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                                 resource_name+"url" : {
                                     "description": f"Linked {resource_name} object",
                                     "type": "string",
-                                    "format": "uri"
+                                    "format": "uri-reference"
                                 }
                             },
                             "required": [resource_name+"url"]
+                        },
+                        {
+                            "not": {
+                                "anyOf": [
+                                    {"required": [resource_name]},
+                                    {"required": [resource_name+"base64"]},
+                                    {"required": [resource_name+"url"]}
+                                ]
+                            }
                         }
                     ]
                 }
@@ -1102,19 +1111,21 @@ def generate_avro_schema(model_definition) -> dict:
     def needs_generic_record(attributes):
         """Check if any attribute requires GenericRecord type"""
         for attr_name, attr_props in attributes.items():
-            # Check for "*" extension attributes with "any" or "var" type
-            if attr_name == "*" and attr_props.get("type") in ["any", "var", "object"]:
+            if attr_props.get("type") in ["any", "var"] or \
+               (attr_name == "*" and attr_props.get("type") == "object"):
                 return True
-            # Consolidated check: If attribute is an extension ("*") with type "any", "var", or "object",
-            # or if attribute is type "object" without "item" or "attributes", GenericRecord is needed.
-            if (attr_name == "*" and attr_props.get("type") in ["any", "var", "object"]) or \
-               (attr_props.get("type") == "object" and "item" not in attr_props and "attributes" not in attr_props):
+            if (
+                attr_props.get("type") == "object"
+                and "item" not in attr_props
+                and "attributes" not in attr_props
+            ):
                 return True
-            # Check nested attributes
             if "attributes" in attr_props:
                 if needs_generic_record(attr_props["attributes"]):
                     return True
-            # Check ifvalues sibling attributes
+            if "item" in attr_props:
+                if needs_generic_record({"item": attr_props["item"]}):
+                    return True
             if "ifvalues" in attr_props:
                 for condition_props in attr_props["ifvalues"].values():
                     if "siblingattributes" in condition_props:
@@ -1180,7 +1191,9 @@ def generate_avro_schema(model_definition) -> dict:
             resource_schema["type"] =  { "type": "map", "name": prefix+name+"Type","values": "" }
             if "type" in item:
                 item_schema = copy.deepcopy(avro_type_mapping[item["type"]])
-                if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
+                if item["type"] == "object":
+                    handle_item(item_schema, "object", item, name+"Item", prefix)
+                elif item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
                         handle_item(item_schema, item["type"], item["item"], name+"Item", prefix)
                 elif symbols is not None:
@@ -1194,7 +1207,10 @@ def generate_avro_schema(model_definition) -> dict:
             resource_schema["type"] = { "type": "array", "name": prefix+name+"ArrayType", "items": "" }
             if "type" in item:
                 item_schema = copy.deepcopy(avro_type_mapping[item["type"]])
-                if item["type"] == "object" or item["type"] == "map" or item["type"] == "array":
+                if item["type"] == "object":
+                    handle_item(item_schema, "object", item, name+"Item", prefix)
+                    resource_schema["type"]["items"] = item_schema["type"]
+                elif item["type"] == "map" or item["type"] == "array":
                     if "item" in item:
                         handle_item(item_schema, item["type"], item["item"], name, prefix)
                         resource_schema["type"]["items"] = item_schema["type"]
@@ -1202,6 +1218,8 @@ def generate_avro_schema(model_definition) -> dict:
                     if symbols is not None:
                         item_schema = avro_enum_type(
                             prefix+name+"EnumType", symbols)
+                    elif item["type"] in ["any", "var"]:
+                        item_schema = item_schema["type"]
                     resource_schema["type"]["items"] = item_schema
             else:
                 raise Exception("Array item must have a type specified")
@@ -1272,23 +1290,10 @@ def generate_avro_schema(model_definition) -> dict:
                     resource_schema["fields"].append(field_schema)
             else:
                 if attr_name == "*":
-                    # For extension attributes, we need to handle named types properly
-                    # Named types cannot be defined inline in a map's values field
                     values_type = attr_schema["type"]
-
-                    # Handle the case where the type needs to be resolved
-                    if isinstance(values_type, dict) and "name" in values_type:
-                        # This is a named type (like GenericRecord) - use only the name as a reference
-                        values_type_ref = values_type["name"]
-                    elif isinstance(values_type, dict):
-                        # This is a complex unnamed type - should not happen but use as-is
-                        values_type_ref = values_type
-                    elif values_type == "record":
-                        # This is an incomplete object type - use GenericRecord reference
-                        # (GenericRecord is defined at document level if needed)
+                    if values_type == "record":
                         values_type_ref = avro_generic_record_qualified_name
                     else:
-                        # This is a simple type reference (string like "string", "int", etc.)
                         values_type_ref = values_type
 
                     field_schema = {
