@@ -57,7 +57,7 @@ to be received, and how these messages can be distinguished.
     - [Metadata Envelopes](#metadata-envelopes)
       - [CloudEvents/1.0](#cloudevents10)
     - [Message Protocols](#message-protocols)
-      - ["HTTP/1.1", "HTTP/2", "HTTP/3" protocols](#http11-http2-http3-protocols)
+      - [HTTP protocol](#http-protocol)
       - ["AMQP/1.0" protocol](#amqp10-protocol)
       - [`properties` (AMQP 1.0)](#properties-amqp-10)
       - [`application-properties` (AMQP 1.0)](#application-properties-amqp-10)
@@ -448,7 +448,7 @@ this form:
 
       # MessageGroup extension attributes
       "envelope": "<STRING>", ?                 # e.g. CloudEvents/1.0
-      "protocol": "<STRING>", ?                 # e.g. HTTP/1.1
+      "protocol": "<STRING>", ?                 # e.g. HTTP
 
       "messages" : {
         "<KEY>": {                              # messageid
@@ -492,7 +492,7 @@ this form:
             "<STRING>": <JSON-VALUE> *
           }, ?
 
-          "protocol": "<STRING>", ?            # e.g. HTTP/1.1
+          "protocol": "<STRING>", ?            # e.g. HTTP
           "protocoloptions": { ... }, ?
 
           "dataschemaformat": "<STRING>", ?
@@ -1061,7 +1061,7 @@ properties explicitly, but they MUST conform with the rules above.
 
 #### Message Protocols
 
-##### "HTTP/1.1", "HTTP/2", "HTTP/3" protocols
+##### HTTP protocol
 
 The "HTTP" protocol is used to define messages that are sent over an HTTP
 connection. The protocol is based on the
@@ -1100,7 +1100,7 @@ query elements MAY contain placeholders using the [RFC6570][RFC6570] Level 1
 URI Template syntax. When the same placeholder is used in multiple properties,
 the value of the placeholder is assumed to be identical.
 
-The following example defines a message that is sent over HTTP/1.1:
+The following example defines a message that is sent over HTTP:
 
 ```yaml
 {
