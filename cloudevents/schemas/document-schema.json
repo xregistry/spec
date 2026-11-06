@@ -4333,6 +4333,30 @@
           "compatibilityvalidatedreason": {
             "type": "string"
           },
+          "versionsurl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "versionscount": {
+            "type": "integer"
+          },
+          "versions": {
+            "type": "object",
+            "additionalProperties": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/schemagroup-schema/schemaVersion"
+                },
+                {
+                  "not": {
+                    "required": [
+                      "$schema"
+                    ]
+                  }
+                }
+              ]
+            }
+          },
           "meta": {
             "allOf": [
               {
@@ -4394,50 +4418,8 @@
           },
           "metaurl": {
             "type": "string"
-          },
-          "versions": {},
-          "versionscount": {},
-          "versionsurl": {}
-        },
-        "oneOf": [
-          {
-            "properties": {
-              "versionsurl": {
-                "type": "string"
-              },
-              "versionscount": {
-                "type": "integer"
-              }
-            },
-            "required": [
-              "versionsurl"
-            ]
-          },
-          {
-            "properties": {
-              "versions": {
-                "type": "object",
-                "additionalProperties": {
-                  "allOf": [
-                    {
-                      "$ref": "#/definitions/schemagroup-schema/schemaVersion"
-                    },
-                    {
-                      "not": {
-                        "required": [
-                          "$schema"
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            },
-            "required": [
-              "versions"
-            ]
           }
-        ]
+        }
       },
       "schemagroup": {
         "type": "object",

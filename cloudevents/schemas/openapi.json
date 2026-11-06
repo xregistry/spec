@@ -8451,7 +8451,32 @@
         ],
         "additionalProperties": false,
         "anyOf": [
-          {},
+          {
+            "not": {
+              "properties": {
+                "meta": {
+                  "properties": {
+                    "messageid": {},
+                    "self": {},
+                    "shortself": {},
+                    "xid": {},
+                    "xref": {},
+                    "$schema": {}
+                  },
+                  "required": [
+                    "messageid",
+                    "self",
+                    "xid",
+                    "xref"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "meta"
+              ]
+            }
+          },
           {
             "properties": {
               "messageid": {},
@@ -9840,6 +9865,30 @@
           "compatibilityvalidatedreason": {
             "type": "string"
           },
+          "versionsurl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "versionscount": {
+            "type": "integer"
+          },
+          "versions": {
+            "type": "object",
+            "additionalProperties": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/schemaVersion"
+                },
+                {
+                  "not": {
+                    "required": [
+                      "$schema"
+                    ]
+                  }
+                }
+              ]
+            }
+          },
           "meta": {
             "allOf": [
               {
@@ -9856,52 +9905,34 @@
           },
           "metaurl": {
             "type": "string"
-          },
-          "versions": {},
-          "versionscount": {},
-          "versionsurl": {}
+          }
         },
         "anyOf": [
           {
-            "oneOf": [
-              {
-                "properties": {
-                  "versionsurl": {
-                    "type": "string"
+            "not": {
+              "properties": {
+                "meta": {
+                  "properties": {
+                    "schemaid": {},
+                    "self": {},
+                    "shortself": {},
+                    "xid": {},
+                    "xref": {},
+                    "$schema": {}
                   },
-                  "versionscount": {
-                    "type": "integer"
-                  }
-                },
-                "required": [
-                  "versionsurl"
-                ]
+                  "required": [
+                    "schemaid",
+                    "self",
+                    "xid",
+                    "xref"
+                  ],
+                  "additionalProperties": false
+                }
               },
-              {
-                "properties": {
-                  "versions": {
-                    "type": "object",
-                    "additionalProperties": {
-                      "allOf": [
-                        {
-                          "$ref": "#/components/schemas/schemaVersion"
-                        },
-                        {
-                          "not": {
-                            "required": [
-                              "$schema"
-                            ]
-                          }
-                        }
-                      ]
-                    }
-                  }
-                },
-                "required": [
-                  "versions"
-                ]
-              }
-            ]
+              "required": [
+                "meta"
+              ]
+            }
           },
           {
             "properties": {

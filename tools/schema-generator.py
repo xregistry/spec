@@ -1483,26 +1483,17 @@ def generate_json_schema(
                 handle_attributes(resource_version_schema, attributes, closed=True, role=output_role)
                 apply_constraint_overlays(resource_version_schema, resource_overlays)
 
-                resource_schema["oneOf"] = [
-                        {
-                            "properties": {
-                                "versionsurl": {"type": "string"},
-                                "versionscount": {"type": "integer"},
-                            },
-                            "required": ["versionsurl"]
-                        },
-                        {
-                            "properties": {
-                                "versions": {
-                                "type": "object",
-                                "additionalProperties": nested_entity_schema({
-                                    "$ref": f"{group_definition_prefix}{resource_name}Version"
-                                    })
-                                }
-                            },
-                            "required": ["versions"]
-                        }
-                    ]
+                resource_schema.pop("oneOf", None)
+                resource_schema["properties"].update({
+                    "versionsurl": {"type": "string", "format": "uri"},
+                    "versionscount": {"type": "integer"},
+                    "versions": {
+                        "type": "object",
+                        "additionalProperties": nested_entity_schema({
+                            "$ref": f"{group_definition_prefix}{resource_name}Version"
+                        })
+                    }
+                })
 
                 # For OpenAPI: flat keys, for JSON Schema: nested structure
                 if for_openapi:
@@ -1628,6 +1619,10 @@ def generate_json_schema(
                 normal_response = {
                     key: resource_response.pop(key)
                     for key in ("required", "oneOf") if key in resource_response
+                }
+                normal_response["not"] = {
+                    "properties": {"meta": identity_alias(name + "id")},
+                    "required": ["meta"],
                 }
                 resource_response["anyOf"] = [
                     normal_response,

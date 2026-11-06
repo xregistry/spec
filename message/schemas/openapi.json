@@ -5679,7 +5679,32 @@
         ],
         "additionalProperties": false,
         "anyOf": [
-          {},
+          {
+            "not": {
+              "properties": {
+                "meta": {
+                  "properties": {
+                    "messageid": {},
+                    "self": {},
+                    "shortself": {},
+                    "xid": {},
+                    "xref": {},
+                    "$schema": {}
+                  },
+                  "required": [
+                    "messageid",
+                    "self",
+                    "xid",
+                    "xref"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "meta"
+              ]
+            }
+          },
           {
             "properties": {
               "messageid": {},
