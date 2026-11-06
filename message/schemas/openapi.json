@@ -491,6 +491,124 @@
         }
       }
     },
+    "/messagegroups": {
+      "get": {
+        "operationId": "getMessagegroupsAll",
+        "tags": [
+          "ResourceGroupCollection"
+        ],
+        "description": "Gets all resource groups. Supports optional filtering ('filter'), inlining ('inline'), and document view ('doc'). (See spec: Registry Collections, Inline, and Filter)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resource groups that match the query (or all groups if no filter is specified).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/messagegroup"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "postMessagegroupsAll",
+        "tags": [
+          "ResourceGroupCollection"
+        ],
+        "description": "Creates or updates multiple resource groups. (See spec: PATCH and POST /<GROUPS>)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "A map of resource groups keyed by groupid.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/messagegroup"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created or updated resource groups.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/messagegroup"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
     "/messagegroups/{groupid}": {
       "parameters": [
         {
@@ -711,6 +829,71 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "postMessagegroupMessagesAll",
+        "tags": [
+          "ResourceCollection"
+        ],
+        "description": "Creates or updates multiple resources in a group. (See spec: PATCH and POST /<GROUPS>/<GID>/<RESOURCES>)",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/inline"
+          },
+          {
+            "$ref": "#/components/parameters/filter"
+          },
+          {
+            "$ref": "#/components/parameters/doc"
+          },
+          {
+            "$ref": "#/components/parameters/ignore"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "A map of resource definitions keyed by resourceid.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/message"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The created or updated resources.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/message"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
           },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
@@ -2178,7 +2361,7 @@
           },
           "messagegroupsurl": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The URL for retrieving the messagegroups (e.g. endpointsurl)."
           },
           "messagegroupscount": {
@@ -2226,7 +2409,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -2240,7 +2423,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -2319,7 +2502,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -2333,7 +2516,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -2414,7 +2597,7 @@
                     },
                     "self": {
                       "type": "string",
-                      "format": "uri",
+                      "format": "uri-reference",
                       "description": "URL of the object"
                     },
                     "xid": {
@@ -2428,7 +2611,7 @@
                     },
                     "documentation": {
                       "type": "string",
-                      "format": "uri",
+                      "format": "uri-reference",
                       "description": "URI of the documentation of the object"
                     },
                     "labels": {
@@ -2483,7 +2666,7 @@
                     },
                     "basemessage": {
                       "type": "string",
-                      "format": "uri",
+                      "format": "uri-reference",
                       "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
                     },
                     "envelope": {
@@ -2503,12 +2686,12 @@
                     },
                     "dataschemauri": {
                       "type": "string",
-                      "format": "uri",
+                      "format": "uri-reference",
                       "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry"
                     },
                     "dataschemaxid": {
                       "type": "string",
-                      "format": "uri",
+                      "format": "uri-reference",
                       "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry."
                     },
                     "datacontenttype": {
@@ -3741,6 +3924,10 @@
                                 "method": {
                                   "type": "string",
                                   "description": "The HTTP method"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "description": "The HTTP status code (e.g., \"200\")"
                                 }
                               },
                               "additionalProperties": false
@@ -3766,7 +3953,7 @@
                                   "format": "uri-template",
                                   "description": "The NATS subject"
                                 },
-                                "reply": {
+                                "reply-to": {
                                   "type": "string",
                                   "format": "uri-template",
                                   "description": "The NATS reply subject"
@@ -4000,7 +4187,7 @@
           },
           "basemessage": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
           },
           "envelope": {
@@ -4020,12 +4207,12 @@
           },
           "dataschemauri": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry"
           },
           "dataschemaxid": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry."
           },
           "datacontenttype": {
@@ -5258,6 +5445,10 @@
                       "method": {
                         "type": "string",
                         "description": "The HTTP method"
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "The HTTP status code (e.g., \"200\")"
                       }
                     },
                     "additionalProperties": false
@@ -5283,7 +5474,7 @@
                         "format": "uri-template",
                         "description": "The NATS subject"
                       },
-                      "reply": {
+                      "reply-to": {
                         "type": "string",
                         "format": "uri-template",
                         "description": "The NATS reply subject"
@@ -5544,7 +5735,7 @@
           },
           "self": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URL of the object"
           },
           "xid": {
@@ -5558,7 +5749,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object"
           },
           "labels": {
@@ -6122,7 +6313,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object",
             "nullable": true
           },
@@ -6186,7 +6377,7 @@
           },
           "basemessage": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition",
             "nullable": true
           },
@@ -6211,13 +6402,13 @@
           },
           "dataschemauri": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry",
             "nullable": true
           },
           "dataschemaxid": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry.",
             "nullable": true
           },
@@ -7752,6 +7943,11 @@
                         "type": "string",
                         "description": "The HTTP method",
                         "nullable": true
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "The HTTP status code (e.g., \"200\")",
+                        "nullable": true
                       }
                     },
                     "additionalProperties": false,
@@ -7900,7 +8096,7 @@
                         "description": "The NATS subject",
                         "nullable": true
                       },
-                      "reply": {
+                      "reply-to": {
                         "type": "string",
                         "format": "uri-template",
                         "description": "The NATS reply subject",
@@ -9650,6 +9846,11 @@
                             "type": "string",
                             "description": "The HTTP method",
                             "nullable": true
+                          },
+                          "status": {
+                            "type": "string",
+                            "description": "The HTTP status code (e.g., \"200\")",
+                            "nullable": true
                           }
                         },
                         "additionalProperties": false,
@@ -9709,7 +9910,7 @@
                             "description": "The NATS subject",
                             "nullable": true
                           },
-                          "reply": {
+                          "reply-to": {
                             "type": "string",
                             "format": "uri-template",
                             "description": "The NATS reply subject",
@@ -9788,7 +9989,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object",
             "nullable": true
           },
@@ -9861,7 +10062,7 @@
           },
           "basemessage": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition",
             "nullable": true
           },
@@ -9886,13 +10087,13 @@
           },
           "dataschemauri": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry",
             "nullable": true
           },
           "dataschemaxid": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry.",
             "nullable": true
           },
@@ -11427,6 +11628,11 @@
                         "type": "string",
                         "description": "The HTTP method",
                         "nullable": true
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "The HTTP status code (e.g., \"200\")",
+                        "nullable": true
                       }
                     },
                     "additionalProperties": false,
@@ -11575,7 +11781,7 @@
                         "description": "The NATS subject",
                         "nullable": true
                       },
-                      "reply": {
+                      "reply-to": {
                         "type": "string",
                         "format": "uri-template",
                         "description": "The NATS reply subject",
@@ -13325,6 +13531,11 @@
                             "type": "string",
                             "description": "The HTTP method",
                             "nullable": true
+                          },
+                          "status": {
+                            "type": "string",
+                            "description": "The HTTP status code (e.g., \"200\")",
+                            "nullable": true
                           }
                         },
                         "additionalProperties": false,
@@ -13384,7 +13595,7 @@
                             "description": "The NATS subject",
                             "nullable": true
                           },
-                          "reply": {
+                          "reply-to": {
                             "type": "string",
                             "format": "uri-template",
                             "description": "The NATS reply subject",
@@ -13463,7 +13674,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object",
             "nullable": true
           },
@@ -13567,7 +13778,7 @@
           },
           "basemessage": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition",
             "nullable": true
           },
@@ -13592,13 +13803,13 @@
           },
           "dataschemauri": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry",
             "nullable": true
           },
           "dataschemaxid": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry.",
             "nullable": true
           },
@@ -15133,6 +15344,11 @@
                         "type": "string",
                         "description": "The HTTP method",
                         "nullable": true
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "The HTTP status code (e.g., \"200\")",
+                        "nullable": true
                       }
                     },
                     "additionalProperties": false,
@@ -15281,7 +15497,7 @@
                         "description": "The NATS subject",
                         "nullable": true
                       },
-                      "reply": {
+                      "reply-to": {
                         "type": "string",
                         "format": "uri-template",
                         "description": "The NATS reply subject",
@@ -17031,6 +17247,11 @@
                             "type": "string",
                             "description": "The HTTP method",
                             "nullable": true
+                          },
+                          "status": {
+                            "type": "string",
+                            "description": "The HTTP status code (e.g., \"200\")",
+                            "nullable": true
                           }
                         },
                         "additionalProperties": false,
@@ -17090,7 +17311,7 @@
                             "description": "The NATS subject",
                             "nullable": true
                           },
-                          "reply": {
+                          "reply-to": {
                             "type": "string",
                             "format": "uri-template",
                             "description": "The NATS reply subject",
@@ -17200,7 +17421,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object",
             "nullable": true
           },
@@ -17264,7 +17485,7 @@
           },
           "basemessage": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition",
             "nullable": true
           },
@@ -17289,13 +17510,13 @@
           },
           "dataschemauri": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry",
             "nullable": true
           },
           "dataschemaxid": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry.",
             "nullable": true
           },
@@ -18774,6 +18995,11 @@
                         "type": "string",
                         "description": "The HTTP method",
                         "nullable": true
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "The HTTP status code (e.g., \"200\")",
+                        "nullable": true
                       }
                     },
                     "additionalProperties": false,
@@ -18922,7 +19148,7 @@
                         "description": "The NATS subject",
                         "nullable": true
                       },
-                      "reply": {
+                      "reply-to": {
                         "type": "string",
                         "format": "uri-template",
                         "description": "The NATS reply subject",
@@ -20615,6 +20841,11 @@
                             "type": "string",
                             "description": "The HTTP method",
                             "nullable": true
+                          },
+                          "status": {
+                            "type": "string",
+                            "description": "The HTTP status code (e.g., \"200\")",
+                            "nullable": true
                           }
                         },
                         "additionalProperties": false,
@@ -20674,7 +20905,7 @@
                             "description": "The NATS subject",
                             "nullable": true
                           },
-                          "reply": {
+                          "reply-to": {
                             "type": "string",
                             "format": "uri-template",
                             "description": "The NATS reply subject",
@@ -20752,7 +20983,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object",
             "nullable": true
           },
@@ -20856,7 +21087,7 @@
           },
           "basemessage": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition",
             "nullable": true
           },
@@ -20881,13 +21112,13 @@
           },
           "dataschemauri": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry",
             "nullable": true
           },
           "dataschemaxid": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry.",
             "nullable": true
           },
@@ -22366,6 +22597,11 @@
                         "type": "string",
                         "description": "The HTTP method",
                         "nullable": true
+                      },
+                      "status": {
+                        "type": "string",
+                        "description": "The HTTP status code (e.g., \"200\")",
+                        "nullable": true
                       }
                     },
                     "additionalProperties": false,
@@ -22514,7 +22750,7 @@
                         "description": "The NATS subject",
                         "nullable": true
                       },
-                      "reply": {
+                      "reply-to": {
                         "type": "string",
                         "format": "uri-template",
                         "description": "The NATS reply subject",
@@ -24207,6 +24443,11 @@
                             "type": "string",
                             "description": "The HTTP method",
                             "nullable": true
+                          },
+                          "status": {
+                            "type": "string",
+                            "description": "The HTTP status code (e.g., \"200\")",
+                            "nullable": true
                           }
                         },
                         "additionalProperties": false,
@@ -24266,7 +24507,7 @@
                             "description": "The NATS subject",
                             "nullable": true
                           },
-                          "reply": {
+                          "reply-to": {
                             "type": "string",
                             "format": "uri-template",
                             "description": "The NATS reply subject",
@@ -24375,7 +24616,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object",
             "nullable": true
           },
@@ -24504,7 +24745,7 @@
           },
           "documentation": {
             "type": "string",
-            "format": "uri",
+            "format": "uri-reference",
             "description": "URI of the documentation of the object",
             "nullable": true
           },
@@ -24637,7 +24878,7 @@
               },
               "documentation": {
                 "type": "string",
-                "format": "uri",
+                "format": "uri-reference",
                 "description": "URI of the documentation of the object",
                 "nullable": true
               },
@@ -24749,7 +24990,7 @@
               },
               "documentation": {
                 "type": "string",
-                "format": "uri",
+                "format": "uri-reference",
                 "description": "URI of the documentation of the object",
                 "nullable": true
               },
@@ -24837,7 +25078,7 @@
               },
               "documentation": {
                 "type": "string",
-                "format": "uri",
+                "format": "uri-reference",
                 "description": "URI of the documentation of the object",
                 "nullable": true
               },
@@ -24949,7 +25190,7 @@
               },
               "documentation": {
                 "type": "string",
-                "format": "uri",
+                "format": "uri-reference",
                 "description": "URI of the documentation of the object",
                 "nullable": true
               },

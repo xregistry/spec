@@ -361,26 +361,15 @@ def test_repository_models_pass_the_source_structural_stage():
     assert failures == []
 
 
-def test_expanded_stage_blocks_only_on_the_recorded_include_pointer_prerequisite():
-    """cloudevents/model.json still carries the three malformed `#groups`
-    fragments. Repairing them is W08, owned by the model-consistency follow-up
-    on xregistry/spec#723, so this branch records the prerequisite instead of
-    weakening the expanded stage. This assertion fails loudly once that
-    dependency lands, which is the intended signal to tighten it."""
-    blocked = {}
+def test_repository_models_pass_the_expanded_stage():
+    failures = []
     for path in sorted(ROOT.rglob("model.json")):
         report = VALIDATE_MODELS.validate_model(path, MODEL_SCHEMA)
-        errors = [
+        failures.extend(
             error for error in report.errors
             if VALIDATE_MODELS.EXPANDED_STAGE in error
-        ]
-        if errors:
-            blocked[path.relative_to(ROOT).as_posix()] = errors
-    assert sorted(blocked) == ["cloudevents/model.json"]
-    assert all(
-        "Invalid include pointer" in error
-        for error in blocked["cloudevents/model.json"]
-    )
+        )
+    assert failures == []
 
 
 @pytest.mark.parametrize("name", ["a", "_private", "a_b_9", STRICT_MAX])
@@ -4799,7 +4788,6 @@ def test_existing_metadata_write_routes_use_inputs_not_defaulted_responses(group
     response(schema, group_path).validate({"region": "global"})
     with pytest.raises(jsonschema.ValidationError):
         response(schema, group_path).validate({})
-    assert f"/{group}" not in schema["paths"]
     assert "patch" not in schema["paths"][group_path]
 
 
