@@ -7,6 +7,68 @@
   "name": "MessageRegistryDocument",
   "type": "object",
   "properties": {
+    "registryid": {
+      "type": "string"
+    },
+    "specversion": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "description": "Name of the object"
+    },
+    "epoch": {
+      "type": "integer",
+      "description": "Epoch of the object"
+    },
+    "self": {
+      "type": "uri",
+      "description": "URL of the object"
+    },
+    "xid": {
+      "type": "uri",
+      "description": "XID of the object"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the object"
+    },
+    "documentation": {
+      "type": "uri",
+      "description": "Documentation URL"
+    },
+    "labels": {
+      "type": "map",
+      "values": {
+        "type": "string"
+      }
+    },
+    "createdat": {
+      "type": "datetime",
+      "description": "Creation time"
+    },
+    "modifiedat": {
+      "type": "datetime",
+      "description": "Modification time"
+    },
+    "model": {
+      "type": "map",
+      "values": {
+        "type": "any"
+      }
+    },
+    "modelsource": {
+      "type": "map",
+      "values": {
+        "type": "any"
+      }
+    },
+    "capabilities": {
+      "type": "map",
+      "values": {
+        "type": "any"
+      }
+    },
     "messagegroups": {
       "type": "map",
       "values": {
@@ -14,6 +76,12 @@
           "$ref": "#/definitions/Messagegroups/Messagegroup"
         }
       }
+    },
+    "messagegroupsurl": {
+      "type": "uri"
+    },
+    "messagegroupscount": {
+      "type": "uint32"
     }
   },
   "additionalProperties": false,
@@ -895,6 +963,93 @@
             },
             "additionalProperties": false,
             "description": "AMQP message metadata constraints"
+          },
+          "metaurl": {
+            "type": "uri"
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "messageid": {
+                "type": "string",
+                "description": "ID of the message object"
+              },
+              "name": {
+                "type": "string",
+                "description": "Name of the object"
+              },
+              "epoch": {
+                "type": "integer",
+                "description": "Epoch of the object"
+              },
+              "self": {
+                "type": "uri",
+                "description": "URL of the object"
+              },
+              "xid": {
+                "type": "uri",
+                "description": "XID of the object"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the object"
+              },
+              "documentation": {
+                "type": "uri",
+                "description": "Documentation URL"
+              },
+              "labels": {
+                "type": "map",
+                "values": {
+                  "type": "string"
+                }
+              },
+              "createdat": {
+                "type": "datetime",
+                "description": "Creation time"
+              },
+              "modifiedat": {
+                "type": "datetime",
+                "description": "Modification time"
+              },
+              "xref": {
+                "type": "uri"
+              },
+              "readonly": {
+                "type": "boolean"
+              },
+              "compatibility": {
+                "type": "string"
+              },
+              "deprecated": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "datetime"
+                  },
+                  "removal": {
+                    "type": "datetime"
+                  },
+                  "alternative": {
+                    "type": "uri"
+                  },
+                  "documentation": {
+                    "type": "uri"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "defaultversionid": {
+                "type": "string"
+              },
+              "defaultversionurl": {
+                "type": "uri"
+              },
+              "defaultversionsticky": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
@@ -959,6 +1114,12 @@
                 "$ref": "#/definitions/Messagegroups/Message"
               }
             }
+          },
+          "messagesurl": {
+            "type": "uri"
+          },
+          "messagescount": {
+            "type": "uint32"
           }
         },
         "additionalProperties": true
