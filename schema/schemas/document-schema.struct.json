@@ -4,6 +4,17 @@
   "$uses": [
     "JSONStructureAlternateNames"
   ],
+  "x-xregistryProjection": {
+    "avroGenericValues": "GenericRecord.object.json contains exact Core JSON",
+    "avroOptionalScalars": "absent-record, null, or string",
+    "constraints": "typed enum and bounds; no lexical numeric comparison",
+    "defaults": "target-typed reader defaults; not implicit writer values",
+    "id": "https://xregistry.io/profiles/scalar-projection/1",
+    "identity": "sha256 of complete profile, dialect and writer schema",
+    "numbers": "exact-json-number-token; mathematical coefficient/exponent",
+    "timestamps": "rfc3339-text; exact fraction and explicit UTC normalization",
+    "version": "1"
+  },
   "name": "SchemaRegistryDocument",
   "type": "object",
   "properties": {
@@ -35,8 +46,17 @@
             "description": "Name of the object"
           },
           "epoch": {
-            "type": "integer",
-            "description": "Epoch of the object"
+            "type": [
+              "string",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "uinteger",
+              "encoding": "json-number-token",
+              "constraints": {}
+            },
+            "description": "Optimistic concurrency update counter",
+            "x-xregistryOptional": true
           },
           "self": {
             "type": "uri",
@@ -61,12 +81,30 @@
             }
           },
           "createdat": {
-            "type": "datetime",
-            "description": "Creation time"
+            "type": [
+              "datetime",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "timestamp",
+              "encoding": "rfc3339-text",
+              "constraints": {}
+            },
+            "description": "Creation time",
+            "x-xregistryOptional": true
           },
           "modifiedat": {
-            "type": "datetime",
-            "description": "Modification time"
+            "type": [
+              "datetime",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "timestamp",
+              "encoding": "rfc3339-text",
+              "constraints": {}
+            },
+            "description": "Modification time",
+            "x-xregistryOptional": true
           },
           "format": {
             "type": "string"
@@ -98,8 +136,17 @@
             "description": "Name of the object"
           },
           "epoch": {
-            "type": "integer",
-            "description": "Epoch of the object"
+            "type": [
+              "string",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "uinteger",
+              "encoding": "json-number-token",
+              "constraints": {}
+            },
+            "description": "Optimistic concurrency update counter",
+            "x-xregistryOptional": true
           },
           "self": {
             "type": "uri",
@@ -124,12 +171,30 @@
             }
           },
           "createdat": {
-            "type": "datetime",
-            "description": "Creation time"
+            "type": [
+              "datetime",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "timestamp",
+              "encoding": "rfc3339-text",
+              "constraints": {}
+            },
+            "description": "Creation time",
+            "x-xregistryOptional": true
           },
           "modifiedat": {
-            "type": "datetime",
-            "description": "Modification time"
+            "type": [
+              "datetime",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "timestamp",
+              "encoding": "rfc3339-text",
+              "constraints": {}
+            },
+            "description": "Modification time",
+            "x-xregistryOptional": true
           },
           "schema": {
             "type": "any",
@@ -147,7 +212,16 @@
             "type": "uri"
           },
           "versionscount": {
-            "type": "uint32"
+            "type": [
+              "string",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "uinteger",
+              "encoding": "json-number-token",
+              "constraints": {}
+            },
+            "x-xregistryOptional": true
           },
           "versions": {
             "type": "map",
@@ -172,8 +246,17 @@
             "description": "Name of the object"
           },
           "epoch": {
-            "type": "integer",
-            "description": "Epoch of the object"
+            "type": [
+              "string",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "uinteger",
+              "encoding": "json-number-token",
+              "constraints": {}
+            },
+            "description": "Optimistic concurrency update counter",
+            "x-xregistryOptional": true
           },
           "self": {
             "type": "uri",
@@ -198,12 +281,30 @@
             }
           },
           "createdat": {
-            "type": "datetime",
-            "description": "Creation time"
+            "type": [
+              "datetime",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "timestamp",
+              "encoding": "rfc3339-text",
+              "constraints": {}
+            },
+            "description": "Creation time",
+            "x-xregistryOptional": true
           },
           "modifiedat": {
-            "type": "datetime",
-            "description": "Modification time"
+            "type": [
+              "datetime",
+              "null"
+            ],
+            "x-xregistryScalar": {
+              "coreType": "timestamp",
+              "encoding": "rfc3339-text",
+              "constraints": {}
+            },
+            "description": "Modification time",
+            "x-xregistryOptional": true
           },
           "format": {
             "type": "string"

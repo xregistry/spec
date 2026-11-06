@@ -42,11 +42,13 @@
                 ]
               }
             }
-          ]
+          ],
+          "x-xregistryJsonCarrier": "core-json/1"
         }
       },
       "default": [],
-      "doc": "Internal field to define GenericRecord type for use in extension attributes"
+      "doc": "Internal field to define GenericRecord type for use in extension attributes",
+      "x-xregistryInternal": true
     },
     {
       "name": "schemagroups",
@@ -72,10 +74,23 @@
             {
               "name": "epoch",
               "type": [
-                "int",
-                "null"
+                {
+                  "type": "record",
+                  "name": "io.xregistry.SchemagroupType_epoch_AbsentV1",
+                  "fields": [],
+                  "x-xregistryAbsent": "https://xregistry.io/profiles/scalar-projection/1"
+                },
+                "null",
+                "string"
               ],
-              "doc": "Epoch time of the object creation"
+              "x-xregistryScalar": {
+                "coreType": "uinteger",
+                "encoding": "json-number-token",
+                "constraints": {}
+              },
+              "x-xregistryOptional": true,
+              "doc": "Optimistic concurrency update counter",
+              "default": {}
             },
             {
               "name": "self",
@@ -118,23 +133,43 @@
               "name": "createdat",
               "type": [
                 {
-                  "type": "int",
-                  "logicalType": "time-millis"
+                  "type": "record",
+                  "name": "io.xregistry.SchemagroupType_createdat_AbsentV1",
+                  "fields": [],
+                  "x-xregistryAbsent": "https://xregistry.io/profiles/scalar-projection/1"
                 },
-                "null"
+                "null",
+                "string"
               ],
-              "doc": "Time of the object creation"
+              "x-xregistryScalar": {
+                "coreType": "timestamp",
+                "encoding": "rfc3339-text",
+                "constraints": {}
+              },
+              "x-xregistryOptional": true,
+              "doc": "Time of the object creation",
+              "default": {}
             },
             {
               "name": "modifiedat",
               "type": [
                 {
-                  "type": "int",
-                  "logicalType": "time-millis"
+                  "type": "record",
+                  "name": "io.xregistry.SchemagroupType_modifiedat_AbsentV1",
+                  "fields": [],
+                  "x-xregistryAbsent": "https://xregistry.io/profiles/scalar-projection/1"
                 },
-                "null"
+                "null",
+                "string"
               ],
-              "doc": "Time of the object modification"
+              "x-xregistryScalar": {
+                "coreType": "timestamp",
+                "encoding": "rfc3339-text",
+                "constraints": {}
+              },
+              "x-xregistryOptional": true,
+              "doc": "Time of the object modification",
+              "default": {}
             },
             {
               "type": "string",
@@ -174,10 +209,23 @@
                     {
                       "name": "epoch",
                       "type": [
-                        "int",
-                        "null"
+                        {
+                          "type": "record",
+                          "name": "io.xregistry.schemagroups.SchemaType_epoch_AbsentV1",
+                          "fields": [],
+                          "x-xregistryAbsent": "https://xregistry.io/profiles/scalar-projection/1"
+                        },
+                        "null",
+                        "string"
                       ],
-                      "doc": "Epoch time of the object creation"
+                      "x-xregistryScalar": {
+                        "coreType": "uinteger",
+                        "encoding": "json-number-token",
+                        "constraints": {}
+                      },
+                      "x-xregistryOptional": true,
+                      "doc": "Optimistic concurrency update counter",
+                      "default": {}
                     },
                     {
                       "name": "self",
@@ -220,23 +268,43 @@
                       "name": "createdat",
                       "type": [
                         {
-                          "type": "int",
-                          "logicalType": "time-millis"
+                          "type": "record",
+                          "name": "io.xregistry.schemagroups.SchemaType_createdat_AbsentV1",
+                          "fields": [],
+                          "x-xregistryAbsent": "https://xregistry.io/profiles/scalar-projection/1"
                         },
-                        "null"
+                        "null",
+                        "string"
                       ],
-                      "doc": "Time of the object creation"
+                      "x-xregistryScalar": {
+                        "coreType": "timestamp",
+                        "encoding": "rfc3339-text",
+                        "constraints": {}
+                      },
+                      "x-xregistryOptional": true,
+                      "doc": "Time of the object creation",
+                      "default": {}
                     },
                     {
                       "name": "modifiedat",
                       "type": [
                         {
-                          "type": "int",
-                          "logicalType": "time-millis"
+                          "type": "record",
+                          "name": "io.xregistry.schemagroups.SchemaType_modifiedat_AbsentV1",
+                          "fields": [],
+                          "x-xregistryAbsent": "https://xregistry.io/profiles/scalar-projection/1"
                         },
-                        "null"
+                        "null",
+                        "string"
                       ],
-                      "doc": "Time of the object modification"
+                      "x-xregistryScalar": {
+                        "coreType": "timestamp",
+                        "encoding": "rfc3339-text",
+                        "constraints": {}
+                      },
+                      "x-xregistryOptional": true,
+                      "doc": "Time of the object modification",
+                      "default": {}
                     },
                     {
                       "type": "string",
@@ -259,5 +327,16 @@
         }
       }
     }
-  ]
+  ],
+  "x-xregistryProjection": {
+    "avroGenericValues": "GenericRecord.object.json contains exact Core JSON",
+    "avroOptionalScalars": "absent-record, null, or string",
+    "constraints": "typed enum and bounds; no lexical numeric comparison",
+    "defaults": "target-typed reader defaults; not implicit writer values",
+    "id": "https://xregistry.io/profiles/scalar-projection/1",
+    "identity": "sha256 of complete profile, dialect and writer schema",
+    "numbers": "exact-json-number-token; mathematical coefficient/exponent",
+    "timestamps": "rfc3339-text; exact fraction and explicit UTC normalization",
+    "version": "1"
+  }
 }
