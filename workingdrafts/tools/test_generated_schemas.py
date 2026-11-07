@@ -131,22 +131,43 @@ class TestGeneratedSchemas:
         assert relationship.fields_dict['target'].type.type == 'string'
         assert relationship.fields_dict['labels'].type.values.type == 'string'
 
+    def test_api_format_matching_uses_draft_contract(self, tools_dir):
+        root = tools_dir.parent
+        model = json.loads(
+            (root / 'workingdrafts' / 'models' / 'api' / 'model.json').read_text(
+                encoding='utf-8'
+            )
+        )
+        group = model['groups']['apigroups']
+        assert 'constraints' not in group
+        assert 'matchversions' not in group['resources']['apis']
+
+        core_schema = json.loads(
+            (root / 'core' / 'model.schema.json').read_text(encoding='utf-8')
+        )
+        jsonschema.Draft7Validator(core_schema).validate(model)
+
     def test_media_endpoints_source_provenance_matches_artifacts(self, tools_dir):
         root = tools_dir.parent / 'workingdrafts' / 'models' / 'media-endpoints'
         source = json.loads((root / 'source.json').read_text(encoding='utf-8'))
         assert source['draft']['revision'] == '9613f002c82c9568fbefc5f1f0cf0490d6df572a'
         assert source['draft']['gitBlob'] == '8e7e6d46c21e391c4dd611dbea92f40acf0231d3'
-        assert source['base']['revision'] == 'adf5b6a63e60c3baa78e844da8b7ce2a0d60c179'
+        assert source['base']['revision'] == 'c196b8c48e928d30b58a2eaff707c4de3bcc20b5'
 
         for model in source['base']['models']:
             content = (root / model['snapshot']).read_bytes()
             assert hashlib.sha256(content).hexdigest() == model['sha256']
 
+        endpoint_source = next(
+            model for model in source['base']['models']
+            if model['path'] == 'endpoint/model.json'
+        )
+        assert endpoint_source['gitBlob'] == '976aeb9603e4e0113bbd08dcc688183a980d4651'
         message_source = next(
             model for model in source['base']['models']
             if model['path'] == 'message/model.json'
         )
-        assert message_source['gitBlob'] == '5df13a2dbb11ccd0e8d8643e983dfbb71262051a'
+        assert message_source['gitBlob'] == 'e8ec60bcfa326f1cbaeabbf3c0a2a668f7792189'
         message_model = json.loads((root / message_source['snapshot']).read_text(encoding='utf-8'))
         http_options = message_model['groups']['messagegroups']['resources']['messages'][
             'attributes'
@@ -160,13 +181,10 @@ class TestGeneratedSchemas:
             )
             for adjustment in source['modelAdjustments']
         )
-        assert any(
-            adjustment['path']
-            == 'groups.messagegroups.resources.messages.attributes.protocol.ifvalues'
-            for adjustment in source['modelAdjustments']
-        )
-        assert any(
-            adjustment['path'] == 'groups.endpoints.attributes.protocol.ifvalues'
+        assert not any(
+            'HTTP/1.1' in adjustment['adjustment']
+            or 'HTTP/2' in adjustment['adjustment']
+            or 'HTTP/3' in adjustment['adjustment']
             for adjustment in source['modelAdjustments']
         )
 
@@ -188,7 +206,7 @@ class TestGeneratedSchemas:
         )
         jsonschema.Draft7Validator(core_schema).validate(resolved_model)
 
-    def test_http_protocol_version_selectors_reuse_http_options(self, tools_dir):
+    def test_http_uses_one_selector_across_model_copies(self, tools_dir):
         root = tools_dir.parent
         media_root = root / 'workingdrafts' / 'models' / 'media-endpoints'
         selectors = ('HTTP/1.1', 'HTTP/2', 'HTTP/3')
@@ -227,8 +245,8 @@ class TestGeneratedSchemas:
             else:
                 protocol = model['groups']['endpoints']['attributes']['protocol']['ifvalues']
 
-            for selector in selectors:
-                assert protocol[selector] == protocol['HTTP']
+            assert 'HTTP' in protocol
+            assert all(selector not in protocol for selector in selectors)
 
     def test_media_endpoints_model_composes_base_protocols_without_codec_enums(
         self, tools_dir, tmp_path

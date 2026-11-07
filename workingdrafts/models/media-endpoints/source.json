@@ -11,43 +11,33 @@
   },
   "base": {
     "repository": "https://github.com/xregistry/spec",
-    "revision": "adf5b6a63e60c3baa78e844da8b7ce2a0d60c179",
-    "date": "2026-08-18",
+    "revision": "c196b8c48e928d30b58a2eaff707c4de3bcc20b5",
+    "date": "2026-11-06",
     "models": [
       {
         "path": "endpoint/model.json",
-        "gitBlob": "be4287fb1472d9ac6615e06ade469f216938ee29",
+        "gitBlob": "976aeb9603e4e0113bbd08dcc688183a980d4651",
         "snapshot": "sources/endpoint-model.source.json",
-        "sha256": "a4f33c5f8d5a52202e523eb292340ddb2013a898c9197e1e3581f036dcb82442"
+        "sha256": "866663068e77a1a3a09489e4008f9e2ff7b7bbb5b0e1ff0c75bccec4390d3c74"
       },
       {
         "path": "message/model.json",
-        "gitBlob": "5df13a2dbb11ccd0e8d8643e983dfbb71262051a",
+        "gitBlob": "e8ec60bcfa326f1cbaeabbf3c0a2a668f7792189",
         "snapshot": "sources/message-model.source.json",
-        "sha256": "7355faa56cebe030f08810dd7766f2321a4f4be30152d906be5948e8b74cec25"
+        "sha256": "cae588db40f354f65151e55247f7025299f1fd4a24aab334962404dc8b7086f3"
       }
     ]
   },
   "modelAdjustments": [
     {
       "path": "groups.messagegroups.resources.messages.attributes.protocol.ifvalues.HTTP.siblingattributes.protocoloptions.attributes",
-      "adjustment": "Change HTTP query from an array of named objects to a map of string values, and add the HTTP status string.",
-      "reason": "Aligns the embedded Message model with the corrected HTTP protocol declaration while preserving the original upstream revision and Git blob."
-    },
-    {
-      "path": "groups.messagegroups.resources.messages.attributes.protocol.ifvalues",
-      "adjustment": "Add HTTP/1.1, HTTP/2, and HTTP/3 selectors with the HTTP option constraints.",
-      "reason": "The Message specification names these HTTP versions as protocol selectors."
-    },
-    {
-      "path": "groups.endpoints.attributes.protocol.ifvalues",
-      "adjustment": "Add HTTP/1.1, HTTP/2, and HTTP/3 selectors with the HTTP option constraints.",
-      "reason": "Keep the embedded Endpoint protocol model aligned with the HTTP versions named by the Message specification."
+      "adjustment": "Change the HTTP query declaration to a map of string values.",
+      "reason": "Keeps native query names while constraining each query value to a string."
     },
     {
       "path": "groups.endpoints.attributes.usage",
-      "adjustment": "Move the enum from the array attribute to its scalar item.",
-      "reason": "Core model validation permits enum on scalar values, not on array attributes."
+      "adjustment": "Keep usage optional and describe mixed role values as guidance while retaining the scalar item enum.",
+      "reason": "Media Endpoints uses usage as optional consumer guidance rather than the base Endpoint role requirement."
     }
   ],
   "artifacts": {
