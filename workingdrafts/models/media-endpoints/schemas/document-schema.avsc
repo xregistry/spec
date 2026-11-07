@@ -248,7 +248,7 @@
                     {
                       "type": "string",
                       "doc": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition",
-                      "name": "basemessageuri"
+                      "name": "basemessage"
                     },
                     {
                       "name": "envelope",
@@ -328,42 +328,6 @@
                           "type": "record",
                           "namespace": "io.xregistry.messagegroups",
                           "name": "ProtocolHTTPType",
-                          "fields": [
-                            {
-                              "type": "io.xregistry.GenericRecord",
-                              "name": "protocoloptions",
-                              "doc": "The HTTP message metadata constraints"
-                            }
-                          ]
-                        },
-                        {
-                          "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
-                          "name": "ProtocolHttp11Type",
-                          "fields": [
-                            {
-                              "type": "io.xregistry.GenericRecord",
-                              "name": "protocoloptions",
-                              "doc": "The HTTP message metadata constraints"
-                            }
-                          ]
-                        },
-                        {
-                          "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
-                          "name": "ProtocolHttp2Type",
-                          "fields": [
-                            {
-                              "type": "io.xregistry.GenericRecord",
-                              "name": "protocoloptions",
-                              "doc": "The HTTP message metadata constraints"
-                            }
-                          ]
-                        },
-                        {
-                          "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
-                          "name": "ProtocolHttp3Type",
                           "fields": [
                             {
                               "type": "io.xregistry.GenericRecord",
@@ -596,42 +560,6 @@
                   "type": "record",
                   "namespace": "io.xregistry.endpoints",
                   "name": "ProtocolHTTPType",
-                  "fields": [
-                    {
-                      "type": "io.xregistry.GenericRecord",
-                      "name": "protocoloptions",
-                      "doc": "Configuration information for this endpoint"
-                    }
-                  ]
-                },
-                {
-                  "type": "record",
-                  "namespace": "io.xregistry.endpoints",
-                  "name": "ProtocolHttp11Type",
-                  "fields": [
-                    {
-                      "type": "io.xregistry.GenericRecord",
-                      "name": "protocoloptions",
-                      "doc": "Configuration information for this endpoint"
-                    }
-                  ]
-                },
-                {
-                  "type": "record",
-                  "namespace": "io.xregistry.endpoints",
-                  "name": "ProtocolHttp2Type",
-                  "fields": [
-                    {
-                      "type": "io.xregistry.GenericRecord",
-                      "name": "protocoloptions",
-                      "doc": "Configuration information for this endpoint"
-                    }
-                  ]
-                },
-                {
-                  "type": "record",
-                  "namespace": "io.xregistry.endpoints",
-                  "name": "ProtocolHttp3Type",
                   "fields": [
                     {
                       "type": "io.xregistry.GenericRecord",

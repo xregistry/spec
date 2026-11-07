@@ -160,11 +160,7 @@ def _find_all_uris(html: HtmlText) -> Iterable[Uri]:
     for a in _html_parser(html).find_all("a"):
         uri = a.get("href")
         if uri:
-            uri = uri.strip()
-            if a.get("data-link-check") == "authenticated" and uri.startswith(("http://", "https://")):
-                print(f"Skipping authenticated link: {uri}")
-                continue
-            yield Uri(uri)
+            yield Uri(uri.strip())
 
 _LINK_PROBE_HEADERS = {
     "Accept": "text/html, application/json, application/xml",
