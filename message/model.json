@@ -399,20 +399,19 @@
                                 },
                                 "type": {
                                   "name": "type",
-                                  "description": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types",
+                                  "description": "AMQP properties.message-id declaration type from the xRegistry Core type system",
                                   "type": "string",
                                   "enum": [
-                                    "ulong",
-                                    "uuid",
-                                    "binary",
+                                    "uinteger",
                                     "string",
+                                    "binary",
                                     "uritemplate"
                                   ]
                                 },
                                 "value": {
                                   "name": "value",
-                                  "description": "AMQP properties.message-id value constraint. ",
-                                  "type": "string"
+                                  "description": "AMQP properties.message-id value constraint",
+                                  "type": "any"
                                 },
                                 "required": {
                                   "name": "required",
@@ -437,17 +436,15 @@
                                   "description": "AMQP properties.user-id value type",
                                   "type": "string",
                                   "required": true,
-                                  "default": "string",
+                                  "default": "binary",
                                   "enum": [
-                                    "binary",
-                                    "string",
-                                    "uritemplate"
+                                    "binary"
                                   ]
                                 },
                                 "value": {
                                   "name": "value",
-                                  "description": "AMQP properties.user-id value constraint",
-                                  "type": "string"
+                                  "description": "AMQP properties.user-id binary value constraint",
+                                  "type": "binary"
                                 },
                                 "required": {
                                   "name": "required",
@@ -574,7 +571,6 @@
                                   "required": true,
                                   "default": "string",
                                   "enum": [
-                                    "binary",
                                     "string",
                                     "uritemplate"
                                   ]
@@ -846,6 +842,7 @@
                                   "string",
                                   "uritemplate",
                                   "integer",
+                                  "decimal",
                                   "number",
                                   "boolean"
                                 ],
@@ -855,7 +852,7 @@
                               "value": {
                                 "name": "value",
                                 "description": "Application property value",
-                                "type": "string"
+                                "type": "any"
                               },
                               "required": {
                                 "name": "required",
@@ -886,6 +883,7 @@
                                   "string",
                                   "uritemplate",
                                   "integer",
+                                  "decimal",
                                   "number",
                                   "boolean"
                                 ],
@@ -895,7 +893,7 @@
                               "value": {
                                 "name": "value",
                                 "description": "Annotation value constraint",
-                                "type": "string"
+                                "type": "any"
                               },
                               "required": {
                                 "name": "required",
@@ -926,6 +924,7 @@
                                   "string",
                                   "uritemplate",
                                   "integer",
+                                  "decimal",
                                   "number",
                                   "boolean"
                                 ],
@@ -935,7 +934,7 @@
                               "value": {
                                 "name": "value",
                                 "description": "Annotation value constraint",
-                                "type": "string"
+                                "type": "any"
                               },
                               "required": {
                                 "name": "required",
@@ -1007,6 +1006,7 @@
                                   "string",
                                   "uritemplate",
                                   "integer",
+                                  "decimal",
                                   "number",
                                   "boolean"
                                 ],
@@ -1016,7 +1016,7 @@
                               "value": {
                                 "name": "value",
                                 "description": "Footer value constraint",
-                                "type": "string"
+                                "type": "any"
                               },
                               "required": {
                                 "name": "required",
@@ -1103,12 +1103,12 @@
                         "correlation_data": {
                           "name": "correlation_data",
                           "description": "MQTT correlation data",
-                          "type": "uritemplate"
+                          "type": "binary"
                         },
                         "content_type": {
                           "name": "content_type",
                           "description": "MQTT content type",
-                          "type": "uritemplate"
+                          "type": "string"
                         },
                         "user_properties": {
                           "name": "user_properties",
@@ -1164,7 +1164,7 @@
                         "key_base64": {
                           "name": "key_base64",
                           "description": "Binary Apache Kafka key as a base64 encoded string. Mutually exclusive with 'key'",
-                          "type": "string"
+                          "type": "binary"
                         },
                         "headers": {
                           "name": "headers",

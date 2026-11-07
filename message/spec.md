@@ -879,34 +879,39 @@ the headers, properties or attributes defined for a message:
 - Constraints:
   - OPTIONAL.
   - Default value MUST be "string".
-  - The valid types are those defined in the [CloudEvents][CloudEvents Types]
-    core specification, with some additions:
-    - `any`: Any type of value, including `null`.
-    - `binary`: CloudEvents "Binary" type.
-    - `boolean`: CloudEvents "Boolean" type.
-    - `duration`: ISO 8601 Duration.
-    - `integer`: CloudEvents "Integer" type (RFC 7159, Section 6).
-    - `number`: IEEE754 Double.
-    - `string`: CloudEvents "String" type.
-    - `symbol`: A `string` that is restricted to alphanumerical characters and
-      underscores.
-    - `timestamp`: CloudEvents "Timestamp" type (RFC3339 DateTime)
-    - `uri`: CloudEvents URI type (RFC3986 URI).
-    - `uritemplate`: [RFC6570][RFC6570] Level 1 URI Template.
+  - If present, MUST be a data type name defined by
+    [xRegistry Core](../core/spec.md#data-types). Protocol definitions MAY
+    further constrain the permitted types and values for a property.
+
+For AMQP `application-properties`, `message-annotations`,
+`delivery-annotations`, and `footer` declarations, `number` is retained as an
+alias for Core `decimal`. Implementations MUST treat both names as the same
+value type.
+
+The protocol tables in the [Message Protocols](#message-protocols) section use
+Core declaration types. Native wire encodings and protocol-specific value
+constraints remain unchanged. UUID values and duration expressions use
+`string` with the syntax defined by the applicable protocol.
+
+Binary data uses the Core `binary` type in xRegistry declarations. When encoded
+as JSON, a binary value MUST use the Base64 representation defined in
+[RFC 4648, Section 4][RFC4648].
 
 ##### `value`
 
 - Type: Any
-- Description: The value of the property. With a few exceptions, see below,
-  this is the value that MUST be literally present in the message for the
-  message to be considered conformant with the message definition.
+- Description: The value of the property. Except for the encodings and
+  substitutions defined in this section, this is the value that MUST be
+  literally present in the message for the message to be considered conformant
+  with the message definition.
 - Constraints:
   - OPTIONAL.
   - If present, MUST be a valid value for the property.
 
 If the `type` property has the value `uritemplate`, `value` MAY contain
 placeholders. As defined in [RFC6570][RFC6570] (Level 1), the placeholders MUST
-be enclosed in curly braces (`{` and `}`) and each MUST be a valid `symbol`.
+be enclosed in curly braces (`{` and `}`), and each placeholder name MUST be a
+non-empty string containing only alphanumeric characters and underscores.
 Placeholders that are used multiple times in the same message definition MUST
 represent identical values.
 
@@ -970,12 +975,12 @@ The following rules apply to the attribute declarations:
   [`dataschema`](#dataschema) attribute of the message definition if
   absent. If present, the value MUST match the `dataschemauri` attribute of the
   message definition.
-- The `type` of the property definition defaults to the CloudEvents type
-  definition for the attribute, if any. The `type` of an attribute MAY be
-  modified to be further constrained. For instance, the `source` type
-  `uri` MAY be changed to `uritemplate` or the `subject` type `string` MAY be
-  constrained to a `uri` or `stringified integer`. If no CloudEvents type
-  definition exists, the default value MUST be `string`.
+- The `type` of the property definition defaults to the Core type
+  corresponding to the [CloudEvents type][CloudEvents Types] for the attribute,
+  if any. The `type` MAY be changed to further constrain the attribute using
+  a Core data type. For instance, the `source` type `uri` MAY be changed to
+  `uritemplate`, or the `subject` type `string` MAY be constrained to a `uri`.
+  If no CloudEvents type definition exists, the default value MUST be `string`.
 
 The values of all `string` and `uritemplate`-typed attributes MAY contain
 placeholders using the [RFC6570][RFC6570] Level 1 URI Template syntax. When the
@@ -1073,8 +1078,8 @@ properties as defined below:
 
 | Property  | Type          | Description                 |
 | --------- | ------------- | --------------------------- |
-| `headers` | Array         | The HTTP headers. See below |
-| `query`   | Map           | The HTTP query parameters   |
+| `headers` | `array`       | The HTTP headers. See below |
+| `query`   | `array`       | The HTTP query parameters   |
 | `path`    | `uritemplate` | The HTTP path               |
 | `method`  | `string`      | The HTTP method             |
 | `status`  | `string`      | The HTTP status code (e.g., "200") |
@@ -1083,7 +1088,8 @@ HTTP allows for multiple headers with the same name. The `headers` property is
 therefore an array of objects with `name` and `value` properties. The `name`
 property is a string that MUST be a valid HTTP header name.
 
-The `query` property is a map of string keys to string values.
+The `query` property is an array of objects with string `name` and `value`
+properties. The `name` property MUST be a valid HTTP query parameter name.
 
 The `path` property is a URI template.
 
@@ -1136,18 +1142,18 @@ The [`protocoloptions`](#protocoloptions) object MAY contain several
 properties, each of which corresponds to a section of the AMQP 1.0 Message,
 as defined below:
 
-| Property                 | Type | Description                                                                     |
-| ------------------------ | ---- | ------------------------------------------------------------------------------- |
-| `properties`             | Map  | The AMQP 1.0 [Message Properties][AMQP 1.0 Message Properties] section          |
-| `application-properties` | Map  | The AMQP 1.0 [Application Properties][AMQP 1.0 Application Properties] section. |
-| `message-annotations`    | Map  | The AMQP 1.0 [Message Annotations][AMQP 1.0 Message Annotations] section        |
-| `delivery-annotations`   | Map  | The AMQP 1.0 [Delivery Annotations][AMQP 1.0 Delivery Annotations] section      |
-| `header`                 | Map  | The AMQP 1.0 [Message Header][AMQP 1.0 Message Header] section                  |
-| `footer`                 | Map  | The AMQP 1.0 [Message Footer][AMQP 1.0 Message Footer] section                  |
+| Property                 | Type     | Description                                                                     |
+| ------------------------ | -------- | ------------------------------------------------------------------------------- |
+| `properties`             | `object` | The AMQP 1.0 [Message Properties][AMQP 1.0 Message Properties] section             |
+| `application-properties` | `map`    | The AMQP 1.0 [Application Properties][AMQP 1.0 Application Properties] section.    |
+| `message-annotations`    | `map`    | The AMQP 1.0 [Message Annotations][AMQP 1.0 Message Annotations] section           |
+| `delivery-annotations`   | `map`    | The AMQP 1.0 [Delivery Annotations][AMQP 1.0 Delivery Annotations] section         |
+| `header`                 | `object` | The AMQP 1.0 [Message Header][AMQP 1.0 Message Header] section                     |
+| `footer`                 | `map`    | The AMQP 1.0 [Message Footer][AMQP 1.0 Message Footer] section                     |
 
 As in AMQP, all sections and properties are OPTIONAL.
 
-The values of all `string`, `symbol`, `uri`, and `uritemplate`-typed properties
+The values of all `string`, `uri`, and `uritemplate`-typed properties
 MAY contain placeholders using the [RFC6570][RFC6570] Level 1 URI Template
 syntax. When the same placeholder is used in multiple properties, the value of
 the placeholder is assumed to be identical.
@@ -1202,17 +1208,25 @@ following properties are defined, with type constraints:
 | `subject`              | `string`         | message subject                                                                  |
 | `reply-to`             | `uritemplate`    | address of the node to which the receiver of this message ought to send replies  |
 | `correlation-id`       | `string`         | client-specific id that can be used to mark or identify messages between clients |
-| `content-type`         | `symbol`         | MIME content type for the message                                                |
-| `content-encoding`     | `symbol`         | MIME content encoding for the message                                            |
+| `content-type`         | `string`         | MIME content type for the message                                                |
+| `content-encoding`     | `string`         | MIME content encoding for the message                                            |
 | `absolute-expiry-time` | `timestamp`      | time when this message is considered expired                                     |
 | `group-id`             | `string`         | group this message belongs to                                                    |
 | `group-sequence`       | `integer`        | position of this message within its group                                        |
 | `reply-to-group-id`    | `uritemplate`    | group-id to which the receiver of this message ought to send replies to          |
 
-The `message-id` permits the types `ulong`, `uuid`, `binary`, `string`, and
-`uritemplate`. A `value` constraint for the `message-id` property SHOULD NOT be
-defined in the message definition except for the case where the `message-id`
-is a `uritemplate`.
+The `message-id` permits the Core declaration types `uinteger`, `string`,
+`binary`, and `uritemplate`. UUID values use strings. When a binary value is
+encoded as JSON, its representation MUST use the Base64 encoding defined in
+[RFC 4648, Section 4][RFC4648].
+The native identifier types remain those defined by
+[AMQP Message Properties][AMQP 1.0 Message Properties]. A `value` constraint
+for the `message-id` property SHOULD NOT be defined in the message definition
+except for the case where the `message-id` is a `uritemplate`.
+
+The xRegistry `content-type` declaration uses `string` for MIME values such
+as `application/json`. Its native AMQP encoding remains as defined by
+[AMQP Message Properties][AMQP 1.0 Message Properties].
 
 ##### `application-properties` (AMQP 1.0)
 
@@ -1220,7 +1234,7 @@ The `application-properties` property is a map that contains the custom
 properties of the AMQP 1.0 [Application Properties][AMQP 1.0 Application
 Properties] section.
 
-The names of the properties MUST be of type `symbol` and MUST be unique within
+The names of the properties MUST be of type `string` and MUST be unique within
 the scope of the map. The values of the properties MAY be of any permitted
 type.
 
@@ -1230,7 +1244,7 @@ The `message-annotations` property is a map that contains the custom
 properties of the AMQP 1.0 [Message Annotations][AMQP 1.0 Message Annotations]
 section.
 
-The names of the properties MUST be of type `symbol` and MUST be unique within
+The names of the properties MUST be of type `string` and MUST be unique within
 the scope of the map. The values of the properties MAY be of any permitted
 type.
 
@@ -1240,7 +1254,7 @@ The `delivery-annotations` property is a map that contains the custom
 properties of the AMQP 1.0
 [Delivery Annotations][AMQP 1.0 Delivery Annotations] section.
 
-The names of the properties MUST be of type `symbol` and MUST be unique within
+The names of the properties MUST be of type `string` and MUST be unique within
 the scope of the map. The values of the properties MAY be of any permitted
 type.
 
@@ -1263,7 +1277,7 @@ following properties are defined, with type constraints:
 The `footer` property is a map that contains the custom properties of the AMQP
 1.0 [Message Footer][AMQP 1.0 Message Footer] section.
 
-The names of the properties MUST be of type `symbol` and MUST be unique within
+The names of the properties MUST be of type `string` and MUST be unique within
 the scope of the map. The values of the properties MAY be of any permitted
 type.
 
@@ -1296,7 +1310,7 @@ Like HTTP, MQTT allows for multiple user properties with the same name,
 so the `user_properties` property is an array of objects, each of which
 contains a single property name and value.
 
-The values of all `string`, `symbol`, and `uritemplate`-typed properties and
+The values of all `string` and `uritemplate`-typed properties and
 user properties MAY contain placeholders using the [RFC6570][RFC6570] Level 1
 URI Template syntax. When the same placeholder is used in multiple properties,
 the value of the placeholder is assumed to be identical.
@@ -1340,7 +1354,7 @@ The following properties are defined:
 | `partition`  | `integer` | The partition to which the record is to be sent or has been received from |
 | `key`        | `string`  | The key that is associated with the record, UTF-8 encoded                 |
 | `key_base64` | `binary`  | The key that is associated with the record as a base64 encoded string     |
-| `headers`    | Map       | A map of headers to set on the record                                     |
+| `headers`    | `map`     | A map of headers to set on the record                                     |
 
 The `key` and `key_base64` properties are mutually exclusive and MUST NOT be
 present at the same time.
@@ -1349,7 +1363,7 @@ The `partition` property is included because there are cases where applications
 use partitions explicitly for addressing and routing messages within the scope
 of a topic.
 
-The values of all `string`-, `symbol`-, and `uritemplate`-typed properties
+The values of all `string`- and `uritemplate`-typed properties
 and headers MAY contain placeholders using the [RFC6570][RFC6570] Level 1 URI
 Template syntax. When the same placeholder is used in multiple properties,
 the value of the placeholder is assumed to be identical.
@@ -1380,9 +1394,9 @@ The following properties are defined:
 | ---------- | ------------- | -------------------------------------------- |
 | `subject`  | `uritemplate` | The subject the message will be published to |
 | `reply-to` | `uritemplate` | The subject the receiver ought to reply to   |
-| `headers`  | Array         | A list of headers to set on the message      |
+| `headers`  | `array`       | A list of headers to set on the message      |
 
-The values of all `string`-, `symbol`-, and `uritemplate`-typed properties
+The values of all `string`- and `uritemplate`-typed properties
 and headers MAY contain placeholders using the [RFC6570][RFC6570] Level 1 URI
 Template syntax. When the same placeholder is used in multiple properties,
 the value of the placeholder is assumed to be identical.
@@ -1399,7 +1413,6 @@ Example:
 }
 ```
 
-[CloudEvents Types]: https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#type-system
 [AMQP 1.0]: https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-overview-v1.0-os.html
 [AMQP 1.0 Message Format]: http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#section-message-format
 [AMQP 1.0 Message Properties]: http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-properties
@@ -1411,12 +1424,14 @@ Example:
 [MQTT 5.0]: https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html
 [MQTT 3.1.1]: https://docs.oasis-open.org/mqtt/mqtt/v3.1.1/mqtt-v3.1.1.html
 [CloudEvents]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md
+[CloudEvents Types]: https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#type-system
 [NATS]: https://docs.nats.io/reference/protocols/client/
 [Apache Kafka]: https://kafka.apache.org/protocol
 [Apache Kafka producer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/producer/ProducerRecord.html
 [Apache Kafka consumer]: https://kafka.apache.org/31/javadoc/org/apache/kafka/clients/consumer/ConsumerRecord.html
 [HTTP Message Format]: https://www.rfc-editor.org/rfc/rfc9110#section-6
 [RFC6570]: https://www.rfc-editor.org/rfc/rfc6570
+[RFC4648]: https://www.rfc-editor.org/rfc/rfc4648#section-4
 [rfc3339]: https://tools.ietf.org/html/rfc3339
 [message]: https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#message
 [SOAP]: https://www.w3.org/TR/soap12-part1/
