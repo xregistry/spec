@@ -16,11 +16,6 @@
           "type": "any"
         }
       },
-      "constraints": {
-        "apis.format": {
-          "equals": "format"
-        }
-      },
       "resources": {
         "apis": {
           "singular": "api",
