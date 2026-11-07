@@ -1,0 +1,42 @@
+{
+  "format": "xregistry-publication/1",
+  "scope": "urn:example:manual-publication",
+  "capture": "assembled",
+  "completeness": "offline-complete",
+  "registry": {
+    "reference": {
+      "registry": {
+        "binding": "opcua",
+        "endpoint": "opc.tcp://ua.example.test:4840",
+        "parameters": {
+          "registryroot": "nsu=urn:example:publication;s=Registry"
+        }
+      },
+      "version": "/publications/team/objects/registry-capture/versions/content"
+    },
+    "digest": "sha256:d7e50157645e98260f0fa754e6940c59ab5b4f2d36e79b8fa3b08130b4e7a3e6",
+    "size": 790
+  },
+  "documents": [
+    {
+      "viewVersion": "/sets/manual/documents/intro/versions/7",
+      "originRegistry": "https://author.example.test/registry",
+      "originVersion": "/sets/manual/documents/intro/versions/7",
+      "base": "https://author.example.test/manual/intro.txt",
+      "content": {
+        "reference": {
+          "registry": {
+            "binding": "opcua",
+            "endpoint": "opc.tcp://ua.example.test:4840",
+            "parameters": {
+              "registryroot": "nsu=urn:example:publication;s=Registry"
+            }
+          },
+          "version": "/sets/manual/documents/intro/versions/7"
+        },
+        "digest": "sha256:0a3fdd7ff022bd6a263d031e640fd0bc074fa877ed320a367784067b7a1d78e1",
+        "size": 36
+      }
+    }
+  ]
+}

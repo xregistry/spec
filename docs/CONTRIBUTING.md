@@ -133,3 +133,10 @@ include:
 To test your changes locally you have 2 options:
 1 - `make -f tools/Makefile` - if you have Python/bash locally installed
 2 - `make -f tools/Makefile docker` - if you have Docker locally installed
+
+If a link requires authentication, mark its HTML anchor with
+`data-link-check="authenticated"` and explain the access restriction in the
+document. Verify the exact target with authorized access first. Both link
+checkers report the marked URL without probing it anonymously. They still check
+all other links, local paths and fragments on marked anchors. Do not disable
+link checking for the whole document.

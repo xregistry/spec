@@ -1,0 +1,61 @@
+{
+  "draft": {
+    "repository": "https://github.com/xregistry/spec",
+    "pullRequest": 716,
+    "path": "workingdrafts/models/media-endpoints.md",
+    "revision": "9613f002c82c9568fbefc5f1f0cf0490d6df572a",
+    "gitBlob": "8e7e6d46c21e391c4dd611dbea92f40acf0231d3",
+    "version": "0.1",
+    "date": "2026-09-15",
+    "url": "https://github.com/xregistry/spec/blob/9613f002c82c9568fbefc5f1f0cf0490d6df572a/workingdrafts/models/media-endpoints.md"
+  },
+  "base": {
+    "repository": "https://github.com/xregistry/spec",
+    "revision": "adf5b6a63e60c3baa78e844da8b7ce2a0d60c179",
+    "date": "2026-08-18",
+    "models": [
+      {
+        "path": "endpoint/model.json",
+        "gitBlob": "be4287fb1472d9ac6615e06ade469f216938ee29",
+        "snapshot": "sources/endpoint-model.source.json",
+        "sha256": "a4f33c5f8d5a52202e523eb292340ddb2013a898c9197e1e3581f036dcb82442"
+      },
+      {
+        "path": "message/model.json",
+        "gitBlob": "5df13a2dbb11ccd0e8d8643e983dfbb71262051a",
+        "snapshot": "sources/message-model.source.json",
+        "sha256": "7355faa56cebe030f08810dd7766f2321a4f4be30152d906be5948e8b74cec25"
+      }
+    ]
+  },
+  "modelAdjustments": [
+    {
+      "path": "groups.messagegroups.resources.messages.attributes.protocol.ifvalues.HTTP.siblingattributes.protocoloptions.attributes",
+      "adjustment": "Change HTTP query from an array of named objects to a map of string values, and add the HTTP status string.",
+      "reason": "Aligns the embedded Message model with the corrected HTTP protocol declaration while preserving the original upstream revision and Git blob."
+    },
+    {
+      "path": "groups.messagegroups.resources.messages.attributes.protocol.ifvalues",
+      "adjustment": "Add HTTP/1.1, HTTP/2, and HTTP/3 selectors with the HTTP option constraints.",
+      "reason": "The Message specification names these HTTP versions as protocol selectors."
+    },
+    {
+      "path": "groups.endpoints.attributes.protocol.ifvalues",
+      "adjustment": "Add HTTP/1.1, HTTP/2, and HTTP/3 selectors with the HTTP option constraints.",
+      "reason": "Keep the embedded Endpoint protocol model aligned with the HTTP versions named by the Message specification."
+    },
+    {
+      "path": "groups.endpoints.attributes.usage",
+      "adjustment": "Move the enum from the array attribute to its scalar item.",
+      "reason": "Core model validation permits enum on scalar values, not on array attributes."
+    }
+  ],
+  "artifacts": {
+    "model.json": {
+      "sha256": "f8a0fa6cbd975f4c38ee211d291d5b64416bccc4d9a7242eaf4f9da34367cfa8"
+    },
+    "protocol-options.json": {
+      "sha256": "4fcf905ad2ca26ea8ce03d5ee0a92338622733f313bbca8dd7543a7b2f04d8fb"
+    }
+  }
+}

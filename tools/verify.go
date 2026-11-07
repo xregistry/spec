@@ -417,9 +417,19 @@ func findAllHrefs(htmlText string) []string {
 	var walk func(*xhtml.Node)
 	walk = func(n *xhtml.Node) {
 		if n.Type == xhtml.ElementNode && n.Data == "a" {
+			authenticated := false
+			for _, a := range n.Attr {
+				if a.Key == "data-link-check" && a.Val == "authenticated" {
+					authenticated = true
+				}
+			}
 			for _, a := range n.Attr {
 				if a.Key == "href" {
 					v := strings.TrimSpace(a.Val)
+					if authenticated && (strings.HasPrefix(v, "http://") || strings.HasPrefix(v, "https://")) {
+						fmt.Printf("Skipping authenticated link: %s\n", v)
+						continue
+					}
 					if v != "" {
 						hrefs = append(hrefs, v)
 					}
@@ -912,6 +922,7 @@ func runSelfTests() bool {
 	testIsTextAllUppercase()
 	testPlainTextIssues()
 	testHeadersRenderedWithIDs()
+	testAuthenticatedLinkChecks()
 	testApp()
 
 	failed := 0
@@ -927,6 +938,24 @@ func runSelfTests() bool {
 	fmt.Printf("Validating the tool: %d/%d tests passed\n",
 		len(testResults)-failed, len(testResults))
 	return failed == 0
+}
+
+func testAuthenticatedLinkChecks() {
+	cases := []struct{ html, expected string }{
+		{`<a href="https://example.org/public">public</a>`, "https://example.org/public"},
+		{`<a data-link-check="authenticated" href="https://example.org/private">private</a>`, ""},
+		{`<a href="http://example.org/private" data-link-check="authenticated">private</a>`, ""},
+		{`<a href="missing.md" data-link-check="authenticated">local</a>`, "missing.md"},
+		{`<a href="#missing" data-link-check="authenticated">fragment</a>`, "#missing"},
+		{`<a href="https://example.org/public" data-link-check="unknown">public</a>`, "https://example.org/public"},
+		{`<a href="https://example.org/public" title="authenticated">public</a>`, "https://example.org/public"},
+		{`<a href="https://example.org/private" data-link-check="authenticated">private</a><a href="missing.md">local</a><a href="https://example.org/public">public</a>`, "missing.md,https://example.org/public"},
+	}
+	for i, c := range cases {
+		got := strings.Join(findAllHrefs(c.html), ",")
+		check(fmt.Sprintf("authenticated links %d", i), got == c.expected,
+			fmt.Sprintf("got %q, want %q", got, c.expected))
+	}
 }
 
 func indent(s, prefix string) string {

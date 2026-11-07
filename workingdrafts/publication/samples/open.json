@@ -1,0 +1,37 @@
+{
+  "format": "xregistry-open/1",
+  "scope": "urn:example:manual-publication",
+  "snapshot": {
+    "reference": {
+      "registry": {
+        "binding": "http",
+        "endpoint": "https://publisher.example.test"
+      },
+      "version": "/publications/team/snapshots/9d0bf066f7e96e942f07ad978bfb59f74cf791afc34db3d386bc94b4f155749b/versions/manifest"
+    },
+    "digest": "sha256:9d0bf066f7e96e942f07ad978bfb59f74cf791afc34db3d386bc94b4f155749b",
+    "size": 1143
+  },
+  "registry": {
+    "reference": {
+      "registry": {
+        "binding": "http",
+        "endpoint": "https://publisher.example.test"
+      },
+      "version": "/publications/team/objects/registry-capture/versions/content"
+    },
+    "digest": "sha256:d7e50157645e98260f0fa754e6940c59ab5b4f2d36e79b8fa3b08130b4e7a3e6",
+    "size": 790
+  },
+  "completeness": "offline-complete",
+  "channel": {
+    "reference": {
+      "registry": {
+        "binding": "http",
+        "endpoint": "https://publisher.example.test"
+      },
+      "resource": "/publications/team/channels/stable"
+    },
+    "epoch": 12
+  }
+}
