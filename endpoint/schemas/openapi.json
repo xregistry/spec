@@ -4201,6 +4201,10 @@
       "messageVersion": {
         "type": "object",
         "properties": {
+          "versionid": {
+            "type": "string",
+            "description": "ID of the message version"
+          },
           "messageid": {
             "type": "string",
             "description": "ID of the message object"
@@ -4271,10 +4275,6 @@
           "datacontenttype": {
             "type": "string",
             "description": "The content type for the message payload"
-          },
-          "versionid": {
-            "type": "string",
-            "description": "ID of the message version"
           }
         },
         "discriminator": {
@@ -4362,6 +4362,19 @@
           "datacontenttype": {
             "type": "string",
             "description": "The content type for the message payload"
+          },
+          "versionsurl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "versionscount": {
+            "type": "integer"
+          },
+          "versions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/messageVersion"
+            }
           }
         },
         "discriminator": {
