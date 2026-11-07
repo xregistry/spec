@@ -888,10 +888,10 @@ For AMQP `application-properties`, `message-annotations`,
 alias for Core `decimal`. Implementations MUST treat both names as the same
 value type.
 
-The protocol tables below use Core declaration types. Native wire encodings
-and protocol-specific value constraints remain unchanged. UUID values and
-duration expressions use `string` with the syntax defined by the applicable
-protocol.
+The protocol tables in the [Message Protocols](#message-protocols) section use
+Core declaration types. Native wire encodings and protocol-specific value
+constraints remain unchanged. UUID values and duration expressions use
+`string` with the syntax defined by the applicable protocol.
 
 Binary data uses the Core `binary` type in xRegistry declarations. When encoded
 as JSON, a binary value MUST use the Base64 representation defined in
@@ -1079,7 +1079,7 @@ properties as defined below:
 | Property  | Type          | Description                 |
 | --------- | ------------- | --------------------------- |
 | `headers` | `array`       | The HTTP headers. See below |
-| `query`   | `map`         | The HTTP query parameters   |
+| `query`   | `array`       | The HTTP query parameters   |
 | `path`    | `uritemplate` | The HTTP path               |
 | `method`  | `string`      | The HTTP method             |
 | `status`  | `string`      | The HTTP status code (e.g., "200") |
@@ -1088,7 +1088,8 @@ HTTP allows for multiple headers with the same name. The `headers` property is
 therefore an array of objects with `name` and `value` properties. The `name`
 property is a string that MUST be a valid HTTP header name.
 
-The `query` property is a map of string keys to string values.
+The `query` property is an array of objects with string `name` and `value`
+properties. The `name` property MUST be a valid HTTP query parameter name.
 
 The `path` property is a URI template.
 
