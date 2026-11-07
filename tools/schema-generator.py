@@ -200,9 +200,8 @@ def generate_openapi(model_definition):
         }
         if level == "resource" and not request:
             attributes["metaurl"] = {"type": "url"}
-            if resource.get("maxversions", -1) != 1:
-                attributes["versionsurl"] = {"type": "url"}
-                attributes["versionscount"] = {"type": "uinteger"}
+            attributes["versionsurl"] = {"type": "url"}
+            attributes["versionscount"] = {"type": "uinteger"}
         excluded = {"*", "contenttype", singular, singular + "base64", "meta", "versions"}
         fields = {}
         families = []
@@ -221,14 +220,13 @@ def generate_openapi(model_definition):
                 families.append(f"`xRegistry-{name}.<KEYNAME>`")
         return fields, families
 
-    def describe_header_families(operation, families):
+    def reference_header_processing(operation, families):
         if families:
             operation["description"] = (
                 operation.get("description", "") + "\n\n"
-                "Per-key map headers: "
-                + ", ".join(families) + ". "
-                "Replace `<KEYNAME>` with the encoded key; encode values per the "
-                "xRegistry HTTP Header Processing rules."
+                "See the [xRegistry Core HTTP Header Processing rules]"
+                "(https://github.com/xregistry/spec/blob/main/core/http.md"
+                "#http-header-processing)."
             )
 
     # now recursively find all $ref attributes in the template and replace them with references to the appropriate schema
@@ -435,7 +433,7 @@ def generate_openapi(model_definition):
                             continue
                         response_level = "version" if method == "post" else level
                         fields, families = document_header_fields(resource, response_level)
-                        describe_header_families(operation, families)
+                        reference_header_processing(operation, families)
                         for status, response in operation["responses"].items():
                             if status.startswith("2"):
                                 response.setdefault("headers", {}).update(copy.deepcopy(fields))
