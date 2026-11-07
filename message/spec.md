@@ -1074,7 +1074,7 @@ properties as defined below:
 | Property  | Type          | Description                 |
 | --------- | ------------- | --------------------------- |
 | `headers` | Array         | The HTTP headers. See below |
-| `query`   | Map           | The HTTP query parameters   |
+| `query`   | `array`        | The HTTP query parameters   |
 | `path`    | `uritemplate` | The HTTP path               |
 | `method`  | `string`      | The HTTP method             |
 | `status`  | `string`      | The HTTP status code (e.g., "200") |
@@ -1083,8 +1083,8 @@ HTTP allows for multiple headers with the same name. The `headers` property is
 therefore an array of objects with `name` and `value` properties. The `name`
 property is a string that MUST be a valid HTTP header name.
 
-The `query` property is a map of string query parameter names to string values.
-Each key MUST be a valid HTTP query parameter name.
+The `query` property is an array of objects with string `name` and `value`
+properties. The `name` property MUST be a valid HTTP query parameter name.
 
 The `path` property is a URI template.
 
@@ -1113,9 +1113,12 @@ The following example defines a message that is sent over HTTP:
         "value": "application/json"
       }
     ],
-    "query": {
-      "foo": "bar"
-    },
+    "query": [
+      {
+        "name": "foo",
+        "value": "bar"
+      }
+    ],
     "path": "/foo/{bar}",
     "method": "POST"
   },
