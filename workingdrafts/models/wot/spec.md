@@ -78,7 +78,7 @@ A WoT Registry stores and manages two W3C Web of Things document classes.
 Thing Descriptions (TDs) describe concrete, network-facing Things. Thing Models
 (TMs) define reusable, abstract templates for classes of Things.
 
-Device fleets, gateways, integrators and consuming applications use the
+Device fleets, gateways, integrators, and consuming applications use the
 Registry to share Thing metadata and discover Things and their templates as
 described by W3C [WoT Discovery][WoT-Discovery]. TDs and TMs can also be
 cross-referenced from xRegistry [Endpoint][xRegistry Endpoint],
@@ -88,9 +88,9 @@ cross-referenced from xRegistry [Endpoint][xRegistry Endpoint],
 
 A Thing Description (TD) is a JSON-LD 1.1 document conforming to
 [WoT-TD 1.1][WoT-TD-1.1]. It identifies a deployed Thing, declares its
-properties, actions and events, and provides `forms` that bind those
+properties, actions, and events, and provides `forms` that bind those
 interaction affordances to network endpoints over protocols such as HTTP,
-MQTT, CoAP, OPC-UA or Modbus.
+MQTT, CoAP, OPC-UA, or Modbus.
 
 A Thing Model (TM) is a JSON-LD 1.1 document conforming to
 [WoT-TM 1.1][WoT-TM-1.1]. It describes an abstract class of Things and
@@ -134,7 +134,7 @@ depends on those references independently of the Registry's checks.
 
 Each Version of a `thingdescription` or `thingmodel` Resource holds a complete
 WoT document, stored without rewriting its bytes. A Resource's `wotid` and
-registry Resource id are stable across compatible revisions. `wotid` is
+Registry Resource id are stable across compatible revisions. `wotid` is
 declared with [`matchversions`][xRegistry matchversions]. A registry MUST
 reject a Version that supplies a different `wotid`. A Thing Model's major
 version MUST be part of its `wotid`. A breaking change MUST use a new `wotid`
@@ -159,7 +159,7 @@ be rewritten, including when absent or non-SemVer.
 
 A valid authored value is SemVer 2.0.0 without build metadata and fits Core's
 128-character [id constraint][Core id constraints]. SemVer build metadata
-(`+build`) MUST be rejected as `invalid-version`, since `+` is not allowed by
+(`+build`) MUST be rejected as `invalid-version` because `+` is not allowed by
 Core's id constraints. An authored SemVer value that exceeds Core's
 128-character id limit MUST also be rejected under those constraints.
 
@@ -306,8 +306,8 @@ forms:
 | [`shortself`][xRegistry shortself], when enabled | Document | Alternative document URL. |
 
 The document view serves stored JSON-LD bytes under their media type:
-`application/td+json` for TDs and `application/tm+json` for TMs, per
-[WoT-TD 1.1 §12.1 and §12.2][WoT-TD-1.1].
+`application/td+json` for TDs and `application/tm+json` for TMs, as specified
+in [WoT-TD 1.1 §12.1 and §12.2][WoT-TD-1.1].
 
 An xRegistry-unaware WoT consumer MAY use a Version's `self` URL with the
 `$details` suffix removed, or its `shortself` URL, as a regular WoT TD or TM
@@ -394,15 +394,16 @@ relate.
 ### 2.3. Thing Description Group
 
 A Thing Description Group contains Thing Descriptions related in an
-application-defined way, for example all TDs for a tenant, fleet or physical
-site. This specification does not restrict which Thing Descriptions a Group
-can contain.
+application-defined way, for example all TDs for a tenant, fleet, or physical
+site. This specification places no restriction on which Thing Descriptions a
+Group contains.
 
 ### 2.4. Thing Model Group
 
 A Thing Model Group contains Thing Models related in an application-defined
 way, for example all TMs published by one vendor or for one product family.
-This specification does not restrict which Thing Models a Group can contain.
+This specification places no restriction on which Thing Models a Group
+contains.
 
 ## 3. WoT Registry Model
 
@@ -630,8 +631,9 @@ as `strict`, so a registry rejects any other value rather than merely
 discouraging it.
 
 The `contenttype` of a `thingdescription` document MUST be
-`application/td+json` per [WoT-TD 1.1 §12.1][WoT-TD-1.1], or another media
-type the deployment has explicitly registered for WoT documents.
+`application/td+json` as specified in
+[WoT-TD 1.1 §12.1][WoT-TD-1.1], or another media type that the deployment has
+explicitly registered for WoT documents.
 
 `contenttype` is client-supplied and determines the media type used to serve
 the stored bytes through the document view
@@ -675,7 +677,7 @@ application-defined way, typically by vendor or product family. Its Group Type
 name is `thingmodelgroup` (singular), and its collection name is
 `thingmodelgroups`. It has no specific extension attributes.
 
-Every Thing Model (i.e. the `thingmodel` Resource) MUST reside inside a Thing
+Every Thing Model (the `thingmodel` Resource) MUST reside inside a Thing
 Model Group.
 
 ### 4.4. Thing Model Resources
@@ -687,27 +689,27 @@ name is `thingmodel` and its collection name is `thingmodels`. Each
 
 The `format` attribute of a `thingmodel` Resource Version MUST be
 `"JSON-LD/1.1"`, enforced by the same `strict` enumeration used for
-`thingdescription`. The `contenttype` MUST be `application/tm+json` per
-[WoT-TM 1.1 §12.2][WoT-TM-1.1], or another media type the deployment has
-explicitly registered for WoT documents, and the same constraint on serving
-stored bytes as active content applies as in
-[Section 4.2](#42-thing-description-resources).
+`thingdescription`. The `contenttype` MUST be `application/tm+json`, as
+specified in [WoT-TM 1.1 §12.2][WoT-TM-1.1], or another media type that the
+deployment has explicitly registered for WoT documents. The constraint on
+serving stored bytes as active content in
+[Section 4.2](#42-thing-description-resources) also applies.
 
-The `compatibility`, `versionid`, `versionorigin` and
+The `compatibility`, `versionid`, `versionorigin`, and
 [`ancestorid`][Core ancestorid] rules for Thing
 Models are defined in [Section 1.3](#13-versioning), subject to Core's
 [`compatibility`][Core compatibility] and
-[`versionid`][Core versionid] semantics. The Version-level `versionorigin` is a REQUIRED
-string with the strict enumeration `authored` or `generated`, and is
+[`versionid`][Core versionid] semantics. The Version-level `versionorigin` is
+a REQUIRED string with the strict enumeration `authored` or `generated`, and is
 read-only. The model declares `compatibility` under `metaattributes`, with
 `required: true` and `default: backward`, as Core requires for an attribute
 with a default.
 
 The `wotid` attribute is REQUIRED on a `thingmodel` and holds the document's
 authored WoT identifier, which is distinct from the `thingmodelid`. Where a
-Thing Model extends another via a `tm:extends` link relation, or references
-one via `tm:ref`, or composes one via `tm:submodel`, the referenced Thing
-Models' `wotid`s SHOULD be listed in `derivedfrom`.
+Thing Model extends another through a `tm:extends` link relation, references
+one through `tm:ref`, or composes one through `tm:submodel`, the referenced
+Thing Models' `wotid`s SHOULD be listed in `derivedfrom`.
 
 ### 4.5. Formats
 
@@ -728,7 +730,7 @@ the Resource type (`thingdescriptions` versus `thingmodels`) and by the
   `https://www.w3.org/2022/wot/td/v1.1`.
 - A URI-reference pointing to a TD MAY use a JSON-Pointer
   ([RFC 6901](https://www.rfc-editor.org/rfc/rfc6901)) fragment to deep-link
-  into a particular property, action, or event affordance, e.g.
+  into a particular property, action, or event affordance, for example,
   `…/thingdescriptions/lamp-42#/properties/status`.
 
 #### 4.5.2. WoT Thing Model
@@ -740,7 +742,7 @@ the Resource type (`thingdescriptions` versus `thingmodels`) and by the
 - The document's `@context` MUST include
   `https://www.w3.org/2022/wot/td/v1.1` and the document's top-level
   `@type` MUST include `tm:ThingModel`.
-- Deep-linking via JSON-Pointer fragments is permitted, as for TDs.
+- Deep-linking through JSON-Pointer fragments is permitted, as for TDs.
 
 ### 4.6. Provenance and Selection Metadata
 
@@ -837,7 +839,7 @@ a Group id:
 - It omits the id and lets the registry assign one under the xRegistry
   Core rules.
 
-The document does not dictate this choice, and later resolution does not
+This specification does not dictate this choice, and later resolution does not
 depend on it. A Consumer holding a WoT identifier queries the first-party
 `wotid` attribute ([Section 5.3](#53-lookup)) to find the Resource rather than
 reconstructing its path.
@@ -909,7 +911,7 @@ its different identity.
 ### 5.2. Preserving Customer Documents
 
 Registries store existing Thing Models and Thing Descriptions as authored.
-A vendor, standards body or toolchain can supply a document, and artifacts
+A vendor, standards body, or toolchain can supply a document, and artifacts
 outside the Registry can already reference it.
 
 - A registry MUST store the WoT document byte-for-byte as supplied, apart from
@@ -967,8 +969,8 @@ addresses the Resource directly:
 /thingmodelgroups/<thingmodelgroupid>/thingmodels/<thingmodelid>
 ```
 
-**By `wotid`.** Otherwise — the usual case, since WoT documents reference one
-another by authored identifier rather than by registry path — it queries on
+**By `wotid`.** Otherwise — the usual case, because WoT documents reference
+one another by authored identifier rather than by registry path — it queries on
 the `wotid` attribute:
 
 ```
@@ -1563,9 +1565,9 @@ Proposals to sub-divide a large TD's affordances, such as a `td:submodel`
 grouping member, are being discussed in the W3C WoT community. Were such a
 mechanism to be standardized, a WoT Registry would store a TD that uses it
 exactly as it stores any other TD, since the grouping is a member of the
-document rather than of the registry model. Support is OPTIONAL. A registry
+document rather than the registry model. Support is OPTIONAL. A registry
 that does not understand the mechanism MUST still store and serve the document
-unchanged, per
+unchanged, as specified in
 [Section 5.2](#52-preserving-customer-documents).
 
 Documents authored outside the Registry routinely contain no grouping
@@ -1578,9 +1580,9 @@ does not explicitly address authentication or authorization levels of users,
 nor how to securely protect the APIs.
 
 Implementations are expected to use authentication and authorization
-appropriate to the application domain and deployment environment. Those
-mechanisms MAY include OAuth 2.0, OpenID Connect, API keys or other options
-appropriate to the use case.
+suited to the application domain and deployment environment. These
+mechanisms MAY include OAuth 2.0, OpenID Connect, API keys, or other options
+suited to the use case.
 
 For authorization, `thingdescriptiongroup` and `thingmodelgroup` provide
 natural boundaries. Users can receive access to specific Groups and the

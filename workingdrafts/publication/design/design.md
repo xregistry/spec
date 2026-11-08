@@ -25,11 +25,11 @@ The existing [specification](../../models/wot/spec.md) defines SemVer rules. The
 ### Decision and problem
 
 The proposed decision is to retain native SemVer behavior and add a separate
-incremental profile. An operator selects the profile when provisioning each
-endpoint/model; the registry does not infer it from a document's version
-string. Both profiles use the existing TD and TM collection names. Supporting
-both therefore requires separate endpoint/model instances, although they can
-share a physical server.
+incremental profile. An operator selects the profile when provisioning an
+endpoint and its model; the registry does not infer it from a document's
+version string. Both profiles use the existing TD and TM collection names.
+Supporting both therefore requires a separate endpoint and model instance for
+each profile, although the endpoints can share a physical server.
 
 A TM can contain `version.model`, and a TD can contain `version.instance`.
 Requiring SemVer for both makes documents with ordinary integer versions or
@@ -93,7 +93,7 @@ This excerpt assumes the appropriate composition and extension contexts.
 Existing operators identify the target kind, and the same versioning members
 apply to TM targets. A line alone is sufficient; a floor is added only when a
 feature requirement needs it. For an incremental target, the resolver derives
-no floor from the referring document's model/instance version or root line.
+no floor from the referring document's model or instance version or root line.
 
 For history 42/A, 43/B, 44/A, a line-A reference selects 44. A floor of 45
 fails. An unpinned incremental reference without a line fails. A sticky
@@ -138,8 +138,8 @@ resolves new candidates for review or activation through existing deployment
 machinery. Offline operation also needs trusted metadata for declarations
 absent from the bytes. This design adds no lockfile or signature protocol.
 
-For set publication, a publisher follows the generic xRegistry
-manifest/channel contract. It can convert a standard or capture a revision
+For set publication, a publisher follows the generic xRegistry manifest and
+channel contract. It can convert a standard or capture a revision
 of a server model. It reuses unchanged document Versions and records the
 source release as provenance. It binds each dependency to an exact target.
 An individual author follows the same flow with one changed document.
@@ -245,8 +245,8 @@ are stored as exact xRegistry Version documents. HTTP and native OPC UA use
 their own document-read operations; no separate HTTP download service is
 implied. Its executable examples cover only synthetic state transitions and
 integrity.
-The WoT profile still needs resolver/provider integration and cross-repository
-fixtures before a deployment can claim conformance to it.
+The WoT profile still needs resolver and provider integration and
+cross-repository fixtures before a deployment can claim conformance to it.
 
 ### What is versioned?
 
@@ -271,8 +271,8 @@ snapshot.
 
 ### A complete WoT publication
 
-A domain-complete snapshot retains each entry document, every transitive
-TM/TD dependency needed to interpret it, fixed metadata and original reference
+A domain-complete snapshot retains each entry document, every transitive TM
+or TD dependency needed to interpret it, fixed metadata and original reference
 bases. Under the generic [closure rules][Publication closure], the producer
 resolves each recognized external reference occurrence and records one exact
 target binding without changing domain bytes. The resolver then checks
@@ -320,7 +320,7 @@ Each `bindings` record contains:
 | `href` | Exact authored reference string, including any fragment. |
 | `target` | Exact target Version XID in the same captured view. |
 
-Document digests, originating Registry/Version identities and original bases
+Document digests, originating Registry and Version identities and original bases
 come from the generic manifest's document associations. Profile and line
 expectations come from the captured trusted metadata. Duplicating them in
 each binding would introduce competing authorities.
@@ -396,7 +396,7 @@ Entries, sources and targets need to exist in the generic document
 associations. Bindings need to be unique and cover the complete reachable
 closure from the entries, excluding unreachable or invented edges.
 
-During traversal, the resolver records each visited Version/reference pair.
+During traversal, the resolver records each visited Version-reference pair.
 The composition operator's existing rules determine whether a cycle is valid.
 The resolver bounds traversal even when a cycle exists.
 
@@ -431,7 +431,7 @@ under [D7](#d7-selection-defaults-and-exact-pins),
 including its sticky-default rule. A captured default describes the
 snapshot's raw Resource read. It does not replace an explicit dependency
 binding.
-The existing raw exact-pin retrieval path still bypasses live floor/default
+The existing raw exact-pin retrieval path still bypasses live floor or default
 selection. It is not compatibility-validated snapshot composition.
 
 For example, entry E in snapshot S12 binds a line-A dependency to revision 42.
@@ -842,11 +842,11 @@ for storage does not prove its version requirements are well formed. Keep
 exact-pin precedence over selection requirements. Validate document
 structure separately from selecting candidates by floor.
 
-Readers are upgraded before new emitters. A composition or type link is not
-duplicated once per vocabulary because that can change composition or
-introduce ambiguity. A later standardized vocabulary needs an explicit
-conformance/mapping update without rewriting old bytes, pins or `uav` term
-identities.
+Upgrade readers before deploying new emitters. Do not duplicate a
+composition or type link for each vocabulary. Doing so can change
+composition or introduce ambiguity. A later standardized vocabulary needs
+an explicit conformance and mapping update without rewriting old bytes, pins
+or `uav` term identities.
 
 #### D6. Reference requirements
 
@@ -871,7 +871,7 @@ operator. For ordinary `tm:ref` or `td:ref`, the members are siblings of
 the string-valued reference. Projection-source entries carry them on the
 entry whose declared target kind they constrain.
 
-Malformed floors produce `invalid-version`; conflicting syntax produces
+Malformed floors produce `invalid-version`. Conflicting syntax produces
 `invalid-floor`. A floor without a line, or an unpinned incremental reference
 with neither, produces `compatibility-required`. An invalid line URI, a line
 selector for a SemVer target, or a selector at an unsupported location
@@ -898,7 +898,7 @@ normalized to the same floor:
   `0.0.0-N` floors remain invalid.
 
 For mixed-profile type links, profile discovery precedes the legacy
-implicit/ambiguity rules, which apply to the SemVer-target subset.
+implicit-floor and ambiguity rules, which apply to the SemVer-target subset.
 Incremental links retain their own explicit line and OPTIONAL explicit
 numeric floor. An unknown or unavailable profile causes failure rather than
 weakening the requirement.
@@ -906,9 +906,9 @@ weakening the requirement.
 #### D7. Selection, defaults, and exact pins
 
 This diagram summarizes standalone live selection and raw pin retrieval.
-The pin branch bypasses live floor/default candidate selection. A `versionid`
-pin names one Version. A digest matching several Versions is ranked under the
-known profile. Both fail without an unpinned fallback.
+The pin branch bypasses live floor and default candidate selection. A
+`versionid` pin names one Version. A digest matching several Versions is
+ranked under the known profile. Both fail without an unpinned fallback.
 
 ```mermaid
 flowchart TD
@@ -957,7 +957,7 @@ Ordinary Resource retrieval serves the [Core default][Core defaults].
 Core's [`defaultversionsticky`][Core sticky] aspect keeps an explicitly
 selected default fixed. When it is false, Core derives the default from the
 Resource's `versionmode`. In manual mode the non-sticky default follows
-leaf/time rules, so it need not be the highest integer, especially after
+leaf and time rules, so it need not be the highest integer, especially after
 import or metadata changes. Constrained resolution selects numerically unless
 a sticky default is authoritative. The operations differ; Core behavior does
 not change.
@@ -1005,7 +1005,7 @@ using a guessed counter: recover authoritative allocation history or
 create a distinct sequence.
 
 Migrate through an offline manifest into a separate endpoint. Inventory
-bytes, roots, IDs, defaults, and origins. Assign new numbers/lines with
+bytes, roots, IDs, defaults, and origins. Assign new numbers and lines with
 publisher approval. Record explicit source-to-destination paths. Validate
 the destination before discovery cutover. Preserve the source for old pins.
 Rollback changes routing, not history or revision numbers.
@@ -1029,7 +1029,7 @@ the [Domain Closure and Compatibility][Publication closure] requirements.
 A channel head changes a publication set. It does not allocate document
 revisions or decide compatibility.
 
-The implementation extends existing .NET snapshots/APIs with profile and
+The implementation extends existing .NET snapshots and APIs with profile and
 line context and reuses the SemVer implementation. Actual publication owners
 need review because a pure helper test cannot demonstrate durable allocation.
 
@@ -1048,19 +1048,19 @@ For OPC UA, OPC 10100 Connectivity maps these concepts as follows:
   Projection-source floors and lines use the same fields. The source entry's
   `uav:sourceDigest` remains in the projection-plan bytes; compare it with the
   `ContentDigest` in the target record with the same `EdgeIndex`. The digest,
-  floor and line MUST all hold for that exact Version.
+  any supplied floor and line MUST all hold for that exact Version.
 - `WoTResolvedDependencyTargetDataType` records the target's `VersionProfile` and
   effective `CompatibilityLine` with the exact pin.
 - OPTIONAL `WoTRefreshOptionsDataType.PublicationContext` has type
   `WoTPublicationContextDataType`, with `Uri` and an OPTIONAL
-  `ManifestDigest`. Without a digest, `Uri` names a channel opened once per
-  Refresh; the selected digest is reported in
-  `WoTRefreshSummaryDataType.ManifestDigest`. With a digest, it identifies an
-  exact snapshot. Every recognized dependency uses its captured binding
-  without provider, alias or older-snapshot fallback. Missing or unsupported
-  closure, binding or content, and a manifest-digest mismatch produce
-  `closure-incomplete`. Without a publication context, Refresh performs live
-  selection.
+  `ManifestDigest`. Without a digest, `Uri` names a channel. Each Refresh
+  opens that channel once. The selected digest is reported in
+  `WoTRefreshSummaryDataType.ManifestDigest`. With a digest, it identifies
+  an exact snapshot. Every recognized dependency uses its captured binding
+  without falling back through a provider, alias, or older snapshot. Missing
+  or unsupported closure data, bindings, or content results in
+  `closure-incomplete`. A manifest-digest mismatch has the same result.
+  Without a publication context, Refresh performs live selection.
 
 NodeIds are appended on the `1.1-draft` track. The model, types, tables,
 ledgers and CTT cases are regenerated together.
@@ -1078,7 +1078,7 @@ Unless stated otherwise, selection is unpinned and the default is not sticky.
 Revision-creation examples state their starting watermark separately.
 
 Each workflow describes its inputs and actions, observable state,
-failure/recovery behavior and supporting mechanism. Its ID identifies the
+failure and recovery behavior, and supporting mechanism. Its ID identifies the
 planned evidence case in the [index](#workflow-evidence-index). These are
 proposed walkthroughs, not execution reports. Related workflows reuse the
 same mechanism without adding another protocol or administrative service.
@@ -1112,7 +1112,7 @@ authorized document. Never silently overwrite the root claim.
 
 For a new Resource with no allocation history and an unversioned document,
 upload bytes and line A. D3 assigns `"1"` and origin `generated`. Core
-establishes its initial ancestor/default state. The publisher records the
+establishes its initial ancestor and default state. The publisher records the
 returned source identity, revision, and digest.
 
 Failure before commit leaves no Version. A timeout with unknown commit state
@@ -1149,8 +1149,8 @@ unpinned line-A references can follow it. Existing exact pins do not move.
 
 Under D4, the publisher decides compatibility and applicable validation
 rejects known violations. The label alone does not prove compatibility.
-An incorrect publication is withdrawn through existing retention/activation
-policy rather than silently assigned another line.
+An incorrect publication is withdrawn through existing retention or
+activation policy rather than silently assigned another line.
 
 #### P07. Publish a breaking incremental update
 
@@ -1170,7 +1170,8 @@ a new target ID. A breaking TD instance advances its major under the same
 Thing ID. D1 and D6 preserve these existing rules.
 
 Authored/build-metadata mismatches retain their current errors. Reversal
-uses exact pins or routing/activation policy, not renumbering releases.
+uses exact pins or an update to routing or activation policy, not renumbering
+releases.
 Incremental line rules do not change this endpoint's behavior.
 
 #### P09. Publish without a line
@@ -1200,7 +1201,8 @@ Attempt to patch revision 42/A to B, or attach A to a previously line-less
 revision. D4 fixes each revision's line value, including its absence, at
 creation. A later selection-metadata patch fails.
 
-Publish the desired bytes/claim as a new revision. Existing pins retain the
+Publish the desired bytes and compatibility claim as a new revision. Existing
+pins retain the
 original declaration or its absence. If a downstream provider presents
 changed metadata against a retained expected line, replay validation fails
 rather than silently updating the consumer's record.
@@ -1261,7 +1263,7 @@ assume idempotent replay across all publication interfaces.
 #### P16. Abort or exhaust publication
 
 Declaration validation fails or the transaction aborts before commit.
-D3 returns failure and leaves no partial content/line/default update.
+D3 returns failure and leaves no partial content, line, or default update.
 The storage owner retries ordinary contention through its existing mechanism.
 An unknown commit outcome follows P14.
 
@@ -1305,7 +1307,7 @@ selects a revision; it does not verify the missing compatibility claim.
 
 Retrieve the Resource normally, then resolve its line-A reference. The first
 operation returns Core's default. D7 returns 44/A unless a sticky default
-restricts it. The results can differ under manual leaf/time ordering.
+restricts it. The results can differ under manual leaf and time ordering.
 
 Use compatible resolution for composition. Under existing disclosure rules,
 diagnostics identify the operation, profile and chosen/default revisions.
@@ -1345,13 +1347,14 @@ registry, determines comparison.
 
 #### C08. Select projection sources and local fragments
 
-Each projection source entry carries its own line/floor and expected kind.
+Each projection source entry carries its own line and any supplied floor, along
+with its expected kind.
 D6 constrains the source before existing projection selection proceeds.
 The projection envelope's version and line are not defaults for its sources.
 
 For a local reference, validate the containing revision against its stated
-line/floor without replacing that document. A failing local constraint or
-missing pointer is an error. Existing explicitly authored source-digest
+line and any floor without replacing that document. A failing local constraint
+or missing pointer is an error. Existing explicitly authored source-digest
 mechanisms remain distinct from consumer-owned resolution records.
 
 #### C09. Resolve SemVer type-link floors
@@ -1399,7 +1402,7 @@ an unconstrained success.
 #### C13. Capture dependency records
 
 After resolving a parent and its dependencies, retain each target, revision,
-exact digest, origin, and applicable profile/line expectations. D7 uses the
+exact digest, origin, and applicable profile and line expectations. D7 uses the
 existing snapshot mechanism where available. Otherwise, the API exposes the
 records to its caller.
 
@@ -1414,7 +1417,7 @@ Replay the record for 42/A while 44/A is now available. D7 retrieves 42,
 verifies its digest and recorded expectations, and does not run highest-version
 selection. Authored floors/defaults do not override the explicit pin.
 
-If 42 is missing or its digest/line differs, replay fails without falling
+If 42 is missing or its digest or line differs, replay fails without falling
 back to 44. The application distinguishes a stored full record from the
 existing single-selector pin input and performs the associated verification.
 
@@ -1446,7 +1449,7 @@ Delete or lose revision 42, then attempt its exact replay. D7 reports a
 missing target or pin mismatch under the existing error mapping. An
 available 44 does not repair the pin.
 
-Restore authorized exact content from retained storage/export, or explicitly
+Restore authorized exact content from retained storage or export, or explicitly
 refresh and review another revision. A service outage is not interpreted as
 permission to weaken identity or digest checks.
 
@@ -1474,8 +1477,9 @@ operation fails. Offline use requires no new signature or lockfile format.
 
 #### C20. Resolve through a cache or held provider target
 
-A cache/held-target fast path receives an A/floor-44 requirement or a full
-pin. D9 requires it to validate source, profile, line, floor, and digest
+A cache or held-target fast path receives either a line-A requirement with
+floor 44 or a full pin. D9 requires it to validate source, profile, line,
+floor, and digest
 expectations just as the acquisition path would.
 
 A constrained result is not keyed only by `wotid`, and materialization does
@@ -1485,7 +1489,7 @@ success. The design prescribes no new cache implementation.
 
 #### C21. Discover deprecation and successors
 
-Browse an old Resource's deprecation/successor information. It can identify
+Browse an old Resource's deprecation and successor information. It can identify
 a replacement TM identity or another deployment route, but it is navigation,
 not a candidate in the original source sequence.
 
@@ -1511,7 +1515,7 @@ Choose one model profile for an endpoint and configure authorized publishers
 and provider trust. An incremental-only deployment needs one endpoint,
 not both. D1 fixes the profile before published history exists.
 
-Expose the endpoint's supported read/write operations and profile discovery.
+Expose the endpoint's supported read and write operations and profile discovery.
 Loading a model without the WoT publication adapter does not establish durable
 incremental publication and is not advertised as doing so. Correct
 misconfiguration before activation.
@@ -1520,7 +1524,7 @@ misconfiguration before activation.
 
 Keep the existing SemVer endpoint and provision another incremental endpoint,
 each with the same familiar collection names. D1 avoids mixed ordering in
-one collection and preserves native SemVer defaults/deletion.
+one collection and preserves native SemVer defaults and deletion.
 
 Configure resolver routes to the intended source. This adds deployment
 configuration but does not require separate physical servers. If two routes
@@ -1530,7 +1534,7 @@ numbers.
 #### A03. Select an authoritative source
 
 Discovery finds two Resources with the same authored ID. The configured
-resolver selects one origin/Resource before D7 compares candidates.
+resolver selects one origin and Resource before D7 compares candidates.
 Record that source with every result.
 
 D2 prevents a destination's revision 42 from satisfying a source pin merely
@@ -1840,11 +1844,11 @@ contain neither incremental profiles nor deployment-vocabulary parsing.
 | S01-S04 | D5 | N-S, Caller for standards process |
 
 The planned migration fixture records roots, mappings, counters, defaults,
-bytes and failure outcomes explicitly; the current normalized resolver schema
-does not represent it. Durable allocation needs evidence under concurrent
-writes, deletion, restart, rollback and Resource recreation. Independent
-counter-state assertions derive state from storage history rather than
-comparing two outputs from one emitter.
+bytes, and failure outcomes explicitly. The current normalized resolver
+schema does not represent this fixture. Durable allocation needs evidence
+under concurrent writes, deletion, restart, rollback and Resource recreation.
+Independent counter-state assertions derive state from storage history
+rather than comparing two outputs from one emitter.
 
 The workflows use these mechanism definitions:
 
@@ -1871,10 +1875,11 @@ Providers preserve trusted metadata alongside unchanged documents. Writable
 adapters persist allocation history atomically. Anonymous publication still
 has no exactly-once retries.
 
-Implementation sign-off needs demonstrations of P02/P06/P07, C01/C02/C14/C16,
-P09/P14, A06/A11 and C19 through actual public entry points. The full catalog
-also needs fixture/integration evidence or a stated caller boundary. The
-number of listed workflows does not establish usability.
+Implementation sign-off requires demonstrations of P02/P06/P07,
+C01/C02/C14/C16, P09/P14, A06/A11, and C19 through actual public entry
+points. The full catalog also requires fixture and integration evidence or
+a stated caller boundary. The number of listed workflows does not establish
+usability.
 
 Open implementation proof gates are:
 
@@ -1910,17 +1915,17 @@ The W3C proposal explains the deployment extension and proposed core
 standardization path. Its acceptance is not an execution gate for xRegistry,
 OPC UA, or either implementation.
 
-The OPC Binding supplies `uav` vocabulary/context/schema definitions, while
-Connectivity supplies profile/line/dependency mapping. The two .NET
-implementations normalize terms, branch on profile and enforce the same
+The OPC Binding supplies `uav` vocabulary, context, and schema definitions,
+while Connectivity supplies profile, line, and dependency mappings. The two
+.NET implementations normalize terms, branch on profile, and enforce the same
 selection rules using byte-identical shared fixtures. Their adapter,
 provider and materialization paths need to enforce the same constraints.
 
 ### Alternatives and reasons
 
-Mixing policies per Resource in one collection would require domain code to
-replace native SemVer ancestor/default management. Separate profiles preserve
-that behavior without extending Core.
+Mixing policies for each Resource in one collection would require domain code
+to replace native SemVer ancestor and default management. Separate profiles
+preserve that behavior without extending Core.
 
 Representing integers as `0.0.N` retains unnecessary SemVer syntax and
 conflates bookkeeping with compatibility. Integer ordering with an explicit

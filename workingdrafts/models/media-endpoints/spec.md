@@ -4,11 +4,12 @@
 
 Codec identifiers use an open vocabulary, so xRegistry validation cannot
 establish receiver support. This draft defines the validation boundary and
-leaves compatibility decisions to runtime; it preserves the model's
-case-sensitive codec vocabulary and protocol-specific `streamformat` values
-without defining a codec/format compatibility matrix.
+leaves compatibility decisions to the receiving implementation at runtime.
+It preserves the model's case-sensitive codec vocabulary and protocol-specific
+`streamformat` values without defining a compatibility matrix for codecs and
+formats.
 
-**Status:** Unreleased working draft, dated 29 October 2026. This draft is not
+**Status:** Unreleased working draft, dated October 29, 2026. This draft is not
 part of a released xRegistry specification.
 
 ## Notational Conventions
@@ -23,7 +24,7 @@ The Media Endpoints model describes a protocol and its options, including
 producer declarations for `videocodec`, `audiocodec`, and, where defined,
 `streamformat`. This draft specifies which of those declarations an xRegistry
 validator can check. It does not define codec negotiation, transport behavior,
-or a list of compatible codec, protocol, and streamformat combinations.
+or a list of compatible combinations of codecs, protocols, and stream formats.
 
 Codec identifiers are open-vocabulary, case-sensitive strings. Implementations
 MUST preserve their spelling and MUST NOT normalize their case when comparing
@@ -48,18 +49,19 @@ audio codec in `videocodec`. The open vocabulary does not require a validator
 to recognize every codec identifier. A validator MUST NOT reject an
 unrecognized codec identifier solely because it does not recognize it.
 
-A validator MUST NOT infer codec/protocol/`streamformat` incompatibility beyond
-the media-kind check and the protocol's declared `streamformat` enumeration.
-This draft defines no codec/format compatibility matrix. Its validation
-vectors exercise only the media-kind and declared `streamformat` checks; they
-do not assert cross-property codec/format compatibility.
+A validator MUST NOT infer incompatibility among codecs, protocols, and
+`streamformat` beyond the media-kind check and the protocol's declared
+`streamformat` enumeration. This draft defines no compatibility matrix for
+codecs and formats. Its validation vectors exercise only the media-kind and
+declared `streamformat` checks. They do not assert compatibility between codec
+and format properties.
 
 The [validation vectors](tests/validation-vectors.json) are executable examples
 for these rules. They cover the codec identifiers explicitly used as model
 defaults, an unknown codec identifier, case-sensitive codec recognition,
 media-kind mismatch, and each protocol's declared `streamformat` rule. They do
-not define a codec vocabulary or compatibility matrix. Run them from the
-repository root with:
+not define a codec vocabulary or compatibility matrix. Run the following
+command from the repository root to check the validation vectors.
 
 ```powershell
 python -B -m pytest workingdrafts\models\media-endpoints\tests -q
@@ -70,8 +72,8 @@ python -B -m pytest workingdrafts\models\media-endpoints\tests -q
 Compatibility depends on the receiving implementation's support for the
 advertised media and on protocol-specific behavior. A receiver MUST NOT treat
 successful xRegistry validation as proof that it can consume an endpoint. The
-provider is responsible for making its declarations accurate, and the receiver
-is responsible for deciding whether it supports them. This draft does not
-prescribe negotiation or failure signaling.
+provider is responsible for accurate declarations, and the receiver decides
+whether it supports them. This draft does not prescribe negotiation or failure
+signaling.
 
 [rfc2119]: https://tools.ietf.org/html/rfc2119

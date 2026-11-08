@@ -49,8 +49,8 @@ document are to be interpreted as described in
 
 [Core 1.0-rc4](../../core/spec.md), its
 [model language](../../core/model.md) and [federation](../federation/spec.md)
-define entity semantics, selection and errors. Servers, write-through
-interfaces, global identifiers and synchronization protocols are outside
+define entity semantics, selection, and errors. Servers, write-through
+interfaces, global identifiers, and synchronization protocols are outside
 the scope of this format. The normative schemas define storage
 representations rather than a separate domain model:
 
@@ -83,7 +83,7 @@ them into the Core document view defined below; it does not return them as
 Core API responses.
 
 For example, a project can already contain `source/specs/widget.json`,
-`engineering/assets/image.dat`, its application code and a README. Adding
+`engineering/assets/image.dat`, its application code, and a README. Adding
 the mapping can produce:
 
 ```text
@@ -108,16 +108,16 @@ relative to the selected root, regardless of which file holds the Version
 record. The descriptor's `size` and `sha256` describe the file's exact
 bytes. Neither `widget.json` nor `image.dat` needs to move or change.
 
-A publisher can instead store any record or index in a separate metadata
-file, beside the described files or in a directory of its choice. A publisher
-need not use inline storage. Unreferenced files, such as `source/main.py` and
-the README, neither become Resources automatically nor participate in the
-Registry's declared content closure.
+A publisher can store any record or index in a separate metadata file, either
+beside the described files or in another directory. A publisher need not use
+inline storage. Unreferenced files, such as `source/main.py` and the README,
+neither become Resources automatically nor participate in the Registry's
+declared content closure.
 
-The [worked example](#worked-example-map-one-existing-file) below shows
+The [example](#worked-example-map-one-existing-file) below shows
 every file needed to map one existing document and the resulting reads.
 The `portable` example in the [shared source](../federation/samples/examples.json)
-demonstrates multiple Resource types, aliases and binary content.
+demonstrates multiple Resource types, aliases, and binary content.
 
 Git chooses the directory through `parameters.path` and pins its commit.
 File selects that same directory through a file URI. The shared
@@ -501,7 +501,7 @@ not supply the base. The `/` character separates components in serialized
 storage names; filesystem bindings translate it to the native separator
 without URI decoding.
 
-Only the entry-point filename is fixed. Directory names, file extensions and
+Only the entry-point filename is fixed. Directory names, file extensions, and
 the correspondence between physical and Registry hierarchies are producer
 choices. The `href` of an external record or index reference identifies the
 complete metadata JSON document at that location. An inline reference has
@@ -511,7 +511,7 @@ format.
 
 Paths MUST be nonempty, normalized root-relative strings with `/` separators.
 They MUST NOT be absolute, contain empty components, `.` or `..` components,
-backslashes, NUL/control characters or surrogate code points. A consumer
+backslashes, NUL/control characters, or surrogate code points. A consumer
 MUST NOT apply URI decoding. It MUST reject percent encodings that could be
 interpreted as separators or parent-path components, such as `%2f`, `%5c`
 and `%2e%2e`, as described in
@@ -719,8 +719,9 @@ Model results MUST preserve `modelbase` when present. Registry metadata
 envelopes retain `snapshot` and available `source` outside `entity`. These
 are capture context, not new Core attributes.
 
-`entity.capabilities` MUST describe access to this snapshot, not copy claims
-of upstream writes or filtering that the selected binding cannot implement.
+`entity.capabilities` MUST describe access to this snapshot, not copy
+upstream declarations of write or filtering capabilities that the selected
+binding cannot implement.
 It MUST include Core's `available` map. The bindings are read-only.
 
 It also carries the [resolution-owner signal](../federation/spec.md#signaling-who-performs-resolution).
@@ -915,7 +916,7 @@ reference, and every inline descendant by its containing file. Newly
 published states MUST be complete without
 replaying a prior snapshot. Shared content reuse does not relax closure.
 
-Missing indexed objects, invalid kinds, invalid model types and inconsistent
+Missing indexed objects, invalid kinds, invalid model types, and inconsistent
 defaults are `invalid_package`. A requested absent XID is `not_found`.
 Descriptor mismatch is `integrity_error`. Observed mutation during a File
 read or loss of already selected Git objects is `inconsistent_snapshot`.
@@ -933,13 +934,13 @@ or OS aliases.
 
 Consumers MUST enforce selected-root containment before reading bytes.
 
-Dot segments, empty components, backslashes and absolute paths are invalid
+Dot segments, empty components, backslashes, and absolute paths are invalid
 in an `href`. Percent encodings that could be interpreted as separators or
-parent-path components, such as `%2f`, `%5c` and `%2e%2e`, are also rejected.
+parent-path components, such as `%2f`, `%5c`, and `%2e%2e`, are also rejected.
 The reader does not decode an `href` as a URI.
 
 Bindings define access to the selected root and race protection. Consumers
-MUST impose explicit file, byte and traversal limits. Traversal limits cover
+MUST impose explicit file, byte, and traversal limits. Traversal limits cover
 inline nesting depth, counted within each containing file, and the cumulative
 number of decoded metadata objects. Integrity checks do not
 ensure authorized filesystem access or establish publisher trust. Before

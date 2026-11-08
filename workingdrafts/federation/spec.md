@@ -39,7 +39,7 @@ data. Federation resolution is read-only.
 Federation presents local Resources and Resources from configured source
 Registries through one Registry view. A local Resource can shadow a source
 Resource at the same path. A consumer can therefore read through one access
-point without requiring all of the content to be stored there.
+point without storing all content there.
 
 The [Registry domain](../models/registry/spec.md) contains a
 `categories` / `registries` hierarchy for describing source Registries and
@@ -136,8 +136,8 @@ The producer does not contact source Registries or return possible matches
 from them. A client without federation support reads only the supplied local
 view. A federation-aware client uses the catalog to obtain independently
 maintained descriptions and access advertisements, which its credentials and
-composition policy do not necessarily contain. A caller that already knows
-the source endpoint can bypass catalog discovery as described under
+composition policy do not necessarily contain. Callers with a known source
+endpoint can bypass catalog discovery, as described under
 [Read Operations](#read-operations).
 
 The resolution-owner signal distinguishes this uncombined view from a view
@@ -165,8 +165,8 @@ XIDs were globally interchangeable. The server's advertised capabilities
 describe what it can provide, not the union of features advertised by sources.
 
 The server MUST signal `producer` resolution for this consumer-facing view
-as specified below. Its clients read the server's results directly instead
-of repeating the server's catalog traversal.
+as specified below. Its clients read the server's results directly; they
+do not repeat the server's catalog traversal.
 
 ### No-Code and Stored Views
 
@@ -270,10 +270,9 @@ With `producer`, the consumer MUST NOT repeat composition for the same
 request through the view's catalog. This rule applies to entity reads,
 collection enumeration, label selection and default or explicit Version
 reads. A `not_found` or other failure returned by the producer MUST NOT
-trigger fallback through that producer's catalog. The producer therefore
-advertises this value only when it handles resolution for the whole
-exposed view, rather than returning a partially combined result that its
-consumer has to finish.
+trigger fallback through that producer's catalog. A producer advertises this
+value only when it resolves the whole exposed view rather than returning a
+partial result for its consumer to finish.
 
 For example, suppose a stored combined view already contains the selected
 `/documents/main/assets/item`. With `producer`, the consumer reads that
@@ -374,10 +373,11 @@ of shadowing is the Resource, including all of its Versions:
    them as absence.
 
 The resolver tries the same XID in the next configured source Registry only
-when the Resource is absent. If the selected Resource's Version or document
-cannot be retrieved, the resolver reports that failure rather than selecting
-a lower-priority origin. Source traversal follows the configured projection
-policy, not arbitrary Registries or descriptive catalog relationships.
+when the Resource is absent. If the resolver cannot retrieve the selected
+Resource's Version or document, it reports that failure rather than
+selecting a lower-priority origin. Source traversal follows the configured
+projection policy, not arbitrary Registries or descriptive catalog
+relationships.
 Ordered shadowing does not create global identity.
 
 ```mermaid
@@ -421,7 +421,7 @@ Configured source type mappings MUST account for the collection's model.
 The resolver then evaluates a label selector against the visible collection.
 One match in an early source does not establish uniqueness. The resolver
 MUST consider all necessary collection pages and unshadowed sources. It
-MUST NOT present errors or incomplete traversal as a complete result.
+MUST NOT represent an error or incomplete traversal as a complete result.
 Counts, continuation links and model/capability reads MUST describe the
 consumer-visible Registry rather than the first source to respond.
 
@@ -711,10 +711,10 @@ If the target is unavailable, Core's minimal ID-like alias serialization
 applies. This is not automatically `not_found` for the source.
 
 Core's malformed-reference rules distinguish a malformed XID or nonexistent
-model type from a dangling entity instance. Document view MUST NOT expand
-the target. A document-view request for an alias's Versions or an individual
-Version MUST retain Core's `cannot_doc_xref` behavior. This specification
-does not add remote writes to aliases.
+model type from a dangling entity instance. In document view, the resolver
+MUST NOT expand the target. A document-view request for an alias's Versions
+or an individual Version MUST retain Core's `cannot_doc_xref` behavior. This
+specification does not add remote writes to aliases.
 
 ### Remote References and Composition
 
@@ -885,10 +885,10 @@ bases and known content integrity descriptors MUST survive packaging.
 Materializing external content requires preserving its actual bytes.
 
 An immutable revision MUST remain pinned throughout an operation. A moving
-tag, branch or mutable directory name is not a revision pin. A resolver MUST
-report a live HTTP or UA endpoint without a snapshot guarantee as live, not
-as an atomic snapshot. Revision identifiers MUST NOT be substituted for
-Resource Version IDs.
+tag, branch or mutable directory name is not a revision pin. If a live HTTP
+or UA endpoint has no snapshot guarantee, the resolver MUST report it as
+live rather than an atomic snapshot. Revision identifiers MUST NOT be
+substituted for Resource Version IDs.
 
 This report is part of the origin and revision context returned under
 [Read Operations](#read-operations), not the resolution-owner capability.

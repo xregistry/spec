@@ -44,12 +44,12 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" are to be
 interpreted as described in [RFC2119][rfc2119].
 
-Core defines entity types, IDs, labels and
+Core defines entity types, IDs, labels, and
 [default Versions](../../core/spec.md#default-version-of-a-resource).
 It also defines [`xref`](../../core/spec.md#cross-referencing-resources),
-[document view](../../core/spec.md#doc-flag), errors and request flags.
+[document view](../../core/spec.md#doc-flag), errors, and request flags.
 The [HTTP binding](../../core/http.md#resource-metadata-vs-resource-document)
-defines methods, paths, `$details`, HTTP metadata headers and the wire
+defines methods, paths, `$details`, HTTP metadata headers, and the wire
 representation of flags. [HTTP Semantics][http] and [HTTP Caching][cache]
 define HTTP processing. This document's requirements apply to federation
 resolvers; they neither require servers to implement an OPTIONAL Core API
@@ -80,7 +80,7 @@ miss. A local shadow Resource takes precedence as described by the
 A catalog advertisement describes how to access the source; it does not
 establish that live reads form an immutable snapshot or that the source
 honors unsupported query flags. The resolver uses the source's HTTP
-capabilities, pagination and conditional requests while preserving its
+capabilities, pagination, and conditional requests while preserving its
 authorization boundaries.
 
 ## Advertisement and Bootstrap
@@ -98,14 +98,14 @@ selected advertisement MUST produce `unsupported_operation`.
 }
 ```
 
-Selection, priorities, ties and implicit `xregurl` handling follow
+Selection, priorities, ties, and implicit `xregurl` handling follow
 [Federation discovery](../federation/spec.md#discovery-and-binding-selection).
 If explicit HTTP advertisements coexist with `xregurl`, one endpoint MUST
 match `xregurl` exactly. `weburl` is a website, not an API fallback.
 
 A resolver bootstrapping from a catalog MUST read its model before
 interpreting the `categories` / `registries` collections. These catalog
-Resources have `hasdocument: false`: `xregurl`, `weburl` and any
+Resources have `hasdocument: false`: `xregurl`, `weburl`, and any
 `federationprofiles` belong to their Version metadata. They are not a
 domain document to download.
 
@@ -115,9 +115,9 @@ Version. The described Registry's `registryid` need not equal the catalog
 entry ID.
 
 The chosen advertisement establishes a new Registry context. The resolver
-MUST discover the target's version, model and capabilities independently
+MUST discover the target's version, model, and capabilities independently
 of the catalog. The resolver MUST NOT transfer catalog credentials,
-compatibility assumptions or label requirements to that target.
+compatibility assumptions, or label requirements to that target.
 
 ## Registry Root and Version Discovery
 
@@ -212,7 +212,7 @@ export MUST resolve document-local pointers within that returned document.
 
 ## Metadata, Documents and Versions
 
-Resource metadata, the Meta entity and Version metadata serve different
+Resource metadata, the Meta entity, and Version metadata serve different
 purposes. A Resource's API-view `versionid` projects the default Version;
 [`meta.defaultversionid`](../../core/spec.md#defaultversionid-attribute)
 records which Version was selected. A resolver MUST NOT substitute lexical
@@ -324,7 +324,7 @@ Host: first.example.com
 
 The common selector is narrower than Core's filter language. For example,
 the literal string `null` is not Core's missing-attribute expression.
-If literal commas, quotes, backslashes or other syntax cannot be represented
+If literal commas, quotes, backslashes, or other syntax cannot be represented
 unambiguously by a supported filter, the resolver MUST use local selection
 over an unfiltered collection rather than invent an escaping extension.
 URI encoding alone does not escape Core expression syntax.
@@ -367,8 +367,8 @@ is not a replacement for the members or next links.
 ## HTTP Validators and Partial Content
 
 An ETag validates one representation. It is opaque and supplies neither an
-XID, a Core epoch, a global content digest nor a Registry-wide revision pin.
-Metadata and document URLs, query variants and content codings can have
+XID, a Core epoch, a global content digest, nor a Registry-wide revision pin.
+Metadata and document URLs, query variants, and content codings can have
 different validators.
 The resolver MUST use the selected representation's validator with that
 representation, respecting `Vary`, cache directives and authorization scope.
@@ -394,7 +394,7 @@ conditions. If an `If-Range` request returns a complete `200` response,
 the resolver MUST replace, not append to, its partial bytes.
 
 A `206` response is not a complete document merely because the transfer
-ended successfully. Missing ranges, truncation, changed validators or
+ended successfully. Missing ranges, truncation, changed validators, or
 unverified joins MUST NOT produce a complete snapshot. A failed conditional
 read used to hold a capture stable, including `412`, yields
 `inconsistent_snapshot`.
@@ -413,12 +413,12 @@ empty body and `Location` matching `<RESOURCE>url`. The destination is
 domain content, not another Registry root. Other redirects can relocate
 an endpoint or representation. The resolver MUST distinguish these cases.
 
-Every redirect, advertised endpoint, next link and external document URL
+Every redirect, advertised endpoint, next link, and external document URL
 MUST pass caller policy. That policy includes scheme, destination, network
-access and redirect limits.
+access, and redirect limits.
 
 The resolver MUST reject embedded credentials and MUST NOT automatically
-forward Authorization, cookies, client credentials or origin-specific
+forward Authorization, cookies, client credentials, or origin-specific
 conditional headers across a trust boundary.
 
 Destination credentials require independent authorization. HTTPS downgrade and
@@ -491,8 +491,8 @@ For a multi-request capture, the resolver SHOULD recheck the default
 selection and the representations on which the capture depends.
 
 If a default or representation changes, membership conflicts, or a page/byte
-sequence is interrupted, the capture can no longer be claimed as consistent.
-The resolver MUST report `inconsistent_snapshot` and discard that claim.
+sequence is interrupted, the resolver MUST report `inconsistent_snapshot`
+and not present the capture as consistent.
 It MAY start a new, separately identified operation; that fresh capture does
 not continue the previous operation with mixed old and new state.
 
