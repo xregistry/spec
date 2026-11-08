@@ -51,14 +51,14 @@ interpreted as described in [RFC 2119][rfc2119].
 
 This profile uses OCI Image Specification **v1.1.1** and Distribution
 Specification **v1.1.1**. The Image Specification states that implementations
-SHOULD support nested indexes. Within this profile, producers, resolvers
+SHOULD support nested indexes. Within this profile, producers, resolvers,
 and copy tools **MUST** support them. This requirement does not imply
 support for the format in every OCI client or container runtime.
 
 An OCI registry service stores artifacts; it is not the xRegistry Registry
 entity. One OCI repository can hold many snapshots, including snapshots
 from different Registries. An xRegistry `versionid`, an OCI tag, a Version
-manifest digest and the snapshot root digest identify different things.
+manifest digest, and the snapshot root digest identify different things.
 They are not interchangeable, and an XID alone does not identify an entity
 across Registries.
 
@@ -230,7 +230,7 @@ Every internal descriptor MUST contain `mediaType`, `digest`, `size`,
 and string-valued annotations `io.xregistry.oci.role` and
 `io.xregistry.oci.xid`. The XID is the target entity or collection path.
 For collection directories it is the owning entity's XID. A shard
-retains its routing index's XID. A config, document or empty layer
+retains its routing index's XID. A config, document, or empty layer
 descriptor retains its owning entity's XID.
 
 Internal descriptors MUST use SHA-256 and the exact byte length, including
@@ -256,7 +256,7 @@ Descriptor roles have these exact meanings:
 
 `root` is reserved for fixture-tool output and MAY annotate a layout
 entry. It is not an internal containment role. A descriptor's role, media
-type, XID and target kind MUST agree. Unknown REQUIRED roles are not
+type, XID, and target kind MUST agree. Unknown REQUIRED roles are not
 silently ignored.
 
 Only the seven annotation suffixes `version`, `kind`, `xid`, `role`,
@@ -264,7 +264,7 @@ Only the seven annotation suffixes `version`, `kind`, `xid`, `role`,
 A consumer MUST reject unknown keys in that namespace in version 1.
 
 Other OCI annotations MAY be included but MUST NOT carry REQUIRED
-containment, model, labels or other authoritative entity metadata. Configs
+containment, model, labels, or other authoritative entity metadata. Configs
 store the full metadata; stringified JSON annotation values do not replace
 them. Annotation keys and string values also follow OCI's annotation rules.
 
@@ -359,7 +359,7 @@ allowed component character using uppercase
 hexadecimal. Under the current Core ID grammar, `:` is therefore `%3A` and
 `@` is `%40`. Type names and the fixed `meta` and `versions` components are
 emitted literally. Case-sensitive entity identity MUST be preserved. No
-case folding, second decoding pass or Unicode normalization is permitted.
+case folding, a second decoding pass, or Unicode normalization is permitted.
 
 This encoding is REQUIRED for every `io.xregistry.oci.xid` on an internal
 descriptor, index or manifest, and every finite `lower` or `upper` boundary.
@@ -596,7 +596,7 @@ Versions, only `external` has the Core `<RESOURCE>url` Document locator.
 An `external` Version cannot claim to contain bytes. Missing an expected
 `embedded` blob is an invalid package, not an empty document. Core requires
 a document-capable Version to have a document, even if its length is zero.
-There is no successful "absent document" state for that Version.
+That Version cannot represent an absent document as a successful state.
 
 The OCI layer uses the same opaque document media type for every domain
 format. This prevents a document containing OCI JSON from being interpreted
@@ -812,7 +812,7 @@ provide actual digests and fetch traces for this distinction.
 ## 7. Production and Publication
 
 A producer MUST capture a coherent Registry state, including its model,
-capabilities, defaults and Version metadata. If changes to the source
+capabilities, defaults, and Version metadata. If changes to the source
 prevent a coherent capture, the producer MUST report `inconsistent_snapshot`
 and MUST NOT publish that capture as a complete snapshot.
 
@@ -878,7 +878,7 @@ well formed.
 
 Use authenticated HTTPS and repository-scoped credentials under caller
 policy. OCI metadata MUST NOT contain credentials. Redirect destinations,
-external document URLs and filesystem roots require independent policy
+external document URLs, and filesystem roots require independent policy
 checks. A layout reader MUST NOT forward Authorization headers
 indiscriminately.
 

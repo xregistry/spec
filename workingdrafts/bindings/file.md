@@ -35,7 +35,7 @@ document are to be interpreted as described in
 The [federation contract](../federation/spec.md#read-operations),
 [Core 1.0-rc4](../../core/spec.md) and
 [Model 1.0-rc4](../../core/model.md) define the read semantics.
-Filesystem mutation, synchronization, file watchers and HTTP facades are
+Filesystem mutation, synchronization, file watchers, and HTTP facades are
 outside the scope of this binding.
 
 ## Motivation and Example
@@ -52,7 +52,7 @@ record/index references and reads the selected bytes. Alternatively,
 `layout: "oci-layout"` and `reference: "release-1"` select one snapshot
 from an OCI layout at the same kind of local location.
 
-The directory can reside on local storage, network-attached storage (NAS)
+The directory can reside on local storage, network-attached storage (NAS),
 or another file share exposed by the operating system as a mounted
 filesystem. For example, `file:///mnt/team-registry` can select a mounted
 share on a POSIX host, while `file:///R:/team-registry` can select a Windows
@@ -70,7 +70,7 @@ client. The shared [hosting models](../federation/spec.md#design-hosting-models)
 describe both arrangements.
 
 In either arrangement, the directory remains mutable unless its storage
-provides an immutable snapshot. The containment, digest and concurrent-change
+provides an immutable snapshot. The containment, digest, and concurrent-change
 rules below therefore apply to both.
 
 To read a local example, generate the `portable` Registry from the
@@ -84,8 +84,9 @@ python -B -m workingdrafts.bindings.tools.mapping_examples document D:\temp\xreg
 ```
 
 The selected File root is `file:///D:/temp/xregistry-file-portable`, with
-`layout: "document-tree"`. There is no extra `xregistry` directory. Although
-the generator reports the root hash, the output directory remains mutable.
+`layout: "document-tree"`. The selected root has no extra `xregistry`
+directory. Although the generator reports the root hash, the output
+directory remains mutable.
 A selective read checks only the bytes it references; the `validate`
 command checks the complete declared graph. For local OCI output, use the
 [OCI generation and reading commands](oci.md#generate-and-read-a-layout)
@@ -176,18 +177,19 @@ defines the record and index schemas and exact-byte representation. It also
 defines model and capabilities reads, label selection, Core document view,
 defaults and `xref`. Every internal `href` is
 [relative to this directory](mapping.md#root-and-storage-paths), including
-references in nested records. There is no implicit `xregistry` directory.
+references in nested records. The selected root has no implicit
+`xregistry` directory.
 
 Both layout modes carry the selected Registry's
 [resolution-owner capability](../federation/spec.md#signaling-who-performs-resolution).
 A consumer MUST NOT repeat catalog resolution for a `producer` view.
 Absence of the signal retains the default consumer-side process.
 
-A producer can add the mapping to an existing directory without moving its
-files. Metadata records and indexes can be embedded inline in `registry.json`,
-placed alongside existing files or kept in a separate metadata directory.
-Local document references can point anywhere inside the selected root. The
-format requires no `records/`, `indexes/` or `documents/` directory, and
+A producer can add the mapping without moving existing files. It can embed
+metadata records and indexes in `registry.json`, place them alongside existing
+files, or keep them in a separate metadata directory. A local document
+reference can point anywhere inside the selected root. The format requires no
+`records/`, `indexes/`, or `documents/` directory, and
 unreferenced files remain outside the Registry view.
 
 For `oci-layout`, consumers MUST use the
@@ -225,7 +227,7 @@ Equal XIDs in different directories remain scoped
 to different Registry contexts.
 
 External domain-document links remain explicit. Retrieving one requires
-separate caller authorization, URI-base handling and integrity checking.
+separate caller authorization, URI-base handling, and integrity checking.
 Relative links MUST NOT silently become paths outside the selected root.
 
 Linked snapshots permit external-only domain documents. Offline-complete
@@ -243,10 +245,10 @@ inside `root`.
 The resolver MUST check every directory component, including components of
 the selected root, for symlinks and Windows reparse points. Internal objects
 MUST be regular files. Consumers MUST NOT follow symlinks, junctions,
-mount-point reparse records or other path redirections. Consumers MUST NOT
-read device files, pipes, sockets and alternate data streams as snapshot
+mount-point reparse records, or other path redirections. Consumers MUST NOT
+read device files, pipes, sockets, and alternate data streams as snapshot
 content.
-Case folding, short-name aliases and reserved OS names MUST NOT select a
+Case folding, short-name aliases, and reserved OS names MUST NOT select a
 different internal object. Git/File storage portability does not permit
 case-insensitive Core XID lookup.
 
@@ -292,12 +294,12 @@ where the environment cannot provide coherent reads.
 A producer SHOULD construct a complete snapshot separately and then make
 it available atomically using platform-appropriate synchronization. Updating
 files in place while readers traverse them does not establish completeness.
-Retaining immutable old files can allow readers with an older pinned root
-to complete without mixing revisions.
+Retaining immutable old files can let readers with an older pinned root
+complete without mixing revisions.
 
-Origin MUST identify the file URI, layout and selected root hash/digest,
-plus the presence or absence of an immutable filesystem snapshot guarantee.
-It MUST NOT replace entity XIDs, Resource Version IDs or Core navigation.
+Origin MUST identify the file URI, layout, and selected root hash/digest,
+plus whether an immutable filesystem snapshot guarantee is present.
+It MUST NOT replace entity XIDs, Resource Version IDs, or Core navigation.
 
 ## Errors and Conformance
 

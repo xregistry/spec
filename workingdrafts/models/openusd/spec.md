@@ -21,9 +21,9 @@
 
 This specification extends the xRegistry document format and API
 [specification][xRegistry Core] with an OpenUSD Artifact Registry. The
-registry stores, manages, discovers and federates [OpenUSD][OpenUSD]
+registry stores, manages, discovers, and federates [OpenUSD][OpenUSD]
 (Universal Scene Description) artifacts. These include layers, packages,
-textures, MaterialX documents, volumes and schema plugins used to compose and
+textures, MaterialX documents, volumes, and schema plugins used to compose and
 render a USD stage.
 
 ## Table of Contents
@@ -92,8 +92,8 @@ also identify another Registry that hosts an artifact, such as a texture it
 does not host itself.
 
 The Registry exposes artifact bytes at document URLs, so an existing USD asset
-resolver can retrieve them without changes to the authored scene or knowledge
-of xRegistry in that scene.
+resolver can retrieve them without changing the authored scene or requiring
+xRegistry-specific knowledge in that scene.
 
 ### 1.1. Artifacts and Asset Containers
 
@@ -125,7 +125,7 @@ An OpenUSD Artifact Registry is complementary to the xRegistry
   [Section 5.6](#56-openusd-registry-to-endpoint-registry).
 
 These cross-references are informative. An implementation MAY validate them,
-but this specification does not require all referents to resolve.
+but this specification does not require every reference to resolve.
 
 An externally defined OPC Unified Architecture (OPC UA) projection represents
 the same model in an OPC UA AddressSpace and retrieves each artifact through
@@ -153,10 +153,9 @@ A `usdassetid` MUST NOT be derived from the artifact's bytes. Such an id would
 change with each revision and create a separate Resource for each Version of
 one logical artifact.
 
-The content hash of a Version is the `digest`
-([Section 4.2](#42-usd-asset-resources)), which is Version-level metadata. The
-candidate and its sole collision fallback are derived only from the
-`assetidentifier`, which is Version-invariant.
+The `digest` ([Section 4.2](#42-usd-asset-resources)) records a Version's
+content hash. The candidate and its sole collision fallback derive only from
+the Version-invariant `assetidentifier`.
 
 The assigned id reflects the sibling reservations at first publication and
 remains stable thereafter
@@ -184,7 +183,7 @@ document].
 
 A GET against the Version's document URL, without `$details`,
 returns the artifact bytes. A [`self`][xRegistry self] URL ending in
-`$details` identifies metadata and is not an artifact path.
+`$details` identifies metadata, not an artifact path.
 
 The document response uses the appropriate content-type and carries Resource
 metadata in HTTP headers. Clients can also retrieve metadata using the
@@ -204,11 +203,12 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be
 interpreted as described in [RFC 2119](https://tools.ietf.org/html/rfc2119).
 
-For clarity, OPTIONAL attributes (specification-defined and extensions) are
-OPTIONAL for clients to use, but the servers' responsibility will vary.
-Server-unknown extension attributes MUST be silently stored in the backing
-datastore. Specification-defined, and server-known extension, attributes MUST
-generate an error if the corresponding feature is not supported or enabled.
+OPTIONAL attributes (specification-defined and extensions) are OPTIONAL for
+clients to use; server behavior varies.
+A server MUST silently store extension attributes it does not recognize in
+the backing datastore. A specification-defined attribute or a server-known
+extension attribute MUST generate an error if the corresponding feature is
+unsupported or disabled.
 
 In the pseudo JSON format snippets `?` means the preceding attribute is
 OPTIONAL, `*` means the preceding attribute MAY appear zero or more times,
@@ -253,9 +253,9 @@ yields `pkg.usdz[tex/a.png]`.
 A schema plugin is a set of files that declares USD prim types to a Consumer
 at runtime. This specification covers codeless schema plugins. Each requires
 exactly two documents, a plugin manifest and a generated schema, and no
-compiled code. After retrieving and registering both, a Consumer can browse
-and author the vendor's declared prim types rather than treating them as
-untyped prims.
+compiled code. After a Consumer retrieves and registers both documents, it can
+browse and author the vendor's declared prim types rather than treating them
+as untyped prims.
 
 #### 2.2.4. Consumer and Producer
 
@@ -278,8 +278,8 @@ arbitrary application-defined grouping. See
 ### 2.4. Schema Plugin Group
 
 A Schema Plugin Group is a container for the files of exactly one codeless
-USD schema plugin. The Group id is the plugin name, so a Consumer that has read
-a plugin name out of a scene can address the Group directly.
+USD schema plugin. The Group id is the plugin name, so a Consumer that reads a
+plugin name from a scene can address the Group directly.
 
 ## 3. OpenUSD Registry Model
 
@@ -436,8 +436,8 @@ switching it to a symbolic ID.
 The sibling assignment rules apply where symbolic construction is needed.
 
 An Asset Container Group MUST set the Core [`name`][xRegistry Core] attribute
-to the asset container identifier verbatim. This preserves the exact string
-after id normalization for people browsing the Registry, including through
+to the asset container identifier verbatim. This preserves the identifier's
+exact spelling after id normalization in Registry listings, including in
 generic third-party tools that display only the id and name.
 
 An Asset Container Group has one extension attribute:
@@ -445,7 +445,7 @@ An Asset Container Group has one extension attribute:
 - **`rootlayer`** — OPTIONAL, type `string`. The `assetidentifier` of this
   container's single `RootLayer` USD asset. When present, its value MUST equal
   the `assetidentifier` of a `usdasset` in this Group whose `assetkind` is
-  `RootLayer`. It exists so a Consumer can find the composition entry point
+  `RootLayer`. This attribute lets a Consumer find the composition entry point
   without enumerating and inspecting the whole collection.
 
 Example:
@@ -483,8 +483,8 @@ The `usdassetid` MUST be the assigned symbolic identifier of the Resource's
 authors it, and a Consumer matches an authored `@...@` reference against it.
 
 A `usdasset` MUST set the Core [`name`][xRegistry Core] attribute to its
-`assetidentifier` verbatim. People browsing the Registry then see the string
-the layer authors, unchanged by id normalization, even in generic third-party
+`assetidentifier` verbatim. Registry listings then show the string that the
+layer authors, unchanged by id normalization, even in generic third-party
 tools that display only the id and name.
 
 A `usdasset` has the following extension attributes:
@@ -527,7 +527,7 @@ match. A digest establishes integrity, not authenticity: it proves that the
 bytes match the Registry's description, not that the Registry is entitled to
 describe them.
 
-The media type of the document is carried by the core
+The media type of the document is carried by the Core
 [`contenttype`][xRegistry Core] attribute — for example `model/vnd.usda`,
 `model/vnd.usdc`, `model/vnd.usdz+zip`, `image/png`. This specification
 defines no separate media-type attribute.
@@ -955,7 +955,7 @@ This section is informative.
 A USD scene is often static geometry whose attributes are driven by live data
 at runtime. Where that data is delivered by an endpoint managed by an xRegistry
 [Endpoint Registry][xRegistry Endpoint], an implementation MAY correlate the
-two. A Consumer retrieving a scene can then also discover how to animate it.
+two. A Consumer retrieving a scene can also discover how to animate it.
 This specification defines no correlation mechanism.
 
 ## 6. Security
@@ -966,7 +966,7 @@ nor how to securely protect the APIs.
 
 Implementations are expected to use authentication and authorization
 mechanisms suited to the application domain and deployment environment.
-These MAY include OAuth 2.0, OpenID Connect, API keys or other mechanisms.
+These MAY include OAuth 2.0, OpenID Connect, API keys, or other mechanisms.
 
 Users can be granted access to particular `usdassetgroup` and
 `usdschemaplugingroup` Groups and their artifacts. For an Asset Container
@@ -975,7 +975,7 @@ Group, this covers the artifacts needed to compose one scene unit.
 Operators SHOULD be aware of three domain-specific considerations:
 
 - **Artifacts are intellectual property.** A USD layer is engineering data:
-  geometry, tolerances, materials and plant topology. Read access can disclose
+  geometry, tolerances, materials, and plant topology. Read access can disclose
   that data even when write access is restricted.
 - **A digest is integrity, not authenticity.** Verifying a `digest` proves the
   bytes match what the registry described. It does not establish who authored
@@ -984,7 +984,7 @@ Operators SHOULD be aware of three domain-specific considerations:
 - **Composition can follow external references.** A Consumer that opens a
   retrieved root layer will follow its composition arcs, and a maliciously
   authored layer can direct a resolver at unintended locations. A Consumer
-  SHOULD confine resolution to the registry and its declared federation links
+  SHOULD confine resolution to the Registry and its declared federation links
   rather than allowing arbitrary resolution from authored strings.
 
 ---
