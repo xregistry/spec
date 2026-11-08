@@ -226,36 +226,21 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
-          }
-        },
-        "oneOf": [
-          {
-            "properties": {
-              "versionsurl": {
-                "type": "string"
-              },
-              "versionscount": {
-                "type": "integer"
-              }
-            },
-            "required": [
-              "versionsurl"
-            ]
           },
-          {
-            "properties": {
-              "versions": {
-                "type": "object",
-                "additionalProperties": {
-                  "$ref": "#/definitions/thingdescriptiongroup-schema/thingdescriptionVersion"
-                }
-              }
-            },
-            "required": [
-              "versions"
-            ]
+          "versionsurl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "versionscount": {
+            "type": "integer"
+          },
+          "versions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/thingdescriptiongroup-schema/thingdescriptionVersion"
+            }
           }
-        ]
+        }
       },
       "thingdescriptiongroup": {
         "type": "object",
@@ -524,36 +509,21 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
-          }
-        },
-        "oneOf": [
-          {
-            "properties": {
-              "versionsurl": {
-                "type": "string"
-              },
-              "versionscount": {
-                "type": "integer"
-              }
-            },
-            "required": [
-              "versionsurl"
-            ]
           },
-          {
-            "properties": {
-              "versions": {
-                "type": "object",
-                "additionalProperties": {
-                  "$ref": "#/definitions/thingmodelgroup-schema/thingmodelVersion"
-                }
-              }
-            },
-            "required": [
-              "versions"
-            ]
+          "versionsurl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "versionscount": {
+            "type": "integer"
+          },
+          "versions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/thingmodelgroup-schema/thingmodelVersion"
+            }
           }
-        ]
+        }
       },
       "thingmodelgroup": {
         "type": "object",
