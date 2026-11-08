@@ -260,9 +260,10 @@ Signature and repository trust policies are separate.
 
 A producer MUST publish a complete document-tree mapping at the advertised
 path in one commit. A native resolver MUST implement locator validation,
-commit pinning, object-only reads, the common operations and the rejection
-rules above. An offline-complete snapshot additionally contains all declared
-document bytes locally.
+commit pinning, object-only reads, the common operations, and the rejection
+rules in the "Unsupported Indirections" and "Errors and Security" sections.
+An offline-complete snapshot additionally contains all declared document bytes
+locally.
 
 The [shared generator](../federation/tools/generate_examples.py) creates a
 new bare repository from a named Registry in
@@ -274,8 +275,9 @@ timestamps and object bytes are fixed example data, not the contributor's
 identity or working-tree state. No remote is configured, and generation
 does not fetch or push.
 
-Run from the repository root with Git available and a new or empty output
-directory outside the checkout:
+These commands generate the `portable` snapshot, validate its mapping, and read
+the selected Version document. Run them from the repository root with Git
+available and a new or empty output directory outside the checkout:
 
 ```powershell
 python -B -m workingdrafts.federation.tools.generate_examples git --example portable --output D:\temp\xregistry-git-portable

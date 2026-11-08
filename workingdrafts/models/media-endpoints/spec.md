@@ -32,9 +32,9 @@ identifiers.
 
 An endpoint provider MUST ensure that its producer-only codec and
 `streamformat` declarations describe the media it provides. A receiving
-implementation MUST decide whether it can consume those declarations.
-Successful xRegistry validation does not establish that a receiver supports the
-advertised media.
+implementation MUST decide whether it can consume the media described by those
+declarations. Successful xRegistry validation does not establish that a receiver
+supports the advertised media.
 
 ## Validation
 

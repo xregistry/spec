@@ -75,17 +75,17 @@ that make up an [OpenUSD][OpenUSD] scene:
 
 - Layers (`.usda`, `.usdc`, `.usd`),
 - Packages (`.usdz`),
-- The textures, MaterialX documents and volumes those layers reference,
+- The textures, MaterialX documents, and volumes those layers reference,
 - The schema plugins that teach a Consumer about vendor-defined prim types.
 
 USD does not prescribe where assets are stored. A layer refers to another
 asset by writing an asset identifier between `@` characters, for example
 `@./pump.usda@`. An asset resolver turns that string into retrievable bytes.
 Deployments can store those bytes in a file share, an object store, a
-version-control checkout or a vendor asset service.
+version-control checkout, or a vendor asset service.
 
 This specification defines a common description of asset dependencies,
-integrity and revisions across those locations. A Consumer can discover the
+integrity, and revisions across those locations. A Consumer can discover the
 artifacts that make up a scene, verify that their bytes match what the Producer
 intended, and identify each revision and its predecessors. A Registry can
 also identify another Registry that hosts an artifact, such as a texture it
@@ -98,23 +98,23 @@ xRegistry-specific knowledge in that scene.
 ### 1.1. Artifacts and Asset Containers
 
 A USD artifact is a single retrievable document, such as a layer, package,
-texture, MaterialX document or plugin manifest.
+texture, MaterialX document, or plugin manifest.
 
 A stage is opened against one root layer. That layer references other layers
-through composition arcs: sublayers, references and payloads. Those layers
+through composition arcs: sublayers, references, and payloads. Those layers
 in turn reference textures and materials. The transitive set of artifacts is
 the dependency closure. If a member is missing, a Consumer cannot compose the
 scene correctly: USD either fails to open the layer or composes a scene with
 silently missing opinions.
 
 An asset container groups a root layer with everything reachable from it in a
-named collection. It is the unit a Producer curates, a Consumer retrieves and
+named collection. It is the unit a Producer curates, a Consumer retrieves, and
 an authorization policy protects.
 
 ### 1.2. Relationship to Other xRegistry Specs
 
 An OpenUSD Artifact Registry is complementary to the xRegistry
-[Schema][xRegistry Schema], [Endpoint][xRegistry Endpoint] and
+[Schema][xRegistry Schema], [Endpoint][xRegistry Endpoint], and
 [Message][xRegistry Message] registries:
 
 - A schema plugin's generated schema declares USD prim types. Where those
@@ -130,7 +130,7 @@ but this specification does not require every reference to resolve.
 An externally defined OPC Unified Architecture (OPC UA) projection represents
 the same model in an OPC UA AddressSpace and retrieves each artifact through
 the OPC UA file-transfer interface. This specification is its wire-format
-peer. The two projections share collection names, attribute names and the
+peer. The two projections share collection names, attribute names, and the
 identifier rules of [Section 5.1](#51-asset-identifiers-and-xids). A Consumer
 MAY move between them without re-resolving anything. This specification does
 not depend on the OPC UA projection.
@@ -138,9 +138,9 @@ not depend on the OPC UA projection.
 ### 1.3. Versioning
 
 A USD layer has no intrinsic version member: nothing in a `.usda` file states
-which revision it is. There is therefore no document-supplied value for an
-implementation to reflect into [`versionid`][xRegistry version-ids]. The
-xRegistry Core rules for Version-ID assignment, `ancestorid` lineage and
+which revision it is. The document supplies no value for an implementation
+to reflect into [`versionid`][xRegistry version-ids]. The
+xRegistry Core rules for Version-ID assignment, `ancestorid` lineage, and
 default-Version selection apply unchanged.
 
 An asset identifier identifies a Resource rather than a Version. All Versions
@@ -226,7 +226,7 @@ This specification defines the following terms:
 This specification uses USD asset (or `usdasset` Resource) for a logical
 grouping of one or more USD Asset Versions. Each Version holds a concrete
 document representing an iteration of the same logical artifact: a layer,
-package, texture, MaterialX document, volume, plugin manifest or generated
+package, texture, MaterialX document, volume, plugin manifest, or generated
 schema.
 
 Per the definition of the
@@ -269,7 +269,7 @@ Capitalized role names in this specification denote these defined roles.
 
 An Asset Container Group is a container for the USD assets that make up one
 composable unit: a root layer together with the sublayers, references,
-payloads, textures, MaterialX documents and volumes reachable from it.
+payloads, textures, MaterialX documents, and volumes reachable from it.
 
 Composition determines membership of an Asset Container Group, rather than an
 arbitrary application-defined grouping. See
@@ -410,7 +410,7 @@ Version metadata into Asset Container Groups and Schema Plugin Groups.
 Implementations of this specification MAY include additional extension
 attributes, including the `*` attribute of type `any`.
 
-Groups, Resources and Versions inherit their Core attributes from the
+Groups, Resources, and Versions inherit their Core attributes from the
 [xRegistry specification][xRegistry Core].
 
 ### 4.1. Asset Container Groups
@@ -496,7 +496,7 @@ A `usdasset` has the following extension attributes:
 
 - **`assetkind`** — REQUIRED, type `string`, one of `RootLayer`, `SubLayer`,
   `Reference`, `Payload`, `Texture`, `Package`, `MaterialX`, `Volume`,
-  `SchemaPlugin`, `GeneratedSchema` or `Manifest`. It records the artifact's
+  `SchemaPlugin`, `GeneratedSchema`, or `Manifest`. It records the artifact's
   role in the composition closure, which is independent of its document
   format: a `SubLayer` and a `Reference` are both USD layers.
 
@@ -515,7 +515,7 @@ A `usdasset` has the following extension attributes:
   a package and its members are present, a member's `digest` covers the
   extracted member bytes, not the package.
 
-- **`digestalg`** — OPTIONAL, type `string`, one of `Sha256`, `Sha384` or
+- **`digestalg`** — OPTIONAL, type `string`, one of `Sha256`, `Sha384`, or
   `Sha512`. REQUIRED when `digest` is present. A Consumer that finds a `digest`
   with no `digestalg` MUST interpret the digest as `Sha256`. This is a
   processing rule rather than a model default, because an artifact that
@@ -585,16 +585,16 @@ identifiers for other artifact classes, but MUST NOT use the identifiers below
 for any document that is not conformant with the corresponding specification.
 
 `format` describes the document, while `assetkind` describes the artifact's
-role. For example, a `SubLayer`, a `Reference` and a `Payload` are all
-`OpenUSD/1.0` documents, while a single `Reference` might be a layer, a package
+role. For example, a `SubLayer`, a `Reference`, and a `Payload` are all
+`OpenUSD/1.0` documents, while a single `Reference` might be a layer, a package,
 or a MaterialX document.
 
 #### 4.5.1. USD Layer
 
 - Format identifier: `OpenUSD/1.0`
-- Document: a USD layer in any of the crate (`.usdc`), ASCII (`.usda`) or
+- Document: a USD layer in any of the crate (`.usdc`), ASCII (`.usda`), or
   generic (`.usd`) serializations, conformant with [OpenUSD][OpenUSD].
-- `contenttype` SHOULD be `model/vnd.usda`, `model/vnd.usdc` or
+- `contenttype` SHOULD be `model/vnd.usda`, `model/vnd.usdc`, or
   `model/vnd.usd` as appropriate.
 
 #### 4.5.2. USD Package
@@ -646,7 +646,7 @@ or a MaterialX document.
 xRegistry defines an [`xid`][xRegistry Core] as the stable path of an entity
 within its registry, independent of the hosting endpoint. xRegistry also
 constrains each entity id to [RFC 3986][RFC3986] `unreserved` characters plus
-`:` and `@`, starting with a letter, a digit or `_`, at most 128 characters
+`:` and `@`, starting with a letter, a digit, or `_`, at most 128 characters
 long, and unique case-insensitively within its parent.
 
 A USD asset identifier is the stable, location-independent name a layer
@@ -670,12 +670,12 @@ sibling-scoped assignment:
 
 A symbolic candidate is built from a source string as follows. The result is a
 dot-separated token in the alphabet `A-Z a-z 0-9 _ . -`, a strict subset of what
-xRegistry permits, so that it is simultaneously safe in a URL, on a command line
+xRegistry permits, so that it is simultaneously safe in a URL, on a command line,
 and as a file name in the [file-system representation][xRegistry primer].
 
 1. Split the source into an *authority* and a *path*. For an absolute URI with
    an authority component the authority is the host together with its port when
-   present, and the path is the URI path. The scheme, userinfo, query and
+   present, and the path is the URI path. The scheme, userinfo, query, and
    fragment are discarded. For a URN the authority is empty and the path is the
    URN split on `:`. Otherwise — the usual case for an asset identifier — the
    authority is empty and the path is the source split on `/`.
@@ -815,7 +815,7 @@ flowchart TD
   Identity --> Retrieve["Retrieve document;<br/>verify declared digest, if present"]
 ```
 
-Consumers MUST use finite source-byte, cumulative metadata-byte and parsing-work
+Consumers MUST use finite source-byte, cumulative metadata-byte, and parsing-work
 budgets and support cancellation.
 
 When metadata acquisition is needed, it MUST be explicitly authorized for the
@@ -831,7 +831,7 @@ The construction is lossy, so only the forward direction is defined:
 
 | Direction | Operation |
 |---|---|
-| authored `@X@` in a layer of container `C` → registry location | normalize `X` against `C`, probe the candidate and sole fallback under `/usdassetgroups/C/usdassets/`, validate the returned `assetidentifier` |
+| authored `@X@` in a layer of container `C` → registry location | normalize `X` against `C`, probe the candidate and sole fallback under `/usdassetgroups/C/usdassets/`, and validate the returned `assetidentifier` |
 | `usdassetid` → authored identifier | read the Resource's `assetidentifier` attribute |
 
 For example, in container `fabrikam.plant-01`:
@@ -853,7 +853,7 @@ given by its `assetidentifier`, so an authored reference such as
 An Asset Container Group's membership is determined by composition, not by
 convention. A Group SHOULD contain the artifact named by `rootlayer` together
 with every artifact transitively reachable from it. This includes every
-sublayer, referenced layer, payload, texture, MaterialX document and volume.
+sublayer, referenced layer, payload, texture, MaterialX document, and volume.
 A Consumer holding the Group can then compose the scene with no further asset
 resolution.
 
@@ -887,7 +887,7 @@ import the remote Resource's metadata or Versions.
 the same Resource model type within the same Registry. It is not a remote
 URL and is not followed transitively. The
 [federation working draft][Federation] defines the common behavior through
-its [selection][Federation selection], [identity][Federation identity] and
+its [selection][Federation selection], [identity][Federation identity], and
 [read][Federation reads] clauses.
 
 The identifier rules of [Section 5.1](#51-asset-identifiers-and-xids) let a

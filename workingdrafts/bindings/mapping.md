@@ -59,8 +59,8 @@ representations rather than a separate domain model:
 
 Both schemas use JSON Schema Draft 2020-12. Their URNs identify this draft's
 schemas. They are not network retrieval endpoints. Producers and consumers
-MUST also implement the semantic constraints below. Schema validity alone
-does not establish Core model compliance or graph completeness.
+MUST also implement the semantic constraints in this specification. Schema
+validity alone does not establish Core model compliance or graph completeness.
 
 ## Motivation and Use
 
@@ -79,8 +79,8 @@ This format adds complete typed collection indexes and references that
 record exact byte sizes and digests. A reader uses them to select and verify
 content without requiring changes to existing filenames or directory
 structure. The stored records are metadata fragments. The reader assembles
-them into the Core document view defined below; it does not return them as
-Core API responses.
+them into the Core document view defined in the Reads and Core Document View
+section; it does not return them as Core API responses.
 
 For example, a project can already contain `source/specs/widget.json`,
 `engineering/assets/image.dat`, its application code, and a README. Adding
@@ -114,7 +114,7 @@ inline storage. Unreferenced files, such as `source/main.py` and the README,
 neither become Resources automatically nor participate in the Registry's
 declared content closure.
 
-The [example](#worked-example-map-one-existing-file) below shows
+The [example](#worked-example-map-one-existing-file) shows
 every file needed to map one existing document and the resulting reads.
 The `portable` example in the [shared source](../federation/samples/examples.json)
 demonstrates multiple Resource types, aliases, and binary content.
@@ -133,7 +133,7 @@ This example maps one existing file to Resource
 The selected root is the `project` directory. No file outside that
 directory is read.
 
-To save the JSON block below, use UTF-8, two-space indentation, LF line
+To save the following JSON block, use UTF-8, two-space indentation, LF line
 endings and one final newline. The size and digest values describe those
 exact bytes. After changing the document, recalculate its size and digest
 in the Version's document descriptor inside `registry.json`.
@@ -147,8 +147,8 @@ python -B -m workingdrafts.federation.tools.generate_examples file --example wal
 
 The generator writes the unchanged document, an inline `registry.json` and
 a `.gitattributes` file that disables text conversion for the document.
-Unlike the listing below, the generated Registry root also contains the
-full captured Core model from the shared source. The `registry.json` listing
+Unlike the `registry.json` listing, the generated Registry root also contains
+the full captured Core model from the shared source. The `registry.json` listing
 omits `model` and retains only `modelsource`, so its size and digest differ
 from the generated root. The [walkthrough tests](tools/test_mapping_examples.py)
 check that removing the model reproduces the listed bytes exactly.
@@ -785,7 +785,7 @@ A present zero-byte document is a different case.
 ## Reads and Core Document View
 
 Core's [`doc` flag](../../core/spec.md#doc-flag) defines document-view
-metadata. The `document` operation below instead retrieves domain bytes.
+metadata. The `document` operation instead retrieves domain bytes.
 
 An exact read starts at the Registry record and follows the necessary typed
 collection indexes and selected child records. A Version read MUST NOT
@@ -983,8 +983,10 @@ assembly and an OPTIONAL local Git object-store reader. It uses the common
 `FederationError`, XID validation, label selection and Resource type helper.
 It does not fetch repositories or external documents.
 
-Run from the repository root, selecting a new or empty output directory
-outside the checkout:
+These commands generate the `portable` Registry, validate its mapping, and
+read the selected Version's entity and document data. Run them from the
+repository root, selecting a new or empty output directory outside the
+checkout:
 
 ```text
 python -B -m workingdrafts.federation.tools.generate_examples file --example portable --output D:\temp\xregistry-portable
@@ -1000,9 +1002,10 @@ how metadata can be added around existing project files without moving or
 changing them. The new generator itself writes only to an empty destination.
 
 `read_record` exposes a storage fragment, not a Core response. `metadata`
-and `collection` return the materialized envelopes above. `document` returns
-`bytes`, including `b""`. `document_descriptor` exposes an external locator
-without fetching it. `reads` exposes storage-file reads so tests can
+and `collection` return the materialized envelopes defined in the Reads and
+Core Document View section. `document` returns `bytes`, including `b""`.
+`document_descriptor` exposes an external locator without fetching it.
+`reads` exposes storage-file reads so tests can
 distinguish full validation from selective retrieval. CLI JSON metadata
 includes this trace outside `entity`, without moving the pointer root.
 

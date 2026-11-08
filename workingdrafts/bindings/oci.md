@@ -153,7 +153,7 @@ layout.
 
 The resolver MUST request the selected reference at
 `/v2/<repository>/manifests/<reference>`. The returned object MUST be a
-Registry index as defined below, not a flat inventory, Version manifest,
+Registry index as defined in Section 4, not a flat inventory, Version manifest,
 layout index, or collection index.
 
 The resolver MUST compute SHA-256 over the exact returned bytes. If the
@@ -924,7 +924,9 @@ builds do not establish interoperability with a remote service.
 
 ### Generate and Read a Layout
 
-Run from the repository root with the Python dependencies listed in the
+These commands generate offline and linked layouts, validate each layout, and
+look up a document, metadata, or label-selected collection. Run them from the
+repository root with the Python dependencies listed in the
 [shared instructions](../README.md#generating-and-reading-examples).
 Each output directory is new or empty and outside the checkout:
 
