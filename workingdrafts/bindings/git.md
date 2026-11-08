@@ -38,7 +38,7 @@ document are to be interpreted as described in
 This binding implements the read contract of
 [federation](../federation/spec.md#read-operations), using
 [Core](../../core/spec.md) and [Model](../../core/model.md) Version 1.0-rc4.
-Write-through, synchronization, checkout, builds and repository execution
+Write-through, synchronization, checkout, builds, and repository execution
 are outside its scope. Publishing a Package is a separate operation from
 consuming a federation.
 
@@ -68,7 +68,7 @@ Core metadata returned to the consumer.
 
 `binding` MUST be `git`. `endpoint` MUST be an absolute HTTPS
 repository URL with a host, and MUST NOT contain credentials, a query or
-fragment. Native Git, SSH, `file:`, `git+https:` and remote-helper transports
+fragment. Native Git, SSH, `file:`, `git+https:`, and remote-helper transports
 are not part of this binding. A web page URL is not implicitly a repository.
 
 `parameters` has these fields and no others:
@@ -97,7 +97,7 @@ to lowercase when recording the pin. A full ref, by contrast, selects an
 object but does not itself provide an immutable pin.
 
 A nonempty `path` MUST use `/`-separated portable directory components.
-Components MUST be 1 to 64 ASCII letters, digits, `_`, `-` or `.`, begin with
+Components MUST be 1 to 64 ASCII letters, digits, `_`, `-`, or `.`, begin with
 a letter, digit or `_`, and MUST NOT end in `.`. A component MUST NOT have a
 case-insensitive Windows device name (`CON`, `PRN`, `AUX`, `NUL`, `COM1`
 through `COM9`, or `LPT1` through `LPT9`, including before an extension).
@@ -125,14 +125,14 @@ never by embedded metadata credentials.
 The resolver MUST establish one repository context using the selected HTTPS
 endpoint and the caller's access policy. It can fetch into an isolated
 object store, but MUST NOT create or execute a working tree. Any acquisition
-MUST be explicit, bounded and complete for the requested operation.
+MUST be explicit, bounded, and complete for the requested operation.
 
 The resolver MUST resolve `revision` once. Lightweight tags and branches
 select their referenced object. The resolver MUST peel annotated tags to a
 commit. An object that cannot resolve to a commit is invalid selection input.
 
 The resolver MUST record the resulting complete commit OID and retain that
-pin for the entire operation, including model, label and document reads.
+pin for the entire operation, including model, label, and document reads.
 If the original ref moves, that movement MUST NOT change the pin or trigger
 a second resolution.
 Consumers MUST NOT substitute a currently reachable or newer commit when
@@ -165,7 +165,7 @@ Consumers MUST NOT use checkout bytes, text conversion, clean/smudge filters
 or attributes. They MUST NOT use LFS downloads, hooks, external diff
 commands, build steps or repository code.
 Blob modes `100644` and `100755` both denote data; executable permission does
-not authorize execution. Consumers MUST verify Git object type and identity
+not authorize execution. Consumers MUST verify Git object type and identity,
 as well as the format's descriptor size and SHA-256.
 
 A Git OID hashes the typed Git object representation, rather than the raw
@@ -242,7 +242,7 @@ credential-scoping policy during acquisition. They MUST disable unsupported
 protocols, repository-controlled execution and implicit lazy fetching.
 
 Local object-store alternates, replacement objects, grafts, untrusted
-configuration includes and filesystem indirections MUST NOT silently change
+configuration includes, and filesystem indirections MUST NOT silently change
 the selected object graph or bypass the permitted storage boundary.
 
 Readers using Git subprocesses MUST pass validated arguments directly without

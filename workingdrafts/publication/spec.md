@@ -190,12 +190,12 @@ head before making it visible.
 
 This extension defines the representations and their publication behavior,
 not a general upload API for backing storage. An authorized publisher uses
-the Registry's supported create/write operations or an internal publishing
-process. The Registry can use a database, an object store or a file system
-internally. The interoperable retrieval contract remains an exact xRegistry
-Version document; an arbitrary downloadable file is not a publication
-reference. A read-only binding can expose content prepared through another
-interface without offering publication writes.
+the Registry's supported create and write operations or an internal
+publishing process. The Registry can use a database, an object store or a file
+system internally. The interoperable retrieval contract remains an exact
+xRegistry Version document; an arbitrary downloadable file is not a
+publication reference. A read-only binding can expose content prepared
+through another interface without offering publication writes.
 
 Loading the model does not enforce publication immutability, conditional head
 updates, retention, digest identity or authorization. A publication adapter,
@@ -474,8 +474,8 @@ document's authored identifiers.
 An offline-complete manifest MUST supply every declared document in its
 scope, except aliases whose Core document operation resolves to another
 included Resource. Linked snapshots MAY reference exact Versions in another
-Registry, but MUST NOT claim bytes omitted from their offline package are
-offline available. An authored external link remains domain content. If its
+Registry, but MUST NOT claim that bytes omitted from their offline package
+are available offline. An authored external link remains domain content. If its
 bytes are captured by this publication, the publisher stores them as a
 Version document too. Metadata-only types do not acquire documents by
 appearing in a manifest. Domain bytes MUST be captured through raw reads or
@@ -537,12 +537,12 @@ edits `intro`, and the publisher releases the edit as S13:
 - Step 1 returns head S12 and epoch 12.
 - Step 2 stores the edited `intro` bytes as a new Version. Unchanged Versions
   and their bytes are reused.
-- Step 3 stores the new Registry JSON, under another object identity than
-  S12's, and any newly captured document bytes as Version documents. The
-  publisher constructs a manifest with descriptors for those Versions and
-  stores it as the `manifest` Version of a new snapshot Resource. Its digest
-  is S13's Snapshot ID. The content is available before the publisher
-  attempts to move `stable`.
+- Step 3 stores the new Registry JSON under an object identity that differs
+  from S12's. It stores any newly captured document bytes as Version
+  documents. The publisher constructs a manifest with descriptors for those
+  Versions and stores it as the `manifest` Version of a new snapshot Resource.
+  Its digest is S13's Snapshot ID. The content is available before the
+  publisher attempts to move `stable`.
 - Step 4 sets `head` to S13 if the epoch is still 12. The adapter advances the
   epoch, to 17 in the [state table](#opening-a-channel).
 
@@ -750,8 +750,9 @@ this guarantee MUST report live behavior, not publication conformance.
 The extension does not change ordinary non-publication HTTP endpoints.
 
 A pin-aware consumer MUST obtain and validate the open record and manifest
-before claiming a pinned result. In an HTTP projection, snapshot-specific
-API `self` and navigation URLs MUST be retrievable Core URLs. Native
+before claiming a pinned result. In an HTTP projection,
+snapshot-specific API `self` and navigation URLs MUST be retrievable Core
+URLs. Native
 projections use their binding's addressing and selected context. Source
 identities remain in the manifest associations. Contexts are not inferred
 from equal XIDs or root epochs.

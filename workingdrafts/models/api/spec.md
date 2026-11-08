@@ -19,7 +19,7 @@ This document defines an API Registry extension to the xRegistry
 document format and API. An API Registry stores and manages versioned API
 definition documents for synchronous request-response interfaces.
 
-This working draft is dated 15 September 2026 and is not part of a released
+This working draft is dated September 15, 2026, and is not part of a released
 xRegistry specification.
 
 ## Table of Contents
@@ -69,7 +69,7 @@ xRegistry specification.
 ## Overview
 
 This extension applies to interfaces whose callers address operations and
-receive correlated results, including HTTP APIs, gRPC and SOAP services,
+receive correlated results, including HTTP APIs, gRPC services, SOAP services,
 Thrift services, and JSON-RPC servers.
 
 The registry does not translate API documents into a common operation model.
@@ -108,7 +108,7 @@ document retrieval URL for an embedded document and the effective retrieval
 URL after redirects for an external document, unless a native identifier
 establishes another base. Publishers MUST account for relative references when
 relocating documents. Protobuf and Thrift include paths require explicit
-resolver configuration; namespace names and Smithy shape IDs are not retrieval
+resolver configuration. Namespace names and Smithy shape IDs are not retrieval
 URLs.
 
 For reproducible resolution, publishers SHOULD reference explicit dependency
@@ -122,7 +122,7 @@ When the server generates a `versionid`, API Registry implementations SHOULD
 use Core's default generation algorithm.
 
 This draft does not define format-specific API compatibility algorithms. An
-implementation claiming support for a policy MUST document its comparison
+implementation that declares support for a policy MUST document its comparison
 rules, including the client/server direction, request acceptance, possible
 responses and faults, and operation identity. Schema compatibility alone does
 not establish API compatibility. An unsupported policy MUST NOT be reported as
@@ -147,8 +147,8 @@ comment. Whitespace in these snippets is non-normative.
 
 #### API
 
-An API is a logical interface contract comprising one or more operations. An
-API Resource represents this logical interface; an API Version stores a
+An API is a logical interface contract that defines one or more operations. An
+API Resource represents this logical interface. An API Version stores a
 concrete API document.
 
 #### API Document
@@ -218,7 +218,7 @@ and extension rules defined by [xRegistry Core][core].
 
 ### API Groups
 
-The singular Group name is `apigroup`; the plural collection name is
+The singular Group name is `apigroup`. The plural collection name is
 `apigroups`. Every API Resource MUST belong to an API Group.
 
 A group MAY contain documents in different formats when it has no `format`
@@ -235,7 +235,7 @@ attribute.
   - When the group declares `format`, every API Version in the group MUST
     declare a matching `format` value, compared case-insensitively.
 
-Example:
+The following example restricts an API Group to OpenAPI 3.1 documents.
 
 ```json
 {
@@ -246,7 +246,7 @@ Example:
 
 ### API Resources
 
-The singular Resource name is `api`; the plural collection name is `apis`.
+The singular Resource name is `api`. The plural collection name is `apis`.
 
 API Resources use `maxversions: 0`, `setversionid: true`, `hasdocument: true`,
 `validateformat: true`, `validatecompatibility: true`, and
@@ -273,7 +273,7 @@ defined by [xRegistry Model][model].
 
 #### API Document Representation
 
-Core derives the API document members `api`, `apiurl`, and `apibase64`; at most
+Core derives the API document members `api`, `apiurl`, and `apibase64`. At most
 one MAY appear in a representation. Textual API media types map to Core's
 `string` representation and can appear in `api`. Binary documents, including
 gRPC descriptor sets, use `apibase64`. An `apiurl` identifies an externally
@@ -287,38 +287,38 @@ a byte-for-byte preservation requirement beyond Core's serialization rules.
 
 Servers advertise validation support through [Core's Registry
 Capabilities][capabilities]. `capabilities.formats` uses the API `format` values
-defined below, and `capabilities.compatibilities` maps them to supported
-compatibility rules. A format listed in this specification is not necessarily
-supported by an implementation.
+defined in API Formats, and `capabilities.compatibilities` maps them to
+supported compatibility rules. A format listed in this specification is not
+necessarily supported by an implementation.
 
 For embedded documents in a supported format, `validateformat: true` requires
 validation against the selected API profile. Parsing JSON or XML alone does
-not establish conformance. Malformed or invalid documents MUST be rejected;
-successful checks set `formatvalidated: true` under Core's result rules.
+not establish conformance. Malformed or invalid documents MUST be rejected.
+Successful checks set `formatvalidated: true` under Core's result rules.
 
 With `strictvalidation: false`, unsupported formats and external documents can
 be accepted without format checking. They use `formatvalidated: false` and
-`formatvalidatedreason` as defined by Core; `false` means not checked, not
-invalid-but-accepted.
+`formatvalidatedreason` as defined by Core. The value `false` means not
+checked, not invalid-but-accepted.
 
 When `meta.compatibility` is present, supported compatibility policies MUST be
 checked under Core's rules. Violations MUST be rejected even with
 `strictvalidation: false`. Skipped checks use `compatibilityvalidated: false`
-and `compatibilityvalidatedreason`; successful checks use `true` without a
+and `compatibilityvalidatedreason`. Successful checks use `true` without a
 reason. Without a compatibility policy, these result attributes MUST be absent.
 
 ### API References and Operation Locators
 
 An API Resource or Version reference identifies the API contract as a whole.
-Other documents often need to reference a specific interface or operation, so
-this specification also defines deep-reference locators for those elements,
+Other documents can reference a specific interface or operation through the
+deep-reference locators that this specification defines for those elements,
 similar to the [Schema Registry][schema] locators for individual type
-definitions. These locators can also be used wherever a consumer needs to
+definitions. Consumers can also use these locators wherever they need to
 identify part of an API precisely.
 
 An API reference combines a Core Resource or Version XID or absolute URL with
-an operation locator. A Resource reference selects its default Version; a
-Version reference is explicit:
+an operation locator. A Resource reference selects its default Version. A
+Version reference selects an explicit Version, as shown in these examples.
 
 ```text
 /apigroups/users/apis/UserProfileService#operations/GetUserProfile
@@ -326,21 +326,22 @@ Version reference is explicit:
 ```
 
 This composite reference is not a Core XID. `#` separates the entity reference
-from the locator. Resolution requires an API-aware resolver; HTTP does not send
+from the locator. Resolution requires an API-aware resolver. HTTP does not send
 the fragment to the server.
 
 For a document-view reference that already uses a JSON Pointer fragment, this
-extension defines a colon-suffix convention:
+extension defines the following colon-suffix convention.
 
 ```text
 #/apigroups/users/apis/UserProfileService:operations/GetUserProfile
 ```
 
-This is an extension reference, not a fragment-based XID and not one ordinary
-JSON Pointer. The resolver splits at the first literal `:` in the fragment;
-colons in identifier data MUST therefore be percent-encoded as `%3A`. It then
-evaluates the entity pointer in the registry document and obtains that entity's
-API document. An explicit document-view Version reference is:
+This extension reference is neither a fragment-based XID nor an ordinary
+JSON Pointer. The resolver splits at the first literal `:` in the fragment.
+Colons in identifier data MUST therefore be percent-encoded as `%3A`. The
+resolver then evaluates the entity pointer in the registry document and
+obtains that entity's API document. The following example selects an explicit
+document-view Version.
 
 ```text
 #/apigroups/users/apis/UserProfileService/versions/2:operations/GetUserProfile
@@ -351,7 +352,8 @@ xRegistry operation Resource. This draft defines no `operations` collection.
 
 #### Locator Syntax and Encoding
 
-The supported selectors are shown below. Angle-bracketed names are tokens.
+The following notation shows the supported selectors. Angle-bracketed names
+are tokens.
 
 ```text
 operations/<operation-name>
@@ -383,8 +385,9 @@ percent-decoding step. Decoded slashes from `~1` MUST NOT be split again.
 
 The resolver MUST first select one API Version and obtain its document and
 format. An explicit Version MUST NOT silently fall back to the default.
-Dependency resolution follows native language rules and the security policy
-below. The selected operation MUST exist and match exactly once.
+Dependency resolution follows native language rules and the policy in
+Security Considerations. The selected operation MUST exist and match exactly
+once.
 
 Resolvers MUST distinguish malformed references, unsupported formats,
 unavailable documents or dependencies, policy-denied retrievals, absent
@@ -406,23 +409,23 @@ Format-specific operation locators use the shared
 #### OpenAPI
 
 The `format` identifier for OpenAPI is `OpenAPI`. The version identifies the
-OpenAPI Specification feature set used to define the API:
+OpenAPI Specification feature set that defines the API.
 
 - `OpenAPI/3.0` selects `3.0.*` as defined by [OpenAPI 3.0.4][oas30].
 - `OpenAPI/3.1` selects `3.1.*` as defined by [OpenAPI 3.1.1][oas31].
 
 The API document is an OpenAPI Description in JSON or YAML. The root `openapi`
-field MUST match the selected feature set; it is independent of `info.version`.
+field MUST match the selected feature set. It is independent of `info.version`.
 JSON and YAML representations MUST be distinguished by `contenttype`.
 
 For OpenAPI, `operations/{operationId}` resolves an Operation
-Object with that `operationId` in the API described by the entry document,
+Object with that `operationId` in the API that the entry document describes,
 including referenced path items and operations. Publishers SHOULD supply
-`operationId`; when present it MUST be unique as specified by the native
+`operationId`. When present, it MUST be unique as specified by the native
 specification. An ambiguous match MUST fail.
 
 If an operation has no `operationId`, its reference MUST use a JSON Pointer to
-the operation object:
+the operation object, as shown in the following example.
 
 ```text
 #/paths/~1users~1%7BuserId%7D/get
@@ -430,10 +433,11 @@ the operation object:
 
 The preceding pointer selects `paths["/users/{userId}"].get` in the parsed
 entry document. JSON Pointer evaluation does not traverse `$ref`. A pointer
-MUST target an Operation Object; pointing at a Reference Object does not
-select the referenced operation. Externally defined operations can be selected
-by their operation ID through the resolved API, or by a pointer on the external
-document's own retrieval reference where that document is registered as an API.
+MUST target an Operation Object. Pointing at a Reference Object does not
+select the referenced operation. A resolver can select externally defined
+operations by their operation ID through the resolved API, or by a pointer on
+the external document's own retrieval reference where that document is
+registered as an API.
 
 #### Swagger
 
@@ -449,7 +453,7 @@ requirement that a pointer target an Operation Object.
 #### gRPC
 
 The `format` identifier for gRPC is `gRPC`. Its profiles identify the
-description representation, not a gRPC wire protocol version:
+description representation, not a gRPC wire protocol version.
 
 - `gRPC/proto3` identifies [Proto3][proto3] source.
 - `gRPC/descriptor-set` identifies a binary [FileDescriptorSet][descriptor].
@@ -461,19 +465,20 @@ profiles.
 `gRPC/descriptor-set` requires a serialized `google.protobuf.FileDescriptorSet`
 with at least one service descriptor. Descriptor dependencies needed for
 resolution MUST be included or supplied by an explicitly configured resolver.
-Descriptor validation MUST account for each file's syntax or edition;
-unrecognized editions MUST NOT be treated as checked. Binary descriptors use
+Descriptor validation MUST account for each file's syntax or edition.
+Unrecognized editions MUST NOT be treated as checked. Binary descriptors use
 `apibase64` in an embedded JSON representation, not a JSON rendering of the
 descriptor messages.
 
-For gRPC, a locator identifies a service and an RPC method:
+For gRPC, a locator identifies a service and a remote procedure call (RPC)
+method, as shown in the following example.
 
 ```text
 #services/com.example.users.UserProfileService/operations/GetUserProfile
 ```
 
 The service token MUST be its protobuf package followed by `.` and the service
-name, without a leading dot. Without a package it is the service name alone.
+name, without a leading dot. Without a package, it is the service name alone.
 Descriptor-set service names MUST resolve uniquely across the set. The method
 token is its case-sensitive RPC name. Request and response types and
 client/server streaming flags come from the selected method declaration.
@@ -487,15 +492,16 @@ revision it supports. Thrift target-language namespaces do not define a
 universal service namespace.
 
 For Thrift, the service token is the service identifier declared in the entry
-IDL document, not a namespace chosen for generated Java, Python, or other code:
+IDL document, not a namespace chosen for generated Java, Python, or other code.
+The following locator identifies an operation in that service.
 
 ```text
 #services/UserProfileService/operations/GetUserProfile
 ```
 
-The method is selected from that service after resolving its `extends` chain.
-Inherited methods are selectable; ambiguous declarations MUST fail. A service
-declared only in an included IDL document requires a reference to that
+A resolver selects the method from that service after resolving its `extends`
+chain. Inherited methods are selectable. Ambiguous declarations MUST fail. A
+service declared only in an included IDL document requires a reference to that
 document's own API Resource. The registry does not invent a target-language
 namespace for included services. `oneway` and declared exceptions retain their
 native meaning.
@@ -506,9 +512,9 @@ The `format` identifier for Apache Avro Protocol is `AvroProtocol`. The version
 identifies the Apache Avro release used to define the protocol.
 `AvroProtocol/1.12.0` identifies a JSON document conforming to the
 [Avro 1.12.0 protocol rules][avro]. The document MUST contain a protocol
-declaration; Avro data schemas are outside this API profile.
+declaration. Avro data schemas are outside this API profile.
 
-The locator uses a `messages` member name:
+The following locator uses a `messages` member name.
 
 ```text
 #operations/GetUserProfile
@@ -524,7 +530,7 @@ the Apache Avro release used to define the IDL. `AvroIDL/1.12.0` identifies text
 conforming to the [Avro 1.12.0 IDL rules][avroidl]. The IDL MUST produce a
 protocol, not only a data schema. Schema-only IDL is outside this API profile.
 
-The locator uses the message name in the resolved protocol:
+The following locator uses the message name in the resolved protocol.
 
 ```text
 #operations/GetUserProfile
@@ -552,10 +558,11 @@ types and named types, including deprecated fields, enum values, arguments,
 and input fields. Type references MUST include the full `kind`, `name`, and
 `ofType` chains. Descriptions can be omitted. Missing information needed to
 reconstruct the schema makes the representation incomplete and MUST cause
-validation or operation resolution to fail; a partial introspection query
+validation or operation resolution to fail. A partial introspection query
 result is not a complete schema document.
 
-For GraphQL, the locator identifies the root operation type and its field:
+For GraphQL, the following locators identify the root operation type and its
+field.
 
 ```text
 #operations/query/userProfile
@@ -564,7 +571,7 @@ For GraphQL, the locator identifies the root operation type and its field:
 
 The operation kind MUST be `query`, `mutation`, or `subscription`. The field
 MUST exist on the corresponding root type identified by the schema definition
-or introspection data; that type need not be named `Query` or `Mutation`. The
+or introspection data. That type need not be named `Query` or `Mutation`. The
 locator identifies a root schema field, not a named executable GraphQL
 operation or a complete selection set. A subscription retains its streaming
 semantics.
@@ -572,7 +579,7 @@ semantics.
 #### WSDL
 
 The `format` identifier for WSDL is `WSDL`. The version identifies the WSDL
-specification used to define the XML document:
+specification that defines the XML document.
 
 - `WSDL/1.1` identifies [WSDL 1.1][wsdl11].
 - `WSDL/2.0` identifies [WSDL 2.0 Part 1][wsdl20].
@@ -584,7 +591,8 @@ remain native WSDL constructs.
 
 For WSDL, an interface token MUST use the expanded QName `{namespace}local`,
 independent of XML prefix choices. Apply token escaping and percent encoding
-to the entire expanded name. For a WSDL 1.1 port type in `urn:example:users`:
+to the entire expanded name. The following example selects an operation in a
+WSDL 1.1 port type in `urn:example:users`.
 
 ```text
 #interfaces/%7Burn:example:users%7DUserProfilePortType/operations/GetUserProfile
@@ -593,8 +601,9 @@ to the entire expanded name. For a WSDL 1.1 port type in `urn:example:users`:
 WSDL 1.1 uses the operation's local name. A name-only selector MUST fail if
 operations are overloaded. An overload can be selected using both effective
 input and output names, including the defaults specified by WSDL 1.1 section
-2.4.5. Use the token `!` for an absent input or output; `!` is not a valid XML
-NMTOKEN. WSDL 1.1 input and output names are NMTOKENs, not NCNames.
+2.4.5. Use the token `!` for an absent input or output. The token `!` is not a
+valid XML NMTOKEN. WSDL 1.1 input and output names are NMTOKENs, not NCNames.
+The following locator selects an overload by its input and output names.
 
 ```text
 #interfaces/%7Burn:example:users%7DUserProfilePortType/operations/GetUserProfile/input/GetUserProfileRequest/output/GetUserProfileResponse
@@ -602,10 +611,10 @@ NMTOKEN. WSDL 1.1 input and output names are NMTOKENs, not NCNames.
 
 For WSDL 2.0, both the interface and operation tokens MUST be expanded QNames.
 An inherited operation retains its declaring namespace. Equivalent inherited
-components with the same QName identify one operation; conflicting components
+components with the same QName identify one operation. Conflicting components
 make the document invalid under WSDL's component rules. The input/output
 overload suffix is only defined for WSDL 1.1. Neither form chooses a service
-endpoint or binding; those are separate native WSDL components.
+endpoint or binding. Those are separate native WSDL components.
 
 #### OpenRPC
 
@@ -613,7 +622,7 @@ The `format` identifier for OpenRPC is `OpenRPC`. `OpenRPC/1.4` identifies an
 [OpenRPC][openrpc] JSON document whose root `openrpc` value is `1.4.*`,
 independent of `info.version`.
 
-The locator uses the method name:
+The following locator uses the method name.
 
 ```text
 #operations/GetUserProfile
@@ -626,14 +635,16 @@ example JSON-RPC request.
 #### Smithy
 
 The `format` identifier for Smithy is `Smithy`. `Smithy/2.0` identifies a Smithy
-2 model in [IDL][smithyidl] or [JSON AST][smithyast] form.
+2 model in [IDL][smithyidl] or [JSON AST][smithyast] form. AST stands for
+abstract syntax tree.
 
 Smithy uses IDL `$version` or the AST `smithy` field. Values `2` and `2.0`
 select the Smithy 2 model. `contenttype` MUST distinguish IDL text from JSON
-AST. The model MUST include an operation shape; resolving a shape MUST NOT
+AST. The model MUST include an operation shape. Resolving a shape MUST NOT
 infer a deployment address or protocol binding that the model does not supply.
 
-For Smithy, the token is the absolute operation shape ID:
+For Smithy, the token is the absolute operation shape ID, as shown in the
+following example.
 
 ```text
 #operations/com.example.users%23GetUserProfile
@@ -646,7 +657,7 @@ that operation. Input, output, errors, and traits retain their Smithy meaning.
 ## Example
 
 This abbreviated registry shows the API-specific fields for an OpenAPI 3.1
-document; Core metadata and collection fields are omitted. The server does not
+document. It omits Core metadata and collection fields. The server does not
 support OpenAPI validation, so `formatvalidated: false` records a skipped check.
 
 ```jsonc
@@ -690,7 +701,8 @@ support OpenAPI validation, so `formatvalidated: false` records a skipped check.
 }
 ```
 
-The `GetUserProfile` operation in this example is addressed by:
+The following reference identifies the `GetUserProfile` operation in this
+example.
 
 ```text
 /apigroups/com.example.users/apis/UserProfileService.v1#operations/GetUserProfile
@@ -707,7 +719,7 @@ redirect target. Resolvers MUST enforce limits on document size, retrieval
 count, recursion depth, and duration, and detect dependency cycles. Local file
 access and private network access MUST be denied unless explicitly authorized.
 Credentials MUST NOT be forwarded automatically across origins. XML parsers
-MUST disable external-entity expansion; YAML parsers MUST NOT construct native
+MUST disable external-entity expansion. YAML parsers MUST NOT construct native
 objects from document tags. These are requirements of this working-draft
 extension, not additional claims about the cited description languages.
 
@@ -718,11 +730,12 @@ policy to servers and authorization URLs found in a document.
 
 ## Conformance
 
-A registry implementing this extension MUST implement the group/resource model
-and the applicable Core document, metadata, and validation rules. It is not
-REQUIRED to implement every language parser or an operation resolver. A resolver
-claiming support for a profile MUST implement that profile's identity, escaping,
-dependency, and failure rules; storage support alone is not locator support.
+A registry implementing this extension MUST implement the group and resource
+model and the applicable Core document, metadata, and validation rules. It is
+not REQUIRED to implement every language parser or an operation resolver. A
+resolver that declares support for a profile MUST implement that profile's
+identity, escaping, dependency, and failure rules. Storage support alone is not
+locator support.
 
 At the pinned Core revision, the model JSON Schema does not allow the
 `validateformat`, `validatecompatibility`, or `strictvalidation` Resource

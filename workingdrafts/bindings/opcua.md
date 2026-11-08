@@ -411,8 +411,8 @@ Browse, TranslateBrowsePathsToNodeIds, identifier-Property matching and model
 metadata. The table maps those identifiers and operation concepts to native
 OPC UA targets.
 
-In the table, `capabilities`, `model` and export name operations, not entity
-XIDs. Common federation `model` and `capabilities` requests target `/`.
+The `capabilities`, `model`, and export rows describe operations, not entity
+XIDs. Common federation requests for `model` and `capabilities` target `/`.
 Metadata mode selects an operation rather than another identity. The HTTP
 `$details` suffix is not part of an OPC UA NodeId, BrowseName or XID.
 
@@ -485,9 +485,9 @@ selects a native entity; that pair is not itself a Core `self` URL.
 group, Resource or Version. The logical Resource `Xid` is its resource path.
 Each exact Version `Xid` is that Resource `Xid` followed by
 `/versions/<VID>`. An `Xid` MUST NOT be a content fingerprint, digest or other
-document-derived identifier. A server MAY use content identity as an internal
-lookup, cache or deduplication fast path, but that optimization MUST NOT change
-`Xid`, `Subject`, `ResourceId`, `VersionId` or AddressSpace placement.
+document-derived identifier. A server MAY use content identity for internal
+lookup, caching or deduplication, but that optimization MUST NOT change `Xid`,
+`Subject`, `ResourceId`, `VersionId` or AddressSpace placement.
 
 Resource denotes the generic xRegistry entity kind. Each domain model
 declares its own `<RESOURCES>` collection and `<RESOURCE>` singular names.
@@ -789,7 +789,7 @@ exclusive lock across a multi-step create/update sequence. This API does not
 require locking. Without it, clients rely on FileTransfer `Open`
 exclusivity and `Epoch` preconditions.
 
-The [worked outcomes in §5.14](#514-reading-and-updating-resource-metadata)
+The [outcomes in §5.14](#514-reading-and-updating-resource-metadata)
 distinguish Meta changes, byte commits and default switches.
 
 ### 4.6. Attribute mapping
@@ -985,8 +985,8 @@ read fabricated documents for metadata-only Resources or expand local
 
 A server MAY expose a domain Method or Property to optimize export. Its
 output MUST have the same document shape as the baseline algorithm.
-Implementations support import through normal create/update operations or
-a domain-defined import Method.
+Implementations import through normal create/update operations or a
+domain-defined import Method.
 
 ### 5.4. Reading capabilities and model documents
 
@@ -1110,8 +1110,8 @@ The client then writes Group Properties and updates the Group's `Labels`
 container. Partial updates write only named attributes. Full representations
 reset or remove omitted mutable attributes under xRegistry rules.
 
-The response representation is obtained by reading back only the groups
-processed, not the entire group collection.
+Reading back only the groups processed, not the entire group collection,
+produces the response representation.
 
 If a group does not exist and the operation permits creation, the server creates
 it with `GetOrCreateGroup` or strict `CreateGroup` on the registry root. The
