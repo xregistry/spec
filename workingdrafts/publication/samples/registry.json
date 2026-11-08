@@ -1,0 +1,38 @@
+{
+  "specversion": "1.0",
+  "registryid": "publication-example",
+  "model": {
+    "groups": {
+      "sets": {
+        "singular": "set",
+        "resources": {
+          "documents": {
+            "singular": "document",
+            "hasdocument": true,
+            "versionmode": "manual"
+          }
+        }
+      }
+    }
+  },
+  "sets": {
+    "manual": {
+      "setid": "manual",
+      "documents": {
+        "intro": {
+          "documentid": "intro",
+          "meta": {
+            "defaultversionid": "7"
+          },
+          "versions": {
+            "7": {
+              "versionid": "7",
+              "contenttype": "text/plain",
+              "description": "Captured bytes are associated by the publication manifest."
+            }
+          }
+        }
+      }
+    }
+  }
+}

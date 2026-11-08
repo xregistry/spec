@@ -1102,7 +1102,7 @@ the value of the placeholder is assumed to be identical.
 
 The following example defines a message that is sent over HTTP:
 
-```yaml
+```json
 {
   "protocol": "HTTP",
   "protocoloptions": {
@@ -1112,17 +1112,14 @@ The following example defines a message that is sent over HTTP:
         "value": "application/json"
       }
     ],
-    "query": [
-      {
-        "name": "foo",
-        "value": "bar"
-      }
-    ],
+    "query": {
+      "foo": "bar"
+    },
     "path": "/foo/{bar}",
     "method": "POST"
   },
   "dataschemaformat": "JsonSchema/draft-07",
-  "dataschemauri": "https://example.com/schemas/com.example.myevent.json",
+  "dataschemauri": "https://example.com/schemas/com.example.myevent.json"
 }
 ```
 

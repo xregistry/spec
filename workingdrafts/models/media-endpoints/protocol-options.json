@@ -1,0 +1,37 @@
+{
+  "protocoloptions": {
+    "name": "protocoloptions",
+    "type": "object",
+    "description": "Configuration information for this media endpoint",
+    "attributes": {
+      "endpoints": {
+        "name": "endpoints",
+        "type": "array",
+        "description": "Network addresses for the endpoint, ordered by preference. URI interpretation is specific to the selected media protocol.",
+        "item": {
+          "type": "object",
+          "attributes": {
+            "uri": {
+              "name": "uri",
+              "type": "uri",
+              "description": "Address interpreted by the selected media protocol"
+            },
+            "*": {
+              "name": "*",
+              "type": "any"
+            }
+          }
+        }
+      },
+      "authorization": {
+        "$include": "sources/endpoint-model.source.json#/groups/endpoints/attributes/protocol/ifvalues/HTTP/siblingattributes/protocoloptions/attributes/authorization"
+      },
+      "deployed": {
+        "$include": "sources/endpoint-model.source.json#/groups/endpoints/attributes/protocol/ifvalues/HTTP/siblingattributes/protocoloptions/attributes/deployed"
+      },
+      "*": {
+        "$include": "sources/endpoint-model.source.json#/groups/endpoints/attributes/protocol/ifvalues/HTTP/siblingattributes/protocoloptions/attributes/*"
+      }
+    }
+  }
+}

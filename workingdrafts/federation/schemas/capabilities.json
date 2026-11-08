@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xregistry.io/workingdrafts/federation/schemas/capabilities.json",
+  "title": "Federation resolution capability",
+  "description": "Supplemental constraints on Core capabilities. An absent federation capability means consumer resolution.",
+  "type": "object",
+  "properties": {
+    "federation": {
+      "type": "object",
+      "required": ["resolution"],
+      "properties": {
+        "resolution": {
+          "type": "string",
+          "enum": ["consumer", "producer"],
+          "description": "Which side performs federation resolution for the selected Registry view."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

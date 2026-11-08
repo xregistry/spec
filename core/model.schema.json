@@ -349,7 +349,7 @@
         "matchversions": {
           "type": "boolean",
           "default": false,
-          "description": "Whether attribute must be the same across all versions"
+          "description": "Whether attribute must be the same across all versions; string values must be identical, including case"
         },
         "readonly": {
           "type": "boolean",

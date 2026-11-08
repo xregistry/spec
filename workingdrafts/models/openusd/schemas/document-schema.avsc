@@ -1,0 +1,404 @@
+{
+  "type": "record",
+  "name": "DocumentType",
+  "namespace": "io.xregistry",
+  "fields": [
+    {
+      "name": "genericRecordDefinition",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "GenericRecord",
+          "fields": [
+            {
+              "name": "object",
+              "type": {
+                "type": "map",
+                "values": [
+                  "null",
+                  "boolean",
+                  "int",
+                  "long",
+                  "float",
+                  "double",
+                  "bytes",
+                  "string",
+                  {
+                    "type": "array",
+                    "items": [
+                      "null",
+                      "boolean",
+                      "int",
+                      "long",
+                      "float",
+                      "double",
+                      "bytes",
+                      "string",
+                      "io.xregistry.GenericRecord"
+                    ]
+                  },
+                  "io.xregistry.GenericRecord"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "default": [],
+      "doc": "Internal field to define GenericRecord type for use in extension attributes"
+    },
+    {
+      "name": "usdassetgroups",
+      "type": {
+        "type": "map",
+        "values": {
+          "type": "record",
+          "name": "UsdassetgroupType",
+          "fields": [
+            {
+              "name": "usdassetgroupid",
+              "type": "string",
+              "description": "ID of the usdassetgroup object"
+            },
+            {
+              "name": "name",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Name of the object"
+            },
+            {
+              "name": "epoch",
+              "type": [
+                "int",
+                "null"
+              ],
+              "doc": "Epoch time of the object creation"
+            },
+            {
+              "name": "self",
+              "type": "string",
+              "doc": "URL of the object"
+            },
+            {
+              "name": "xid",
+              "type": "string",
+              "doc": "XID of the object"
+            },
+            {
+              "name": "description",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Description of the object"
+            },
+            {
+              "name": "documentation",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "URI of the documentation of the object"
+            },
+            {
+              "name": "labels",
+              "type": {
+                "type": "map",
+                "values": [
+                  "string",
+                  "null"
+                ]
+              },
+              "doc": "Labels for the object"
+            },
+            {
+              "name": "createdat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object creation"
+            },
+            {
+              "name": "modifiedat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object modification"
+            },
+            {
+              "type": "string",
+              "doc": "The assetidentifier of this container's single RootLayer usdasset, so a Consumer finds the composition entry point without scanning the collection",
+              "name": "rootlayer"
+            },
+            {
+              "name": "Extensions",
+              "type": {
+                "type": "map",
+                "name": "ExtensionsType",
+                "default": {},
+                "values": "io.xregistry.GenericRecord"
+              }
+            },
+            {
+              "name": "usdassets",
+              "type": {
+                "type": "map",
+                "values": {
+                  "type": "record",
+                  "name": "UsdassetType",
+                  "namespace": "io.xregistry.usdassetgroups",
+                  "fields": [
+                    {
+                      "name": "usdassetid",
+                      "type": "string",
+                      "description": "ID of the usdasset object"
+                    },
+                    {
+                      "name": "name",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Name of the object"
+                    },
+                    {
+                      "name": "epoch",
+                      "type": [
+                        "int",
+                        "null"
+                      ],
+                      "doc": "Epoch time of the object creation"
+                    },
+                    {
+                      "name": "self",
+                      "type": "string",
+                      "doc": "URL of the object"
+                    },
+                    {
+                      "name": "xid",
+                      "type": "string",
+                      "doc": "XID of the object"
+                    },
+                    {
+                      "name": "description",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "Description of the object"
+                    },
+                    {
+                      "name": "documentation",
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "doc": "URI of the documentation of the object"
+                    },
+                    {
+                      "name": "labels",
+                      "type": {
+                        "type": "map",
+                        "values": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "doc": "Labels for the object"
+                    },
+                    {
+                      "name": "createdat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object creation"
+                    },
+                    {
+                      "name": "modifiedat",
+                      "type": [
+                        {
+                          "type": "int",
+                          "logicalType": "time-millis"
+                        },
+                        "null"
+                      ],
+                      "doc": "Time of the object modification"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "The document format of this artifact. Orthogonal to assetkind, which records the artifact's role in the closure",
+                      "name": "format"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "The authored USD asset identifier, normalized relative to its asset container - the string a layer writes between @...@. It is the Resource source identity and the authority: the usdassetid is the symbolic identifier constructed from it, a one-way construction that is never inverted",
+                      "name": "assetidentifier"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "The role this artifact plays in its container's composition closure. Exactly one usdasset in an asset container has the value RootLayer",
+                      "name": "assetkind"
+                    },
+                    {
+                      "type": {
+                        "type": "array",
+                        "name": "DependsonArrayType",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "name": "dependson",
+                      "doc": "The asset identifiers this artifact directly references, in authored order - authored identifiers, not xids, so a resolver matches them against @...@ references directly"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "Lower-case hexadecimal digest of the exact document bytes a Consumer retrieves, computed with digestalg",
+                      "name": "digest"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "The algorithm used to compute digest. REQUIRED when digest is present",
+                      "name": "digestalg"
+                    },
+                    {
+                      "name": "Extensions",
+                      "type": {
+                        "type": "map",
+                        "name": "ExtensionsType",
+                        "default": {},
+                        "values": "io.xregistry.GenericRecord"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "usdschemaplugingroups",
+      "type": {
+        "type": "map",
+        "values": {
+          "type": "record",
+          "name": "UsdschemaplugingroupType",
+          "fields": [
+            {
+              "name": "usdschemaplugingroupid",
+              "type": "string",
+              "description": "ID of the usdschemaplugingroup object"
+            },
+            {
+              "name": "name",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Name of the object"
+            },
+            {
+              "name": "epoch",
+              "type": [
+                "int",
+                "null"
+              ],
+              "doc": "Epoch time of the object creation"
+            },
+            {
+              "name": "self",
+              "type": "string",
+              "doc": "URL of the object"
+            },
+            {
+              "name": "xid",
+              "type": "string",
+              "doc": "XID of the object"
+            },
+            {
+              "name": "description",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "Description of the object"
+            },
+            {
+              "name": "documentation",
+              "type": [
+                "string",
+                "null"
+              ],
+              "doc": "URI of the documentation of the object"
+            },
+            {
+              "name": "labels",
+              "type": {
+                "type": "map",
+                "values": [
+                  "string",
+                  "null"
+                ]
+              },
+              "doc": "Labels for the object"
+            },
+            {
+              "name": "createdat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object creation"
+            },
+            {
+              "name": "modifiedat",
+              "type": [
+                {
+                  "type": "int",
+                  "logicalType": "time-millis"
+                },
+                "null"
+              ],
+              "doc": "Time of the object modification"
+            },
+            {
+              "name": "Extensions",
+              "type": {
+                "type": "map",
+                "name": "ExtensionsType",
+                "default": {},
+                "values": "io.xregistry.GenericRecord"
+              }
+            },
+            {
+              "name": "usdassets",
+              "type": {
+                "type": "map",
+                "values": "io.xregistry.usdassetgroups.UsdassetType"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -505,7 +505,7 @@
                                   "name": "type",
                                   "description": "AMQP properties.subject value type",
                                   "type": "string",
-                                  "enum" : [
+                                  "enum": [
                                     "string",
                                     "uritemplate"
                                   ]
@@ -642,7 +642,9 @@
                                   "type": "string",
                                   "required": true,
                                   "default": "string",
-                                  "enum" : ["string"]
+                                  "enum": [
+                                    "string"
+                                  ]
                                 },
                                 "value": {
                                   "name": "value",
@@ -1244,33 +1246,9 @@
                         "query": {
                           "name": "query",
                           "description": "The HTTP query parameters",
-                          "type": "array",
+                          "type": "map",
                           "item": {
-                            "type": "object",
-                            "attributes": {
-                              "name": {
-                                "name": "name",
-                                "description": "The HTTP query parameter",
-                                "type": "string",
-                                "required": true
-                              },
-                              "description": {
-                                "name": "description",
-                                "type": "string"
-                              },
-                              "value": {
-                                "name": "value",
-                                "description": "The HTTP query parameter value",
-                                "type": "string"
-                              },
-                              "required": {
-                                "name": "required",
-                                "description": "The HTTP query parameter required",
-                                "type": "boolean",
-                                "required": true,
-                                "default": false
-                              }
-                            }
+                            "type": "string"
                           }
                         },
                         "path": {
@@ -1310,7 +1288,7 @@
                           "description": "The NATS reply subject",
                           "type": "uritemplate"
                         },
-                        "headers" : {
+                        "headers": {
                           "name": "headers",
                           "description": "The NATS headers",
                           "type": "array",

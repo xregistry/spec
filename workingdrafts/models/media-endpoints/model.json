@@ -1,0 +1,309 @@
+{
+  "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
+  "groups": {
+    "messagegroups": {
+      "$include": "sources/message-model.source.json#/groups/messagegroups"
+    },
+    "endpoints": {
+      "$include": "sources/endpoint-model.source.json#/groups/endpoints",
+      "attributes": {
+        "$include": "sources/endpoint-model.source.json#/groups/endpoints/attributes",
+        "usage": {
+          "name": "usage",
+          "type": "array",
+          "description": "Client's expected usage of this endpoint. Single-role declarations are preferred. Mixed declarations are guidance-oriented metadata and should be used only when role semantics are unambiguous.",
+          "item": {
+            "type": "string",
+            "enum": [
+              "subscriber",
+              "consumer",
+              "producer"
+            ]
+          }
+        },
+        "protocol": {
+          "$include": "sources/endpoint-model.source.json#/groups/endpoints/attributes/protocol",
+          "ifvalues": {
+            "$include": "sources/endpoint-model.source.json#/groups/endpoints/attributes/protocol/ifvalues",
+            "SRT": {
+              "siblingattributes": {
+                "protocoloptions": {
+                  "$include": "protocol-options.json#/protocoloptions",
+                  "attributes": {
+                    "$include": "protocol-options.json#/protocoloptions/attributes",
+                    "streamid": {
+                      "name": "streamid",
+                      "type": "string",
+                      "description": "Public routing identifier supplied by the SRT caller during setup"
+                    },
+                    "streamformat": {
+                      "name": "streamformat",
+                      "type": "string",
+                      "enum": ["mpegts"],
+                      "strict": true,
+                      "description": "Producer-only carriage format; defaults to mpegts"
+                    },
+                    "videocodec": {
+                      "name": "videocodec",
+                      "type": "string",
+                      "description": "Producer-only video codec identifier from the mapping's open vocabulary; defaults to H264"
+                    },
+                    "audiocodec": {
+                      "name": "audiocodec",
+                      "type": "string",
+                      "description": "Producer-only audio codec identifier from the mapping's open vocabulary; defaults to AAC"
+                    }
+                  }
+                }
+              }
+            },
+            "WebRTC": {
+              "siblingattributes": {
+                "protocoloptions": {
+                  "$include": "protocol-options.json#/protocoloptions",
+                  "attributes": {
+                    "$include": "protocol-options.json#/protocoloptions/attributes",
+                    "signaling": {
+                      "name": "signaling",
+                      "type": "string",
+                      "required": true,
+                      "enum": [
+                        "WHIP/RFC9725",
+                        "WHEP/draft-ietf-wish-whep-03",
+                        "external"
+                      ],
+                      "strict": true,
+                      "description": "Signaling protocol or external signaling selection"
+                    },
+                    "signalingreference": {
+                      "name": "signalingreference",
+                      "type": "uri",
+                      "description": "Absolute HTTPS URI of the signaling specification and revision; required when signaling is external"
+                    },
+                    "streamformat": {
+                      "name": "streamformat",
+                      "type": "string",
+                      "enum": ["srtp"],
+                      "strict": true,
+                      "description": "Producer-only carriage format; defaults to srtp"
+                    },
+                    "videocodec": {
+                      "name": "videocodec",
+                      "type": "string",
+                      "description": "Producer-only video codec identifier from the mapping's open vocabulary; defaults to H264"
+                    },
+                    "audiocodec": {
+                      "name": "audiocodec",
+                      "type": "string",
+                      "description": "Producer-only audio codec identifier from the mapping's open vocabulary; defaults to Opus"
+                    }
+                  }
+                }
+              }
+            },
+            "RTSP/1.0": {
+              "siblingattributes": {
+                "protocoloptions": {
+                  "$include": "protocol-options.json#/protocoloptions",
+                  "attributes": {
+                    "$include": "protocol-options.json#/protocoloptions/attributes",
+                    "streamformat": {
+                      "name": "streamformat",
+                      "type": "string",
+                      "enum": ["rtp", "rtp-mpegts"],
+                      "strict": true,
+                      "description": "Producer-only RTP carriage format; defaults to rtp"
+                    },
+                    "videocodec": {
+                      "name": "videocodec",
+                      "type": "string",
+                      "description": "Producer-only video codec identifier from the mapping's open vocabulary; defaults to H264"
+                    },
+                    "audiocodec": {
+                      "name": "audiocodec",
+                      "type": "string",
+                      "description": "Producer-only audio codec identifier from the mapping's open vocabulary; defaults to AAC"
+                    }
+                  }
+                }
+              }
+            },
+            "RTSP/2.0": {
+              "siblingattributes": {
+                "protocoloptions": {
+                  "$include": "protocol-options.json#/protocoloptions"
+                }
+              }
+            },
+            "RTP/2": {
+              "siblingattributes": {
+                "protocoloptions": {
+                  "$include": "protocol-options.json#/protocoloptions",
+                  "attributes": {
+                    "$include": "protocol-options.json#/protocoloptions/attributes",
+                    "sessiondescription": {
+                      "name": "sessiondescription",
+                      "type": "uri",
+                      "description": "Absolute HTTPS URI of the native SDP session description; required for producers and optional for consumers"
+                    },
+                    "streamformat": {
+                      "name": "streamformat",
+                      "type": "string",
+                      "enum": ["rtp", "rtp-mpegts"],
+                      "strict": true,
+                      "description": "Producer-only RTP carriage format; defaults to rtp"
+                    },
+                    "videocodec": {
+                      "name": "videocodec",
+                      "type": "string",
+                      "description": "Producer-only video codec identifier from the mapping's open vocabulary; defaults to H264"
+                    },
+                    "audiocodec": {
+                      "name": "audiocodec",
+                      "type": "string",
+                      "description": "Producer-only audio codec identifier from the mapping's open vocabulary; defaults to AAC"
+                    }
+                  }
+                }
+              }
+            },
+            "MPEGTS-UDP": {
+              "siblingattributes": {
+                "protocoloptions": {
+                  "$include": "protocol-options.json#/protocoloptions",
+                  "attributes": {
+                    "$include": "protocol-options.json#/protocoloptions/attributes",
+                    "streamformat": {
+                      "name": "streamformat",
+                      "type": "string",
+                      "enum": ["mpegts"],
+                      "strict": true,
+                      "description": "Producer-only carriage format; defaults to mpegts"
+                    },
+                    "videocodec": {
+                      "name": "videocodec",
+                      "type": "string",
+                      "description": "Producer-only video codec identifier from the mapping's open vocabulary; defaults to H264"
+                    },
+                    "audiocodec": {
+                      "name": "audiocodec",
+                      "type": "string",
+                      "description": "Producer-only audio codec identifier from the mapping's open vocabulary; defaults to AAC"
+                    }
+                  }
+                }
+              }
+            },
+            "RTMP/1.0": {
+              "siblingattributes": {
+                "protocoloptions": {
+                  "$include": "protocol-options.json#/protocoloptions",
+                  "attributes": {
+                    "$include": "protocol-options.json#/protocoloptions/attributes",
+                    "application": {
+                      "name": "application",
+                      "type": "string",
+                      "required": true,
+                      "description": "Non-empty RTMP application name"
+                    },
+                    "streamname": {
+                      "name": "streamname",
+                      "type": "string",
+                      "required": true,
+                      "description": "Non-empty public stream name passed to publish or play"
+                    },
+                    "streamformat": {
+                      "name": "streamformat",
+                      "type": "string",
+                      "enum": ["flv"],
+                      "strict": true,
+                      "description": "Producer-only carriage format; defaults to flv"
+                    },
+                    "videocodec": {
+                      "name": "videocodec",
+                      "type": "string",
+                      "description": "Producer-only video codec identifier from the mapping's open vocabulary; defaults to H264"
+                    },
+                    "audiocodec": {
+                      "name": "audiocodec",
+                      "type": "string",
+                      "description": "Producer-only audio codec identifier from the mapping's open vocabulary; defaults to AAC"
+                    }
+                  }
+                }
+              }
+            },
+            "HLS": {
+              "siblingattributes": {
+                "protocoloptions": {
+                  "$include": "protocol-options.json#/protocoloptions"
+                }
+              }
+            },
+            "DASH": {
+              "siblingattributes": {
+                "protocoloptions": {
+                  "$include": "protocol-options.json#/protocoloptions"
+                }
+              }
+            },
+            "RIST-Simple/2020": {
+              "siblingattributes": {
+                "protocoloptions": {
+                  "$include": "protocol-options.json#/protocoloptions",
+                  "attributes": {
+                    "$include": "protocol-options.json#/protocoloptions/attributes",
+                    "streamformat": {
+                      "name": "streamformat",
+                      "type": "string",
+                      "enum": ["rtp-mpegts"],
+                      "strict": true,
+                      "description": "Producer-only carriage format; defaults to rtp-mpegts"
+                    },
+                    "videocodec": {
+                      "name": "videocodec",
+                      "type": "string",
+                      "description": "Producer-only video codec identifier from the mapping's open vocabulary; defaults to H264"
+                    },
+                    "audiocodec": {
+                      "name": "audiocodec",
+                      "type": "string",
+                      "description": "Producer-only audio codec identifier from the mapping's open vocabulary; defaults to AAC"
+                    }
+                  }
+                }
+              }
+            },
+            "RIST-Main/2024": {
+              "siblingattributes": {
+                "protocoloptions": {
+                  "$include": "protocol-options.json#/protocoloptions",
+                  "attributes": {
+                    "$include": "protocol-options.json#/protocoloptions/attributes",
+                    "streamformat": {
+                      "name": "streamformat",
+                      "type": "string",
+                      "enum": ["rtp-mpegts"],
+                      "strict": true,
+                      "description": "Producer-only carriage format; defaults to rtp-mpegts"
+                    },
+                    "videocodec": {
+                      "name": "videocodec",
+                      "type": "string",
+                      "description": "Producer-only video codec identifier from the mapping's open vocabulary; defaults to H264"
+                    },
+                    "audiocodec": {
+                      "name": "audiocodec",
+                      "type": "string",
+                      "description": "Producer-only audio codec identifier from the mapping's open vocabulary; defaults to AAC"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

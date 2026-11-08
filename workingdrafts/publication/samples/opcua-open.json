@@ -1,0 +1,46 @@
+{
+  "format": "xregistry-open/1",
+  "scope": "urn:example:manual-publication",
+  "snapshot": {
+    "reference": {
+      "registry": {
+        "binding": "opcua",
+        "endpoint": "opc.tcp://ua.example.test:4840",
+        "parameters": {
+          "registryroot": "nsu=urn:example:publication;s=Registry"
+        }
+      },
+      "version": "/publications/team/snapshots/d6d2945cbeb4b8a83117dd6e1b74edbe7eb7c19a8d122add3362314d8d4cd531/versions/manifest"
+    },
+    "digest": "sha256:d6d2945cbeb4b8a83117dd6e1b74edbe7eb7c19a8d122add3362314d8d4cd531",
+    "size": 1361
+  },
+  "registry": {
+    "reference": {
+      "registry": {
+        "binding": "opcua",
+        "endpoint": "opc.tcp://ua.example.test:4840",
+        "parameters": {
+          "registryroot": "nsu=urn:example:publication;s=Registry"
+        }
+      },
+      "version": "/publications/team/objects/registry-capture/versions/content"
+    },
+    "digest": "sha256:d7e50157645e98260f0fa754e6940c59ab5b4f2d36e79b8fa3b08130b4e7a3e6",
+    "size": 790
+  },
+  "completeness": "offline-complete",
+  "channel": {
+    "reference": {
+      "registry": {
+        "binding": "opcua",
+        "endpoint": "opc.tcp://ua.example.test:4840",
+        "parameters": {
+          "registryroot": "nsu=urn:example:publication;s=Registry"
+        }
+      },
+      "resource": "/publications/team/channels/stable"
+    },
+    "epoch": 12
+  }
+}
