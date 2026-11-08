@@ -181,7 +181,7 @@ and completeness. If no equivalent read exists, it MUST return
 The following table maps the common abstract requests to existing HTTP
 requests. It does not define request envelopes sent to the server. The
 abstract target of `model` and `capabilities` is `/`; the `/model` and
-`/capabilities` paths below are HTTP API paths rather than entity XIDs.
+`/capabilities` paths in this table are HTTP API paths rather than entity XIDs.
 
 | Abstract operation and target | Native HTTP request | Result |
 | --- | --- | --- |

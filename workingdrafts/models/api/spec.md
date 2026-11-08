@@ -126,8 +126,8 @@ implementation that declares support for a policy MUST document its comparison
 rules, including the client/server direction, request acceptance, possible
 responses and faults, and operation identity. Schema compatibility alone does
 not establish API compatibility. An unsupported policy MUST NOT be reported as
-successfully checked. Supported format/policy combinations are announced through
-Core's capabilities, as described in
+successfully checked. Supported combinations of formats and policies are
+announced through Core's capabilities, as described in
 [Validation Capabilities and Results](#validation-capabilities-and-results).
 
 ## Notations and Terminology
@@ -477,7 +477,7 @@ method, as shown in the following example.
 #services/com.example.users.UserProfileService/operations/GetUserProfile
 ```
 
-The service token MUST be its protobuf package followed by `.` and the service
+The service token MUST be its Protobuf package followed by `.` and the service
 name, without a leading dot. Without a package, it is the service name alone.
 Descriptor-set service names MUST resolve uniquely across the set. The method
 token is its case-sensitive RPC name. Request and response types and
@@ -612,7 +612,7 @@ The following locator selects an overload by its input and output names.
 For WSDL 2.0, both the interface and operation tokens MUST be expanded QNames.
 An inherited operation retains its declaring namespace. Equivalent inherited
 components with the same QName identify one operation. Conflicting components
-make the document invalid under WSDL's component rules. The input/output
+make the document invalid under WSDL's component rules. The input and output
 overload suffix is only defined for WSDL 1.1. Neither form chooses a service
 endpoint or binding. Those are separate native WSDL components.
 

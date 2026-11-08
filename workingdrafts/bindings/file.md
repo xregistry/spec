@@ -61,7 +61,8 @@ operating-system tasks, not operations defined by this binding.
 
 These paths select shares that the operating system has already mounted.
 They do not enable remote-authority URIs such as `file://nas/team-registry`.
-The authority and containment rules below apply to mounted shares as well,
+The authority and containment rules in the "Advertisement and File URI" and
+"Containment and Concurrent Changes" sections also apply to mounted shares,
 including the restrictions on symlinks and reparse points.
 
 Consumers can read either format directly. A federating API server can also
@@ -71,7 +72,7 @@ describe both arrangements.
 
 In either arrangement, the directory remains mutable unless its storage
 provides an immutable snapshot. The containment, digest, and concurrent-change
-rules below therefore apply to both.
+rules in the "Containment and Concurrent Changes" section therefore apply to both.
 
 To read a local example, generate the `portable` Registry from the
 [shared source](../federation/samples/examples.json). Run from the repository root
@@ -93,7 +94,7 @@ command checks the complete declared graph. For local OCI output, use the
 with `layout: "oci-layout"` and the chosen reference.
 
 The [shared example instructions](../README.md#generating-and-reading-examples)
-list the other examples, dependencies and Linux path equivalents.
+list the other examples, dependencies, and Linux path equivalents.
 
 ## Advertisement and File URI
 
@@ -101,7 +102,7 @@ list the other examples, dependencies and Linux path equivalents.
 [RFC8089](https://www.rfc-editor.org/rfc/rfc8089) file URI identifying the
 selected directory. It MUST NOT contain credentials, a query or fragment.
 An absent authority or `localhost` means local access. Other authorities,
-including UNC (Universal Naming Convention) servers, MUST produce
+including Universal Naming Convention (UNC) servers, MUST produce
 `policy_denied` in this binding.
 A separately named extension can define a remote filesystem access policy.
 An implementation MUST NOT infer such a policy from this profile.
