@@ -82,7 +82,8 @@ descriptions or inspects the stream.
 
 ## Notations and Terminology
 
-The capitalized requirement words have the meanings in BCP 14
+The capitalized requirement words have the meanings defined in Best Current
+Practice (BCP) 14
 ([RFC 2119][rfc2119] and [RFC 8174][rfc8174]). JSON types and xRegistry Group,
 Resource, XID, and attribute terminology follow Core.
 
@@ -122,7 +123,7 @@ Endpoints, including writes directly beneath an Endpoint.
 
 ## Input Requirements
 
-A `producer` Endpoint describes the input accepted by a configured receiving path.
+A `producer` Endpoint describes the input accepted by a configured receiver.
 The following options occur directly in `protocoloptions` for the `producer`
 mappings listed below. Each value is a requirement, not a preference or an
 enumeration of alternatives. Consumers MUST omit these producer-only options.
@@ -138,8 +139,8 @@ Codec values are case-sensitive. `H264` and `H265` identify AVC and HEVC;
 MPEG-4 AAC-LC (audio object type 2); `Opus`, `PCMA`, and `PCMU` identify Opus and
 G.711 A-law and mu-law. Codec identifiers form an open vocabulary; the values
 listed here and in the protocol tables are examples, not exhaustive enumerations.
-Additional identifiers MUST have a defined encoding and native carriage for the
-selected protocol and stream format, and MUST be accepted by the receiving path.
+Additional identifiers MUST have a defined encoding, MUST be supported by the
+selected protocol and stream format, and MUST be accepted by the receiver.
 An additional identifier MUST NOT redefine an identifier specified here.
 The value `none` is available for either codec in every `producer` mapping.
 
@@ -147,14 +148,14 @@ A codec other than `none` requires exactly one stream of that media kind. Both
 codecs MUST NOT be `none`. Thus video-only input explicitly sets `audiocodec`
 to `none`; audio-only input sets `videocodec` to `none`. Omitted options take the
 protocol-specific defaults, including media presence. A publisher MUST declare
-an override whenever its receiving path cannot accept the default. Defaults
+an override whenever its receiver cannot accept the default. Defaults
 are conventions of this extension, not codec requirements imposed by the wire
 protocol or assertions about an arbitrary server's configuration.
 
 Codec initialization data, payload mappings, and parameters such as profile
 and level are carried through the selected format or session setup. Where a
 protocol does not negotiate codec parameters, producers need prior agreement
-on any codec-specific restrictions imposed by the receiving path.
+on any codec-specific restrictions imposed by the receiver.
 
 RTP carriage uses [RFC 6184][h264-rtp] for H.264, [RFC 7798][h265-rtp] for
 H.265, [RFC 7741][vp8-rtp] for VP8, [RFC 9628][vp9-rtp] for VP9, and the
@@ -169,7 +170,7 @@ ADTS framing. Opus uses the [version 0.1.3 draft MPEG-TS mapping][opus-ts],
 including its descriptors and access-unit framing. This is an explicit draft
 dependency, distinct from the published [Opus codec specification][opus].
 
-Providers MUST advertise requirements consistent with their receiving path and
+Providers MUST advertise requirements consistent with their receiver and
 intended downstream delivery. For example, forwarding audio to WebRTC without
 transcoding can require Opus input even though an SRT ingest demuxer also accepts
 AAC. The provider remains responsible for admission and enforcement. A registry
@@ -310,7 +311,7 @@ The following options apply to `RTSP/1.0` producers:
 For `rtp-mpegts`, codecs require defined MPEG-TS carriage, such as
 the H.264, H.265, AAC, and Opus mappings described above. The MPEG-TS program
 uses 188-byte packets with PAT and PMT signaling, wrapped in RFC 2250 RTP
-payloads. The receiving path MUST be configured to demultiplex that program
+payloads. The receiver MUST be configured to demultiplex that program
 when its outputs require elementary streams. For `rtp`, each supplied stream
 has its own native RTP payload mapping in the producer's SDP.
 
