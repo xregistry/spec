@@ -58,10 +58,9 @@ normative technical details.
   - [8.1. Formats and Content/Media-Types](#formats-and-contentmedia-types)
   - [8.2. Embeddings and Links](#embeddings-and-links)
   - [8.3. Federation](#federation)
-    - [8.3.1. Composing registries in memory](#composing-registries-in-memory)
+    - [8.3.1. Storage and data-source choices](#storage-and-data-source-choices)
     - [8.3.2. Entity identity across registry
       views](#entity-identity-across-registry-views)
-    - [8.3.3. API Servers and Proxies](#api-servers-and-proxies)
 - [9. Possible Use Cases](#possible-use-cases)
   - [9.1. CloudEvents](#cloudevents)
   - [9.2. Business objects](#business-objects)
@@ -72,49 +71,46 @@ normative technical details.
   - [10.3. Extensions](#extensions)
     - [10.3.1. Potential extensions](#potential-extensions)
   - [10.4. Group organization](#group-organization)
-  - [10.5. Deleting entities](#deleting-entities)
-  - [10.6. Detection of Referenced
+  - [10.5. Detection of Referenced
     Resources](#detection-of-referenced-resources)
-  - [10.7. Shared/Referenced Resources](#sharedreferenced-resources)
-  - [10.8. Default Version and Maximum
-    Versions](#default-version-and-maximum-versions)
-  - [10.9. Why Epoch?](#why-epoch)
-  - [10.10. Naming and Case Sensitivity](#naming-and-case-sensitivity)
-  - [10.11. Why are Group and Resource type names more
+  - [10.6. Shared/Referenced Resources](#sharedreferenced-resources)
+  - [10.7. Why Epoch?](#why-epoch)
+  - [10.8. Naming and Case Sensitivity](#naming-and-case-sensitivity)
+  - [10.9. Why are Group and Resource type names more
     restricted?](#group-resource-type-name-limits)
-  - [10.12. Choosing unique Group and Resource
+  - [10.10. Choosing unique Group and Resource
     names](#choosing-unique-group-and-resource-names)
-  - [10.13. Are `self` and `shortself` attributes
+  - [10.11. Are `self` and `shortself` attributes
     static?](#are-self-and-shortself-attributes-static)
-  - [10.14. Why does an unknown query parameter not generate an
+  - [10.12. Why does an unknown query parameter not generate an
     error?](#why-does-an-unknown-query-parameter-not-generate-an-error)
-  - [10.15. Updating attributes with
+  - [10.13. Updating attributes with
     `ifvalues`](#updating-attributes-with-ifvalues)
-  - [10.16. Multi-root ancestor hierarchies](#multi-root-ancestor-hierarchies)
-  - [10.17. `singleversionroot` Policy
+  - [10.14. Multi-root ancestor hierarchies](#multi-root-ancestor-hierarchies)
+  - [10.15. `singleversionroot` Policy
     Enforcement](#singleversionroot-policy-enforcement)
-  - [10.18. Pruning Versions with `singleversionroot`
+  - [10.16. Pruning Versions with `singleversionroot`
     enabled](#pruning-versions-with-singleversionroot-enabled)
-  - [10.19. What's the oldest/newest Version of a
+  - [10.17. What's the oldest/newest Version of a
     Resource?](#whats-the-oldestnewest-version-of-a-resource)
-  - [10.20. Can `validatecompatibility` and `validateformat` be `true` for
+  - [10.18. Can `validatecompatibility` and `validateformat` be `true` for
     file-servers?](#validation-for-file-servers)
-  - [10.21. Detecting circular references between
+  - [10.19. Detecting circular references between
     Versions](#detecting-circular-references-between-versions)
-  - [10.22. Optional required fields in
+  - [10.20. Optional required fields in
     requests](#optional-required-fields-in-requests)
-  - [10.23. Deprecation of entities in an
+  - [10.21. Deprecation of entities in an
     xRegistry](#deprecation-of-entities-in-an-xregistry)
-  - [10.24. Problematic characters in values](#problematic-characters-in-values)
-  - [10.25. Why do Resources have 3 levels of
+  - [10.22. Problematic characters in values](#problematic-characters-in-values)
+  - [10.23. Why do Resources have 3 levels of
     data?](#why-do-resources-have-3-levels-of-data)
-  - [10.26. Why are some (conditional) read-only attributes not
+  - [10.24. Why are some (conditional) read-only attributes not
     ignored?](#why-are-some-conditional-read-only-attributes-not-ignored)
-  - [10.27. Why isn't `PUT` idempotent?](#why-isnt-put-idempotent)
-  - [10.28. Validation edge cases](#validation-edge-cases)
-    - [10.28.1. Empty format capabilities](#empty-format-capabilities)
-    - [10.28.2. Constraints and `matchversions`](#constraints-and-matchversions)
-  - [10.29. Relative Resource URLs in the File
+  - [10.25. Why isn't `PUT` idempotent?](#why-isnt-put-idempotent)
+  - [10.26. Validation edge cases](#validation-edge-cases)
+    - [10.26.1. Empty format capabilities](#empty-format-capabilities)
+    - [10.26.2. Constraints and `matchversions`](#constraints-and-matchversions)
+  - [10.27. Relative Resource URLs in the File
     representation](#relative-resource-urls-in-the-file-representation)
 
 
@@ -480,7 +476,7 @@ the xRegistry resource model. This provides consistent metadata and
 cross-references while the source registries remain authoritative. For example,
 a container image can contain an application, published as a package, that
 exposes an endpoint for events with particular payload schemas. Section
-[8.3.3](#api-servers-and-proxies) explains how an xRegistry API can project
+[8.3.1](#storage-and-data-source-choices) explains how an xRegistry API can project
 resources managed by another registry.
 
 <a id="discovery"></a>
@@ -516,7 +512,7 @@ Registry](https://docs.aws.amazon.com/glue/latest/dg/schema-registry.html)
 expose different interfaces. An xRegistry API can provide a common view of
 resources managed by these systems while the source registries remain
 authoritative, as described in
-[API Servers and Proxies](#api-servers-and-proxies).
+[Storage and data-source choices](#storage-and-data-source-choices).
 
 <a id="versioning"></a>
 ### 5.4. Versioning
@@ -677,6 +673,9 @@ policies.
 It allows direct writes and can provide server-side searching, filtering, and
 export without requiring users to generate a static directory structure.
 
+You can use the [xRegistry reference server](https://github.com/xregistry/server)
+rather than implementing an API server from scratch.
+
 Running the API server requires you to set up a host and a persistence
 layer and maintain both. Start with this representation when direct writes,
 authorization, or server-side queries are already required.
@@ -710,7 +709,7 @@ many document types that are in focus. There is additionally a
 [contenttype](spec.md#contenttype-attribute) attribute that should be set for
 each document, that provides the corresponding media-type. An example for this
 is that Apache Avro schema has no official media type, so that the content type
-might be "application/json", but the `format` is "Avro/1.12".
+might be `application/json`, but the `format` is `Avro/1.12`.
 
 Some xRegistry implementations, including the
 [reference server](https://github.com/xregistry/server), validate well-known
@@ -725,31 +724,25 @@ that are under its own control. If a document is external, meaning that the
 resource entry does not embed it but links to it, the document might change at
 the external location without the registry knowing.
 
-<a id="the-format-attribute-in-the-schema-spec"></a>
-The Schema specification requires `format` when `compatibility` is present,
-even when an implementation supports only one format. This keeps the format
-explicit in exports so that another server, including one that supports several
-formats, can import them without ambiguity.
+The [Schema specification](../schema/spec.md#43-schema-formats) requires
+`format` for schema Versions, even when an implementation supports only one
+format. This keeps the format explicit in exports so that another server,
+including one that supports several formats, can import them without ambiguity.
 
 <a id="embeddings-and-links"></a>
 ### 8.2. Embeddings and Links
 
-When the Resource is declared to be a document, it can be stored inside the
-registry as an [embedded JSON value](spec.md#resource-attribute), a
+In a serialized registry representation, a document Resource can carry its
+document as an [embedded JSON value](spec.md#resource-attribute), a
 [base64-encoded value](spec.md#resourcebase64-attribute), or an [external URL
-reference](spec.md#resourceurl-attribute).
+reference](spec.md#resourceurl-attribute). These are serialization choices;
+they do not prescribe how the server stores the document.
 
-Directly embedded documents need to be valid values in the registry's
-serialization format. The core specification defines JSON serialization;
-another encoding, such as Avro binary, would require a separately defined
-serialization binding.
-
-For the Schema Registry model serialized as JSON, an Avro schema can be
-embedded as JSON data in `schema`. A text file can also be embedded in `schema`
-as a JSON string when appropriate escaping rules are applied and it uses the
-same character encoding as the hosting JSON document. Any other document will
-be base64 encoded and stored in `schemabase64`. The `schemacontenttype` is
-meant to hold media-type and encoding of that data.
+In JSON, documents that are valid JSON can appear directly in `<RESOURCE>`;
+other document formats use `<RESOURCE>base64`. For example, an Avro schema
+written as JSON can appear in `schema`, while a Protobuf schema written as text
+is base64 encoded in `schemabase64`. The `contenttype` attribute identifies the
+document's media type.
 
 You can also refer to the target document through a `<RESOURCE>url` attribute.
 The URL can identify an HTTP resource or a file-system location, which allows
@@ -758,40 +751,33 @@ documents in an existing registry or public repository to remain in place. The
 that clients can interpret the document before resolving it. The registry does
 not resolve the URL or load the content; clients do that. API servers can also
 use external links when proxying content from non-xRegistry registries; see
-[API Servers and Proxies](#api-servers-and-proxies).
+[Storage and data-source choices](#storage-and-data-source-choices).
 
 <a id="federation"></a>
 ### 8.3. Federation
 
-xRegistry does not define a synchronization API. Clients and proxies can
-access multiple registries through the common document model and API, using
-cross-references to retrieve related entities. The specification does not
+xRegistry does not define a synchronization API. A client can read data from
+several registries using the same xRegistry API. A proxy can present data from
+several registries through one xRegistry endpoint. The specification does not
 define how to merge conflicting sources, assign precedence, or implement
 shadowing. Those behaviors are outside the scope of xRegistry 1.0.
 
-<a id="composing-registries-in-memory"></a>
-#### 8.3.1. Composing registries in memory
+<a id="storage-and-data-source-choices"></a>
+#### 8.3.1. Storage and data-source choices
 
-A registry document, whether a single [file](#file) or the root of a
-[static file server](#static-file-server) layout, is meant to be loaded into
-an application as a local, in-memory registry. For standalone use, a registry
-document embeds its model. A server may instead accept source input that
-contains only resources and metadata, supply a model it already knows, and
-construct a registry from both. There are several examples of such source
-documents in the
-[cloudevents/samples](../cloudevents/samples/README.md) folder.
+xRegistry defines the model and the behavior of the registry's representations,
+not the storage architecture behind them. An implementation can keep data in
+memory, use a database, or load registry documents from files.
 
-For a [static file server](#static-file-server), the application can load the
-root document and follow collection and entity URLs on demand, fetching and
-caching only the branches it needs. The same applies to an
-[API server](#api-server) or proxy. The application performs this processing;
-a static file server only serves the published files.
+An API server can also act as a proxy that presents multiple underlying
+registries, including non-xRegistry ones, through a single xRegistry interface.
+The [xrproxy](https://github.com/xregistry/xrproxy) project provides reference
+implementations of such proxies. The source registry can remain authoritative;
+the proxy need not copy its documents into xRegistry storage.
 
-When assembling such a view, the application needs to process the fetched
-content under the effective model and the applicable xRegistry rules, including
-constraints and `xref` processing. It also needs to distinguish a partially
-loaded view from a complete Registry. For example, a collection count can
-include entities that the application has not fetched.
+Whatever storage or data sources it uses, the representation it exposes must
+conform to its xRegistry model and the applicable specification rules. Clients
+do not need to know how the data is stored to use that representation.
 
 <a id="entity-identity-across-registry-views"></a>
 #### 8.3.2. Entity identity across registry views
@@ -805,27 +791,13 @@ local registry while another application uses a public registry.
 When correlating entities this way, an application needs to account for the
 scope of each identifier. An entity's `<SINGULAR>id` is unique only within its
 parent, and its `xid` is unique only within one Registry. Matching `xid` values
-can support correlation, but xRegistry does not assert that they identify the
-same logical entity across Registries or define a global identity scheme.
+can support correlation, but do not by themselves establish that entities in
+different Registries represent the same logical entity. Globally unique entity
+identity across Registries is intentionally outside the scope of xRegistry 1.0.
 
 The `self` and `shortself` attributes are URLs through which an entity can be
 retrieved. They can differ between registry services that expose the same
 logical entity and therefore are not portable identifiers across registries.
-
-<a id="api-servers-and-proxies"></a>
-#### 8.3.3. API Servers and Proxies
-
-An API server can also act as a proxy that presents multiple underlying
-registries - including non-xRegistry ones - through a single xRegistry
-interface. The [xrproxy](https://github.com/xregistry/xrproxy) project provides
-reference implementations of such proxies, showing both how to federate
-xRegistry APIs and how to project other registry models into the xRegistry
-model.
-
-A proxy is responsible for exposing a view that conforms to its xRegistry
-model, including the applicable constraints and reference rules. The source
-registry can remain authoritative; the proxy need not copy its documents into
-xRegistry storage.
 
 <a id="possible-use-cases"></a>
 ## 9. Possible Use Cases
@@ -841,12 +813,15 @@ CloudEvents look, what extensions they use or which fields are required for your
 specific use-case even though the original spec marks them as optional. In
 addition, the `dataschema` attribute of a CloudEvent can then point to a
 xRegistry schema document making this two projects that work hand in hand.
+The [CloudEvents Registry specification](../cloudevents/spec.md) describes the
+combined model for endpoints, messages, and payload schemas.
 
 <a id="business-objects"></a>
 ### 9.2. Business objects
 
-When defining the schemas of business objects in an enterprise, xRegistry can be
-the schema store for these definitions. One can then reference them in a data
+When defining the schemas of business objects in an enterprise, the
+[xRegistry Schema Registry](../schema/spec.md) can be the schema store for these
+definitions. One can then reference them in a data
 catalogue as well as in OpenAPI and AsyncAPI documents without repeating the
 schemas for the actual business objects.
 
@@ -881,9 +856,9 @@ potential confusion for their end-users.
 
 Attribute names appear in JSON objects, HTTP headers, URLs, and generated code.
 The specification therefore uses a restricted character set that works across
-those contexts. Section [10.10](#naming-and-case-sensitivity) explains the
+those contexts. Section [10.8](#naming-and-case-sensitivity) explains the
 casing rules. Section
-[10.11](#group-resource-type-name-limits) explains the additional
+[10.9](#group-resource-type-name-limits) explains the additional
 restrictions on Group and Resource type names.
 
 The specification permits underscores in attribute names, but some proxies,
@@ -897,7 +872,7 @@ stored as strings rather than mapped to named fields in code structures.
 <a id="extensions"></a>
 ### 10.3. Extensions
 
-Extensions SHOULD be defined in the model. A model can also define a `*`
+Extensions should be defined in the model. A model can also define a `*`
 extension to allow attributes supplied at runtime. Extension names follow the
 [valid character](#valid-characters) and
 [casing](#naming-and-case-sensitivity) rules for all attributes.
@@ -934,37 +909,8 @@ Versions, for example `stage=dev`, `team=payments`, or `tier=gold`. Server
 implementations may support filtering and lookup by labels; see the filter
 examples in the core specification.
 
-<a id="deleting-entities"></a>
-### 10.5. Deleting entities
-
-The "delete" operation typically has two variants:
-
-- `DELETE .../<ID>[?setdefaultversionid=VID]`
-- `DELETE .../<COLLECTION>[?setdefaultversionid=VID]`
-
-where the first will delete a single entity, and the second can be used to
-delete multiple entities. For collection deletion:
-
-- if the HTTP body is empty, then the entire collection will be deleted.
-  If the collection is `versions`, then the owning Resource must also be
-  deleted since a Resource must always have at least one Version
-- if the HTTP contain an array, then an empty (zero item) array is valid,
-  but it will have no change on the server since there are not items listed
-  to be deleted
-- if the array is not empty and one of the items in there is already deleted,
-  or never existed at all, then rather than generating an error (e.g. a `404`),
-  the server will ignore this condition and continue processing the list.
-  This is because the net result will be what the user is asking for.
-  Note, that this is different from `DELETE ../<ID>` case where if the
-  referenced entity can not be found then a `404` must be generated.
-- when the `?setdefaultversionid` query parameter is specified (when
-  deleting Version) then it will be applied after all requested items have
-  been deleted successfully. It can be used even if the current "default"
-  Version isn't being deleted. Note that a `404` in the `DELETE .../<ID>` case
-  is an error and no changes to the "default" Version will occur.
-
 <a id="detection-of-referenced-resources"></a>
-### 10.6. Detection of Referenced Resources
+### 10.5. Detection of Referenced Resources
 
 The xRegistry specification allows for Resources to appear in multiple Groups
 via use of the `xref` feature. This could lead to situations where a user
@@ -980,7 +926,7 @@ might consider adding some feature to address this in the future, but as of now
 it is left as an implementation choice.
 
 <a id="sharedreferenced-resources"></a>
-### 10.7. Shared/Referenced Resources
+### 10.6. Shared/Referenced Resources
 
 Beyond detecting dangling references, users need to decide how shared Resources
 are owned. For example, if a
@@ -995,44 +941,8 @@ Additionally, how the implementation of the xRegistry manages
 access-control-rights of Resources (often via Groups) might influence the
 initial placement into a Group of a new Resource.
 
-<a id="default-version-and-maximum-versions"></a>
-### 10.8. Default Version and Maximum Versions
-
-Each Resource type can specify the maximum number of Versions that the
-server must save. Once that limit is reached then it must delete Versions
-to stay within the limit - by deleting oldest Versions first. However, since
-tagging a Version as "default" marks that Version as special, this pruning
-logic must skip the "default" Version. There is one exception to this rule.
-If the maximum Versions is set to 1 then when a new Version is created, that
-Version will become the "default" Version regardless of whether or not the
-user asked for it to be.
-
-In general, during an operation that creates, updates or deletes the Versions
-of a Resource, the following logic is applied:
-
-- Modify the Versions collection as requested
-- Apply the "default" processing logic by setting (or not) which Version is the
-  "default"
-- If the number of Versions exceeds the maximum allowed Versions then, starting
-  with the oldest, keep deleting until the collection is within the limit.
-  Except if the limit is 1, in which case if a new Version is created then it
-  it tagged as "default"
-
-Let's walk through a complex example:
-
-- Max allowed Versions is 2
-- Initially the following Versions exist: v4, v2 (default)
-- Max allowed Versions is now set to 0 (meaning unlimited)
-- New Versions are created in this order: v5 (default=true), v6, v7
-- The resulting Versions are (newest to oldest): v7, v6, v5 (default), v4, v2
-- The maximum allowed Version is now set to 1, this will cause pruning
-- The result is: v5. Note that it is not v7 because v5 was tagged as "default"
-- A new Version (v8) is created
-- The result is: v8 regardless of whether v8 was created with isdefault=true or
-  not
-
 <a id="why-epoch"></a>
-### 10.9. Why Epoch?
+### 10.7. Why Epoch?
 
 Why such an unusual name? As the specification describes, `epoch` is used as a
 way to help detect when an entity has been modified. It is very similar to
@@ -1052,7 +962,7 @@ seemed unlikely. In fact, use of this word might pique people's curiosity
 and cause them to look it up in the specification to find out more about it.
 
 <a id="naming-and-case-sensitivity"></a>
-### 10.10. Naming and Case Sensitivity
+### 10.8. Naming and Case Sensitivity
 
 The following explains some of the reasoning behind the casing and case
 sensitivity rules in the specification.
@@ -1106,7 +1016,7 @@ sensitivity rules in the specification.
   like many of the other names in the specification, it was deemed unnecessary
   from a technical perspective. Additionally, IDs are often exposed to end
   users as unique identifiers (almost as a "name"), allowing mixed case can
-  provider a better user experience.
+  provide a better user experience.
 
   Additionally, treating them in a case-insensitive way could lead to
   inconsistencies and frustration for users. If a user purposely used a certain
@@ -1118,7 +1028,7 @@ sensitivity rules in the specification.
   IDs that differ only by case within the same parent.
 
 <a id="group-resource-type-name-limits"></a>
-### 10.11. Why are Group and Resource type names more restricted?
+### 10.9. Why are Group and Resource type names more restricted?
 
 Attribute names and key names are limited to 63 characters, so why are some
 Group and Resource names limited to less? Because when they appear as part of
@@ -1129,13 +1039,8 @@ type singular names are limited to 61 characters.
 Group type plural names and Resource type singular and plural names are
 limited to 57 characters.
 
-<a id="why-group-resource-type-names-are-limited"></a>
-Since Group type and Resource type names will appear as attribute names (e.g.
-`<GROUPS>count` and `<RESOURCE>url`), the character set (and length) of their
-names need to be restricted in the same way as a attribute names.
-
 <a id="choosing-unique-group-and-resource-names"></a>
-### 10.12. Choosing unique Group and Resource names
+### 10.10. Choosing unique Group and Resource names
 
 Aside from choosing names that give some descriptive meaning to the purpose
 of these entities, care should be taken when choosing names for entities that
@@ -1150,7 +1055,7 @@ The same collision guidance applies to model extensions and new APIs; their
 names should remain clear of future xRegistry additions.
 
 <a id="are-self-and-shortself-attributes-static"></a>
-### 10.13. Are `self` and `shortself` attributes static?
+### 10.11. Are `self` and `shortself` attributes static?
 
 In general any URL reference to an entity in the Registry should remain
 static for the lifetime of the entity, otherwise anything persisting that
@@ -1168,7 +1073,7 @@ Obviously, situations like these should be rare but the specification needs
 to allow for them.
 
 <a id="why-does-an-unknown-query-parameter-not-generate-an-error"></a>
-### 10.14. Why does an unknown query parameter not generate an error?
+### 10.12. Why does an unknown query parameter not generate an error?
 
 People have identified cases where query parameters might be added to request
 URLs without the client (or developer) having control to prevent it. It might
@@ -1181,7 +1086,7 @@ specification says they SHOULD be ignored, not that they MUST be ignored. An
 implementation can reject them, but doing so risks interoperability problems.
 
 <a id="updating-attributes-with-ifvalues"></a>
-### 10.15. Updating attributes with `ifvalues`
+### 10.13. Updating attributes with `ifvalues`
 
 The `ifvalues` feature might be a new concept for some readers, so a point
 of clarification might be useful. If an attribute is defined with an `ifvalues`
@@ -1199,23 +1104,23 @@ Likewise, implementations of the server must validate the entire entity
 against the new model, not just a subset of the entity's attributes.
 
 <a id="multi-root-ancestor-hierarchies"></a>
-### 10.16. Multi-root ancestor hierarchies
+### 10.14. Multi-root ancestor hierarchies
 
 The [`ancestorid` attribute](./spec.md#ancestorid-attribute) builds a Version
 hierarchy for compatibility checking when the
 [`compatibility` attribute](./spec.md#compatibility-attribute) is set. Some
 use cases need multiple roots. Pruning can also create additional roots;
-section [10.18](#pruning-versions-with-singleversionroot-enabled)
+section [10.16](#pruning-versions-with-singleversionroot-enabled)
 describes the case in which `singleversionroot` prevents that operation.
 
 To signal that a Version represents a root of a hierarchy, the `ancestorid`
 attribute has its value set to the Version's `versionid` attribute. This
 makes the ancestor explicit, and the possible ambiguity of using another
-value such as null which, based on the scenario, could mean "no ancestor" or
+value such as `null` which, based on the scenario, could mean "no ancestor" or
 "default to the newest".
 
 <a id="singleversionroot-policy-enforcement"></a>
-### 10.17. `singleversionroot` Policy Enforcement
+### 10.15. `singleversionroot` Policy Enforcement
 
 Related to the previous discussions concerning the `ancestorid` attribute,
 the [Resource Model](./model.md#registry-model) `singleversionroot` attribute
@@ -1249,10 +1154,11 @@ specification allows for model authors to choose the most appropriate value
 for their needs.
 
 <a id="pruning-versions-with-singleversionroot-enabled"></a>
-### 10.18. Pruning Versions with `singleversionroot` enabled
+### 10.16. Pruning Versions with `singleversionroot` enabled
 
-The [normal pruning rules](#default-version-and-maximum-versions) apply when
-creating a Version would exceed `maxversions` or when that limit is reduced.
+The [normal pruning rules](model.md#groupsstringresourcesstringmaxversions)
+apply when creating a Version would exceed `maxversions` or when that limit is
+reduced.
 However, if pruning would create multiple roots while `singleversionroot`
 is `true`, the server must reject the request.
 
@@ -1270,7 +1176,7 @@ delete v2 or v3 to allow the server to prune the oldest Version (v1) before
 creating a new Version.
 
 <a id="whats-the-oldestnewest-version-of-a-resource"></a>
-### 10.19. What's the oldest/newest Version of a Resource?
+### 10.17. What's the oldest/newest Version of a Resource?
 
 The oldest Version of a Resource isn't necessarily the one with the oldest
 `createdat` timestamp, because the `ancestorid` attribute takes precedence
@@ -1285,11 +1191,11 @@ direction: first identifying all leaves of the hierarchy (i.e. all Versions
 that are not used as ancestors for any other Versions), and then finding the
 one with the newest `createdat` timestamp. In the case that multiple
 Versions exist with the same `createdat` timestamp, those Versions are
-sorted in an descending alphabetical order, and the first is the newest
-Version.
+sorted by their `versionid` values in descending alphabetical order
+(case-insensitive), and the first is the newest Version.
 
 <a id="validation-for-file-servers"></a>
-### 10.20. Can `validatecompatibility` and `validateformat` be `true` for file-servers?
+### 10.18. Can `validatecompatibility` and `validateformat` be `true` for file-servers?
 
 `validatecompatibility` and `validateformat` report both policy and validation
 state. A file server cannot enforce those policies on write, but it can expose
@@ -1301,7 +1207,7 @@ server. Clients can then use either representation without needing to account
 for that deployment choice.
 
 <a id="detecting-circular-references-between-versions"></a>
-### 10.21. Detecting circular references between Versions
+### 10.19. Detecting circular references between Versions
 
 The specification mentions that the Version's `ancestorid` attribute should not
 be set in such a way as to cause a circular dependency list between Versions.
@@ -1322,7 +1228,7 @@ an infinite loop. Additionally, implementations should also document that they
 do not enforce this check to set the proper expectation levels for their users.
 
 <a id="optional-required-fields-in-requests"></a>
-### 10.22. Optional required fields in requests
+### 10.20. Optional required fields in requests
 
 One of the design principles of the specification was to try to make each
 object be fully self-describing, within reason. For example, this is why when
@@ -1360,23 +1266,16 @@ must include all required attributes, even if they are duplicated elsewhere
 in the message.
 
 <a id="deprecation-of-entities-in-an-xregistry"></a>
-### 10.23. Deprecation of entities in an xRegistry
+### 10.21. Deprecation of entities in an xRegistry
 
-The core specification defines a `deprecated` attribute that may appear
-under a Resource's `meta` sub-object. This attribute was added to the Resource
-itself rather than to the Version because it was determined that the most
-likely usage of this feature is to express the intent to deprecate the entire
-Resource rather than just one Version (or subset of Versions). This is not say
-that the use of this feature might not be useful at the Version-level or even
-at the Group-level. However, for those cases, custom models may define
-an extension at the appropriate location in the model to meet their needs.
-When doing so it is recommended to use the same attribute definition as
-defined in the core specification for consistency. The Endpoint
-[specification](../endpoint/spec.md) does exactly this to indicate when an
-Endpoint (i.e. a Group) is deprecated.
+The core specification defines a `deprecated` attribute for Groups and under a
+Resource's `meta` sub-object. Resource deprecation applies to the whole Resource
+rather than to individual Versions. Models that need Version-level deprecation
+can define an extension on Versions, preferably using the core attribute's
+definition for consistency.
 
 <a id="problematic-characters-in-values"></a>
-### 10.24. Problematic characters in values
+### 10.22. Problematic characters in values
 
 Attribute values can be used outside the scope of the xRegistry specification.
 For example, a `name` or ID value might become a file name. The character rules
@@ -1388,7 +1287,7 @@ value, reject it, or require the user to choose a value that is valid in the
 target system. The specification does not prescribe that behavior.
 
 <a id="why-do-resources-have-3-levels-of-data"></a>
-### 10.25. Why do Resources have 3 levels of data?
+### 10.23. Why do Resources have 3 levels of data?
 
 Resource attributes are split into 3 categories:
 
@@ -1421,10 +1320,12 @@ Resource, serialized in JSON, appears like this:
 ```
 
 "Resource level" attributes consist of two types:
+
 1 - Attributes that makes sense when the Resource is viewed as an alias for
     the default Version of that Resource. So this would include all of the
     default Version's attributes with the exception that any URLs referencing
     the Version (e.g. `self`) would point to the Resource instead.
+
 2 - Attributes to help in the navigation of the Resource structure. This
     includes the "meta" sub-object, the "metaurl" and the "versions"
     collection related attributes.
@@ -1453,7 +1354,7 @@ Resource type definition requires that attribute to be consistent across all
 Versions or have a Version-specific value.
 
 <a id="why-are-some-conditional-read-only-attributes-not-ignored"></a>
-### 10.26. Why are some (conditional) read-only attributes not ignored?
+### 10.24. Why are some (conditional) read-only attributes not ignored?
 
 Attributes that are always defined as "read-only" normally have semantics such
 that attempts to update them are silently ignored. This is especially useful
@@ -1475,7 +1376,7 @@ of that Resource becomes "read-only". And any attempt to update it will result
 in an error being generated.
 
 <a id="why-isnt-put-idempotent"></a>
-### 10.27. Why isn't `PUT` idempotent?
+### 10.25. Why isn't `PUT` idempotent?
 
 As stated in the [core](./spec.md) specification, the `PUT` operations are
 almost idempotent, per the HTTP specification. For the most part, multiple
@@ -1488,7 +1389,7 @@ expensive or ambiguous check to perform, so it was determined it would be best
 to avoid it all together.
 
 <a id="validation-edge-cases"></a>
-### 10.28. Validation edge cases
+### 10.26. Validation edge cases
 
 Sections [5.5](#schema-validation) and
 [8.1](#formats-and-contentmedia-types) explain the purpose and boundaries of
@@ -1496,7 +1397,7 @@ validation. The following cases cover two less obvious interactions between
 validation settings.
 
 <a id="empty-format-capabilities"></a>
-#### 10.28.1. Empty format capabilities
+#### 10.26.1. Empty format capabilities
 
 If a Resource model sets both `validateformat` and `strictvalidation` to `true`,
 but the Registry's `capabilities` declares no `format` values, the server will
@@ -1508,7 +1409,7 @@ unusable Resource type if its model enables those aspects and clients supply
 
 <a id="constraints-and-matchversions-features"></a>
 <a id="constraints-and-matchversions"></a>
-#### 10.28.2. Constraints and `matchversions`
+#### 10.26.2. Constraints and `matchversions`
 
 `constraints` and `matchversions` validate only scalar attributes in objects.
 They do not apply inside maps, arrays, `ifvalues` clauses, or `*` extensions.
@@ -1516,7 +1417,7 @@ Extending validation into those structures would increase implementation
 complexity and make consistent support across servers less likely.
 
 <a id="relative-resource-urls-in-the-file-representation"></a>
-### 10.29. Relative Resource URLs in the File representation
+### 10.27. Relative Resource URLs in the File representation
 
 The [File representation](#file) can use relative URLs for Resource documents.
 This allows a repository to move without rewriting the URLs or duplicating
