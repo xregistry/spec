@@ -104,13 +104,11 @@ normative technical details.
   - [10.22. Problematic characters in values](#problematic-characters-in-values)
   - [10.23. Why do Resources have 3 levels of
     data?](#why-do-resources-have-3-levels-of-data)
-  - [10.24. Why are some (conditional) read-only attributes not
-    ignored?](#why-are-some-conditional-read-only-attributes-not-ignored)
-  - [10.25. Why isn't `PUT` idempotent?](#why-isnt-put-idempotent)
-  - [10.26. Validation edge cases](#validation-edge-cases)
-    - [10.26.1. Empty format capabilities](#empty-format-capabilities)
-    - [10.26.2. Constraints and `matchversions`](#constraints-and-matchversions)
-  - [10.27. Relative Resource URLs in the File
+  - [10.24. Why isn't `PUT` idempotent?](#why-isnt-put-idempotent)
+  - [10.25. Validation edge cases](#validation-edge-cases)
+    - [10.25.1. Empty format capabilities](#empty-format-capabilities)
+    - [10.25.2. Constraints and `matchversions`](#constraints-and-matchversions)
+  - [10.26. Relative Resource URLs in the File
     representation](#relative-resource-urls-in-the-file-representation)
 
 
@@ -181,15 +179,15 @@ responses.
 xRegistry maps directly onto normal REST/HTTP verbs. The URL patterns are:
 
 ```
-GET/PUT/PATCH        /                                        # the Registry itself
-GET                  /model                                   # the model definition
-GET/PUT              /modelsource                              # the model, as you defined it
+GET/PUT/PATCH        /                                                 # the Registry itself
+GET                  /model                                            # the model definition
+GET/PUT              /modelsource                                      # the model, as you defined it
 
-GET/POST/PATCH       /<GROUPS>                                 # e.g. GET /endpoints
-GET/PUT/PATCH/DELETE /<GROUPS>/<GID>                            # e.g. .../endpoints/ep1
+GET/POST/PATCH       /<GROUPS>                                         # e.g. GET /endpoints
+GET/PUT/PATCH/DELETE /<GROUPS>/<GID>                                   # e.g. .../endpoints/ep1
 
-GET/POST/PATCH       /<GROUPS>/<GID>/<RESOURCES>                # e.g. .../endpoints/ep1/messages
-GET/PUT/PATCH/DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>           # a Resource (its default Version)
+GET/POST/PATCH       /<GROUPS>/<GID>/<RESOURCES>                       # e.g. .../endpoints/ep1/messages
+GET/PUT/PATCH/DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>                 # a Resource (its default Version)
 
 GET/PUT/PATCH/DELETE /<GROUPS>/<GID>/<RESOURCES>/<RID>/versions/<VID>  # a specific Version
 ```
@@ -237,9 +235,11 @@ for everything in it.
   - `PATCH` = partial update (only what you include is changed; `null`
     deletes an attribute).
 
-Creating a nested entity also creates any missing parent entities. A parent
-with required attributes must be created explicitly first; otherwise creation
-of the nested entity fails.
+Creating a nested entity also creates any missing parent entities when their
+required attributes can be populated by the server or defaults. If a required
+parent value cannot be supplied that way, the parent must be created explicitly
+first; otherwise creation of the nested entity fails with
+`required_attribute_missing`.
 
 Example - create a Group:
 
@@ -267,19 +267,19 @@ HTTP/1.1 201 Created
 #### 3.2.3. Resources: metadata vs. the actual document
 
 Document Resources differ from metadata-only Resources. A Resource such as a
-`message` or `schema` can have domain-specific content in addition to its
+`schema` can have domain-specific content in addition to its
 xRegistry metadata (`epoch`, `name`, etc.).
 
-- `GET /endpoints/ep1/messages/msg1` → returns the Resource's **document**
+- `GET /schemagroups/sg1/schemas/schema1` → returns the Resource's **document**
   (its raw content) directly in the HTTP body.
-- `GET /endpoints/ep1/messages/msg1$details` → returns the Resource's
+- `GET /schemagroups/sg1/schemas/schema1$details` → returns the Resource's
   **metadata** as JSON instead (with the document's metadata such as
   `contenttype`, but not the document body itself).
 
-For `PUT`, `PUT .../msg1` with a raw body sets the document content.
-`PUT .../msg1$details` accepts a JSON Resource body and can update both metadata
-and document content. The document can be supplied through the `message`,
-`messagebase64`, or `messageurl` attribute.
+For `PUT`, `PUT .../schema1` with a raw body sets the document content.
+`PUT .../schema1$details` accepts a JSON Resource body and can update both metadata
+and document content. The document can be supplied through the `schema`,
+`schemabase64`, or `schemaurl` attribute.
 
 If a Resource type doesn't have its own separate document (just metadata),
 then `$details` isn't needed - plain requests just return the metadata.
@@ -536,16 +536,18 @@ xRegistry models define the attributes and constraints used to validate
 registry metadata. For Resource Versions, a model can also enable
 [format validation](./model.md#groupsstringresourcesstringvalidateformat) and
 [compatibility checking](./model.md#groupsstringresourcesstringvalidatecompatibility).
-Format validation checks a document against its declared format; compatibility
+Format validation checks a Version against the rules identified by its `format`
+attribute. Those rules can describe a domain-specific document or the Version's
+metadata definitions and values, such as a Message definition. Compatibility
 checking evaluates Versions against the Resource's declared compatibility
 policy. These checks depend on the model settings and the formats and policies
 supported by the implementation.
 
 Schema documents are one example: a registry can check that a stored schema is
 valid and that changes satisfy the selected compatibility policy, helping
-teams evolve schemas without breaking existing consumers. This is validation
-of documents stored in the registry, not a requirement for xRegistry to
-validate application traffic.
+teams evolve schemas without breaking existing consumers. These checks validate
+registry metadata and documents; they do not require xRegistry to validate
+application traffic.
 
 <a id="metadata-sharing"></a>
 ### 5.6. Metadata sharing
@@ -807,11 +809,11 @@ logical entity and therefore are not portable identifiers across registries.
 
 Since xRegistry emerged from the CloudEvents project and initially was called
 "CloudEvents Discovery" the obvious use case is to manage all the CloudEvents of
-your event-driven architecture inside xRegistry. The spec supports "CloudEvents"
-as a format and allows you to define further restrictions on how your
+your event-driven architecture inside xRegistry. The specification supports
+"CloudEvents" as a format and allows you to define further restrictions on how your
 CloudEvents look, what extensions they use or which fields are required for your
-specific use-case even though the original spec marks them as optional. In
-addition, the `dataschema` attribute of a CloudEvent can then point to a
+specific use-case even though the original specification marks them as optional.
+In addition, the `dataschema` attribute of a CloudEvent can then point to a
 xRegistry schema document making this two projects that work hand in hand.
 The [CloudEvents Registry specification](../cloudevents/spec.md) describes the
 combined model for endpoints, messages, and payload schemas.
@@ -1353,30 +1355,8 @@ Version should be driven by whether the use cases being supported by the
 Resource type definition requires that attribute to be consistent across all
 Versions or have a Version-specific value.
 
-<a id="why-are-some-conditional-read-only-attributes-not-ignored"></a>
-### 10.24. Why are some (conditional) read-only attributes not ignored?
-
-Attributes that are always defined as "read-only" normally have semantics such
-that attempts to update them are silently ignored. This is especially useful
-for attributes that might change over time so that clients do not need to
-either ensure they have the latest value, or remove them from an update
-request.
-
-However, there are times when trying to update a read-only attribute must
-generate an error. This will happen when the attribute might be read-only based
-on the configuration of the owning entity, in which case it is important for
-clients to know that updating this particular instance of this
-"sometimes read-only" attribute failed. So, while it may seem inconsistent,
-the risk of clients assuming a non-error response meant the request was fully
-adhere to was considered more important.
-
-For example, if a Resource is defined with the `setdefaultversionsticky`
-aspect set to `false` then the `meta.defaultversionid` attribute of instances
-of that Resource becomes "read-only". And any attempt to update it will result
-in an error being generated.
-
 <a id="why-isnt-put-idempotent"></a>
-### 10.25. Why isn't `PUT` idempotent?
+### 10.24. Why isn't `PUT` idempotent?
 
 As stated in the [core](./spec.md) specification, the `PUT` operations are
 almost idempotent, per the HTTP specification. For the most part, multiple
@@ -1389,7 +1369,7 @@ expensive or ambiguous check to perform, so it was determined it would be best
 to avoid it all together.
 
 <a id="validation-edge-cases"></a>
-### 10.26. Validation edge cases
+### 10.25. Validation edge cases
 
 Sections [5.5](#schema-validation) and
 [8.1](#formats-and-contentmedia-types) explain the purpose and boundaries of
@@ -1397,7 +1377,7 @@ validation. The following cases cover two less obvious interactions between
 validation settings.
 
 <a id="empty-format-capabilities"></a>
-#### 10.26.1. Empty format capabilities
+#### 10.25.1. Empty format capabilities
 
 If a Resource model sets both `validateformat` and `strictvalidation` to `true`,
 but the Registry's `capabilities` declares no `format` values, the server will
@@ -1409,7 +1389,7 @@ unusable Resource type if its model enables those aspects and clients supply
 
 <a id="constraints-and-matchversions-features"></a>
 <a id="constraints-and-matchversions"></a>
-#### 10.26.2. Constraints and `matchversions`
+#### 10.25.2. Constraints and `matchversions`
 
 `constraints` and `matchversions` validate only scalar attributes in objects.
 They do not apply inside maps, arrays, `ifvalues` clauses, or `*` extensions.
@@ -1417,7 +1397,7 @@ Extending validation into those structures would increase implementation
 complexity and make consistent support across servers less likely.
 
 <a id="relative-resource-urls-in-the-file-representation"></a>
-### 10.27. Relative Resource URLs in the File representation
+### 10.26. Relative Resource URLs in the File representation
 
 The [File representation](#file) can use relative URLs for Resource documents.
 This allows a repository to move without rewriting the URLs or duplicating
