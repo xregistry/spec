@@ -2,10 +2,11 @@
 
 <!-- words: contexturl eventdefinition mediatype py standalone -->
 
-See the [Event Context Registry specification](spec.md) and its
-[model](model.json). The [sample](samples/context.json) contains one Context
-Group with two Contexts, and the [test](tests/test_context_example.py)
-checks the sample and the specification's JSON examples against the model.
+See the [Event Context Registry specification](spec.md), its
+[design rationale](design/design.md) and [model](model.json). The
+[sample](samples/context.json) contains one Context Group with two Contexts,
+and the [test](tests/test_context_example.py) checks the sample and the
+specification's JSON examples against the model.
 
 The generated [JSON Schema](schemas/document-schema.json),
 [JSON Structure](schemas/document-schema.struct.json),
