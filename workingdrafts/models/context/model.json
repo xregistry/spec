@@ -1,0 +1,56 @@
+{
+  "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
+  "groups": {
+    "contextgroups": {
+      "singular": "contextgroup",
+      "modelversion": "0.1",
+      "modelcompatiblewith": "https://xregistry.io/xreg/domains/context/specs/model.json",
+      "description": "Event Context containers. Each Group holds Contexts that are related in some application-defined way, such as all Contexts of a site, a production line or a tenant",
+
+      "attributes": {
+        "*": {
+          "name": "*",
+          "type": "any"
+        }
+      },
+
+      "resources": {
+        "contexts": {
+          "singular": "context",
+          "hasdocument": false,
+          "modelversion": "0.1",
+          "modelcompatiblewith": "https://xregistry.io/xreg/domains/context/specs/model.json",
+          "description": "Role-keyed references to the entities that give events their context, such as a Message definition, a payload schema, the emitting entity and a target model. A Context has no document",
+
+          "attributes": {
+            "references": {
+              "name": "references",
+              "type": "map",
+              "required": true,
+              "description": "References keyed by Role. A Role states what the referenced representation means for an event that names this Context",
+              "item": {
+                "type": "object",
+                "attributes": {
+                  "url": {
+                    "name": "url",
+                    "type": "urlabsolute",
+                    "required": true,
+                    "description": "Absolute URL of the referenced representation. Consumers use it as given"
+                  },
+                  "*": {
+                    "name": "*",
+                    "type": "any"
+                  }
+                }
+              }
+            },
+            "*": {
+              "name": "*",
+              "type": "any"
+            }
+          }
+        }
+      }
+    }
+  }
+}

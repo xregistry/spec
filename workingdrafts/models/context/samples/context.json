@@ -1,0 +1,49 @@
+{
+  "contextgroups": {
+    "line1": {
+      "contextgroupid": "line1",
+      "description": "Event Contexts for production line 1",
+      "contexts": {
+        "pump42-temperature": {
+          "contextid": "pump42-temperature",
+          "description": "Temperature events emitted by pump 42",
+          "versions": {
+            "1": {
+              "contextid": "pump42-temperature",
+              "versionid": "1",
+              "references": {
+                "message": {
+                  "url": "https://registry.example/messagegroups/factory/messages/com.example.temperature.v1"
+                },
+                "emitter": {
+                  "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump42/versions/3"
+                },
+                "target": {
+                  "url": "https://assets.example/usdassetgroups/line1/usdassets/line1.usda/versions/7"
+                }
+              }
+            }
+          }
+        },
+        "pump42-processing": {
+          "contextid": "pump42-processing",
+          "description": "Payload schema and asset used to process pump 42 temperature events",
+          "versions": {
+            "1": {
+              "contextid": "pump42-processing",
+              "versionid": "1",
+              "references": {
+                "schema": {
+                  "url": "https://registry.example/schemagroups/factory/schemas/temperature/versions/1"
+                },
+                "target": {
+                  "url": "https://assets.example/usdassetgroups/line1/usdassets/pump42.usda/versions/1"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
