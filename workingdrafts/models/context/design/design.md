@@ -125,9 +125,9 @@ between that lookup and an `emitter` reference.
 An ordinary request to `contexturl` returns the Context metadata, including
 all Roles. The Consumer reads only the Roles it needs. It then requests the
 corresponding Targets, subject to its URL, authorization and content trust
-policies. A missing or unavailable Role needed by the Consumer makes the Context
-incomplete; the Consumer does not derive replacement references from the
-Context URL.
+policies. A missing or unavailable Role needed by the Consumer makes the
+Context incomplete; the Consumer does not derive replacement references from
+the Context URL.
 
 If a Registry's model contains the Context Group and all Target Group types,
 a single Core root `POST` can publish them together. Core does not check
