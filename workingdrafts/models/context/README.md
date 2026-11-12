@@ -1,25 +1,21 @@
 # Event Context Registry Service - Version 1.0-rc4
 
-<!-- words: contexturl eventdefinition mediatype py standalone -->
+<!-- words: contexturl eventdefinition mediatype standalone -->
 
 See the [Event Context Registry specification](spec.md), its
 [design rationale](design/design.md) and [model](model.json). The
-[sample](samples/context.json) contains one Context Group with two Contexts,
-and the [test](tests/test_context_example.py) checks the sample and the
-specification's JSON examples against the model.
+[sample](samples/context.json) contains one Context Group with two Contexts.
 
 The generated [JSON Schema](schemas/document-schema.json),
 [JSON Structure](schemas/document-schema.struct.json),
 [Avro](schemas/document-schema.avsc) and [OpenAPI](schemas/openapi.json)
-describe selected Registry metadata. The test also checks schema reproduction
-from the model. Reproduction and syntax checks do not establish complete
-model coverage.
+describe selected Registry metadata.
 
 In particular, Core has no model aspect for a minimum map size. Generated
-schemas do not enforce the non-empty `references` rule in the specification;
-the example test checks it explicitly. Role-name constraints and URL
-constraints also need checks beyond formats that cannot express them, such
-as Avro. Passing schema validation alone is not proof of conformance.
+schemas do not enforce the non-empty `references` rule in the specification.
+Role-name constraints and URL constraints also need checks beyond formats
+that cannot express them, such as Avro. Passing schema validation alone is
+not proof of conformance.
 
 The [design note's comparison with xregistry/spec#571][draft-boundaries]
 distinguishes event Contexts from federation contexts, publication snapshots
