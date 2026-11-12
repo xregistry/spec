@@ -72,7 +72,11 @@ json_type_mapping = {
     "map": {"type": "object"},
     "uri": {"type": "string", "format": "uri-reference"},
     "url": {"type": "string", "format": "uri-reference"},
-    "urlabsolute": {"type": "string", "format": "uri", "pattern": "^[^#]*$"},
+    "urlabsolute": {
+        "type": "string",
+        "format": "uri",
+        "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^#]*$",
+    },
     "xid": {"type": "string", "format": "uri-reference"},
     "datetime": {"type": "string", "format": "date-time"},
     "integer": {"type": "integer"},

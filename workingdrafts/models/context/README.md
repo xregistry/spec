@@ -50,8 +50,13 @@ and the proposed WoT event profile.
    a different Thing.
 7. **Placement.** Whether the Context model is a standalone domain or part of
    the [CloudEvents Registry](../../../cloudevents/spec.md) composite.
+8. **Context document.** Whether a Context has a document that contains its
+   Targets' content, with the metadata at the `$details` URL, instead of the
+   negotiated resolved Context view. The
+   [design note][context-document] compares the two approaches.
 
 [issue792]: https://github.com/xregistry/spec/issues/792
 [issue314-proposal]: https://github.com/xregistry/spec/issues/314#issuecomment-2880321588
 [Core xid]: ../../../core/spec.md#xid-attribute
 [draft-boundaries]: design/design.md#71-relationship-to-federation-publication-and-wot
+[context-document]: design/design.md#81-context-document-alternative

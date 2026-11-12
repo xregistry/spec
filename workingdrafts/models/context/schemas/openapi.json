@@ -2299,7 +2299,7 @@
                 "url": {
                   "type": "string",
                   "format": "uri",
-                  "pattern": "^[^#]*$",
+                  "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^#]*$",
                   "description": "Absolute URL of the referenced representation. Consumers use it as given"
                 }
               },

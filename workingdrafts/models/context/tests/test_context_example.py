@@ -105,10 +105,8 @@ def test_reference_url_validation(filename, url, valid):
     else:
         version = schema["definitions"]["contextgroup-schema"]["contextVersion"]
     reference = version["properties"]["references"]["additionalProperties"]
-    validator = jsonschema.Draft7Validator(
-        reference, format_checker=jsonschema.Draft7Validator.FORMAT_CHECKER
-    )
-    assert validator.is_valid({"url": url}) is valid
+    # The pattern must enforce urlabsolute without an optional format checker.
+    assert jsonschema.Draft7Validator(reference).is_valid({"url": url}) is valid
 
 
 @pytest.mark.parametrize("schema_type,filename", [

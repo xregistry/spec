@@ -222,6 +222,25 @@ choose precedence when an `emitter` and WoT source selection disagree.
 | Resolved view returns all direct Targets in one client response | Registry implementation takes on Target retrieval, authorization and combined caching. |
 | Existing Core and domain models remain unchanged | Without the view, each uncached Target can require another request. |
 
+### 8.1. Context Document Alternative
+
+[Review of the draft][document-review] proposed that a Context have a
+document containing its Targets' content. Core's representations would then
+select the form: the Context URL returns the document, and the `$details`
+URL returns the metadata with `references`. A Consumer could obtain the
+content of all Targets without a negotiated media type or further requests.
+
+| Benefit | Cost |
+| --- | --- |
+| Uses Core's document and `$details` representations instead of a negotiated media type. | The event carries only one of the two URLs. If `contexturl` contains `$details`, a Consumer reaches the content only by removing the suffix, which is the URL construction that the indirection model avoids. Otherwise, every Consumer receives the content of every Target, including Targets it does not use. |
+| A document that the Publisher stores needs no server-side Target retrieval, outbound request policy or combined cache policy. | Each Context Version duplicates its Targets' content, and a Target change reaches Consumers only after the Publisher stores a new document. Core does not check that the document agrees with `references`. |
+| A Context Version URL identifies fixed content as well as fixed references. | Core would define a `contexturl` metadata attribute for an externally stored document, which differs in meaning from the CloudEvents attribute. A document that the Registry generates reintroduces the resolver's retrieval, authorization and caching rules. |
+
+The draft keeps Contexts metadata-only. A Registry can instead provide the
+content through the resolved Context view at the same URL. Whether Core's
+document mechanism is preferable despite these costs remains an open
+question.
+
 ## 9. Open Questions
 
 The specification and its
@@ -241,10 +260,14 @@ The specification and its
    interpretations.
 7. Whether the Context model is standalone or part of a CloudEvents
    composite Registry.
+8. Whether a Context has a document that contains its Targets' content
+   instead of the negotiated resolved Context view
+   ([Section 8.1](#81-context-document-alternative)).
 
 [issue792]: https://github.com/xregistry/spec/issues/792
 [issue314]: https://github.com/xregistry/spec/issues/314
 [issue571]: https://github.com/xregistry/spec/pull/571
+[document-review]: https://github.com/xregistry/spec/pull/796#discussion_r4540821623
 [federation-draft]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/federation/spec.md
 [publication-draft]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/publication/spec.md
 [wot-draft]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/models/wot/spec.md

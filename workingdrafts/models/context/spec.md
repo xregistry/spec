@@ -468,6 +468,13 @@ This specification defines four Roles:
   the `references` of a Context Version after any Producer has been
   configured with that Version's URL. To change references, the Publisher
   creates a new Version and reconfigures the Producers.
+- A different Context Version URL can identify different references. An
+  unchanged Context Version URL does not establish that the Target content
+  is unchanged, because a Reference to a Target Resource URL can return
+  different content later. For every change of context to change
+  `contexturl`, the Publisher references Target Versions and creates a new
+  Context Version when a Reference has to identify a different Target
+  Version.
 - A Context Resource URL returns the default Version. A Publisher can change
   the default Version to update every Producer that uses the Resource URL
   without reconfiguring them. Consumers then cannot assume that two events
