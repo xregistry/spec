@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-structure.org/meta/extended/v0/#",
+  "$id": "https://xregistry.io/workingdrafts/models/context/schemas/document-schema.struct.json",
+  "$uses": [
+    "JSONStructureAlternateNames"
+  ],
+  "name": "ContextRegistryDocument",
+  "type": "object",
+  "properties": {
+    "contextgroups": {
+      "type": "map",
+      "values": {
+        "type": {
+          "$ref": "#/definitions/Contextgroups/Contextgroup"
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "definitions": {
+    "Contextgroups": {
+      "ContextVersionReferencesValue": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "uri",
+            "description": "Absolute URL of the referenced representation. Consumers use it as given"
+          }
+        },
+        "additionalProperties": true,
+        "required": [
+          "url"
+        ]
+      },
+      "ContextVersion": {
+        "type": "object",
+        "properties": {
+          "versionid": {
+            "type": "string",
+            "description": "ID of the context version"
+          },
+          "contextid": {
+            "type": "string",
+            "description": "ID of the context object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch of the object"
+          },
+          "self": {
+            "type": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "uri",
+            "description": "XID of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "uri",
+            "description": "Documentation URL"
+          },
+          "labels": {
+            "type": "map",
+            "values": {
+              "type": "string"
+            }
+          },
+          "createdat": {
+            "type": "datetime",
+            "description": "Creation time"
+          },
+          "modifiedat": {
+            "type": "datetime",
+            "description": "Modification time"
+          },
+          "references": {
+            "type": "map",
+            "values": {
+              "type": {
+                "$ref": "#/definitions/Contextgroups/ContextVersionReferencesValue"
+              }
+            },
+            "description": "References keyed by Role. A Role states what the referenced representation means for an event that names this Context"
+          }
+        },
+        "additionalProperties": true,
+        "required": [
+          "references"
+        ]
+      },
+      "Context": {
+        "type": "object",
+        "properties": {
+          "contextid": {
+            "type": "string",
+            "description": "ID of the context object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch of the object"
+          },
+          "self": {
+            "type": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "uri",
+            "description": "XID of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "uri",
+            "description": "Documentation URL"
+          },
+          "labels": {
+            "type": "map",
+            "values": {
+              "type": "string"
+            }
+          },
+          "createdat": {
+            "type": "datetime",
+            "description": "Creation time"
+          },
+          "modifiedat": {
+            "type": "datetime",
+            "description": "Modification time"
+          },
+          "versionsurl": {
+            "type": "uri"
+          },
+          "versionscount": {
+            "type": "uint32"
+          },
+          "versions": {
+            "type": "map",
+            "values": {
+              "type": {
+                "$ref": "#/definitions/Contextgroups/ContextVersion"
+              }
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Contextgroup": {
+        "type": "object",
+        "properties": {
+          "contextgroupid": {
+            "type": "string",
+            "description": "ID of the contextgroup object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch of the object"
+          },
+          "self": {
+            "type": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "uri",
+            "description": "XID of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "uri",
+            "description": "Documentation URL"
+          },
+          "labels": {
+            "type": "map",
+            "values": {
+              "type": "string"
+            }
+          },
+          "createdat": {
+            "type": "datetime",
+            "description": "Creation time"
+          },
+          "modifiedat": {
+            "type": "datetime",
+            "description": "Modification time"
+          },
+          "contexts": {
+            "type": "map",
+            "values": {
+              "type": {
+                "$ref": "#/definitions/Contextgroups/Context"
+              }
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}
