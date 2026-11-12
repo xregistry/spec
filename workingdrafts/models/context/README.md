@@ -48,8 +48,10 @@ and the proposed WoT event profile.
    the [CloudEvents Registry](../../../cloudevents/spec.md) composite.
 8. **Context document.** Whether a Context has a document that contains its
    Targets' content, with the metadata at the `$details` URL, instead of the
-   negotiated resolved Context view. The
-   [design note][context-document] compares the two approaches.
+   Registry-specific resolved Context view. That view requires custom
+   server-side resolution and is not supported by generic xRegistry or static
+   document servers. The [design note][context-document] compares the
+   alternatives.
 
 [issue792]: https://github.com/xregistry/spec/issues/792
 [issue314-proposal]: https://github.com/xregistry/spec/issues/314#issuecomment-2880321588

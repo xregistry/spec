@@ -84,10 +84,9 @@ names with absolute URLs. An event names one Context through the
 `GET` of that URL and selects the roles it needs by map key. It does not
 parse a list of links or construct Context or target URLs.
 
-A supporting Registry can also return a resolved Context view, which
-contains the Context and every directly referenced target in one response.
-The Consumer requests that representation at the same URL through HTTP
-content negotiation.
+A Registry with additional resolver support can also return a resolved
+Context view, which contains the Context and every directly referenced
+Target in one response. This is not behavior provided by xRegistry Core.
 
 ### 1.1. Event Context
 
@@ -114,8 +113,9 @@ This specification follows these principles:
 
 - One event attribute holds one URL, and Consumers use that URL as given.
 - One request returns every reference for the event.
-- A Registry MAY also return the directly referenced contents in one
-  response when the Consumer requests the resolved Context view.
+- A Registry with custom resolver support MAY also return the directly
+  referenced contents in one response when the Consumer requests the
+  resolved Context view.
 - Consumers select a reference by map key. They do not parse reference
   values or derive URLs from them.
 - Existing models are referenced, not extended.
@@ -147,10 +147,11 @@ Message definition, a schema and domain entities together.
 
 A Registry MAY combine the Context Group type with the Message, Schema,
 Endpoint and domain Group types, or it MAY serve Contexts alone. A Consumer
-uses only `GET`. Any server that returns the representations defined in
-[Section 4](#4-event-context-registry) and
-[Section 7.4](#74-resolved-context-view) for a URL serves that Consumer
-equally well.
+uses only `GET`. Section 7.4 describes OPTIONAL, Registry-specific resolver
+behavior; support is OPTIONAL for an implementation of this model.
+Generic xRegistry servers and static servers serving xRegistry documents
+return the ordinary Context metadata, and Consumers retrieve Targets
+separately.
 
 This specification does not define how a Producer obtains its Context URL.
 Configuration is the expected mechanism. It also does not define the
@@ -177,9 +178,10 @@ a JSON object without a `$details` suffix, as
 [Core HTTP][HTTP representations] defines for
 [metadata-only Resources][Core metadata-only].
 
-The resolved Context view ([Section 7.4](#74-resolved-context-view)) is a
-negotiated response envelope at the same URL. It is not a document attached
-to the Context, and it adds no attributes to this model.
+The OPTIONAL resolved Context view
+([Section 7.4](#74-resolved-context-view)) is a negotiated response envelope
+at the same URL. It requires Registry-specific resolver behavior. It is not
+a document attached to the Context, and it adds no attributes to this model.
 
 ## 2. Notations and Terminology
 
@@ -807,6 +809,11 @@ because each step depends only on earlier steps.
 
 The resolved Context view is OPTIONAL for both Registries and Consumers.
 Supporting the Context model does not imply support for this feature.
+This view is not provided by xRegistry Core and cannot be implemented by a
+generic xRegistry server or a static server serving xRegistry documents. It
+requires additional server behavior to obtain and assemble Target
+representations. Without that behavior, the Registry returns ordinary
+Context metadata and the Consumer retrieves each Target separately.
 
 The view is an alternative response at the existing Context Resource or
 Context Version URL. It adds no CloudEvents attribute, model attribute,

@@ -68,9 +68,10 @@ include it in a resolved Context view. References do not imply containment.
   attributes unchanged.
 - Keep event-specific values, such as a prim path, in the event's existing
   attributes or data.
-- Allow the basic Context model to work without a Registry-side resolver.
-- Make resolution of all direct Targets in one response a separately
-  negotiated capability at the same Context URL.
+- Keep the base Context model usable with generic xRegistry servers and
+  static servers that return Context metadata.
+- Treat resolution of all direct Targets in one response as an OPTIONAL,
+  Registry-specific extension that requires server-side resolver behavior.
 
 The model does not define the meaning or trustworthiness of a Target's
 contents. It does not recursively collect links inside Targets or create a
@@ -113,8 +114,9 @@ precedence even if the sources disagree; it does not compare them.
 
 A direct `schema` Role is not needed merely because the Message definition
 already identifies a schema. It is useful when the schema needs to remain
-fixed independently of a changing Message definition, or when including
-the schema in the resolved view avoids following another URL.
+fixed independently of a changing Message definition, or when a
+Registry-specific resolved view needs to include the schema without
+following another URL.
 
 The `emitter` Role can supply a Thing Description directly. It does not
 change the meaning of CloudEvents `source` or authenticate the event. The
@@ -143,15 +145,23 @@ Across Registries, the Publisher first makes the Targets available, then
 publishes the Context, then configures Producers with the Context Version
 URL.
 
-## 7. Resolved Context View
+## 7. OPTIONAL Registry-specific Resolved Context View
 
 The base Context model requires no resolver. A Registry can additionally
-serve a resolved Context view at the same URL. A Consumer requests it with
-HTTP content negotiation and can offer ordinary JSON as a fallback. No
-separate capability lookup, new API path, write operation or CloudEvents
-attribute is needed.
+serve a resolved Context view at the same URL. This is not a capability of
+xRegistry Core: a generic xRegistry server or static server serving
+xRegistry documents returns Context metadata and does not follow its
+References. The resolved view requires custom server behavior to obtain and
+assemble the Target representations. A deployment without that behavior
+uses the ordinary multi-request flow described in Section 6 of the
+specification.
 
-The view contains two members:
+When implemented, a Consumer requests the view with HTTP content
+negotiation and can offer ordinary JSON as a fallback. No separate
+capability lookup, new API path, write operation or CloudEvents attribute is
+needed for that custom implementation.
+
+The custom response contains two members:
 
 - `context`: the unchanged Context metadata, including its `references`.
 - `documents`: one entry per Role in `context.references`, containing the
@@ -160,7 +170,7 @@ The view contains two members:
 The Registry resolves every direct Reference or returns an error. It does
 not return a partial view and does not follow references inside the
 Targets. JSON content can be embedded as a JSON value; other content can be
-returned as base64. This keeps the view generic without interpreting a
+returned as base64. This keeps the envelope independent of a
 Message, schema, Thing Description or model. The response is not an atomic
 snapshot across Registries, and the Target bytes can change independently
 of the Context Version.
@@ -239,10 +249,11 @@ content of all Targets without a negotiated media type or further requests.
 | A document that the Publisher stores needs no server-side Target retrieval, outbound request policy or combined cache policy. | Each Context Version duplicates its Targets' content, and a Target change reaches Consumers only after the Publisher stores a new document. Core does not check that the document agrees with `references`. |
 | A Context Version URL identifies fixed content as well as fixed references. | Core would define a `contexturl` metadata attribute for an externally stored document, which differs in meaning from the CloudEvents attribute. A document that the Registry generates reintroduces the resolver's retrieval, authorization and caching rules. |
 
-The draft keeps Contexts metadata-only. A Registry can instead provide the
-content through the resolved Context view at the same URL. Whether Core's
-document mechanism is preferable despite these costs remains an open
-question.
+The draft keeps Contexts metadata-only. A Registry-specific resolver can
+instead provide the content through the resolved Context view at the same
+URL, but this behavior is not available from a generic or static xRegistry
+server. Whether Core standardizes a mechanism for this use despite the
+document alternative's costs remains an open question.
 
 ## 9. Open Questions
 
