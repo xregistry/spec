@@ -2299,6 +2299,7 @@
                 "url": {
                   "type": "string",
                   "format": "uri",
+                  "pattern": "^[^#]*$",
                   "description": "Absolute URL of the referenced representation. Consumers use it as given"
                 }
               },

@@ -9,6 +9,7 @@ draft is under review.
 
 <!-- words: contexturl dataref linkset openusd -->
 <!-- words: requestable standalone uncached -->
+<!-- words: contextgroups reserialization workingdrafts -->
 
 ## 1. Problem
 
@@ -103,11 +104,11 @@ CloudEvents `URI` type. Its URL identifies a Context. It does not
 replace or redefine `id`, `source`, `type`, `subject`, `time`, `dataschema`
 or `dataref`.
 
-The event's `dataschema` remains the first source for the payload schema. If
-it is absent, a Consumer can use a Context `schema` Role; otherwise it can
-use the schema declared by the Message definition. When more than one source
-is supplied, they identify the same schema. The Consumer follows the
-specification's precedence and does not compare the sources.
+The Consumer selects the first available schema source: the event's
+`dataschema`, the Context's `schema` Reference, then the schema declared by
+the Message definition. The specification favors supplying one source and
+matching schemas when several are supplied. The Consumer follows the
+precedence even if the sources disagree; it does not compare them.
 
 A direct `schema` Role is not needed merely because the Message definition
 already identifies a schema. It is useful when the schema needs to remain
@@ -118,7 +119,8 @@ The `emitter` Role can supply a Thing Description directly. It does not
 change the meaning of CloudEvents `source` or authenticate the event. An
 application that resolves `source` through a WoT identifier lookup can use
 that mechanism independently; the specification does not define precedence
-between that lookup and an `emitter` reference.
+between that lookup and an `emitter` reference. This does not waive the
+`source` or `subject` rules of another profile followed by the event.
 
 ## 6. Retrieval and Publication
 
@@ -129,12 +131,15 @@ policies. A missing or unavailable Role needed by the Consumer makes the
 Context incomplete; the Consumer does not derive replacement references from
 the Context URL.
 
-If a Registry's model contains the Context Group and all Target Group types,
-a single Core root `POST` can publish them together. Core does not check
-whether URL-valued references resolve, so ordering within that request does
-not establish Target availability. Across Registries, the Publisher first
-makes the Targets available, then publishes the Context, then configures
-Producers with the Context Version URL.
+If a Registry supports Core root `POST` and its model contains the Context
+Group and all Target Group types, one request can publish them together.
+Requesting `inline=contextgroups.contexts` includes the Context Version
+metadata in the response. Without `inline` support, obtaining that metadata
+needs a subsequent read. Core does not check whether URL-valued references
+resolve, so ordering within the write does not establish Target availability.
+Across Registries, the Publisher first makes the Targets available, then
+publishes the Context, then configures Producers with the Context Version
+URL.
 
 ## 7. Resolved Context View
 
@@ -166,6 +171,38 @@ policies to the supplied content as well. A view reduces client round trips;
 it does not eliminate the trust boundary or guarantee that further
 dependencies will not need retrieval.
 
+### 7.1. Relationship to Federation, Publication and WoT
+
+The drafts in [xregistry/spec#571][issue571] address different layers. This
+comparison uses their pinned revision linked below, not an assumption that
+they are released or merged into Core.
+
+| Draft | Its responsibility | Context boundary |
+| --- | --- | --- |
+| [Federation][federation-draft] | Select sources and compose a Registry view, including resolution ownership and shadowing. | A Context associates an event with explicit Target URLs. Negotiating its view does not select sources or establish federation resolution ownership. |
+| [Publication][publication-draft] | Capture exact bytes and descriptors, publish immutable manifests, and retain selected state through channels and open contexts. | Core writes of Contexts are not channel promotion. A resolved Context view is neither a manifest nor a publication open context. |
+| [WoT][wot-draft] | Resolve versioned Thing references and define a CloudEvents profile with `source` and `subject` rules. | A Context `emitter` does not replace that profile's source selection or its rule that `subject` addresses the resolved Thing Description. |
+
+Both federation and the Context view can retrieve remote representations.
+That shared activity does not make their contracts interchangeable: one
+composes a Registry view; the other collects explicitly listed event Targets.
+An event Context is also not a Registry context or a publication open context.
+
+The Context view can embed parsed JSON, so it does not establish the exact
+byte identity needed by publication digests. A Consumer that needs those
+bytes uses `contentbase64` supplied without reserialization, or retrieves the
+original representation, and performs the publication checks separately.
+Context retrieval does not supply or replace checked open records, closure
+bindings or snapshot-local lookup. Combining the features cannot justify
+live/default fallback where the publication or WoT snapshot rules forbid it.
+A publication-aware Context integration is outside this draft.
+
+The specification's OpenUSD prim-path `subject` example is a generic
+CloudEvent, not an example of the WoT CloudEvents profile. Using a Thing
+Description as an `emitter` Target alone does not assert that profile. An
+event that follows both profiles retains the WoT rules; this draft does not
+choose precedence when an `emitter` and WoT source selection disagree.
+
 ## 8. Alternatives and Trade-offs
 
 | Alternative | Why it was not selected |
@@ -174,12 +211,12 @@ dependencies will not need retrieval.
 | One CloudEvents extension per Role | Avoids a link list, but requires a separate extension for each Role and puts multiple URLs in each event. |
 | Message definition as the indirection point | Requires extending the Message model. A Message definition is shared by an event type, while the emitter and target can differ for each Producer. |
 | Endpoint as the indirection point | Requires extending the Endpoint model, which describes a channel rather than an emitter's context. |
-| RFC 9264 Linkset document | Adds a format that Consumers need to parse and is not an xRegistry entity that can be published with other model entities in a Core request. |
+| RFC 9264 Linkset document | Uses a separate link representation and needs an xRegistry document Resource to participate in a Core write. The chosen model stores Role references directly as metadata. |
 | Out-of-band Producer configuration only | Does not give Consumers a generic way to discover the context of an event. |
 
 | Benefit | Cost |
 | --- | --- |
-| One fixed-size CloudEvents extension value | Requires publishing and retaining a Context Resource. |
+| One URL per event instead of one per Role | Requires publishing and retaining a Context Resource. |
 | Roles are explicit JSON keys, not a parsed link syntax | The uncached base flow adds a Context request before Target retrieval. |
 | Context references can change by publishing a new Version | Version stability depends on Publisher discipline; the Target itself can still change. |
 | Resolved view returns all direct Targets in one client response | Registry implementation takes on Target retrieval, authorization and combined caching. |
@@ -207,3 +244,7 @@ The specification and its
 
 [issue792]: https://github.com/xregistry/spec/issues/792
 [issue314]: https://github.com/xregistry/spec/issues/314
+[issue571]: https://github.com/xregistry/spec/pull/571
+[federation-draft]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/federation/spec.md
+[publication-draft]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/publication/spec.md
+[wot-draft]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/models/wot/spec.md

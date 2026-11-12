@@ -131,6 +131,13 @@ references their entities. It does not add attributes to their models, and
 this specification does not change xRegistry Core or the meaning of any
 CloudEvents core attribute.
 
+An event Context is distinct from the Registry contexts and publication open
+contexts proposed in [xregistry/spec#571][issue571]. The resolved Context view
+does not select federation sources or establish a publication snapshot.
+The [design note](design/design.md#71-relationship-to-federation-publication-and-wot)
+explains these boundaries and the relationship to the proposed WoT event
+profile. This specification does not replace that profile's rules.
+
 [Message definition matching][Message matching] continues to associate an
 event with its Message definition. A Context's `message` reference
 identifies the Message definition directly, without that lookup. Issue
@@ -547,7 +554,8 @@ uses lowercase alphanumeric characters and has no more than 20 characters.
   prim path within the `target` model.
 - An `emitter` Reference supplies the Thing Description directly, without
   the WoT draft's [identifier lookup][WoT lookup]. It does not redefine the
-  event's [`source`][CE-source].
+  event's [`source`][CE-source] or replace `source` resolution and `subject`
+  rules imposed by another profile that the event follows.
 
 ## 6. Processing
 
@@ -593,8 +601,8 @@ A Consumer that supports this specification processes an event as follows:
    JSON, the body is the Context. For a resolved Context view, `context` is
    the Context and `documents` supplies the Targets. The Context is
    unavailable when the response is not successful, the representation is
-   unsupported, the Context lacks a `references` map, or the view violates
-   [Section 7.4.2](#742-representation-and-collection-boundary).
+   unsupported, the Context lacks a non-empty `references` map, or the view
+   violates [Section 7.4.2](#742-representation-and-collection-boundary).
 5. For each Role it uses, the Consumer reads `references.<role>.url` and
    ignores other Roles. If a Role that the Consumer requires is absent, the
    Context is incomplete.
@@ -618,7 +626,9 @@ and it SHOULD record the condition.
 
 ### 6.3. Example
 
-A Producer emits the following event in the JSON event format:
+A Producer emits the following event in the JSON event format. Its `subject`
+is an OpenUSD prim path; this example does not claim conformance to the
+separate WoT CloudEvents profile proposed in [xregistry/spec#571][issue571].
 
 ```json
 {
@@ -726,19 +736,20 @@ listed in the Context can need further requests in either mode.
 
 ### 7.2. Publication Within One Registry
 
-When one Registry's model includes the Context Group type and the Group types
-of the Targets, one [`POST /`][HTTP root POST] request can create the Targets
-and the Context together. If any part of the request fails, the server
-rejects the entire request and makes no updates
+When a Registry supports [`POST /`][HTTP root POST] and its model includes the
+Context Group type and the Group types of the Targets, one request can create
+the Targets and the Context together. If any part of the request fails, the
+server rejects the entire request and makes no updates
 ([processing][HTTP processing]). The server does not check that `url` values
 resolve, so the order of entities within the request does not matter.
 
-The following schematic request omits the Message attributes for brevity.
-The Thing Description Version already exists in this Registry, and the
-OpenUSD asset is in another Registry.
+The following schematic request assumes support for the [Core `inline`
+flag][Core inline] and requests Contexts in the response. It omits the
+Message attributes for brevity. The Thing Description Version already exists
+in this Registry, and the OpenUSD asset is in another Registry.
 
 ```yaml
-POST /
+POST /?inline=contextgroups.contexts
 Content-Type: application/json
 
 {
@@ -766,7 +777,9 @@ Content-Type: application/json
 ```
 
 The Publisher reads the new Context's `versionid` from the response and
-configures Producers with the Context Version URL.
+configures Producers with the Context Version URL. Without `inline` support,
+the Publisher sends the ordinary root `POST` and then reads the Context
+Resource to obtain the Version metadata; the write remains one request.
 
 ### 7.3. Publication Across Registries
 
@@ -1081,6 +1094,7 @@ Operators and Consumers SHOULD be aware of the following considerations:
 ---
 
 [issue792]: https://github.com/xregistry/spec/issues/792
+[issue571]: https://github.com/xregistry/spec/pull/571
 [issue314-proposal]: https://github.com/xregistry/spec/issues/314#issuecomment-2880321588
 [Core types]: ../../../core/spec.md#data-types
 [Core version-ids]: ../../../core/spec.md#version-ids

@@ -52,8 +52,9 @@ def assert_references(references):
     assert references
     for role, reference in references.items():
         assert ROLE.fullmatch(role), role
-        parts = urlsplit(reference["url"])
-        assert parts.scheme and parts.netloc and not parts.fragment, reference["url"]
+        url = reference["url"]
+        parts = urlsplit(url)
+        assert parts.scheme and parts.netloc and "#" not in url, url
 
 
 def test_model_sample_and_spec_examples_agree():
@@ -87,6 +88,27 @@ def test_model_sample_and_spec_examples_agree():
         assert ("content" in document) != ("contentbase64" in document), role
         if "contentbase64" in document:
             base64.b64decode(document["contentbase64"], validate=True)
+
+
+@pytest.mark.parametrize("filename", ["document-schema.json", "openapi.json"])
+@pytest.mark.parametrize("url,valid", [
+    ("https://registry.example/schema/1", True),
+    ("https://registry.example/schema/a%23b?version=1", True),
+    ("https://registry.example/schema/1#definition", False),
+    ("https://registry.example/schema/1#", False),
+    ("/schema/1", False),
+])
+def test_reference_url_validation(filename, url, valid):
+    schema = json.loads((ROOT / "schemas" / filename).read_text(encoding="utf-8"))
+    if filename == "openapi.json":
+        version = schema["components"]["schemas"]["contextVersion"]
+    else:
+        version = schema["definitions"]["contextgroup-schema"]["contextVersion"]
+    reference = version["properties"]["references"]["additionalProperties"]
+    validator = jsonschema.Draft7Validator(
+        reference, format_checker=jsonschema.Draft7Validator.FORMAT_CHECKER
+    )
+    assert validator.is_valid({"url": url}) is valid
 
 
 @pytest.mark.parametrize("schema_type,filename", [

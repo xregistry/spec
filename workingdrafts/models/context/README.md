@@ -15,6 +15,16 @@ describe selected Registry metadata. The test also checks schema reproduction
 from the model. Reproduction and syntax checks do not establish complete
 model coverage.
 
+In particular, Core has no model aspect for a minimum map size. Generated
+schemas do not enforce the non-empty `references` rule in the specification;
+the example test checks it explicitly. Role-name constraints and URL
+constraints also need checks beyond formats that cannot express them, such
+as Avro. Passing schema validation alone is not proof of conformance.
+
+The [design note's comparison with xregistry/spec#571][draft-boundaries]
+distinguishes event Contexts from federation contexts, publication snapshots
+and the proposed WoT event profile.
+
 ## Open Questions
 
 1. **Attribute name.** `contexturl` might be confused with the CloudEvents
@@ -44,3 +54,4 @@ model coverage.
 [issue792]: https://github.com/xregistry/spec/issues/792
 [issue314-proposal]: https://github.com/xregistry/spec/issues/314#issuecomment-2880321588
 [Core xid]: ../../../core/spec.md#xid-attribute
+[draft-boundaries]: design/design.md#71-relationship-to-federation-publication-and-wot
