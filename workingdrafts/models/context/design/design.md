@@ -10,6 +10,7 @@ draft is under review.
 <!-- words: contexturl dataref linkset openusd -->
 <!-- words: requestable standalone uncached -->
 <!-- words: contextgroups reserialization workingdrafts -->
+<!-- words: affordance -->
 
 ## 1. Problem
 
@@ -116,11 +117,12 @@ fixed independently of a changing Message definition, or when including
 the schema in the resolved view avoids following another URL.
 
 The `emitter` Role can supply a Thing Description directly. It does not
-change the meaning of CloudEvents `source` or authenticate the event. An
-application that resolves `source` through a WoT identifier lookup can use
-that mechanism independently; the specification does not define precedence
-between that lookup and an `emitter` reference. This does not waive the
-`source` or `subject` rules of another profile followed by the event.
+change the meaning of CloudEvents `source` or authenticate the event. The
+proposed [WoT CloudEvents profile][wot-extension] requires `contexturl` and
+uses the Context's `emitter` Reference to select the Thing Description. If
+that Reference is absent or unavailable, the WoT Consumer reports correlation
+failure instead of falling back to `source` resolution. Other applications
+and profiles define their own handling.
 
 ## 6. Retrieval and Publication
 
@@ -181,7 +183,7 @@ they are released or merged into Core.
 | --- | --- | --- |
 | [Federation][federation-draft] | Select sources and compose a Registry view, including resolution ownership and shadowing. | A Context associates an event with explicit Target URLs. Negotiating its view does not select sources or establish federation resolution ownership. |
 | [Publication][publication-draft] | Capture exact bytes and descriptors, publish immutable manifests, and retain selected state through channels and open contexts. | Core writes of Contexts are not channel promotion. A resolved Context view is neither a manifest nor a publication open context. |
-| [WoT][wot-draft] | Resolve versioned Thing references and define a CloudEvents profile with `source` and `subject` rules. | A Context `emitter` does not replace that profile's source selection or its rule that `subject` addresses the resolved Thing Description. |
+| [WoT][wot-draft] | Resolve versioned Thing references and define a CloudEvents profile with `source` and `subject` rules. | The proposed [WoT CloudEvents profile][wot-extension] requires `contexturl`; its `emitter` Reference selects the Thing Description, and `subject` follows that profile's affordance-pointer rules. It does not fall back to `source` lookup when the Reference is unavailable. |
 
 Both federation and the Context view can retrieve remote representations.
 That shared activity does not make their contracts interchangeable: one
@@ -199,9 +201,10 @@ A publication-aware Context integration is outside this draft.
 
 The specification's OpenUSD prim-path `subject` example is a generic
 CloudEvent, not an example of the WoT CloudEvents profile. Using a Thing
-Description as an `emitter` Target alone does not assert that profile. An
-event that follows both profiles retains the WoT rules; this draft does not
-choose precedence when an `emitter` and WoT source selection disagree.
+Description as an `emitter` Target alone does not assert that profile. When
+an event follows the WoT profile, its `contexturl`, `emitter` and `subject`
+rules apply; this draft does not impose that profile-specific behavior on
+other applications.
 
 ## 8. Alternatives and Trade-offs
 
@@ -271,3 +274,4 @@ The specification and its
 [federation-draft]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/federation/spec.md
 [publication-draft]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/publication/spec.md
 [wot-draft]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/models/wot/spec.md
+[wot-extension]: https://github.com/cloudevents/spec/pull/1406

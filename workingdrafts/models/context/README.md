@@ -45,9 +45,9 @@ and the proposed WoT event profile.
 5. **Server enforcement.** How a server can enforce Version stability and
    retention. The Core `immutable` aspect applies only to
    specification-defined attributes.
-6. **WoT precedence.** How a Consumer handles an `emitter` Reference when an
-   application-specific interpretation of the event's `source` identifies
-   a different Thing.
+6. **Other profile precedence.** How profiles other than the proposed WoT
+   CloudEvents profile handle a `source` interpretation that differs from
+   the Context's `emitter` Reference.
 7. **Placement.** Whether the Context model is a standalone domain or part of
    the [CloudEvents Registry](../../../cloudevents/spec.md) composite.
 8. **Context document.** Whether a Context has a document that contains its

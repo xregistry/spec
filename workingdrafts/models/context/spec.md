@@ -559,10 +559,14 @@ uses lowercase alphanumeric characters and has no more than 20 characters.
   specification.
 - [`subject`][CE-subject] carries values that differ per event, such as a
   prim path within the `target` model.
-- An `emitter` Reference supplies the Thing Description directly, without
-  the WoT draft's [identifier lookup][WoT lookup]. It does not redefine the
-  event's [`source`][CE-source] or replace `source` resolution and `subject`
-  rules imposed by another profile that the event follows.
+- An `emitter` Reference supplies the Thing Description directly. For an
+  event that follows the proposed
+  [WoT CloudEvents profile][WoT CloudEvents profile], that profile requires
+  `contexturl` and uses the Context's `emitter` Reference to select the Thing
+  Description. If that Reference is absent or unavailable, the WoT Consumer
+  reports correlation failure and does not fall back to resolving `source`.
+  This specification does not define `source` resolution for other
+  applications or profiles.
 
 ## 6. Processing
 
@@ -1118,7 +1122,7 @@ Operators and Consumers SHOULD be aware of the following considerations:
 [Message schema]: ../../../message/spec.md#dataschemaformat
 [Message model]: ../../../message/model.json
 [WoT Draft]: ../wot/spec.md
-[WoT lookup]: ../wot/spec.md#53-lookup
+[WoT CloudEvents profile]: https://github.com/cloudevents/spec/pull/1406
 [OpenUSD Draft]: ../openusd/spec.md
 [OpenUSD artifacts]: ../openusd/spec.md#11-artifacts-and-asset-containers
 [CE-Spec]: https://github.com/cloudevents/spec/blob/ce@v1.0.2/cloudevents/spec.md
