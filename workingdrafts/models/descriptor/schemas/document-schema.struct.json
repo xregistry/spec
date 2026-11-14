@@ -29,10 +29,6 @@
           "url": {
             "type": "uri",
             "description": "Absolute fragment-free retrieval URL, used without modification"
-          },
-          "planurl": {
-            "type": "uri",
-            "description": "Optional projection-plan provenance for a resolved TD or TM; not a bundle input"
           }
         },
         "additionalProperties": true,
@@ -106,10 +102,6 @@
           "entitytype": {
             "type": "uri",
             "description": "Absolute fragment-free type URI from an agreed vocabulary; requires entityid"
-          },
-          "messageref": {
-            "type": "string",
-            "description": "Exact name of an existing message Reference"
           },
           "schemaref": {
             "type": "string",

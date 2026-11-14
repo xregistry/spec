@@ -44,8 +44,7 @@
           "references": {
             "pump7": {
               "class": "thingdescription",
-              "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3",
-              "planurl": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7-plan/versions/3"
+              "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3"
             },
             "gateway1": {
               "class": "thingdescription",

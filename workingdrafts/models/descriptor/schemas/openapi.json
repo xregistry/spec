@@ -2305,12 +2305,6 @@
                   "format": "uri",
                   "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^#]*$",
                   "description": "Absolute fragment-free retrieval URL, used without modification"
-                },
-                "planurl": {
-                  "type": "string",
-                  "format": "uri",
-                  "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^#]*$",
-                  "description": "Optional projection-plan provenance for a resolved TD or TM; not a bundle input"
                 }
               },
               "required": [
@@ -2328,10 +2322,6 @@
             "type": "string",
             "format": "uri-reference",
             "description": "Absolute fragment-free type URI from an agreed vocabulary; requires entityid"
-          },
-          "messageref": {
-            "type": "string",
-            "description": "Exact name of an existing message Reference"
           },
           "schemaref": {
             "type": "string",

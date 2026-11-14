@@ -257,15 +257,6 @@
                               "name": "url"
                             },
                             {
-                              "type": [
-                                "null",
-                                "string"
-                              ],
-                              "doc": "Optional projection-plan provenance for a resolved TD or TM; not a bundle input",
-                              "name": "planurl",
-                              "default": null
-                            },
-                            {
                               "name": "Extensions",
                               "type": [
                                 "null",
@@ -300,15 +291,6 @@
                       ],
                       "doc": "Absolute fragment-free type URI from an agreed vocabulary; requires entityid",
                       "name": "entitytype",
-                      "default": null
-                    },
-                    {
-                      "type": [
-                        "null",
-                        "string"
-                      ],
-                      "doc": "Exact name of an existing message Reference",
-                      "name": "messageref",
                       "default": null
                     },
                     {

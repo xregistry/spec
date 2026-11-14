@@ -33,7 +33,6 @@
                     "type": "string",
                     "required": true,
                     "enum": [
-                      "message",
                       "schema",
                       "thingdescription",
                       "thingmodel",
@@ -47,11 +46,6 @@
                     "type": "urlabsolute",
                     "required": true,
                     "description": "Absolute fragment-free retrieval URL, used without modification"
-                  },
-                  "planurl": {
-                    "name": "planurl",
-                    "type": "urlabsolute",
-                    "description": "Optional projection-plan provenance for a resolved TD or TM; not a bundle input"
                   },
                   "*": {
                     "name": "*",
@@ -70,11 +64,6 @@
               "name": "entitytype",
               "type": "uri",
               "description": "Absolute fragment-free type URI from an agreed vocabulary; requires entityid"
-            },
-            "messageref": {
-              "name": "messageref",
-              "type": "string",
-              "description": "Exact name of an existing message Reference"
             },
             "schemaref": {
               "name": "schemaref",

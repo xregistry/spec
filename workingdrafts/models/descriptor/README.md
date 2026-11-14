@@ -1,7 +1,8 @@
 # Descriptor Registry Service - Version 1.0-rc4
 
-<!-- words: describedby entityid entitytype messageref schemaref planurl -->
-<!-- words: contexturl opc ua prebuilt TDs USD -->
+<!-- words: describedby entityid entitytype schemaref -->
+<!-- words: opc ua prebuilt TDs USD -->
+<!-- words: marcschier workingdrafts opcf -->
 
 See the [Descriptor Registry specification](spec.md), its
 [design rationale](design/design.md) and [model](model.json). This working
@@ -24,9 +25,13 @@ describe selected Registry metadata. They do not replace the domain rules:
 absolute identity URI syntax, Reference names and classes, selector
 existence/class, `entitytype` requiring `entityid`, specialization
 requirements and publication stability need additional validation.
-`planurl` is allowed only for resolved TD/TM provenance and is not fetched
-as part of a bundle. The base model permits profile extensions; an OPC UA
-deployment can declare the types in the [model fragment][profile fragment].
+The base model permits profile extensions. The
+[WoT Descriptor profile][WoT profile] owns projection provenance and TD/TM
+selection.
+Native identity and metadata mappings are defined by the OPC UA Descriptor
+profile in the member-access `OPCF-Members/OPC10100-WoT` source,
+`source\WoT-PubSub\spec.md`, clause `sec-pubsub-descriptor-profile`.
+The OPC UA sample attributes are illustrative extensions.
 
 The Descriptor Avro generation command uses the opt-in
 `--avro-nullable-optionals` in [tools/Makefile](../../../tools/Makefile).
@@ -35,6 +40,8 @@ defaults, including nested References. The generator's default output and
 the published Schema, Message, Endpoint and CloudEvents Avro artifacts are
 unchanged. Avro null values are serialization details, not a change to
 Core JSON response or write semantics.
+The option does not change integer widths; a profile's encoding needs to
+support the value ranges that profile declares.
 
 Ordinary GET returns metadata. The OPTIONAL
 [Descriptor bundle](spec.md#74-descriptor-bundle) needs additional
@@ -49,12 +56,16 @@ from federation contexts, publication snapshots and runtime readiness.
 The [document alternative][document alternative] remains recorded as a
 trade-off, not the selected model.
 
-This revision replaces the earlier Context collections, Role-keyed
-References and `contexturl` design; it provides no compatibility aliases.
-The CE proposal owns migration of event attributes. Digest schemes,
-transitive packaging, a universal entity vocabulary and new lifecycle
-or execution APIs are outside this draft.
+Message definitions are not standard References: the Message model retains
+only one Version, so replacing it changes the metadata at the same URL.
+Descriptors reference the payload schema directly.
 
-[profile fragment]: spec.md#52-wot-and-opc-ua
+The CloudEvents extension owns event-link and schema selection. The WoT
+draft and OPC UA companion specification own their profile rules.
+
+Digest schemes, transitive packaging, a universal entity vocabulary and new
+lifecycle or execution APIs are outside this draft.
+
 [draft boundaries]: design/design.md#6-relationship-to-federation-publication-and-wot
 [document alternative]: design/design.md#71-descriptor-document-alternative
+[WoT profile]: https://github.com/marcschier/xregistry-drafts/blob/28b6d245fb4f634bb172e0505ae8e64fdf882428/workingdrafts/models/wot/spec.md#66-wot-descriptor-profile
