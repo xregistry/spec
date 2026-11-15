@@ -3,7 +3,7 @@
 <!-- words: describedby entityid entitytype schemaref -->
 <!-- words: linkset uncached reserialization prebuilt -->
 <!-- words: affordance affordances descriptorid ETags matchversions namespace namespaces -->
-<!-- words: opc ua OpenUSD TDs TMs USD workingdrafts -->
+<!-- words: opc ua opcua OpenUSD TDs TMs USD workingdrafts -->
 <!-- words: marcschier opcf prebuilding -->
 <!-- words: thingdescription thingmodel usdasset wotsubject -->
 <!-- words: descriptorgroups processData -->
@@ -374,8 +374,8 @@ this option to widen a field.
 The [WoT Descriptor profile][WoT profile] defines the TD/TM class URIs,
 projection-plan provenance, resolved TD/TM pairing, and annotated subject
 Descriptors. The [OpenUSD profile][OpenUSD profile] owns its asset class.
-The [CloudEvents OPC UA extension][CE] defines how shared native metadata is
-conveyed through event attributes, retained envelopes, source parameters,
+The [CloudEvents OPC UA extension][OPC profile] defines how shared native
+metadata is conveyed through event attributes, retained envelopes, source parameters,
 and xRegistry Descriptor attributes. The OPC UA companion specification
 references that mapping directly. Native OPC UA types and semantics remain
 defined by OPC UA; the conveyance profile determines which values a Consumer
@@ -395,5 +395,6 @@ the base model permits an empty Reference map.
 [federation]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/federation/spec.md
 [publication]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/publication/spec.md
 [wot]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/models/wot/spec.md
-[WoT profile]: https://github.com/marcschier/xregistry-drafts/pull/8
+[WoT profile]: https://github.com/marcschier/xregistry-drafts/blob/12024152a0b10588e98ed33879fd7a5269f1290b/workingdrafts/models/wot/spec.md#66-wot-descriptor-profile
 [OpenUSD profile]: ../../openusd/descriptor-profile.md
+[OPC profile]: https://github.com/cloudevents/spec/blob/1c4caca73c69a7e076e75fe0727f6a216c83e500/cloudevents/extensions/opcua.md#opc-ua-descriptor-profile

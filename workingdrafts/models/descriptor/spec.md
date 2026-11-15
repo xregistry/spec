@@ -901,7 +901,7 @@ representations received in a bundle.
 [HTTP errors]: ../../../core/http.md#error-processing
 [Message model]: ../../../message/model.json
 [RFC9111]: https://www.rfc-editor.org/rfc/rfc9111.html
-[CloudEvents Descriptors]: https://github.com/cloudevents/spec/blob/2b122bb9ea420b24ffccb53c6e0a05c20082ac7a/cloudevents/extensions/descriptors.md
+[CloudEvents Descriptors]: https://github.com/cloudevents/spec/blob/1c4caca73c69a7e076e75fe0727f6a216c83e500/cloudevents/extensions/descriptors.md
 [xRegistry Core]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html
 [xRegistry Endpoint]: https://xregistry.io/xreg/xregistryspecs/endpoint-v1/docs/spec.html
 [xRegistry Message]: https://xregistry.io/xreg/xregistryspecs/message-v1/docs/spec.html

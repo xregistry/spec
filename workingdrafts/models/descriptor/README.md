@@ -1,7 +1,7 @@
 # Descriptor Registry Service - Version 1.0-rc4
 
 <!-- words: describedby entityid entitytype schemaref -->
-<!-- words: opc ua prebuilt TDs USD affordance OpenUSD -->
+<!-- words: opc ua opcua prebuilt TDs USD affordance OpenUSD -->
 <!-- words: marcschier workingdrafts opcf -->
 
 See the [Descriptor Registry specification](spec.md), its
@@ -76,6 +76,6 @@ lifecycle or execution APIs are outside this draft.
 
 [draft boundaries]: design/design.md#6-relationship-to-federation-publication-and-wot
 [document alternative]: design/design.md#71-descriptor-document-alternative
-[WoT profile]: https://github.com/marcschier/xregistry-drafts/pull/8
+[WoT profile]: https://github.com/marcschier/xregistry-drafts/blob/12024152a0b10588e98ed33879fd7a5269f1290b/workingdrafts/models/wot/spec.md#66-wot-descriptor-profile
 [OpenUSD profile]: ../openusd/descriptor-profile.md
-[OPC profile]: https://github.com/cloudevents/spec/pull/1406
+[OPC profile]: https://github.com/cloudevents/spec/blob/1c4caca73c69a7e076e75fe0727f6a216c83e500/cloudevents/extensions/opcua.md#opc-ua-descriptor-profile
