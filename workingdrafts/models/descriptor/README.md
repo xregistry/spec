@@ -1,7 +1,7 @@
 # Descriptor Registry Service - Version 1.0-rc4
 
 <!-- words: describedby entityid entitytype schemaref -->
-<!-- words: opc ua prebuilt TDs USD -->
+<!-- words: opc ua prebuilt TDs USD affordance OpenUSD -->
 <!-- words: marcschier workingdrafts opcf -->
 
 See the [Descriptor Registry specification](spec.md), its
@@ -27,11 +27,19 @@ existence/class, `entitytype` requiring `entityid`, specialization
 requirements and publication stability need additional validation.
 The base model permits profile extensions. The
 [WoT Descriptor profile][WoT profile] owns projection provenance and TD/TM
-selection.
-Native identity and metadata mappings are defined by the OPC UA Descriptor
-profile in the member-access `OPCF-Members/OPC10100-WoT` source,
-`source\WoT-PubSub\spec.md`, clause `sec-pubsub-descriptor-profile`.
+selection, including subject Descriptors that annotate an affordance pointer.
+The [OpenUSD Descriptor profile][OpenUSD profile] defines asset References.
+These profiles define URI class identifiers; the generic base defines only
+the `schema` bare class.
+The [CloudEvents OPC UA extension][OPC profile] defines how native identity
+and shared metadata are conveyed through events and Descriptors.
 The OPC UA sample attributes are illustrative extensions.
+
+Ordinary TD storage and WoT event processing can operate without
+Descriptors. A route or processing profile that relies on Descriptor
+inputs requires one. A subject Descriptor identifies the subject and its
+annotations; it does not supply missing processing schema or native metadata
+unless it is also explicitly selected in that processing role.
 
 The Descriptor Avro generation command uses the opt-in
 `--avro-nullable-optionals` in [tools/Makefile](../../../tools/Makefile).
@@ -68,4 +76,6 @@ lifecycle or execution APIs are outside this draft.
 
 [draft boundaries]: design/design.md#6-relationship-to-federation-publication-and-wot
 [document alternative]: design/design.md#71-descriptor-document-alternative
-[WoT profile]: https://github.com/marcschier/xregistry-drafts/blob/28b6d245fb4f634bb172e0505ae8e64fdf882428/workingdrafts/models/wot/spec.md#66-wot-descriptor-profile
+[WoT profile]: https://github.com/marcschier/xregistry-drafts/pull/8
+[OpenUSD profile]: ../openusd/descriptor-profile.md
+[OPC profile]: https://github.com/cloudevents/spec/pull/1406

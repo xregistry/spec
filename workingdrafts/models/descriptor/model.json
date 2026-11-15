@@ -33,10 +33,7 @@
                     "type": "string",
                     "required": true,
                     "enum": [
-                      "schema",
-                      "thingdescription",
-                      "thingmodel",
-                      "usdasset"
+                      "schema"
                     ],
                     "strict": false,
                     "description": "Standard representation class or absolute URI class identifier"

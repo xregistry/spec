@@ -18,7 +18,7 @@ This specification defines a Descriptor Registry extension to the xRegistry
 document format and API [specification][xRegistry Core]. A Descriptor
 Registry allows for the storage, management and discovery of metadata
 describing entities and shared processing inputs. Descriptors reference
-representations such as schemas, WoT Thing Descriptions and OpenUSD assets.
+schemas and other representations defined by the applicable profile.
 
 ## Table of Contents
 
@@ -66,30 +66,33 @@ and consumers of data. Each Descriptor Resource contains metadata and named
 References to related representations. Versions allow a Publisher to change
 a description while retaining the description used by an existing consumer.
 
-An asset description can associate one device with a WoT Thing Description
-and an OpenUSD asset. An actor description can contain identity and
+An asset description can associate one entity with several independently
+versioned representations. An actor description can contain identity and
 descriptive metadata with an empty set of References. A processing context
-can combine a payload schema, several Things and shared publisher metadata.
-Asset, Device, Actor and Context descriptions use the same Descriptor
-Resource type.
+can combine a payload schema, several entities and shared publisher
+metadata. Asset, Device, Actor and Context descriptions use the same
+Descriptor Resource type.
 
 ### 1.1. Descriptions and Processing Context
 
 The `references` attribute is a map of Reference objects. Each map key is
 a local name; the corresponding object contains a `class` and an absolute
-`url`. The class identifies the representation available at the URL. For
-example, a Reference named `pump7` with class `thingdescription` identifies
-a WoT Thing Description.
+`url`. The class identifies the representation available at the URL.
+Profiles define the representation classes they use.
+
+The following example combines two device descriptions, a payload schema
+and an asset representation. The technology-specific classes are defined
+by their respective profiles.
 
 ```mermaid
 flowchart LR
-  D["Descriptor Version"] -- "pump7: thingdescription" --> T["WoT TD"]
-  D -- "gateway1: thingdescription" --> G["WoT TD"]
+  D["Descriptor Version"] -- "pump7" --> T["WoT TD"]
+  D -- "gateway1" --> G["WoT TD"]
   D -- "payload: schema" --> S["Payload schema"]
-  D -- "geometry: usdasset" --> U["OpenUSD asset"]
+  D -- "geometry" --> U["OpenUSD asset"]
 ```
 
-The figure shows four References in a Descriptor Version: `pump7` and
+The example shows four References in a Descriptor Version: `pump7` and
 `gateway1` identify TDs, `payload` identifies a schema, and `geometry`
 identifies an OpenUSD asset. A profile selects which References a Consumer
 uses for its task.
@@ -107,10 +110,13 @@ Reference URLs remain values in the Descriptor metadata.
 ### 1.2. Relationship to Other Specifications
 
 Descriptors complement the [Message][xRegistry Message],
-[Schema][xRegistry Schema] and [Endpoint][xRegistry Endpoint] registries and
-the [WoT][WoT Draft] and [OpenUSD][OpenUSD Draft] working drafts.
-A Registry MAY combine Descriptor Groups with Groups from those models,
+[Schema][xRegistry Schema] and [Endpoint][xRegistry Endpoint] registries.
+A Registry MAY combine Descriptor Groups with Groups from other models,
 or serve only Descriptor Groups.
+
+A technology profile defines its URI class identifiers, accepted
+representations, additional attributes and processing requirements. Such
+profiles use the base identity, Reference and publication rules.
 
 The CloudEvents [`describedby` extension][CloudEvents Descriptors]
 associates an event with a Descriptor; see
@@ -389,9 +395,12 @@ attributes that its profile does not require.
 | Standard class | Representation at `url` |
 | --- | --- |
 | `schema` | A schema in a format identified by the response and understood by the Consumer. |
-| `thingdescription` | A WoT Thing Description document. |
-| `thingmodel` | A WoT Thing Model document. |
-| `usdasset` | An OpenUSD asset representation. |
+
+This specification defines only the `schema` bare class. Technology
+profiles MUST define additional classes using URI identifiers in a
+namespace controlled by the defining authority. These URIs identify class
+definitions; Consumers MUST NOT retrieve them merely because they occur
+as class values.
 
 Message Resources keep one Version ([Message model][Message model]).
 Replacing that Version changes the metadata at the same URL. A Descriptor
@@ -424,7 +433,8 @@ schema directly.
 
 The catalog or publication profile determines the specialization and its
 requirements. A Consumer MUST NOT infer a specialization from Group names,
-Reference names, the presence of `entityid` or a TD Reference.
+Reference names, the presence of `entityid` or a particular class of
+Reference.
 
 | Specialization | Requirements and scope |
 | --- | --- |
@@ -514,6 +524,10 @@ an Asset, an Actor and a Context Descriptor in three Groups. The Group names
 and entity type URIs illustrate deployment-specific organization and
 vocabularies.
 
+The examples use WoT, OpenUSD and OPC UA profiles. Their URI class
+identifiers and extension attributes illustrate profile-specific data;
+the base model defines the `schema` class only.
+
 ### 6.1. Asset and Actor Descriptions
 
 Asset Descriptor `pump7` describes `urn:example:asset:pump7` through a TD
@@ -539,11 +553,11 @@ Version create/update input; Core supplies response bookkeeping:
   "schemaref": "payload",
   "references": {
     "pump7": {
-      "class": "thingdescription",
+      "class": "https://xregistry.io/classes/thingdescription",
       "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3"
     },
     "gateway1": {
-      "class": "thingdescription",
+      "class": "https://xregistry.io/classes/thingdescription",
       "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/gateway1/versions/1"
     },
     "payload": {
@@ -551,7 +565,7 @@ Version create/update input; Core supplies response bookkeeping:
       "url": "https://schemas.example/pump-process-data/versions/3"
     },
     "geometry": {
-      "class": "usdasset",
+      "class": "https://xregistry.io/classes/usdasset",
       "url": "https://assets.example/usdassetgroups/line1/usdassets/pump7/versions/2"
     }
   },
@@ -886,8 +900,6 @@ representations received in a bundle.
 [HTTP processing]: ../../../core/http.md#creating-or-updating-entities
 [HTTP errors]: ../../../core/http.md#error-processing
 [Message model]: ../../../message/model.json
-[WoT Draft]: ../wot/spec.md
-[OpenUSD Draft]: ../openusd/spec.md
 [RFC9111]: https://www.rfc-editor.org/rfc/rfc9111.html
 [CloudEvents Descriptors]: https://github.com/cloudevents/spec/blob/2b122bb9ea420b24ffccb53c6e0a05c20082ac7a/cloudevents/extensions/descriptors.md
 [xRegistry Core]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html

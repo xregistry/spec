@@ -10,11 +10,11 @@
           "entitytype": "https://models.example/classes/device",
           "references": {
             "pump7": {
-              "class": "thingdescription",
+              "class": "https://xregistry.io/classes/thingdescription",
               "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3"
             },
             "geometry": {
-              "class": "usdasset",
+              "class": "https://xregistry.io/classes/usdasset",
               "url": "https://assets.example/usdassetgroups/line1/usdassets/pump7/versions/2"
             }
           }
@@ -43,11 +43,11 @@
           "schemaref": "payload",
           "references": {
             "pump7": {
-              "class": "thingdescription",
+              "class": "https://xregistry.io/classes/thingdescription",
               "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3"
             },
             "gateway1": {
-              "class": "thingdescription",
+              "class": "https://xregistry.io/classes/thingdescription",
               "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/gateway1/versions/1"
             },
             "payload": {
@@ -55,7 +55,7 @@
               "url": "https://schemas.example/pump-process-data/versions/3"
             },
             "geometry": {
-              "class": "usdasset",
+              "class": "https://xregistry.io/classes/usdasset",
               "url": "https://assets.example/usdassetgroups/line1/usdassets/pump7/versions/2"
             }
           },

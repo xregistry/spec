@@ -2,40 +2,66 @@
 
 <!-- words: describedby entityid entitytype schemaref -->
 <!-- words: linkset uncached reserialization prebuilt -->
-<!-- words: affordance descriptorid ETags matchversions namespace namespaces -->
+<!-- words: affordance affordances descriptorid ETags matchversions namespace namespaces -->
 <!-- words: opc ua OpenUSD TDs TMs USD workingdrafts -->
-<!-- words: marcschier opcf -->
+<!-- words: marcschier opcf prebuilding -->
+<!-- words: thingdescription thingmodel usdasset wotsubject -->
+<!-- words: descriptorgroups processData -->
 
-**Status:** Rationale for the [Descriptor Registry specification](../spec.md),
-a working draft related to [xregistry/spec#792][issue792]. The specification
-defines the domain contract; the coordinated [CloudEvents proposal][CE]
-defines event linkage and its WoT/OPC UA profiles. This document explains
-the selected design and its costs, not a second normative contract.
+Use one metadata-only Descriptor Resource for entity descriptions and shared
+processing inputs. Its named References identify representations that a
+Consumer can retrieve independently. A CloudEvent can select that Descriptor
+with `describedby`, while a profile can use an existing event attribute when
+it already identifies the description the Consumer needs.
+
+This document records the rationale and consequences of the
+[Descriptor Registry specification](../spec.md), a working draft related to
+[xregistry/spec#792][issue792]. The specification defines the domain
+requirements. The [CloudEvents proposal][CE] defines event linkage and its
+WoT and OPC UA bindings. The discussion here explains those decisions
+without adding requirements.
 
 ## 1. Problem
 
-A Consumer can need a payload schema, one or more WoT
-TDs and an OpenUSD asset to interpret an event. Sending each URL in every
-message repeats shared configuration. A device catalog has a related need:
-describe one stable entity through several independently versioned
-representations. An actor catalog can have metadata-only entries without
-TDs. Neither catalog needs to pretend its entries are events.
+A Consumer needs more than an event type to interpret some messages. A
+payload schema defines the data structure, a Web of Things (WoT) Thing
+Description (TD) identifies a device and its affordances, and an OpenUSD
+asset can describe the geometry affected by the event. These descriptions
+can have different publishers and revision histories.
 
-Entity description, representation inventory and profile-specific use are
-separate concerns. Local names allow several representations of the same
-class without imposing generic emitter or target roles.
+Putting a separate URL for every representation into every message couples
+the event envelope to that inventory. Adding another representation then
+changes the metadata Producers send and Consumers parse, even when the
+messages use the same shared configuration. Keeping everything in local
+configuration avoids that repetition but leaves another Consumer without
+an agreed retrieval path.
+
+A catalog needs the same associations independently of events. One device
+can have both a TD and an OpenUSD representation. A software actor can have
+identity and descriptive metadata without either. The needed capability
+is therefore a published description that Consumers can select and retrieve,
+with event linkage defined separately.
 
 ## 2. Decision
 
-One metadata-only Descriptor Resource contains typed attributes and named
-References. A Reference has a class and retrieval URL. Names are local labels,
-not reserved roles; several entries can have the same class.
+A Descriptor contains typed metadata and a `references` map. Each Reference
+has a local name, a representation class, and a retrieval URL. Names let a
+Consumer select an entry when several References have the same class. The
+profile determines how the selected representation is used.
 
-Asset and Actor descriptions require identity and type; Context descriptions
-need no fabricated primary entity. An agreed catalog/publication profile
-selects those requirements. They can overlap without a `kind` discriminator:
-a device description that supplies all inputs for an event can also be its
-processing context.
+Asset and Actor descriptions require `entityid` and `entitytype`. A Context
+description can combine several entities without assigning one of them a
+primary identity. An agreed catalog or publication profile determines those
+requirements; the Consumer does not infer them from Group names or the
+presence of a TD.
+
+The specializations use the same Resource shape. A device description can
+also serve as a processing context when it supplies all the inputs that the
+event profile requires. A separate `kind` discriminator would force a choice
+between uses that can legitimately overlap.
+
+The figure illustrates an Asset description and a separately published
+Context description.
 
 ```mermaid
 flowchart LR
@@ -46,196 +72,322 @@ flowchart LR
   C --> S["Selected payload schema"]
 ```
 
-Text equivalent: an Asset Descriptor names a pump TD and USD asset. A
-Context Descriptor separately names the same TD, a gateway TD and a
-payload schema. The Context is complete for its own use and does not
-inherit the Asset's metadata.
+The Asset Descriptor references the pump TD and USD asset. The Context
+Descriptor references the same TD, a gateway TD, and a payload schema. It
+supplies its own processing metadata; retrieving it does not require merging
+metadata from the Asset Descriptor.
 
 ## 3. Identity, Selection and Stability
 
-`descriptorid` identifies a registry Resource; `entityid` identifies the
-primary described entity. A connector URL, human-readable label or TD URL
-is not interchangeable with that identity. Several Resources can describe
-one entity for different audiences. Their access controls and References
-remain independent; there is no automatic canonical choice.
+Entity identity and description identity change for different reasons.
+`descriptorid` identifies a Resource within a Registry. `entityid` identifies
+the primary entity that Resource describes. Changing a connector address or
+publishing a new TD does not assign a new identity to the device. Several
+Descriptors can describe the same entity for different audiences, with
+independent References and access policies.
 
-`matchversions: true` enforces equality or common absence of `entityid`
-across retained Versions. It cannot prevent changing a sole Version, all
-Versions together or a URL after deletion. The Publisher's no-reassignment
-rule supplies that historical obligation. `entitytype` can change in a new
-Version when an entity is reclassified, without changing its identity.
+### Who can change the entity association?
 
-Identity fields remain Core `uri` with explicit absolute-URI domain
-constraints, allowing URNs without implying retrieval. A class is either a
-bare name that matches `[a-z][a-z0-9_]*` as a whole string or an absolute URI
-identifier with the same syntax. Generated schemas are not the authority for
-those lexical and cross-field rules.
+The Publisher cannot reassign a published Descriptor Resource to another
+entity. Core's `matchversions: true` checks equality or common absence of
+`entityid` across retained Versions, but it cannot detect a reassignment
+after deletion or when all retained Versions are updated together. The
+Publisher's no-reassignment rule covers that history. Reclassification can
+change `entitytype` in a new Version while preserving `entityid`.
 
-`schemaref` names an exact schema Reference. Without a selector, a
-unique candidate is selected, no candidate is absence, and multiple
-candidates are ambiguous when selection is needed. Explicit invalid
-selectors invalidate metadata even when an event supplies its own schema.
-Neither map order nor name guessing repairs that error.
+Both fields use Core `uri`, with domain constraints requiring an absolute
+URI without a fragment. URNs are allowed because an identifier need not be a
+retrieval location. The model and generated schemas do not enforce every
+lexical, relationship, or publication rule; implementations also apply the
+domain specification.
 
-After publication for use, References, selectors, entity descriptions and
-processing-significant profile attributes stay stable. Publication to a
-catalog counts as use even without events. Changes need new Versions;
-Core bookkeeping follows Core. Pinning a Descriptor Version does not pin
-referenced bytes, so replay also needs suitable Resource Versions,
-publication controls and retention.
+### Which Reference does the Consumer select?
 
-Message definitions are deliberately excluded from the standard classes.
-Their model retains only one Version, so a new definition can replace the
-metadata at the same URL. A direct schema Reference allows independent
-versioning and stable interpretation.
+`schemaref` names the schema Reference exactly. Without that selector, one
+`schema` candidate selects that entry, zero means absence, and more than one
+means ambiguity when an operation needs a schema. An invalid explicit
+selector invalidates the Descriptor even when an event supplies its own
+schema. Map order and guessed names cannot repair that metadata.
 
-Endpoint metadata can be referenced through a profile-defined URI class.
-The Endpoint model defines endpoints as Groups, without Resource Version
-URLs; a profile therefore needs an independently stable representation to
-meet the Descriptor publication rule.
+Bare class names matching `[a-z][a-z0-9_]*` as a whole string are reserved
+for classes defined by the generic specification, which defines `schema`.
+A technology profile defines its own absolute URI class identifiers in a
+namespace controlled by its authority. The WoT profile defines
+`https://xregistry.io/classes/thingdescription` and
+`https://xregistry.io/classes/thingmodel`; the
+[OpenUSD profile][OpenUSD profile] defines
+`https://xregistry.io/classes/usdasset`. The generic model does not enumerate
+those technologies or retrieve the class URIs. A well-formed unknown class
+can be unsupported; a malformed class is invalid metadata.
 
-Bare class names give implementations common identifiers for the standard
-representations. New classes use controlled URI namespaces so independent
-publishers can define them without choosing colliding bare names.
+Message definitions are excluded from the standard classes because the
+Message model retains only one Version. Replacing it can change the metadata
+at the same URL. A direct schema Reference allows the Publisher to select
+and retain the schema used for processing.
+
+An Endpoint can be referenced through a URI class defined by a profile. The
+Endpoint model represents endpoints as Groups, without Resource Version
+URLs, so that profile needs another way to keep the referenced
+representation stable for the intended use.
+
+### How does a Consumer discover a description change?
+
+Once published for use, a Descriptor Version's References, selector, entity
+description, and processing-significant profile attributes remain stable.
+Publishing an Asset or Actor description to a catalog counts as use; the
+Publisher does not wait for an event to carry its URL. Semantic changes
+require a new Version. Core bookkeeping retains its Core behavior.
+
+For replay, the Publisher also selects suitable referenced Resource Versions
+and retains their representations for the intended processing period.
+Pinning the Descriptor URL alone cannot enforce stability at another
+origin. Publication permissions and retention have to preserve the content
+that the URL identifies.
+
+A Resource URL remains an alias for the default Version. Consumers using
+that URL bound cache freshness because the default can change. Consumers
+needing a particular interpretation select its Version URL. If that Version
+is unavailable, processing reports the missing input rather than silently
+substituting the current Version.
+
+Returning to an earlier description requires that its Version and referenced
+representations remain available. Reusing its URL for revised content would
+make cached and newly retrieved descriptions disagree.
 
 ## 4. CloudEvents Without Unnecessary Links
 
-The CE proposal uses Core `source` and `subject` when an agreed profile
-gives them sufficient meaning. It adds OPTIONAL `describedby` for an
-independently selected Processing Descriptor. An explicit link supplies
-all needed Descriptor inputs not already in the event: it is not an
-overlay merged with source or subject metadata.
+The OPTIONAL `describedby` attribute selects an independently published
+Processing Descriptor. It carries one URL when the event's existing
+attributes do not identify all the shared inputs the Consumer needs.
+The CloudEvents profile defines whether `source`, `subject`, or
+`describedby` selects a description.
 
-Without that link, the agreed profile chooses source-Descriptor,
-direct-subject or no-retrieval processing. There is no source-then-subject
-probe based on URL appearance. Under the WoT profile, a direct TD URL plus
-a fragment pointer can work without any Descriptor when the event/profile
-already supplies the remaining inputs.
+Selection follows event-format decoding. In the CloudEvents JSON format,
+`describedby: null` is unset, so the profile's route for an absent attribute
+applies. An empty or malformed set URL is invalid. A Consumer does not treat
+failure to retrieve an explicitly selected Descriptor as permission to try
+another source.
 
-With an explicit Descriptor, the direct TD URL instead matches exactly one
-named TD Reference. Duplicate or missing matches fail correlation; the
-Consumer does not normalize, follow an alternate source or fetch the
-subject independently to repair it. A named short subject disambiguates
-duplicate URLs. CE owns the precise grammar and failure behavior.
+An explicit Descriptor supplies all Descriptor inputs that the profile
+requires and the event does not already contain. Merging it with another
+description would leave precedence and conflict handling dependent on the
+Consumer's local configuration. The design therefore keeps one
+authoritative selection.
 
-The CloudEvents extension defines schema precedence. Its Descriptor
-candidate is the schema selected by `schemaref` or the unique `schema`
-Reference. Message-definition selection is excluded from this model.
+Without an explicit link, the agreed profile determines the route before
+retrieval: a Descriptor identified by `source`, a direct description
+identified by `subject`, or no retrieval. A URL-looking value does not
+trigger a sequence of speculative requests. Under the WoT profile, a direct
+TD URL and fragment pointer can supply the needed description without a
+Descriptor when the event and profile supply the remaining inputs.
 
-Event identity stays `source` plus `id`; descriptive entity identity does
-not replace it. Changing a direct TD Version in `subject` changes subject
-filtering, not the source-plus-ID namespace. A stable short subject with an
-independently versioned `describedby` avoids that filtering coupling.
+When an explicit Descriptor is present, correlation with a direct TD URL
+succeeds only when it matches exactly one named TD Reference. Missing or
+duplicate matches fail correlation.
+The Consumer does not normalize the URL or retrieve the subject independently
+to bypass that selection. A named short subject disambiguates duplicate
+References. CloudEvents defines the precise grammar and failure behavior.
+
+Schema precedence is the event's `dataschema`, followed by the selected
+Descriptor schema. The Descriptor candidate comes from `schemaref` or a
+unique `schema` Reference. Only absence advances to the next candidate;
+an invalid selector, ambiguous selection, or unavailable selected schema
+does not authorize substitution.
+
+Event identity remains `source` plus `id`. Changing `describedby` does not
+change that identity. Changing the TD Version URL in a direct `subject` can
+change subscription matching. A stable short subject and a separately
+versioned `describedby` allow the description to evolve without changing
+the subject used for filtering.
+
+### What if the subject needs its own description?
+
+A pointer in an event identifies a location but gives a catalog nowhere to
+attach metadata about that selection. A subject Descriptor provides that
+location without putting the annotations in every event or modifying the TD.
+The WoT profile defines a `wotsubject` object containing a local TD Reference
+name and a JSON Pointer. Additional attributes describe the selected subject
+under the agreed annotation vocabulary.
+
+The CloudEvents `subject` carries an absolute, fragment-free URL selecting
+the subject Descriptor Version. A direct TD subject still contains a literal
+`#`, including a trailing `#` for the whole Thing. The two forms can be
+distinguished before retrieval, without inspecting URL paths or trying one
+response type after another.
+
+For example, `subject` can identify the Descriptor Version
+`https://registry.example/descriptorgroups/subjects/descriptors/pump7-pressure/versions/1`.
+Its WoT metadata selects Reference `pump7` and stores pointer
+`/properties/processData`. A profile-defined quantity annotation can describe
+that selection. The pointer uses JSON Pointer string form; it is not decoded
+as a URI fragment when read from the Descriptor.
+
+The subject Descriptor supplies subject metadata only. If `describedby`
+selects a processing Descriptor, the subject's TD URL has to match exactly
+one TD Reference in that processing Descriptor. Missing or duplicate matches
+fail correlation. The Consumer does not take schema or publisher metadata
+from the subject Descriptor to fill gaps in the processing Descriptor.
+
+Without `describedby`, this subject form does not select a processing
+Descriptor through `source`. The event, retained native envelope, and agreed
+profile supply the remaining inputs. A deployment that needs shared
+processing metadata selects a complete processing Descriptor separately.
+One Descriptor can serve both roles when the event explicitly selects it
+for both; the Consumer evaluates each role's requirements.
+
+A missing `wotsubject`, invalid Reference or pointer, or unavailable TD stops
+subject correlation. The Consumer does not follow another subject
+Descriptor to repair it. Changing the pointer or its processing-significant
+annotations requires a new subject Descriptor Version; changing its URL in
+`subject` also changes the value used for event filtering, not the
+`source`-plus-`id` identity.
 
 ## 5. Retrieval and Publication
 
-Ordinary GET returns metadata without `$details`. Consumers select and
-retrieve only the referenced representations their profile needs. Core `inline` expands
-contained entities, not URL-valued References.
+Ordinary GET returns Descriptor metadata without `$details`. The Consumer
+selects the needed References and retrieves their URLs unchanged. Core
+`inline` expands contained entities; it does not retrieve a representation
+merely because metadata contains its URL.
 
 If a Registry supports root POST and contains the relevant Group types,
-one request can publish referenced resources and Descriptors together. Core checks the
-write, not whether Reference URLs resolve. Across Registries, publish
-referenced resources first, then the Descriptor, then release it for use. There is no
-cross-registry transaction or permanent availability guarantee.
+one request can publish the referenced resources and Descriptor together.
+Core validates the write, not whether the Reference URLs resolve. The
+Publisher checks availability before releasing the description for use.
+Across Registries, it publishes the referenced resources first, publishes
+the Descriptor, verifies the inputs its profile requires, and then releases
+it to Consumers. A failure stops publication for use; no transaction covers
+all the participating Registries.
 
-The OPTIONAL Descriptor bundle uses HTTP negotiation at the same URL.
-Its `descriptor` member contains unchanged metadata; `documents` contains
-each direct representation under its Reference name. Empty References produce
-empty documents. A bundle retrieves every direct URL or returns an error;
-ordinary JSON can be retried at the same URL to obtain only a needed subset.
-That is a representation retry, not fallback to different context.
+### What does one bundle request guarantee?
 
-Generic Core does not assemble a bundle. A supporting deployment needs
-custom resolution/serving behavior or a Publisher-built bundle served by
-a suitably configured static endpoint. Both follow the same authorization,
-completeness, freshness and Version-selection requirements. Static serving
-is not inherently impossible; content negotiation alone does not implement
-those requirements.
+The OPTIONAL Descriptor bundle returns the selected metadata in
+`descriptor` and each directly referenced representation in `documents`,
+keyed by Reference name. An empty `references` map produces an empty
+`documents` map. The server returns every complete direct representation
+authorized for the caller or an error.
 
-Referenced representations can be fetched at different times. Only direct
-`references.*.url` values are collected, not identity/class URIs, other
-extension attributes or transitive dependencies.
-JSON embedding can change bytes through reserialization; base64 can retain
-the decoded resource bytes. Neither representation creates a digest scheme.
-Per-resource authorization, outbound policy, limits, caller isolation,
-combined freshness, `Vary: Accept` and whole-representation ETags remain
-necessary. A prebuilt file does not remove those obligations.
+This reduces an uncached retrieval from one Descriptor request followed by
+requests for the needed representations to one response containing all
+direct representations. It can also retrieve content that the Consumer
+does not need. If geometry is unavailable while the Consumer needs only the
+TD and schema, the bundle fails. The Consumer can retry ordinary JSON at
+the same Descriptor URL and retrieve that subset. The retry changes the
+representation requested, not the selected context.
+
+Bundle assembly needs additional serving behavior. A server can retrieve
+the content or a Publisher can assemble a bundle for a configured static
+endpoint. Both apply the same completeness, authorization, freshness, and
+Version-selection rules. Content negotiation selects the representation;
+it does not implement those checks.
+
+Collection is limited to `references.*.url`. Identity URIs, class URIs,
+other extension attributes, and transitive dependencies are not retrieved
+automatically. JSON embedding can change bytes through reserialization;
+base64 can preserve the decoded representation's bytes.
+
+The server checks caller authorization for each resource, restricts outbound
+requests and redirects, and bounds retrieval work. It sends `Vary: Accept`;
+caches isolate callers and respect the combined freshness restrictions.
+ETags validate the whole bundle. Prebuilding the response moves assembly to
+publication time but does not remove these obligations.
+
+The representations can be retrieved at different times. A bundle is not
+an atomic snapshot or a dependency closure verified by digests. Consumers
+still validate the class, format, and content they receive.
 
 ## 6. Relationship to Federation, Publication and WoT
 
-The drafts in [xregistry/spec#571][issue571] address different layers.
-Their links below pin the inspected revision, not a released contract.
+Descriptors identify the representations a Consumer uses. The drafts in
+[xregistry/spec#571][issue571] address how Registry views are composed,
+content is published, and WoT documents are resolved. The pinned references
+identify the inspected revision, not a released contract.
 
 | Draft | Responsibility | Descriptor boundary |
 | --- | --- | --- |
-| [Federation][federation] | Select sources and compose a Registry view, including ownership and shadowing. | Descriptor References select explicit representations, not federation sources or resolution ownership. |
-| [Publication][publication] | Capture bytes, publish manifests and retain selected state through channels and open contexts. | A Core Descriptor write is not channel promotion; a bundle is not a manifest or atomic snapshot. |
-| [WoT registry][wot] | Store TDs/TMs and provide domain-specific resolution. | Its profile defines resolved representations and any projection provenance attributes. |
-| [CE WoT profile][CE] | Bind events to TDs and their subjects. | CE owns direct TD and Descriptor-relative subject processing. XR does not require a Descriptor for all WoT events. |
+| [Federation][federation] | Select sources and compose a Registry view, including ownership and shadowing. | References identify representations; federation determines the Registry view serving them. |
+| [Publication][publication] | Capture bytes, publish manifests, and retain selected state through channels and open contexts. | A Descriptor write publishes metadata. Channel promotion and snapshot guarantees follow the publication model. |
+| [WoT registry][wot] | Store TDs and Thing Models (TMs) and provide domain-specific resolution. | Its profile defines resolved representations and projection provenance. |
+| [CE WoT profile][CE] | Bind events to TDs and their subjects. | CloudEvents defines direct TD and Descriptor-relative subject processing. A WoT event need not use a Descriptor. |
 
-Equal names, entity IDs or a USD asset Reference do not establish an
-affordance-to-prim mapping, coordinate transform or units conversion.
-A profile that needs those relations supplies an explicit mapping.
-References also do not supply publication checked records, closure
-bindings or runtime admission. A publication-aware integration remains
-separate work.
+A TD Reference and an OpenUSD asset Reference do not establish which
+affordance corresponds to which prim, coordinate transform, or units.
+A profile needing those relations supplies an explicit mapping. Likewise,
+publication checked records, closure bindings, and runtime admission
+require their respective publication or execution mechanisms. Listing the
+representations does not implement those mechanisms.
 
 ## 7. Alternatives and Trade-offs
 
+The selected model separates a description's lifecycle from the event
+envelope and allows catalogs to use the same Resource independently of
+events. The alternatives change where that description is stored or how
+the Consumer obtains it.
+
 | Alternative | Trade-off |
 | --- | --- |
-| Multiple direct links in one CE attribute | Removes indirection but needs link-list parsing and carries every URL on the wire. |
-| One CE attribute per representation | Simple individual values, but wire metadata grows and every new representation needs a convention. |
-| Message definition as the indirection point | Reuses an existing entity but requires extending its model and mixing shared event-type definitions with deployment descriptions. |
-| Endpoint as the indirection point | Reuses channel metadata but makes device/actor descriptions depend on a channel model. |
-| RFC 9264 Linkset | General-purpose link representation; adds a document format rather than using Core metadata directly. |
-| Out-of-band configuration only | Avoids wire links but gives Consumers no agreed description-retrieval path. |
-| Always require a Descriptor | Uniform lookup, but adds an unnecessary resource when a profile-defined direct TD subject or `dataschema` already supplies everything. |
+| Multiple direct links in one CE attribute | Avoids a Descriptor retrieval but carries every URL and requires link-list parsing in the event binding. |
+| One CE attribute per representation | Gives each URL a separate value, but each new representation needs an envelope convention. |
+| Message definition as the indirection point | Requires extending the Message model and combines event-type definitions with deployment descriptions. Its single retained Version also prevents independent historical description selection. |
+| Endpoint as the indirection point | Reuses channel metadata but ties device and actor descriptions to a channel model without Resource Version URLs. |
+| RFC 9264 Linkset | Defines a general-purpose link document, but introduces a document format instead of using Core metadata directly. |
+| Out-of-band configuration only | Avoids event links but requires every Consumer to obtain the configuration through another agreed mechanism. |
+| Always require a Descriptor | Gives every event the same lookup path but adds a Resource even when a direct TD subject or `dataschema` supplies the needed inputs. |
 
-The selected design adds an uncached metadata request and a publication/
-retention obligation. In return, catalogs and processing profiles share one
-shape, wire linkage can remain small, and unrelated description Versions
-can evolve independently. Bundles reduce client round trips but add serving
-complexity and collect even representations that an individual Consumer does not
-need.
+A Descriptor adds a metadata request when uncached and requires publication
+and retention controls. In return, the Publisher can change the description
+by publishing a new Version rather than changing the inventory of URLs in
+every message. The Consumer follows the selected URL without reconstructing
+the description from registry-specific paths.
 
 ### 7.1. Descriptor Document Alternative
 
-An alternative stores all referenced content as the Resource document,
-with Reference metadata under `$details`.
+Storing all referenced content as the Resource document would let Core serve
+the assembled content directly, with Reference metadata under `$details`.
+That removes retrieval during a read when the Publisher stores the bundle.
+It also gives the Consumer two distinct URLs for metadata and content.
 
 | Benefit | Cost |
 | --- | --- |
-| Core can serve a prebuilt document without resource retrieval. | Metadata-only Consumers need the separate view; switching views by adding/removing `$details` would derive a URL from the selected link. |
-| One document can contain all referenced representations. | Every Version duplicates content; Core does not check that document contents agree with References. |
-| Content can be fixed alongside metadata. | A generated document reintroduces resolver access/freshness rules; a stored document changes only when republished. |
+| Core serves a prebuilt document without retrieving referenced resources. | Switching from the selected metadata URL to the document requires adding or removing `$details`. |
+| One document contains all referenced representations. | Each Version copies the content, and Core does not check that it agrees with the References. |
+| Content can remain fixed alongside the metadata. | A stored document changes only when republished; generating it during retrieval requires resolver authorization and freshness checks. |
 
-The draft retains metadata-only Resources and OPTIONAL negotiated bundles.
-Additional serving behavior is REQUIRED, including for prebuilt bundles.
-Generic Core metadata serving alone does not perform collection.
+The selected design retains metadata-only Resources and OPTIONAL negotiated
+bundles at one URL. Additional serving behavior is REQUIRED, including for
+prebuilt bundles. Consumers requesting only metadata avoid downloading
+every referenced representation, while Consumers requesting a bundle use
+the same selected Descriptor URL.
 
 ## 8. Generator Compatibility and Profile Boundaries
 
-Descriptor Avro generation opts into nullable OPTIONAL fields with
-`--avro-nullable-optionals`. The default generator path and four published
-top-level Avro artifacts stay unchanged. Enabling it globally would change
-what old non-null readers can accept; that broader compatibility change is
-not part of this proposal. Focused regressions belong to the existing
-generic generator tests.
+Descriptor Avro generation uses `--avro-nullable-optionals` to represent
+absent OPTIONAL fields. The option is disabled by default and enabled only
+for Descriptor Avro generation. The four published top-level Avro artifacts
+and default generator output remain unchanged; enabling the option globally
+would alter the accepted values for existing schemas. Focused regressions
+remain in the existing generic generator tests.
 
-Projection-plan provenance and resolved TD/TM pairing rules are defined in
-the [WoT Descriptor profile][WoT profile]. Shared OPC UA metadata definitions
-are specified by the OPC UA Descriptor profile in the member-access
-`OPCF-Members/OPC10100-WoT` source, `source\WoT-PubSub\spec.md`, clause
-`sec-pubsub-descriptor-profile`. The Descriptor sample illustrates inline
-extension attributes without defining that native profile.
+The option changes optionality, not integer width. A profile's encoding
+needs to support the ranges that the profile defines rather than relying on
+this option to widen a field.
 
-Reference digests, transitive packaging, universal type vocabularies,
-same-Registry ID alternatives, lifecycle APIs and device execution remain
-outside this draft. Extension classes use controlled absolute URI
-identifiers without registration. The model allows an empty Reference map;
-profiles, not a generic requirement flag, define the inputs they need.
+The [WoT Descriptor profile][WoT profile] defines the TD/TM class URIs,
+projection-plan provenance, resolved TD/TM pairing, and annotated subject
+Descriptors. The [OpenUSD profile][OpenUSD profile] owns its asset class.
+The [CloudEvents OPC UA extension][CE] defines how shared native metadata is
+conveyed through event attributes, retained envelopes, source parameters,
+and xRegistry Descriptor attributes. The OPC UA companion specification
+references that mapping directly. Native OPC UA types and semantics remain
+defined by OPC UA; the conveyance profile determines which values a Consumer
+uses and how duplicates are compared. The Descriptor sample illustrates
+those extension attributes; the generic model does not define the native
+mapping.
+
+The domain defines identity, named References, selection, and publication
+stability. Digest schemes, transitive packaging, universal type vocabularies,
+same-Registry ID alternatives, lifecycle APIs, and device execution remain
+outside this draft. A profile determines the inputs its operation needs;
+the base model permits an empty Reference map.
 
 [issue792]: https://github.com/xregistry/spec/issues/792
 [issue571]: https://github.com/xregistry/spec/pull/571
@@ -243,4 +395,5 @@ profiles, not a generic requirement flag, define the inputs they need.
 [federation]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/federation/spec.md
 [publication]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/publication/spec.md
 [wot]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/models/wot/spec.md
-[WoT profile]: https://github.com/marcschier/xregistry-drafts/blob/28b6d245fb4f634bb172e0505ae8e64fdf882428/workingdrafts/models/wot/spec.md#66-wot-descriptor-profile
+[WoT profile]: https://github.com/marcschier/xregistry-drafts/pull/8
+[OpenUSD profile]: ../../openusd/descriptor-profile.md
