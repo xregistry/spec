@@ -1,8 +1,8 @@
 # Descriptor Registry Service - Version 1.0-rc4
 
-<!-- words: describedby entityid entitytype schemaref -->
+<!-- words: describedby entityid entitytype schemaref endpointref thingref affordanceselector -->
 <!-- words: opc ua opcua prebuilt TDs USD affordance OpenUSD -->
-<!-- words: marcschier workingdrafts opcf -->
+<!-- words: workingdrafts -->
 
 See the [Descriptor Registry specification](spec.md), its
 [design rationale](design/design.md) and [model](model.json). This working
@@ -18,6 +18,12 @@ two TDs, explicit schema selection and typed OPC UA metadata. The Context
 does not inherit metadata from the Asset. Group IDs and entity types are
 illustrative catalog choices. Example URLs are not deployed services.
 
+An Actor Descriptor describes a participant independently of the roles it
+plays in conversations. Publisher, Producer and Consumer are responsibilities
+that one actor can combine. Processing descriptions supply interpretation
+inputs; execution observations record reported sends, receipts or processing
+outcomes separately.
+
 The generated [JSON Schema](schemas/document-schema.json),
 [JSON Structure](schemas/document-schema.struct.json),
 [Avro](schemas/document-schema.avsc) and [OpenAPI](schemas/openapi.json)
@@ -26,11 +32,18 @@ absolute identity URI syntax, Reference names and classes, selector
 existence/class, `entitytype` requiring `entityid`, specialization
 requirements and publication stability need additional validation.
 The base model permits profile extensions. The
-[WoT Descriptor profile][WoT profile] owns projection provenance and TD/TM
-selection, including subject Descriptors that annotate an affordance pointer.
+WoT Descriptor profile owns projection provenance and TD/TM
+selection. A subject Descriptor uses `thingref` to select the TD and an
+OPTIONAL `affordanceselector` to select and annotate a specific affordance.
+Without that selector, the subject is the whole Thing.
 The [OpenUSD Descriptor profile][OpenUSD profile] defines asset References.
-These profiles define URI class identifiers; the generic base defines only
-the `schema` bare class.
+The [Schema Descriptor profile](spec.md#9-schema-descriptor-profile) defines
+the `schema` class, `schemaref` and schema selection. The
+[Endpoint Descriptor profile](spec.md#10-endpoint-descriptor-profile)
+defines endpoint metadata References and `endpointref`. Both profiles are
+hosted at the end of this working draft for later relocation into their
+respective specifications. The generic base defines no representation
+classes or profile selectors.
 The [CloudEvents OPC UA extension][OPC profile] defines how native identity
 and shared metadata are conveyed through events and Descriptors.
 The OPC UA sample attributes are illustrative extensions.
@@ -66,16 +79,16 @@ trade-off, not the selected model.
 
 Message definitions are not standard References: the Message model retains
 only one Version, so replacing it changes the metadata at the same URL.
-Descriptors reference the payload schema directly.
+The Schema Descriptor profile references the payload schema directly.
 
-The CloudEvents extension owns event-link and schema selection. The WoT
-draft and OPC UA companion specification own their profile rules.
+The CloudEvents extensions own event-link and schema selection and OPC UA
+metadata conveyance. The WoT draft owns TD selection and affordance
+annotation rules.
 
 Digest schemes, transitive packaging, a universal entity vocabulary and new
 lifecycle or execution APIs are outside this draft.
 
 [draft boundaries]: design/design.md#6-relationship-to-federation-publication-and-wot
 [document alternative]: design/design.md#71-descriptor-document-alternative
-[WoT profile]: https://github.com/marcschier/xregistry-drafts/blob/12024152a0b10588e98ed33879fd7a5269f1290b/workingdrafts/models/wot/spec.md#66-wot-descriptor-profile
-[OpenUSD profile]: ../openusd/descriptor-profile.md
+[OpenUSD profile]: ../openusd/spec.md#57-descriptor-profile
 [OPC profile]: https://github.com/cloudevents/spec/blob/1c4caca73c69a7e076e75fe0727f6a216c83e500/cloudevents/extensions/opcua.md#opc-ua-descriptor-profile

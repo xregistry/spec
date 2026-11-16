@@ -3,7 +3,7 @@
 <!-- words: descriptorgroup descriptorgroups descriptorgroupid -->
 <!-- words: descriptorgroupsurl descriptorgroupscount descriptorid -->
 <!-- words: descriptorsurl descriptorscount entityid entitytype -->
-<!-- words: schemaref describedby baseurl allowlist -->
+<!-- words: schemaref endpointref describedby baseurl allowlist -->
 <!-- words: thingdescription thingmodel thingdescriptiongroups thingdescriptions -->
 <!-- words: usdasset usdassetgroups OpenUSD reserializing -->
 <!-- words: opcuapublisherid opcuadatasetwriterid opcuadatasetwritername -->
@@ -11,6 +11,7 @@
 <!-- words: matchversions namespace namespaces -->
 <!-- words: opc ua prebuild prebuilt nodeset -->
 <!-- words: PumpProcessData servicekind TDs uncached usdassets -->
+<!-- words: RDF -->
 
 ## Abstract
 
@@ -35,8 +36,7 @@ schemas and other representations defined by the applicable profile.
     - [4.2.1. `references` Attribute](#421-references-attribute)
     - [4.2.2. `entityid` Attribute](#422-entityid-attribute)
     - [4.2.3. `entitytype` Attribute](#423-entitytype-attribute)
-    - [4.2.4. `schemaref` Attribute](#424-schemaref-attribute)
-    - [4.2.5. Profile Attributes](#425-profile-attributes)
+    - [4.2.4. Profile Attributes](#424-profile-attributes)
   - [4.3. References](#43-references)
     - [4.3.1. `class` Attribute](#431-class-attribute)
     - [4.3.2. `url` Attribute](#432-url-attribute)
@@ -58,6 +58,14 @@ schemas and other representations defined by the applicable profile.
     - [7.4.4. Caching and Consistency](#744-caching-and-consistency)
     - [7.4.5. Example](#745-example)
 - [8. Security](#8-security)
+- [9. Schema Descriptor Profile](#9-schema-descriptor-profile)
+  - [9.1. Schema References](#91-schema-references)
+  - [9.2. `schemaref` Attribute and Selection](#92-schemaref-attribute-and-selection)
+  - [9.3. Model Extension](#93-model-extension)
+- [10. Endpoint Descriptor Profile](#10-endpoint-descriptor-profile)
+  - [10.1. Endpoint References](#101-endpoint-references)
+  - [10.2. `endpointref` Attribute and Selection](#102-endpointref-attribute-and-selection)
+  - [10.3. Model Extension](#103-model-extension)
 
 ## 1. Overview
 
@@ -72,6 +80,12 @@ descriptive metadata with an empty set of References. A processing context
 can combine a payload schema, several entities and shared publisher
 metadata. Asset, Device, Actor and Context descriptions use the same
 Descriptor Resource type.
+
+An Actor Descriptor describes a participant entity, such as a service or
+device. Its identity is independent of the roles it plays in conversations.
+A conversation describes permitted interactions among actor roles; a
+Processing Descriptor supplies the shared inputs used to interpret a
+message.
 
 ### 1.1. Descriptions and Processing Context
 
@@ -114,9 +128,11 @@ Descriptors complement the [Message][xRegistry Message],
 A Registry MAY combine Descriptor Groups with Groups from other models,
 or serve only Descriptor Groups.
 
-A technology profile defines its URI class identifiers, accepted
-representations, additional attributes and processing requirements. Such
-profiles use the base identity, Reference and publication rules.
+A profile defines its class identifiers, accepted representations,
+additional attributes and processing requirements. Such profiles use the
+base identity, Reference and publication rules. The Schema and Endpoint
+Descriptor profiles are defined in [Section 9](#9-schema-descriptor-profile)
+and [Section 10](#10-endpoint-descriptor-profile).
 
 The CloudEvents [`describedby` extension][CloudEvents Descriptors]
 associates an event with a Descriptor; see
@@ -145,11 +161,27 @@ attributes, not literal JSON values.
 | Reference | One named entry of `references`, containing the class and URL of a referenced resource. |
 | Referenced resource | The resource identified by a Reference's `url`. It can be inside or outside xRegistry; the class specifies which representation is retrieved. |
 | Profile | Agreed catalog, publication or processing rules that determine a specialization and its needed inputs. |
+| Actor | A participant entity capable of behavior, such as a service or device. |
+| Conversation | A contract describing permitted message exchanges and related behavior among actor roles. |
+| Conversation role | A responsibility in a conversation that a concrete actor can perform. The role and the participant playing it have distinct identities. |
+| Message definition | A contract describing a message's structure and semantics, distinct from an individual message. |
+| Message | An individual communication instance, such as one CloudEvent. |
 | Publisher | A client that publishes Descriptors and makes the referenced resources available. |
 | Consumer | A client that reads Descriptors or uses their References. |
 | Producer | A component that emits messages under an agreed profile. |
 | Processing Descriptor | The Descriptor selected by a message binding as its shared processing inputs. |
+| Observation | A record of what an observer reports happened during execution. |
+| Trace | A collection of execution observations, distinct from the contract describing permitted behavior. |
 | Descriptor bundle | A negotiated read-only response containing a Descriptor and the representations identified by all of its References. |
+
+Publisher, Producer and Consumer name responsibilities rather than mutually
+exclusive entity types. An actor can perform several of these
+responsibilities and play different roles in different conversations.
+
+Descriptors describe entities and processing inputs. A Reference to an
+endpoint describes communication configuration; it does not establish that
+a message was sent, received or processed. Those outcomes are recorded as
+separate observations, whose meaning depends on what the observer recorded.
 
 ## 3. Descriptor Registry Model
 
@@ -185,7 +217,6 @@ the values for that Version.
           "versionid": "<STRING>",
           "entityid": "<URI>", ?
           "entitytype": "<URI>", ?
-          "schemaref": "<STRING>", ?
           "references": {
             "<STRING>": {
               "class": "<STRING>",
@@ -211,15 +242,15 @@ the values for that Version.
 
 The Descriptor Resource declares `hasdocument: false`. Under the
 [HTTP binding][HTTP representations], an ordinary `GET` at the Resource or
-Version URL returns its metadata without a `$details` suffix. A Descriptor
-bundle is an alternative representation at that same URL.
+Version URL returns its metadata without a `$details` suffix.
 
 The generated schemas express structural constraints. Implementations MUST
 also validate the identity and class syntax, selector relationships,
 applicable profile requirements and publication rules in this
-specification. The model uses Core `uri` for identity and a non-strict string
-for `class`; the domain constraints on those values apply in addition to
-the generated schemas.
+specification. The model uses Core `uri` for identity and a string for
+`class`; domain constraints and the selected profiles apply in addition
+to the generated schemas. Profile attributes are declared by extending
+this base model.
 
 ## 4. Descriptor Registry
 
@@ -235,8 +266,9 @@ The Group Type name is `descriptorgroup` (singular), with collection name
 application-defined way. Every Descriptor Resource MUST reside in a
 Descriptor Group.
 
-Group IDs such as `devices`, `actors` and `streams` are examples, not
-standardized classifications. Consumers MUST NOT infer specialization,
+This specification defines no standardized Group classifications. Group IDs
+are application-defined; `devices`, `actors` and `streams` are illustrative
+names used in the examples. Consumers MUST NOT infer specialization,
 entity type, authorization or message role from Group or Resource IDs.
 
 ### 4.2. Descriptor Resources
@@ -298,8 +330,8 @@ algorithm. A Resource URL selects the [default Version][Core defaults].
     independently.
 
 - Examples:
+  - `https://assets.example/devices/pump7`
   - `urn:example:asset:pump7`
-  - `urn:example:actor:planner7`
 
 #### 4.2.3. `entitytype` Attribute
 
@@ -310,47 +342,32 @@ algorithm. A Resource URL selects the [default Version][Core defaults].
   - OPTIONAL in the base model; REQUIRED for Asset and Actor
     specializations.
   - If `entitytype` is present, `entityid` MUST be present and non-null.
-  - MUST meet the absolute-URI syntax and exact comparison requirements of
-    `entityid`.
-  - The catalog profile defines its accepted vocabulary and mapping.
+  - The value MUST be a non-empty RFC 3986 URI with a scheme. A fragment
+    MAY identify a class within an ontology document.
+  - Values MUST be compared exactly, without case folding or URI
+    normalization.
+  - The applicable profile defines its accepted vocabulary and mapping.
     Consumers MUST treat unknown type URIs as opaque identifiers.
   - Reclassification MAY change this value in a new Version without
     changing the entity association. Publication stability still applies.
 
 - Examples:
-  - `https://models.example/classes/device`
+  - `https://models.example/ontologies/devices.owl#Device`, identifying the
+    `Device` class in an RDF/OWL ontology document.
   - `https://models.example/classes/software-actor`
 
-#### 4.2.4. `schemaref` Attribute
-
-- Type: String
-- Description: The name of the Reference that supplies the Descriptor's
-  payload schema.
-
-- Constraints:
-  - OPTIONAL.
-  - The value MUST exactly match the name of an existing Reference whose
-    class is `schema`.
-  - The Consumer MUST validate the selector when validating the Descriptor,
-    including when a schema is supplied by another source. A missing entry
-    or a different class makes the Descriptor invalid.
-  - Absence invokes the candidate selection rules in
-    [Section 4.5](#45-reference-selection).
-
-- Examples:
-  - `"schemaref": "payload"`
-
-#### 4.2.5. Profile Attributes
+#### 4.2.4. Profile Attributes
 
 Profiles MAY define additional typed Version attributes on a Descriptor.
 Deployment models SHOULD declare the types of those attributes. Attribute
-names MUST follow Core attribute syntax. Private names SHOULD use an
-identifying prefix, such as `acme_servicekind`.
+names MUST follow Core attribute syntax and its
+[extension-naming rules][Core extensions].
 
 A profile defines attribute presence, value comparison and the handling of
 conflicting values. Processing-significant shared values follow
 [Section 4.6](#46-versions-and-publication-stability). Values that vary
-per message, such as a sequence number, belong to that message.
+per message, such as a sequence number, belong in the message, not in a
+Descriptor.
 
 ### 4.3. References
 
@@ -376,7 +393,8 @@ attributes that its profile does not require.
     as invalid metadata.
   - Values MUST be compared exactly, without case folding or URI
     normalization.
-  - Bare names are reserved for classes defined by this specification.
+  - Bare names are reserved for classes defined by profiles in this
+    specification.
     A Publisher defining a new class MUST use a URI class identifier in
     a namespace it controls.
     Controlled URI namespaces distinguish independently defined classes.
@@ -392,20 +410,11 @@ attributes that its profile does not require.
     `nodeset` is well-formed but unsupported; `NodeSet` and `node-set` are
     malformed.
 
-| Standard class | Representation at `url` |
-| --- | --- |
-| `schema` | A schema in a format identified by the response and understood by the Consumer. |
-
-This specification defines only the `schema` bare class. Technology
-profiles MUST define additional classes using URI identifiers in a
-namespace controlled by the defining authority. These URIs identify class
-definitions; Consumers MUST NOT retrieve them merely because they occur
-as class values.
-
-Message Resources keep one Version ([Message model][Message model]).
-Replacing that Version changes the metadata at the same URL. A Descriptor
-requiring stable processing inputs therefore references the versioned
-schema directly.
+The base model defines no representation classes. The profiles at the end
+of this document and in other working drafts define their own classes and
+selection rules. Profiles outside this document MUST define classes using
+URI identifiers in a namespace controlled by their defining authority.
+Consumers MUST NOT assume they can resolve a class URI.
 
 #### 4.3.2. `url` Attribute
 
@@ -431,46 +440,38 @@ schema directly.
 
 ### 4.4. Specializations
 
-The catalog or publication profile determines the specialization and its
-requirements. A Consumer MUST NOT infer a specialization from Group names,
-Reference names, the presence of `entityid` or a particular class of
-Reference.
+The applicable profile specifies which specialization requirements apply
+to a Descriptor, including its identity and type vocabulary and the metadata
+or References it requires. A Consumer MUST NOT infer a specialization from
+Group names, Reference names, the presence of `entityid` or a particular
+class of Reference.
 
 | Specialization | Requirements and scope |
 | --- | --- |
-| Asset Descriptor | Requires `entityid` and `entitytype` for one primary asset. The catalog authority defines the identity and type mapping. |
-| Device Descriptor | An Asset Descriptor whose catalog profile identifies the primary asset as a device. Different References can describe its behavior and geometry. |
-| Actor Descriptor | Requires `entityid` and `entitytype` for one actor. A software-only actor can have an empty `references` map. |
+| Asset Descriptor | Requires `entityid` and `entitytype` for one primary asset. The applicable profile defines the identity and type mapping. |
+| Device Descriptor | An Asset Descriptor whose applicable profile identifies the primary asset as a device. Different References can describe its behavior and geometry. |
+| Actor Descriptor | Requires `entityid` and `entitytype` for one participant entity, such as a service or device, independently of its conversation roles. Its References describe that participant; an empty map is valid. |
 | Context Descriptor | `entityid` and `entitytype` are OPTIONAL. It supplies shared inputs for an agreed interpretation, potentially concerning several entities. All REQUIRED Descriptor inputs MUST be supplied locally. |
 
 These specializations can overlap. An Asset Descriptor that independently
 supplies all inputs for a message profile can also serve as its Context
-Descriptor. A multi-asset Context Descriptor MAY omit primary identity.
+Descriptor. A device participating in message exchanges can also be
+described as an Actor. A multi-asset Context Descriptor MAY omit primary
+identity.
 
-Catalogs use ordinary Core collections. An `entityid` lookup can return
-multiple authorized descriptions; selection requires an explicit catalog
-policy.
+An application organizing Descriptors as a catalog uses ordinary Core
+collections. An `entityid` lookup can return multiple authorized
+descriptions; the application selects among them using an explicit policy.
 
 ### 4.5. Reference Selection
 
-When a profile needs a Descriptor-supplied schema, a Consumer MUST use
-the following algorithm:
+The applicable profile MUST define which References an operation needs,
+how they are selected and how explicit selectors are validated. Multiple
+same-class References are valid metadata; an operation that needs one
+entry requires the profile's selection rules. Consumers MUST NOT substitute
+map order, guessed names or event-type matching for those rules.
 
-1. If `schemaref` is present, validate it under
-   [Section 4.2.4](#424-schemaref-attribute) and select the named Reference.
-2. Otherwise, collect the References whose class is exactly `schema`.
-3. If there is one candidate, select it. If there are no candidates, the
-   schema is absent. If there is more than one candidate, selection is
-   ambiguous.
-
-An invalid explicit selector makes the Descriptor invalid, including when
-an event supplies its own schema. Multiple same-class References are valid
-metadata, but require disambiguation when the operation needs one of them.
-A Consumer MUST NOT substitute map order, name conventions or event-type
-matching for the selection algorithm.
-
-Profiles define selection for other classes and which inputs an operation
-needs. Consumers retrieve only those inputs unless they request a bundle.
+Consumers retrieve only the selected inputs unless they request a bundle.
 Failure to obtain a selected REQUIRED referenced resource, an unsupported
 REQUIRED class or ambiguous REQUIRED selection makes the operation's
 context unavailable. When prerequisites are missing, Consumers MUST NOT
@@ -513,7 +514,9 @@ a Descriptor containing shared processing inputs. A Consumer retrieves
 that Descriptor using the ordinary representation or the bundle in
 [Section 7.4](#74-descriptor-bundle).
 
-Event attribute decoding, Descriptor selection, schema precedence and
+The [Schema Descriptor profile](#9-schema-descriptor-profile) defines the
+Descriptor-supplied schema candidate. Event attribute decoding, Descriptor
+selection, schema precedence and
 subject interpretation follow the CloudEvents extension and the applicable
 event profile.
 
@@ -524,9 +527,10 @@ an Asset, an Actor and a Context Descriptor in three Groups. The Group names
 and entity type URIs illustrate deployment-specific organization and
 vocabularies.
 
-The examples use WoT, OpenUSD and OPC UA profiles. Their URI class
-identifiers and extension attributes illustrate profile-specific data;
-the base model defines the `schema` class only.
+The examples use the Schema Descriptor profile and the WoT, OpenUSD and
+OPC UA profiles. Their class identifiers and extension attributes
+illustrate profile-specific data; the base model defines none of those
+classes or selectors.
 
 ### 6.1. Asset and Actor Descriptions
 
@@ -537,7 +541,9 @@ one device. An additional maintenance Descriptor can have the same
 
 Actor Descriptor `planner7` has `entityid`, `entitytype`,
 `acme_servicekind` and `"references": {}`. It illustrates an actor
-description consisting of identity and metadata.
+description consisting of identity and metadata for a software participant.
+The same participant can play different conversation roles while retaining
+its `entityid`.
 
 ### 6.2. Context Descriptor
 
@@ -576,6 +582,7 @@ Version create/update input; Core supplies response bookkeeping:
 }
 ```
 
+Under the [Schema Descriptor profile](#9-schema-descriptor-profile),
 `schemaref` selects `payload` as the schema. The OPC UA attributes illustrate
 typed metadata a deployment can add to the base model. Their definitions
 and protocol mapping belong to the OPC UA profile.
@@ -888,8 +895,179 @@ rules in [Section 7.4.3](#743-authorization-limits-and-errors).
 Consumers MUST apply class, format and content-trust checks to the
 representations received in a bundle.
 
+## 9. Schema Descriptor Profile
+
+This profile defines schema References and schema selection for a Descriptor.
+It applies when the catalog, publication or processing agreement selects
+this profile. Its attributes extend the generic Descriptor model.
+
+**Publication note:** This profile is hosted here while the Descriptor
+specification is a working draft. When this draft graduates, move the
+profile into the Schema Registry specification. The existing Schema
+Registry specification and model are unchanged by this draft.
+
+### 9.1. Schema References
+
+This profile defines the bare class identifier `schema`. A Reference of
+this class MUST identify a schema document in a format supported by the
+Consumer. When a Schema Registry serves the schema, the Publisher MUST
+provide its document-view URL. The Consumer MUST retrieve that URL unchanged;
+it MUST NOT add `$details` or interpret Registry metadata as the schema.
+
+The schema MAY be served outside a Schema Registry. Its representation
+MUST satisfy the format and payload requirements of the applicable
+processing profile. A Reference alone does not determine whether the
+schema describes an event payload, a protocol envelope or another value.
+
+The Publisher MUST keep the referenced representation stable for its
+intended processing and replay period under
+[Section 4.6](#46-versions-and-publication-stability). The URL SHOULD
+identify a specific schema Version when a Schema Registry serves it.
+
+Message Resources keep one Version ([Message model][Message model]).
+Replacing that Version can change the metadata at the same URL. This
+profile references the schema document directly for independent version
+selection and retention.
+
+### 9.2. `schemaref` Attribute and Selection
+
+- Type: String
+- Description: The name of the Reference that supplies the Descriptor's
+  payload schema.
+
+- Constraints:
+  - OPTIONAL.
+  - The value MUST exactly match the name of an existing Reference whose
+    class is `schema`.
+  - A Consumer applying this profile MUST validate a present selector when
+    validating the Descriptor, including when another source supplies the
+    schema. A missing entry or a different class makes the Descriptor
+    invalid under this profile.
+
+- Examples:
+  - `"schemaref": "payload"`
+
+When an operation needs the Descriptor-supplied schema, the Consumer MUST
+apply these rules:
+
+1. If `schemaref` is present, validate it and select the named Reference.
+2. Otherwise, collect References whose class is exactly `schema`.
+3. If there is one candidate, select it. No candidates means absence;
+   more than one means ambiguous selection.
+
+An invalid selector or ambiguous selection MUST NOT be treated as absence.
+Failure to retrieve or validate a selected REQUIRED schema makes that
+processing input unavailable. An event binding defines precedence between
+this candidate and a schema supplied by the event.
+
+### 9.3. Model Extension
+
+A deployment using this profile SHOULD add the following attribute
+definition to the Descriptor Resource's `attributes` map:
+
+```json
+{
+  "schemaref": {
+    "name": "schemaref",
+    "type": "string",
+    "description": "Exact name of the schema Reference selected by the Schema Descriptor profile"
+  }
+}
+```
+
+The extension declares the field's type. The Consumer still validates the
+named Reference and selection rules in
+[Section 9.2](#92-schemaref-attribute-and-selection).
+
+## 10. Endpoint Descriptor Profile
+
+This profile defines References to asynchronous endpoint metadata in an
+[Endpoint Registry][xRegistry Endpoint]. It applies when the catalog,
+publication or processing agreement selects this profile.
+
+**Publication note:** This profile is hosted here while the Descriptor
+specification is a working draft. When this draft graduates, move the
+profile into the Endpoint Registry specification. The existing Endpoint
+Registry specification and model are unchanged by this draft.
+
+### 10.1. Endpoint References
+
+This profile defines the class identifier
+`https://xregistry.io/classes/endpoint`. A Reference of this class MUST
+identify an endpoint metadata representation conforming to the Endpoint
+Registry specification. The URL identifies metadata, not the messaging
+address that the metadata describes. A Consumer MUST use the Reference URL
+unchanged and validate the metadata before using its protocol configuration.
+
+For example, the following named Reference identifies endpoint metadata:
+
+```json
+{
+  "output": {
+    "class": "https://xregistry.io/classes/endpoint",
+    "url": "https://registry.example/endpoints/pump7-output"
+  }
+}
+```
+
+Endpoints are Groups in the Endpoint Registry model, so they have no
+Resource Version URL. The Publisher MUST preserve the representation at a
+referenced URL for the Descriptor's intended processing and replay period.
+When endpoint metadata changes, the Publisher MUST make the new metadata
+available at a distinct URL and publish a new Descriptor Version referencing
+it. Retention and write policy, or a separately retained representation of
+the endpoint metadata, can enforce that requirement.
+
+Endpoint usage, protocol, connection and security parameters follow the
+Endpoint Registry specification. Before connecting, the Consumer MUST
+apply its own authorization and connection policy. Retrieving the metadata
+does not authorize use of the described endpoint.
+
+### 10.2. `endpointref` Attribute and Selection
+
+- Type: String
+- Description: The name of the Reference that supplies the endpoint
+  metadata selected by this profile.
+
+- Constraints:
+  - OPTIONAL.
+  - The value MUST exactly match the name of an existing Reference whose
+    class is `https://xregistry.io/classes/endpoint`.
+  - A Consumer applying this profile MUST validate a present selector.
+    A missing entry or a different class makes the Descriptor invalid
+    under this profile.
+
+- Examples:
+  - `"endpointref": "output"`
+
+When an operation needs one endpoint, the Consumer MUST select the named
+Reference if `endpointref` is present. Otherwise, exactly one Reference of
+this profile's class selects that entry, no candidates means absence, and
+more than one means ambiguity. Invalid selectors and ambiguity MUST NOT be
+treated as absence. Failure to obtain or validate a REQUIRED endpoint
+makes that input unavailable.
+
+### 10.3. Model Extension
+
+A deployment using this profile SHOULD add the following attribute
+definition to the Descriptor Resource's `attributes` map:
+
+```json
+{
+  "endpointref": {
+    "name": "endpointref",
+    "type": "string",
+    "description": "Exact name of the endpoint metadata Reference selected by the Endpoint Descriptor profile"
+  }
+}
+```
+
+The extension declares the field's type. Reference existence, class,
+selection and endpoint metadata validation follow this profile.
+
 [absolute URI]: https://www.rfc-editor.org/rfc/rfc3986.html#section-4.3
 [Core types]: ../../../core/spec.md#data-types
+[Core extensions]: ../../../core/spec.md#extensions
 [Core matchversions]: ../../../core/model.md#attributesstringmatchversions
 [Core version-ids]: ../../../core/spec.md#version-ids
 [Core defaults]: ../../../core/spec.md#default-version-of-a-resource

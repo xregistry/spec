@@ -15,7 +15,7 @@
 <!-- words: compatibilityvalidatedreason fabrikam contoso pumps robotics -->
 <!-- words: plant turbine addressspace assetcontainergroups disambiguator -->
 <!-- words: federatable interoperate opc schemaplugin schemaplugingroups ua -->
-<!-- words: userinfo -->
+<!-- words: userinfo affordance -->
 
 ## Abstract
 
@@ -65,6 +65,9 @@ consumer needs in order to compose and render a USD stage.
     - [5.4. Asset Resolution](#54-asset-resolution)
     - [5.5. OpenUSD Registry to Schema Registry](#55-openusd-registry-to-schema-registry)
     - [5.6. OpenUSD Registry to Endpoint Registry](#56-openusd-registry-to-endpoint-registry)
+    - [5.7. Descriptor Profile](#57-descriptor-profile)
+      - [5.7.1. Asset References](#571-asset-references)
+      - [5.7.2. Publication and Retrieval](#572-publication-and-retrieval)
   - [6. Security](#6-security)
 
 ## 1. Overview
@@ -801,6 +804,58 @@ at runtime. Where that data is delivered by an endpoint managed by an xRegistry
 [Endpoint Registry][xRegistry Endpoint], an implementation MAY correlate the two
 so that a Consumer retrieving a scene can also discover how to animate it. This
 specification defines no correlation mechanism.
+
+### 5.7. Descriptor Profile
+
+This profile defines how an OpenUSD asset is referenced from a
+[Descriptor](../descriptor/spec.md). It applies when a catalog, publication
+or processing agreement selects this profile.
+
+#### 5.7.1. Asset References
+
+This profile defines the class identifier
+`https://xregistry.io/classes/usdasset`. The URI is an identifier for the
+class; a Consumer MUST NOT retrieve it merely to classify a Reference.
+
+A Reference of this class MUST identify an OpenUSD asset representation at
+its `url`. When an OpenUSD Artifact Registry serves the asset, the Publisher
+MUST provide the document-view URL; see [Section 1.4](#14-document-store).
+The Consumer MUST use that URL unchanged and validate the representation
+using a supported OpenUSD format.
+
+For example, the following named Reference selects one asset Version.
+
+```json
+{
+  "geometry": {
+    "class": "https://xregistry.io/classes/usdasset",
+    "url": "https://assets.example/usdassetgroups/line1/usdassets/pump7/versions/2"
+  }
+}
+```
+
+Multiple asset References MAY occur in one Descriptor. The applicable
+profile MUST define selection when an operation requires a particular
+asset. A Consumer MUST report a missing, unsupported or ambiguous REQUIRED
+asset rather than select an arbitrary entry.
+
+#### 5.7.2. Publication and Retrieval
+
+Descriptor identity and publication stability follow the Descriptor
+specification. The Publisher MUST keep referenced representations stable
+and available for the intended processing and replay period.
+
+Asset dependencies follow the OpenUSD format and registry resolution
+rules. A Descriptor bundle includes only representations named directly
+by `references.*.url`; dependencies needed by the Consumer can require
+additional retrieval.
+
+An association with an asset does not define an affordance-to-prim mapping,
+coordinate transform or units conversion. A profile requiring those
+relations MUST define them explicitly.
+
+Consumers MUST apply authorization, retrieval and resource-limit policies
+before retrieving assets or their dependencies.
 
 ## 6. Security
 

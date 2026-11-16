@@ -248,7 +248,7 @@
                           "fields": [
                             {
                               "type": "string",
-                              "doc": "Standard representation class or absolute URI class identifier",
+                              "doc": "Representation class identifier defined by the applicable profile",
                               "name": "class"
                             },
                             {
@@ -289,17 +289,8 @@
                         "null",
                         "string"
                       ],
-                      "doc": "Absolute fragment-free type URI from an agreed vocabulary; requires entityid",
+                      "doc": "Type URI with a scheme from an agreed vocabulary; a fragment can identify an ontology class; requires entityid",
                       "name": "entitytype",
-                      "default": null
-                    },
-                    {
-                      "type": [
-                        "null",
-                        "string"
-                      ],
-                      "doc": "Exact name of an existing schema Reference selected as the Descriptor's payload schema",
-                      "name": "schemaref",
                       "default": null
                     },
                     {

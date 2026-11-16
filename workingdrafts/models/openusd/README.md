@@ -5,5 +5,5 @@
 See the [OpenUSD Artifact Registry specification](spec.md) and its
 [model](model.json).
 
-The [OpenUSD Descriptor profile](descriptor-profile.md) defines the asset
+The [OpenUSD Descriptor profile](spec.md#57-descriptor-profile) defines the asset
 Reference class used by the technology-independent Descriptor model.

@@ -1,11 +1,11 @@
 # Descriptor Registry - Design
 
-<!-- words: describedby entityid entitytype schemaref -->
+<!-- words: describedby entityid entitytype schemaref endpointref -->
 <!-- words: linkset uncached reserialization prebuilt -->
 <!-- words: affordance affordances descriptorid ETags matchversions namespace namespaces -->
 <!-- words: opc ua opcua OpenUSD TDs TMs USD workingdrafts -->
-<!-- words: marcschier opcf prebuilding -->
-<!-- words: thingdescription thingmodel usdasset wotsubject -->
+<!-- words: prebuilding -->
+<!-- words: thingdescription thingmodel usdasset thingref affordanceselector -->
 <!-- words: descriptorgroups processData -->
 
 Use one metadata-only Descriptor Resource for entity descriptions and shared
@@ -60,6 +60,17 @@ also serve as a processing context when it supplies all the inputs that the
 event profile requires. A separate `kind` discriminator would force a choice
 between uses that can legitimately overlap.
 
+An Actor Descriptor identifies the participant, such as a service or device,
+independently of its conversation roles. The same service can receive a
+command in one conversation and produce a notification in another without
+changing its entity identity. Publisher, Producer and Consumer describe
+responsibilities that an actor can combine.
+
+A conversation defines permitted interactions. A Processing Descriptor
+supplies the descriptions needed to interpret a message instance; a Message
+definition describes the contract that instance follows. Listing the
+participants, schema and endpoints does not itself specify the conversation.
+
 The figure illustrates an Asset description and a separately published
 Context description.
 
@@ -95,22 +106,27 @@ after deletion or when all retained Versions are updated together. The
 Publisher's no-reassignment rule covers that history. Reclassification can
 change `entitytype` in a new Version while preserving `entityid`.
 
-Both fields use Core `uri`, with domain constraints requiring an absolute
-URI without a fragment. URNs are allowed because an identifier need not be a
-retrieval location. The model and generated schemas do not enforce every
+Both fields use Core `uri` and require a scheme. `entityid` excludes a
+fragment; `entitytype` can use one to identify a class within an ontology
+document. URNs are allowed because an identifier need not be a retrieval
+location. The model and generated schemas do not enforce every
 lexical, relationship, or publication rule; implementations also apply the
 domain specification.
 
 ### Which Reference does the Consumer select?
 
-`schemaref` names the schema Reference exactly. Without that selector, one
+The [Schema Descriptor profile][Schema profile] defines `schema` and
+`schemaref`; neither belongs to the generic base model. `schemaref` names
+the schema Reference exactly. Without that selector, one
 `schema` candidate selects that entry, zero means absence, and more than one
 means ambiguity when an operation needs a schema. An invalid explicit
-selector invalidates the Descriptor even when an event supplies its own
-schema. Map order and guessed names cannot repair that metadata.
+selector invalidates the Descriptor under that profile even when an event
+supplies its own schema. Map order and guessed names cannot repair that
+metadata.
 
 Bare class names matching `[a-z][a-z0-9_]*` as a whole string are reserved
-for classes defined by the generic specification, which defines `schema`.
+for classes defined by the profiles hosted in this document. The Schema
+profile defines `schema`; the generic base defines no classes.
 A technology profile defines its own absolute URI class identifiers in a
 namespace controlled by its authority. The WoT profile defines
 `https://xregistry.io/classes/thingdescription` and
@@ -125,10 +141,13 @@ Message model retains only one Version. Replacing it can change the metadata
 at the same URL. A direct schema Reference allows the Publisher to select
 and retain the schema used for processing.
 
-An Endpoint can be referenced through a URI class defined by a profile. The
-Endpoint model represents endpoints as Groups, without Resource Version
-URLs, so that profile needs another way to keep the referenced
-representation stable for the intended use.
+The [Endpoint Descriptor profile][Endpoint profile] defines
+`https://xregistry.io/classes/endpoint` and `endpointref` for endpoint
+metadata selection. The Endpoint model represents endpoints as Groups,
+without Resource Version URLs. The Publisher therefore preserves the
+referenced metadata through write policy and retention, or serves a
+separately retained representation. A change uses a distinct URL and a new
+Descriptor Version.
 
 ### How does a Consumer discover a description change?
 
@@ -205,9 +224,12 @@ the subject used for filtering.
 A pointer in an event identifies a location but gives a catalog nowhere to
 attach metadata about that selection. A subject Descriptor provides that
 location without putting the annotations in every event or modifying the TD.
-The WoT profile defines a `wotsubject` object containing a local TD Reference
-name and a JSON Pointer. Additional attributes describe the selected subject
-under the agreed annotation vocabulary.
+The WoT profile defines `thingref` to name the local TD Reference and an
+OPTIONAL `affordanceselector` object to select a property, action, or event
+affordance within that TD. Without the selector, the subject is the whole
+Thing. Descriptor-level metadata describes the whole subject; attributes
+inside the selector annotate the selected affordance under the agreed
+vocabulary.
 
 The CloudEvents `subject` carries an absolute, fragment-free URL selecting
 the subject Descriptor Version. A direct TD subject still contains a literal
@@ -217,10 +239,12 @@ response type after another.
 
 For example, `subject` can identify the Descriptor Version
 `https://registry.example/descriptorgroups/subjects/descriptors/pump7-pressure/versions/1`.
-Its WoT metadata selects Reference `pump7` and stores pointer
-`/properties/processData`. A profile-defined quantity annotation can describe
-that selection. The pointer uses JSON Pointer string form; it is not decoded
-as a URI fragment when read from the Descriptor.
+Its `thingref` selects Reference `pump7`. An `affordanceselector` with
+`pointer` set to `/properties/processData` selects that property; additional
+profile-defined attributes in the selector describe the selection. The
+pointer uses JSON Pointer string form; it is not decoded as a URI fragment
+when read from the Descriptor. Omitting the selector selects the whole
+Thing without using an empty pointer.
 
 The subject Descriptor supplies subject metadata only. If `describedby`
 selects a processing Descriptor, the subject's TD URL has to match exactly
@@ -235,12 +259,16 @@ processing metadata selects a complete processing Descriptor separately.
 One Descriptor can serve both roles when the event explicitly selects it
 for both; the Consumer evaluates each role's requirements.
 
-A missing `wotsubject`, invalid Reference or pointer, or unavailable TD stops
-subject correlation. The Consumer does not follow another subject
-Descriptor to repair it. Changing the pointer or its processing-significant
-annotations requires a new subject Descriptor Version; changing its URL in
-`subject` also changes the value used for event filtering, not the
-`source`-plus-`id` identity.
+A missing or invalid `thingref`, an unavailable TD, or an invalid present
+`affordanceselector` stops subject correlation. A present selector needs a
+nonempty pointer selecting exactly one property, action, or event affordance.
+A null selector, missing or null pointer, empty pointer, or pointer to the
+TD root or an affordance map is invalid. The Consumer does not follow
+another subject Descriptor to repair it.
+
+Changing the selection or its processing-significant annotations requires
+a new subject Descriptor Version. Changing its URL in `subject` also changes
+the value used for event filtering, not the `source`-plus-`id` identity.
 
 ## 5. Retrieval and Publication
 
@@ -316,6 +344,13 @@ publication checked records, closure bindings, and runtime admission
 require their respective publication or execution mechanisms. Listing the
 representations does not implement those mechanisms.
 
+Execution observations are separate from these descriptions. A recorded
+send does not establish receipt, and a recorded receipt does not establish
+successful processing. A trace collects observations for an execution;
+the observer and the meaning of each record determine what it establishes.
+An endpoint Reference or a configured relationship supplies no execution
+evidence on its own.
+
 ## 7. Alternatives and Trade-offs
 
 The selected model separates a description's lifecycle from the event
@@ -371,7 +406,7 @@ The option changes optionality, not integer width. A profile's encoding
 needs to support the ranges that the profile defines rather than relying on
 this option to widen a field.
 
-The [WoT Descriptor profile][WoT profile] defines the TD/TM class URIs,
+The WoT Descriptor profile defines the TD/TM class URIs,
 projection-plan provenance, resolved TD/TM pairing, and annotated subject
 Descriptors. The [OpenUSD profile][OpenUSD profile] owns its asset class.
 The [CloudEvents OPC UA extension][OPC profile] defines how shared native
@@ -383,8 +418,14 @@ uses and how duplicates are compared. The Descriptor sample illustrates
 those extension attributes; the generic model does not define the native
 mapping.
 
-The domain defines identity, named References, selection, and publication
-stability. Digest schemes, transitive packaging, universal type vocabularies,
+The generic domain defines identity, named References, profile extension
+rules, and publication stability. The Schema and Endpoint Descriptor
+profiles are hosted at the end of the draft so their respective released
+specifications and models remain unchanged. When the Descriptor working
+draft graduates, those profiles move into the Schema and Endpoint
+specifications.
+
+Digest schemes, transitive packaging, universal type vocabularies,
 same-Registry ID alternatives, lifecycle APIs, and device execution remain
 outside this draft. A profile determines the inputs its operation needs;
 the base model permits an empty Reference map.
@@ -395,6 +436,7 @@ the base model permits an empty Reference map.
 [federation]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/federation/spec.md
 [publication]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/publication/spec.md
 [wot]: https://github.com/xregistry/spec/blob/2d072a03bc8647f1d07efddede571076e8cf6553/workingdrafts/models/wot/spec.md
-[WoT profile]: https://github.com/marcschier/xregistry-drafts/blob/12024152a0b10588e98ed33879fd7a5269f1290b/workingdrafts/models/wot/spec.md#66-wot-descriptor-profile
-[OpenUSD profile]: ../../openusd/descriptor-profile.md
+[OpenUSD profile]: ../../openusd/spec.md#57-descriptor-profile
 [OPC profile]: https://github.com/cloudevents/spec/blob/1c4caca73c69a7e076e75fe0727f6a216c83e500/cloudevents/extensions/opcua.md#opc-ua-descriptor-profile
+[Schema profile]: ../spec.md#9-schema-descriptor-profile
+[Endpoint profile]: ../spec.md#10-endpoint-descriptor-profile

@@ -24,7 +24,7 @@
         "properties": {
           "class": {
             "type": "string",
-            "description": "Standard representation class or absolute URI class identifier"
+            "description": "Representation class identifier defined by the applicable profile"
           },
           "url": {
             "type": "uri",
@@ -101,11 +101,7 @@
           },
           "entitytype": {
             "type": "uri",
-            "description": "Absolute fragment-free type URI from an agreed vocabulary; requires entityid"
-          },
-          "schemaref": {
-            "type": "string",
-            "description": "Exact name of an existing schema Reference selected as the Descriptor's payload schema"
+            "description": "Type URI with a scheme from an agreed vocabulary; a fragment can identify an ontology class; requires entityid"
           }
         },
         "additionalProperties": true,
