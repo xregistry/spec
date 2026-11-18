@@ -145,7 +145,7 @@
               "name": "Extensions",
               "type": {
                 "type": "map",
-                "name": "SchemagroupExtensionsType",
+                "name": "ExtensionsType",
                 "default": {},
                 "values": "io.xregistry.GenericRecord"
               }
@@ -286,7 +286,7 @@
                         "null",
                         {
                           "type": "map",
-                          "name": "SchemaExtensionsType",
+                          "name": "ExtensionsType",
                           "default": {},
                           "values": "io.xregistry.GenericRecord"
                         }
@@ -413,7 +413,7 @@
                                 "name": "Extensions",
                                 "type": {
                                   "type": "map",
-                                  "name": "SchemaVersionExtensionsType",
+                                  "name": "ExtensionsType",
                                   "default": {},
                                   "values": "io.xregistry.GenericRecord"
                                 }

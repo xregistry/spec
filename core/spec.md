@@ -1011,16 +1011,11 @@ attributes. However, they MUST adhere to the following rules:
   For example, use of a model (or domain) specific prefix could be used to help
   avoid possible future conflicts.
 
-Avro identifies a named type by its namespace and name, and a schema cannot
-contain multiple definitions of the same fully qualified name
-([Avro name rules](https://avro.apache.org/docs/1.9.2/spec.html#names)).
-Resource singular names are unique only within their owning Group
-([Core Model](./model.md#groupsstringresourcesstringsingular)), so a document
-schema can contain Resources from different Groups with the same singular
-name. Their generated Avro types need distinct namespaces to keep those
-records separate. Namespaces beginning with `io.xregistry.` are reserved for
-xRegistry-defined types; vendor-defined types MUST use namespaces outside this
-prefix.
+Namespaces for types defined by xRegistry specifications use `io.xregistry` as
+their base. For finer-grained namespaces, append the Group and Resource type
+plural names, separated by dots. Additional components MAY distinguish nested
+types. Vendor-defined types MUST use namespaces outside `io.xregistry` and its
+subnamespaces.
 
 Use of an attribute (specification-defined, or extension) that does not
 conform to this specification MUST generate an error
