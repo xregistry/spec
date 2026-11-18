@@ -3,7 +3,7 @@
 <!-- words: validatecompatibility validateformat strictvalidation -->
 <!-- words: compat formatvalidated compatibilityvalidated -->
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
-<!-- words: matchversions excludeall -->
+<!-- words: matchversions excludeall subnamespaces -->
 <!-- words: myarray myobject -->
 <!-- words: href schemaregistry missingschema webpage -->
 
