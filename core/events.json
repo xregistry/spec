@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "xRegistry event payload",
+  "description": "The payload of an xRegistry event: the HTTP body of a CloudEvents 'binary' mode event (or the 'data' of a 'structured' mode event). See core/events.md.",
+  "type": "object",
+  "required": [ "action", "registry", "xid" ],
+
+  "properties": {
+    "action": {
+      "description": "io.xregistry.<ENTITY>.<ACTION>",
+      "type": "string",
+      "pattern": "^io\\.xregistry\\.(registry|model|modelsource|capabilities|group|resource|version)\\.(created|updated|deprecated|deleted)$"
+    },
+    "registry": {
+      "description": "Absolute URL of the Registry",
+      "type": "string",
+      "format": "uri",
+    },
+    "xid": {
+      "description": "xid of the entity the event is about",
+      "type": "string",
+      "pattern": "^/"
+    },
+    "time": {
+      "description": "RFC3339 timestamp",
+      "type": "string",
+      "format": "date-time"
+    },
+    "instance": {
+      "description": "xRegistry interaction instance value",
+      "type": "string",
+      "minLength": 1
+    },
+    "epoch": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "meta.epoch": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "changed": {
+      "description": "Names of modified attributes (dot notation where applicable)",
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "description": "epoch: MUST be present on created/updated events for registry, group, resource and version. MUST NOT be present otherwise.",
+      "if": {
+        "properties": {
+          "action": {
+            "pattern": "^io\\.xregistry\\.(registry|group|resource|version)\\.(created|updated)$"
+          }
+        }
+      },
+      "then": { "required": [ "epoch" ] },
+      "else": { "not": { "required": [ "epoch" ] } }
+    },
+    {
+      "description": "meta.epoch: MUST be present on resource created/updated events. MUST NOT be present on resource deleted events; also not applicable to other entities.",
+      "if": {
+        "properties": {
+          "action": {
+            "pattern": "^io\\.xregistry\\.resource\\.(created|updated)$"
+          }
+        }
+      },
+      "then": { "required": [ "meta.epoch" ] },
+      "else": { "not": { "required": [ "meta.epoch" ] } }
+    },
+    {
+      "description": "changed: MUST NOT appear on created, deleted or deprecated events, nor on model or modelsource events.",
+      "if": {
+        "properties": {
+          "action": {
+            "pattern": "\\.(created|deleted|deprecated)$|^io\\.xregistry\\.(model|modelsource)\\."
+          }
+        }
+      },
+      "then": { "not": { "required": [ "changed" ] } }
+    }
+  ]
+}

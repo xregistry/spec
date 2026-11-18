@@ -57,6 +57,7 @@ or automation and tooling usage.
   - [SpecVersion Flag](#specversion-flag)
 - [xRegistry Dot (`.`) Notation](#xregistry-dot--notation)
 - [xRegistry Discovery](#xregistry-discovery)
+- [xRegistry Interaction Instances](#xregistry-interaction-instances)
 - [Error Processing](#error-processing)
 
 ## Overview
@@ -4844,6 +4845,35 @@ The format of the element MUST adhere to:
           title="Our xRegistry server" href="https://xreg.example.com/"/>
     ```
 
+## xRegistry Interaction Instances
+
+Interactions with an xRegistry server are transactional in nature. All
+changes made during a single interaction are to be executed (conceptually)
+within the scope of a single transaction such that if an error occurs the
+entire interaction can be "rolled-back" - as if the interaction was never
+attempted.
+
+While the specification does not mandate how implementations adhere to this
+rule, is it assumed that each interaction will likely have a unique
+identifier (e.g. an instance/transaction id) that can be associated with the
+interaction. That "instance id" can then be presented back to clients
+in a variety of ways to help with tracking of interactions or debugging.
+
+This specification defines a few ways in which the `instance` MAY appear:
+- In xRegistry errors - see the following [Error Processing](#error-processing)
+  section.
+- In xRegistry responses - see the [xRegistry HTTP Binding](http.md)
+  specification.
+- In xRegistry events - see the [xRegistry Events](events.md#instance)
+  specification.
+
+The `instance` value, when present, MUST adhere to the following constraints:
+- MUST be a non-empty string.
+- MUST be case-insensitively unique within the scope of the Registry instance,
+  for the lifetime of the Registry.
+- All events and response messages (e.g. HTTP headers, error `instance` values)
+  for the same interaction MUST use the same `instance` value, if present.
+
 ## Error Processing
 
 If an error occurs during the processing of a request, even if the error was
@@ -4868,8 +4898,8 @@ Each error definition consists of a set of fields as below:
 | Detail | OPTIONAL. While "Title" conveys the critical error information, if additional details might be useful to users, such as hints as to how to fix the error, then this field SHOULD be used. |
 | Subject | OPTIONAL. If present, MUST be a reference to the entity being processed when the error occurred. In the case of a Registry entity, it MUST be the XID of the entity. If no specific value is appropriate then this field MAY be excluded. MUST start with "/" when referencing an xRegistry entity or collection. |
 | Args | OPTIONAL. A map of the substitution strings that were used when generating the "Title" text. |
-| Instance | OPTIONAL. This is a non-empty string that can be used by servers to identify details related to the request/error processing. For example, a request or transaction ID of the request that generated the error. This information is not meant to be useful to clients directly, but can be provided to server administrators to help debugging if necessary. This specification places no restriction on the format of this value. |
-| Source | OPTIONAL. A non-empty string representing the component that raised the error. Similar to "Instance", this is not meant to be used by clients, rather it is for debugging purposes. |
+| Instance | OPTIONAL. See [xRegistry Interaction Instances](#xregistry-interaction-instances) for more information. |
+| Source | OPTIONAL. A non-empty string representing the component that raised the error. This is not meant to be used by clients, rather it is for debugging purposes. |
 
 The definition of each error's "Title" field MAY include substitutable
 placeholders that allows for situational specific data to be included. Each
