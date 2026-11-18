@@ -1188,7 +1188,7 @@ the outer key. This specification defines no precedence between an outer key
 and an inner name, and defines no alias for the case in which the two agree.
 
 HTTP `query` uses string values, not these declaration records; see the
-[HTTP protocol](#http11-http2-http3-protocols) for its shape and migration.
+[HTTP protocol](#http-protocol) for its shape and migration.
 
 In an ordered array the order of the entries is significant and MUST be
 preserved, the same `name` MAY appear in more than one entry, and the array
