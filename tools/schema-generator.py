@@ -151,6 +151,30 @@ def camel(string):
 
 def generate_openapi(model_definition):
 
+    def document_path_template(template, resource):
+        path_item = copy.deepcopy(template)
+        if not resource.get("hasdocument", True):
+            return path_item
+        for method in ("get", "put", "post"):
+            operation = path_item.get(method)
+            if operation is None:
+                continue
+            messages = [
+                response for status, response in operation["responses"].items()
+                if method in ("get", "post") and status.startswith("2")
+            ]
+            if "requestBody" in operation:
+                messages.append(operation["requestBody"])
+            for message in messages:
+                if "content" in message:
+                    message["content"] = {
+                        "application/octet-stream": {
+                            "schema": {"type": "string", "format": "binary"}
+                        },
+                        **message["content"]
+                    }
+        return path_item
+
     # now recursively find all $ref attributes in the template and replace them with references to the appropriate schema
     def replace_refs(schema_fragment: dict, expression: str, reference: str):
         for k,v in schema_fragment.items():
@@ -276,7 +300,7 @@ def generate_openapi(model_definition):
         for _, group in model_definition.get("groups", {}).items():
             for _, resource in group.get("resources", {}).items():
                 resource = resolve_resource(group, resource)
-                resourceid_template_copy = copy.deepcopy(resourceid_template)
+                resourceid_template_copy = document_path_template(resourceid_template, resource)
                 replace_refs(resourceid_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}")
                 replace_refs(resourceid_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(resourceid_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
@@ -285,7 +309,9 @@ def generate_openapi(model_definition):
                 xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
                 xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
                 xid_group_singular = model_definition["groups"][xid_group_plural]["singular"]
-                resourceid_template_copy = copy.deepcopy(resourceid_template)
+                source_group = model_definition["groups"][xid_group_plural]
+                source_resource = resolve_resource(source_group, source_group["resources"][xid_resource_plural])
+                resourceid_template_copy = document_path_template(resourceid_template, source_resource)
                 replace_refs(resourceid_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{xid_resource_singular}")
                 replace_refs(resourceid_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{xid_group_singular}")
                 replace_ops(resourceid_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(xid_resource_plural)}")
@@ -318,7 +344,7 @@ def generate_openapi(model_definition):
         for _, group in model_definition.get("groups", {}).items():
             for _, resource in group.get("resources", {}).items():
                 resource = resolve_resource(group, resource)
-                versionid_template_copy = copy.deepcopy(versionid_template)
+                versionid_template_copy = document_path_template(versionid_template, resource)
                 replace_refs(versionid_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}")
                 replace_refs(versionid_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(versionid_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
@@ -327,7 +353,9 @@ def generate_openapi(model_definition):
                 xid_group_plural, xid_resource_plural = ximportresources_xid.split("/")[1:]
                 xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
                 xid_group_singular = model_definition["groups"][xid_group_plural]["singular"]
-                versionid_template_copy = copy.deepcopy(versionid_template)
+                source_group = model_definition["groups"][xid_group_plural]
+                source_resource = resolve_resource(source_group, source_group["resources"][xid_resource_plural])
+                versionid_template_copy = document_path_template(versionid_template, source_resource)
                 replace_refs(versionid_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{xid_resource_singular}")
                 replace_refs(versionid_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{xid_group_singular}")
                 replace_ops(versionid_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(xid_resource_plural)}")
@@ -884,6 +912,40 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
             resource_schema = object_schema(
                 resource_attributes, namespace, resource_type_name
             )
+            meta_schema = object_schema(
+                {
+                    resource_singular + "id": identity_attributes[resource_singular + "id"],
+                    "self": {"type": "url"},
+                    "shortself": {"type": "url"},
+                    "xid": {"type": "xid"},
+                    "xref": {"type": "xid"},
+                    "epoch": {"type": "uinteger"},
+                    "labels": {"type": "map", "item": {"type": "string"}},
+                    "createdat": {"type": "timestamp"},
+                    "modifiedat": {"type": "timestamp"},
+                    "readonly": {"type": "boolean"},
+                    "compatibility": {"type": "string"},
+                    "deprecated": {
+                        "type": "object",
+                        "attributes": {
+                            "effective": {"type": "timestamp"},
+                            "removal": {"type": "timestamp"},
+                            "alternative": {"type": "uri"},
+                            "documentation": {"type": "uri"}
+                        }
+                    },
+                    "defaultversionid": {"type": "string"},
+                    "defaultversionurl": {"type": "url"},
+                    "defaultversionsticky": {"type": "boolean"},
+                    **resource.get("metaattributes", {})
+                },
+                namespace,
+                resource_type_name + "Meta"
+            )
+            resource_schema["properties"].update({
+                "meta": meta_schema,
+                "metaurl": {"type": "uri"}
+            })
             if resource.get("hasdocument", True):
                 resource_schema["properties"].update({
                     resource_singular: {
