@@ -1074,7 +1074,7 @@ properties as defined below:
 | Property  | Type          | Description                 |
 | --------- | ------------- | --------------------------- |
 | `headers` | Array         | The HTTP headers. See below |
-| `query`   | Map           | The HTTP query parameters   |
+| `query`   | `array`        | The HTTP query parameters   |
 | `path`    | `uritemplate` | The HTTP path               |
 | `method`  | `string`      | The HTTP method             |
 | `status`  | `string`      | The HTTP status code (e.g., "200") |
@@ -1083,7 +1083,8 @@ HTTP allows for multiple headers with the same name. The `headers` property is
 therefore an array of objects with `name` and `value` properties. The `name`
 property is a string that MUST be a valid HTTP header name.
 
-The `query` property is a map of string keys to string values.
+The `query` property is an array of objects with string `name` and `value`
+properties. The `name` property MUST be a valid HTTP query parameter name.
 
 The `path` property is a URI template.
 
@@ -1095,8 +1096,8 @@ placeholder substitution, it MUST be a valid HTTP response code. The `status`
 and `method` properties are mutually exclusive and MUST NOT be present at the
 same time.
 
-The values of all `string` and `uritemplate`-typed properties and headers and
-query elements MAY contain placeholders using the [RFC6570][RFC6570] Level 1
+The values of all `string` and `uritemplate`-typed properties, HTTP headers, and
+query parameters MAY contain placeholders using the [RFC6570][RFC6570] Level 1
 URI Template syntax. When the same placeholder is used in multiple properties,
 the value of the placeholder is assumed to be identical.
 
@@ -1122,7 +1123,7 @@ The following example defines a message that is sent over HTTP:
     "method": "POST"
   },
   "dataschemaformat": "JsonSchema/draft-07",
-  "dataschemauri": "https://example.com/schemas/com.example.myevent.json",
+  "dataschemauri": "https://example.com/schemas/com.example.myevent.json"
 }
 ```
 
