@@ -9,13 +9,15 @@
           "entityid": "urn:example:asset:pump7",
           "entitytype": "https://models.example/classes/device",
           "references": {
-            "pump7": {
-              "class": "https://xregistry.io/classes/thingdescription",
-              "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3"
+            "thingdescription": {
+              "pump7": {
+                "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3.0.0"
+              }
             },
-            "geometry": {
-              "class": "https://xregistry.io/classes/usdasset",
-              "url": "https://assets.example/usdassetgroups/line1/usdassets/pump7/versions/2"
+            "usdasset": {
+              "geometry": {
+                "url": "https://assets.example/usdassetgroups/line1/usdassets/pump7/versions/2"
+              }
             }
           }
         }
@@ -30,7 +32,11 @@
           "entityid": "urn:example:actor:planner7",
           "entitytype": "https://models.example/classes/software-actor",
           "references": {},
-          "acme_servicekind": "maintenance-planner"
+          "data": {
+            "com.example.actorinfo": {
+              "acme_servicekind": "maintenance-planner"
+            }
+          }
         }
       }
     },
@@ -42,27 +48,33 @@
           "versionid": "1",
           "schemaref": "payload",
           "references": {
-            "pump7": {
-              "class": "https://xregistry.io/classes/thingdescription",
-              "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3"
+            "thingdescription": {
+              "pump7": {
+                "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3.0.0"
+              },
+              "gateway1": {
+                "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/gateway1/versions/1.0.0"
+              }
             },
-            "gateway1": {
-              "class": "https://xregistry.io/classes/thingdescription",
-              "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/gateway1/versions/1"
+            "schema": {
+              "payload": {
+                "url": "https://schemas.example/pump-process-data/versions/3"
+              }
             },
-            "payload": {
-              "class": "schema",
-              "url": "https://schemas.example/pump-process-data/versions/3"
-            },
-            "geometry": {
-              "class": "https://xregistry.io/classes/usdasset",
-              "url": "https://assets.example/usdassetgroups/line1/usdassets/pump7/versions/2"
+            "usdasset": {
+              "geometry": {
+                "url": "https://assets.example/usdassetgroups/line1/usdassets/pump7/versions/2"
+              }
             }
           },
-          "opcuapublisherid": "UInt16:12",
-          "opcuadatasetwriterid": 17,
-          "opcuadatasetwritername": "pump7-process",
-          "opcuadatasetname": "PumpProcessData"
+          "data": {
+            "opcuawriter": {
+              "opcuapublisherid": "UInt16:12",
+              "opcuadatasetwriterid": 17,
+              "opcuadatasetwritername": "pump7-process",
+              "opcuadatasetname": "PumpProcessData"
+            }
+          }
         }
       }
     }

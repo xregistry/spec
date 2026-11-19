@@ -7,11 +7,12 @@
 <!-- words: thingdescription thingmodel thingdescriptiongroups thingdescriptions -->
 <!-- words: usdasset usdassetgroups OpenUSD reserializing -->
 <!-- words: opcuapublisherid opcuadatasetwriterid opcuadatasetwritername -->
-<!-- words: opcuadatasetname UInt16 -->
+<!-- words: opcuadatasetname opcuawriter UInt16 -->
 <!-- words: matchversions namespace namespaces -->
 <!-- words: opc ua prebuild prebuilt nodeset -->
 <!-- words: PumpProcessData servicekind TDs uncached usdassets -->
 <!-- words: RDF -->
+<!-- words: actorinfo -->
 
 ## Abstract
 
@@ -37,8 +38,9 @@ schemas and other representations defined by the applicable profile.
     - [4.2.2. `entityid` Attribute](#422-entityid-attribute)
     - [4.2.3. `entitytype` Attribute](#423-entitytype-attribute)
     - [4.2.4. Profile Attributes](#424-profile-attributes)
+    - [4.2.5. `data` Attribute](#425-data-attribute)
   - [4.3. References](#43-references)
-    - [4.3.1. `class` Attribute](#431-class-attribute)
+    - [4.3.1. Type Keys](#431-type-keys)
     - [4.3.2. `url` Attribute](#432-url-attribute)
   - [4.4. Specializations](#44-specializations)
   - [4.5. Reference Selection](#45-reference-selection)
@@ -89,21 +91,22 @@ message.
 
 ### 1.1. Descriptions and Processing Context
 
-The `references` attribute is a map of Reference objects. Each map key is
-a local name; the corresponding object contains a `class` and an absolute
-`url`. The class identifies the representation available at the URL.
-Profiles define the representation classes they use.
+The `references` attribute groups named References by representation type.
+Each type bucket is a map from local names to Reference objects containing
+an absolute `url`. Profiles define the types and accepted representations.
+The OPTIONAL `data` map carries profile-defined inline values under type
+keys. Inline values do not cause Reference retrieval.
 
 The following example combines two device descriptions, a payload schema
-and an asset representation. The technology-specific classes are defined
+and an asset representation. The technology-specific types are defined
 by their respective profiles.
 
 ```mermaid
 flowchart LR
-  D["Descriptor Version"] -- "pump7" --> T["WoT TD"]
-  D -- "gateway1" --> G["WoT TD"]
-  D -- "payload: schema" --> S["Payload schema"]
-  D -- "geometry" --> U["OpenUSD asset"]
+  D["Descriptor Version"] -- "thingdescription / pump7" --> T["WoT TD"]
+  D -- "thingdescription / gateway1" --> G["WoT TD"]
+  D -- "schema / payload" --> S["Payload schema"]
+  D -- "usdasset / geometry" --> U["OpenUSD asset"]
 ```
 
 The example shows four References in a Descriptor Version: `pump7` and
@@ -128,7 +131,7 @@ Descriptors complement the [Message][xRegistry Message],
 A Registry MAY combine Descriptor Groups with Groups from other models,
 or serve only Descriptor Groups.
 
-A profile defines its class identifiers, accepted representations,
+A profile defines its type keys, accepted representations, inline data,
 additional attributes and processing requirements. Such profiles use the
 base identity, Reference and publication rules. The Schema and Endpoint
 Descriptor profiles are defined in [Section 9](#9-schema-descriptor-profile)
@@ -158,8 +161,9 @@ attributes, not literal JSON values.
 | Term | Meaning |
 | --- | --- |
 | Descriptor | A metadata-only `descriptor` Resource. A Descriptor Version is one Version of that Resource. |
-| Reference | One named entry of `references`, containing the class and URL of a referenced resource. |
-| Referenced resource | The resource identified by a Reference's `url`. It can be inside or outside xRegistry; the class specifies which representation is retrieved. |
+| Reference | One named object in a type bucket of `references`, containing the URL of a referenced resource. |
+| Referenced resource | The resource identified by a Reference's `url`. It can be inside or outside xRegistry; the enclosing type specifies which representation is retrieved. |
+| Type key | A profile-defined key identifying a Reference bucket or an inline value in `data`. |
 | Profile | Agreed catalog, publication or processing rules that determine a specialization and its needed inputs. |
 | Actor | A participant entity capable of behavior, such as a service or device. |
 | Conversation | A contract describing permitted message exchanges and related behavior among actor roles. |
@@ -219,10 +223,14 @@ the values for that Version.
           "entitytype": "<URI>", ?
           "references": {
             "<STRING>": {
-              "class": "<STRING>",
-              "url": "<URL>"
+              "<STRING>": {
+                "url": "<URL>"
+              } *
             } *
           },
+          "data": {
+            "<STRING>": <ANY> *
+          }, ?
           # Other Version attributes, including profile metadata, omitted
           "metaurl": "<URL>",
           "meta": { ... }, ?
@@ -245,12 +253,13 @@ The Descriptor Resource declares `hasdocument: false`. Under the
 Version URL returns its metadata without a `$details` suffix.
 
 The generated schemas express structural constraints. Implementations MUST
-also validate the identity and class syntax, selector relationships,
+also validate the identity and type-key syntax, global Reference-name
+uniqueness, selector relationships,
 applicable profile requirements and publication rules in this
-specification. The model uses Core `uri` for identity and a string for
-`class`; domain constraints and the selected profiles apply in addition
-to the generated schemas. Profile attributes are declared by extending
-this base model.
+specification. The model uses Core `uri` for identity and maps for
+`references` and `data`; domain constraints and the selected profiles apply
+in addition to the generated schemas. Profile value types and additional
+attributes are declared by extending this base model.
 
 ## 4. Descriptor Registry
 
@@ -282,28 +291,32 @@ algorithm. A Resource URL selects the [default Version][Core defaults].
 
 #### 4.2.1. `references` Attribute
 
-- Type: Map of objects
-- Description: Named References to representations associated with this
-  Descriptor Version.
+- Type: Map of maps of objects
+- Description: Reference type buckets containing named References associated
+  with this Descriptor Version.
 
 - Constraints:
   - REQUIRED.
-  - The value MUST be a map of Reference objects. An empty map (`{}`) is
-    valid.
-    Write operations follow Core's omission and update rules.
-  - Each key MUST follow the Core [map key rules][Core types]: one through
-    63 lowercase alphanumeric characters, `:`, `-`, `_` or `.`, starting
-    with an alphanumeric character. Keys are unique within the map.
-  - Names MUST be compared exactly. Consumers MUST NOT interpret a name
-    as a class, source identity, destination or permission.
-  - Multiple entries MAY have the same class. Selection follows
+  - The value MUST be a map of type buckets. Each bucket MUST be a map of
+    named Reference objects. Empty maps are valid. Write operations follow
+    Core's omission and update rules.
+  - Type keys MUST follow [Section 4.3.1](#431-type-keys).
+  - Each Reference name MUST follow the Core [map key rules][Core types]:
+    one through 63 lowercase alphanumeric characters, `:`, `-`, `_` or `.`, starting
+    with an alphanumeric character.
+  - Reference names MUST be unique across all buckets in a Descriptor
+    Version. Reusing a name in another bucket is invalid metadata.
+  - Names and type keys MUST be compared exactly. Consumers MUST NOT
+    interpret a Reference name as a type, source identity, destination or
+    permission.
+  - A bucket MAY contain multiple References. Selection follows
     [Section 4.5](#45-reference-selection) or the applicable profile.
   - If a profile requires a referenced resource, the Consumer MUST reject
     an empty map for that operation.
 
 - Examples:
   - `{}` for a metadata-only Actor description.
-  - `{ "payload": { "class": "schema", "url": "https://schemas.example/pump-process-data/versions/3" } }`
+  - `{ "schema": { "payload": { "url": "https://schemas.example/pump-process-data/versions/3" } } }`
 
 #### 4.2.2. `entityid` Attribute
 
@@ -369,52 +382,63 @@ conflicting values. Processing-significant shared values follow
 per message, such as a sequence number, belong in the message, not in a
 Descriptor.
 
-### 4.3. References
+#### 4.2.5. `data` Attribute
 
-Each Reference contains a `class` and a `url`. A class definition MAY add
-attributes to the Reference object. A Consumer MAY ignore additional
-attributes that its profile does not require.
-
-#### 4.3.1. `class` Attribute
-
-- Type: String
-- Description: Representation class of the referenced resource.
+- Type: Map of profile-defined values
+- Description: Inline metadata associated with this Descriptor Version,
+  grouped by profile-defined type.
 
 - Constraints:
-  - REQUIRED.
-  - The value MUST be either a bare class name or a URI class identifier.
-    A bare name MUST match the whole-string pattern `[a-z][a-z0-9_]*`:
-    one lowercase ASCII letter followed by zero or more lowercase ASCII
-    letters, digits or underscores. A URI class identifier MUST meet the
-    absolute-URI constraints of `entityid`, including a scheme and excluding
-    a fragment.
-    URNs are permitted.
-  - A value that satisfies neither form is malformed and MUST be treated
-    as invalid metadata.
-  - Values MUST be compared exactly, without case folding or URI
-    normalization.
-  - Bare names are reserved for classes defined by profiles in this
-    specification.
-    A Publisher defining a new class MUST use a URI class identifier in
-    a namespace it controls.
-    Controlled URI namespaces distinguish independently defined classes.
-  - A class definition specifies its accepted representations, additional
-    attributes and interpretation. A change of meaning requires a new
-    class identifier.
-  - Registries MAY store well-formed unknown URI classes. A Consumer MAY
-    ignore an unsupported class when its profile does not require that
-    Reference. If the profile requires the Reference, the unsupported
-    class makes the processing input unavailable.
-  - Consumers MUST treat well-formed unknown bare names as unsupported
-    future standard classes and MUST NOT infer their meaning. For example,
-    `nodeset` is well-formed but unsupported; `NodeSet` and `node-set` are
-    malformed.
+  - OPTIONAL. An empty map (`{}`) is valid.
+  - A present response value MUST be a map. Core's omission, update and
+    `null` write rules apply.
+  - Each key MUST follow [Section 4.3.1](#431-type-keys). The applicable
+    profile defines the value's Core-compatible type, members and semantics.
+    Deployment models SHOULD declare those definitions.
+  - `data` values MUST be validated under the applicable profile. They
+    MUST NOT be interpreted as Reference objects or automatically retrieved,
+    even when they contain URI-valued members.
+  - Missing REQUIRED inline inputs make the operation's context unavailable.
+    A Consumer MUST NOT substitute a Reference or another inline type
+    without an explicit profile rule.
+  - Processing-significant inline values follow
+    [Section 4.6](#46-versions-and-publication-stability).
 
-The base model defines no representation classes. The profiles at the end
-of this document and in other working drafts define their own classes and
-selection rules. Profiles outside this document MUST define classes using
-URI identifiers in a namespace controlled by their defining authority.
-Consumers MUST NOT assume they can resolve a class URI.
+Reference type buckets and `data` entries have separate roles. A profile
+defines how any relationship between them is validated; equal type keys
+alone establish no substitution or inheritance.
+
+### 4.3. References
+
+Each Reference contains a `url`; its enclosing type bucket identifies the
+representation type. A profile MAY define additional Reference attributes.
+A Consumer MAY ignore additional attributes that its profile does not
+require. A Reference MUST NOT contain a per-Reference `class` member.
+
+#### 4.3.1. Type Keys
+
+The same type-key rules apply to the outer keys of `references` and `data`.
+Each key MUST satisfy Core's map-key syntax and its 63-character limit.
+
+- A standard-profile type key MUST contain only lowercase ASCII letters
+  and digits, starting with a letter. Standard profiles MUST coordinate
+  their canonical keys across composable profiles. A key MUST NOT have
+  conflicting meanings across those profiles.
+- An independently defined type key MUST use a reverse-DNS domain-qualified
+  name controlled by the defining authority, such as
+  `com.example.calibration`. It MUST contain at least two dot-separated
+  labels. Each label MUST start and end with a lowercase ASCII letter or
+  digit and MAY contain lowercase letters, digits or hyphens internally.
+- Keys MUST be compared exactly. URI keys, alternate spellings and the
+  former flat Reference shape MUST NOT be accepted as aliases.
+- Consumers MUST NOT attempt to resolve a type key as a domain or URL.
+  A well-formed unknown type MAY be ignored unless the operation's profile
+  requires it. An unsupported REQUIRED type makes that input unavailable.
+  Malformed keys are invalid metadata.
+
+The base model defines no profile types. The profiles at the end of this
+document and in other working drafts define their own Reference buckets,
+inline values and selection rules.
 
 #### 4.3.2. `url` Attribute
 
@@ -428,7 +452,8 @@ Consumers MUST NOT assume they can resolve a class URI.
   - Consumers and bundle servers MUST use the URL as given. They MUST NOT
     add `$details`, append query parameters, remove a Version segment or
     derive another representation URL.
-  - The Publisher MUST choose the representation specified by the class.
+  - The Publisher MUST choose the representation specified by the enclosing
+    Reference type.
     A referenced resource MAY be in any Registry or outside xRegistry.
   - The URL SHOULD identify a Version when replay needs the same
     interpretation.
@@ -436,7 +461,7 @@ Consumers MUST NOT assume they can resolve a class URI.
     intended processing and replay period.
 
 - Examples:
-  - `https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3`
+  - `https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3.0.0`
 
 ### 4.4. Specializations
 
@@ -444,7 +469,7 @@ The applicable profile specifies which specialization requirements apply
 to a Descriptor, including its identity and type vocabulary and the metadata
 or References it requires. A Consumer MUST NOT infer a specialization from
 Group names, Reference names, the presence of `entityid` or a particular
-class of Reference.
+Reference type.
 
 | Specialization | Requirements and scope |
 | --- | --- |
@@ -467,13 +492,13 @@ descriptions; the application selects among them using an explicit policy.
 
 The applicable profile MUST define which References an operation needs,
 how they are selected and how explicit selectors are validated. Multiple
-same-class References are valid metadata; an operation that needs one
+same-type References are valid metadata; an operation that needs one
 entry requires the profile's selection rules. Consumers MUST NOT substitute
 map order, guessed names or event-type matching for those rules.
 
 Consumers retrieve only the selected inputs unless they request a bundle.
 Failure to obtain a selected REQUIRED referenced resource, an unsupported
-REQUIRED class or ambiguous REQUIRED selection makes the operation's
+REQUIRED type or ambiguous REQUIRED selection makes the operation's
 context unavailable. When prerequisites are missing, Consumers MUST NOT
 report successful interpretation or validation and SHOULD record the
 condition.
@@ -481,7 +506,7 @@ condition.
 ### 4.6. Versions and Publication Stability
 
 Once a Descriptor Version is published for use, the Publisher MUST NOT
-change its References, selector, entity description or
+change its References, selector, entity description, inline `data` or
 processing-significant profile attributes. The Publisher MUST create a new
 Version for a semantic change. Publication for use includes making an Asset
 or Actor description available to catalog readers. Core-controlled
@@ -514,11 +539,14 @@ a Descriptor containing shared processing inputs. A Consumer retrieves
 that Descriptor using the ordinary representation or the bundle in
 [Section 7.4](#74-descriptor-bundle).
 
-The [Schema Descriptor profile](#9-schema-descriptor-profile) defines the
-Descriptor-supplied schema candidate. Event attribute decoding, Descriptor
-selection, schema precedence and
-subject interpretation follow the CloudEvents extension and the applicable
-event profile.
+The CloudEvents extension defines the common `describedby` contract,
+event-format decoding, processing-description selection and the failure
+boundary. Applicable profiles define `source` and `subject` interpretation
+and native metadata mappings. The
+[Schema Descriptor profile](#9-schema-descriptor-profile) defines the
+Descriptor-supplied schema candidate; the event binding defines its
+precedence. Descriptor structure, publication and Version stability follow
+this specification.
 
 ## 6. Examples
 
@@ -528,9 +556,9 @@ and entity type URIs illustrate deployment-specific organization and
 vocabularies.
 
 The examples use the Schema Descriptor profile and the WoT, OpenUSD and
-OPC UA profiles. Their class identifiers and extension attributes
+OPC UA profiles. Their type keys and inline data
 illustrate profile-specific data; the base model defines none of those
-classes or selectors.
+types or selectors.
 
 ### 6.1. Asset and Actor Descriptions
 
@@ -540,16 +568,19 @@ one device. An additional maintenance Descriptor can have the same
 `entityid` and different References.
 
 Actor Descriptor `planner7` has `entityid`, `entitytype`,
-`acme_servicekind` and `"references": {}`. It illustrates an actor
-description consisting of identity and metadata for a software participant.
+`"references": {}` and inline `data.com.example.actorinfo`. This
+deployment-defined object contains `acme_servicekind` with string value
+`maintenance-planner`. It is profile data, separate from Core attributes
+and top-level selectors. The Descriptor illustrates identity and metadata
+for a software participant.
 The same participant can play different conversation roles while retaining
 its `entityid`.
 
 ### 6.2. Context Descriptor
 
 The `pump7-telemetry` Descriptor combines pump and gateway TDs, a selected
-payload schema, an OpenUSD asset and illustrative OPC UA extension
-attributes. It omits primary entity identity. The following body is a
+payload schema, an OpenUSD asset and illustrative inline OPC UA metadata.
+It omits primary entity identity. The following body is a
 Version create/update input; Core supplies response bookkeeping:
 
 ```json
@@ -558,34 +589,41 @@ Version create/update input; Core supplies response bookkeeping:
   "versionid": "1",
   "schemaref": "payload",
   "references": {
-    "pump7": {
-      "class": "https://xregistry.io/classes/thingdescription",
-      "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3"
+    "thingdescription": {
+      "pump7": {
+        "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3.0.0"
+      },
+      "gateway1": {
+        "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/gateway1/versions/1.0.0"
+      }
     },
-    "gateway1": {
-      "class": "https://xregistry.io/classes/thingdescription",
-      "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/gateway1/versions/1"
+    "schema": {
+      "payload": {
+        "url": "https://schemas.example/pump-process-data/versions/3"
+      }
     },
-    "payload": {
-      "class": "schema",
-      "url": "https://schemas.example/pump-process-data/versions/3"
-    },
-    "geometry": {
-      "class": "https://xregistry.io/classes/usdasset",
-      "url": "https://assets.example/usdassetgroups/line1/usdassets/pump7/versions/2"
+    "usdasset": {
+      "geometry": {
+        "url": "https://assets.example/usdassetgroups/line1/usdassets/pump7/versions/2"
+      }
     }
   },
-  "opcuapublisherid": "UInt16:12",
-  "opcuadatasetwriterid": 17,
-  "opcuadatasetwritername": "pump7-process",
-  "opcuadatasetname": "PumpProcessData"
+  "data": {
+    "opcuawriter": {
+      "opcuapublisherid": "UInt16:12",
+      "opcuadatasetwriterid": 17,
+      "opcuadatasetwritername": "pump7-process",
+      "opcuadatasetname": "PumpProcessData"
+    }
+  }
 }
 ```
 
 Under the [Schema Descriptor profile](#9-schema-descriptor-profile),
-`schemaref` selects `payload` as the schema. The OPC UA attributes illustrate
-typed metadata a deployment can add to the base model. Their definitions
-and protocol mapping belong to the OPC UA profile.
+`schemaref` selects `payload` in `references.schema`. The
+`data.opcuawriter` value illustrates inline metadata whose members, types
+and native mapping are defined by the OPC UA profile. The selected schema
+and existing native values are unchanged by this grouping.
 
 ## 7. Retrieval and Publication
 
@@ -604,7 +642,7 @@ The Consumer MUST check response status, media type, Descriptor shape and
 explicit selectors before using it. It applies the agreed profile to
 determine the referenced resources needed and uses their URLs unchanged,
 subject to retrieval policy. The Consumer MUST validate each retrieved
-representation against its declared class and supported format.
+representation against its enclosing type and supported format.
 
 | Cache state and representation | Client requests |
 | --- | --- |
@@ -650,9 +688,10 @@ Content-Type: application/json
         "telemetry": {
           "schemaref": "payload",
           "references": {
-            "payload": {
-              "class": "schema",
-              "url": "https://registry.example/schemagroups/factory/schemas/pump-process-data/versions/1"
+            "schema": {
+              "payload": {
+                "url": "https://registry.example/schemagroups/factory/schemas/pump-process-data/versions/1"
+              }
             }
           }
         }
@@ -723,9 +762,11 @@ The JSON response has two REQUIRED members:
 | Member | Type | Meaning |
 | --- | --- | --- |
 | `descriptor` | Object | The selected Descriptor metadata, unchanged. |
-| `documents` | Map of objects | Exactly one entry per name in `descriptor.references`. |
+| `documents` | Map of objects | Exactly one entry per Reference name across all type buckets of `descriptor.references`. |
 
-An empty `references` map produces an empty `documents` map. Each entry has:
+An empty `references` map, or only empty buckets, produces an empty
+`documents` map. The response retains a flat `documents` map because
+Reference names are globally unique within the Descriptor. Each entry has:
 
 | Member | Presence | Meaning |
 | --- | --- | --- |
@@ -747,7 +788,7 @@ representation is `"contentbase64": ""`; a JSON null representation is
 `"content": null`. These members belong to the response envelope.
 
 The server MUST capture one Descriptor representation for the response
-and obtain the representations identified by its `references.*.url`
+and obtain the representations identified by its `references.*.*.url`
 values:
 
 - Authorized local content and valid cache entries MAY replace network
@@ -759,8 +800,9 @@ values:
 - A successful response MUST contain the complete representation for every
   Reference, with authorization established for each one. Otherwise, the
   server MUST return an error.
-- The server MUST limit collection to `references.*.url`. Additional
-  representations MUST be listed as named References to be included.
+- The server MUST limit collection to `references.*.*.url`. Additional
+  representations MUST be listed as named References in their type buckets
+  to be included. `data` values MUST NOT cause retrieval.
 
 Consumers MUST resolve relative dependencies using the referenced
 representation's `baseurl`, or `url` when unchanged, subject to the format's
@@ -854,7 +896,11 @@ Cache-Control: no-store
     "entityid": "urn:example:actor:planner7",
     "entitytype": "https://models.example/classes/software-actor",
     "references": {},
-    "acme_servicekind": "maintenance-planner"
+    "data": {
+      "com.example.actorinfo": {
+        "acme_servicekind": "maintenance-planner"
+      }
+    }
   },
   "documents": {}
 }
@@ -885,14 +931,15 @@ the stability requirements in
 [Section 4.6](#46-versions-and-publication-stability).
 
 A Descriptor exposes all of its metadata to its reader. Access policy needs
-to account for Reference URLs, entity identities and profile attributes,
+to account for Reference URLs, entity identities, inline `data` and profile
+attributes,
 including when the reader lacks access to the referenced resources.
 
 Consumers SHOULD bound metadata size, request count, retrieval time and
 concurrency. Bundle servers additionally follow the authorization and limit
 rules in [Section 7.4.3](#743-authorization-limits-and-errors).
 
-Consumers MUST apply class, format and content-trust checks to the
+Consumers MUST apply type, format and content-trust checks to the
 representations received in a bundle.
 
 ## 9. Schema Descriptor Profile
@@ -908,10 +955,11 @@ Registry specification and model are unchanged by this draft.
 
 ### 9.1. Schema References
 
-This profile defines the bare class identifier `schema`. A Reference of
-this class MUST identify a schema document in a format supported by the
-Consumer. When a Schema Registry serves the schema, the Publisher MUST
-provide its document-view URL. The Consumer MUST retrieve that URL unchanged;
+This profile defines the standard Reference type key `schema`, without
+aliases. A named Reference in `references.schema` MUST identify a schema
+document in a format supported by the Consumer. When a Schema Registry
+serves the schema, the Publisher MUST provide its document-view URL.
+The Consumer MUST retrieve that URL unchanged;
 it MUST NOT add `$details` or interpret Registry metadata as the schema.
 
 The schema MAY be served outside a Schema Registry. Its representation
@@ -937,12 +985,12 @@ selection and retention.
 
 - Constraints:
   - OPTIONAL.
-  - The value MUST exactly match the name of an existing Reference whose
-    class is `schema`.
+  - The value MUST exactly match the globally unique name of an existing
+    Reference in `references.schema`.
   - A Consumer applying this profile MUST validate a present selector when
     validating the Descriptor, including when another source supplies the
-    schema. A missing entry or a different class makes the Descriptor
-    invalid under this profile.
+    schema. A missing entry or an entry in another type bucket makes the
+    Descriptor invalid under this profile.
 
 - Examples:
   - `"schemaref": "payload"`
@@ -951,7 +999,7 @@ When an operation needs the Descriptor-supplied schema, the Consumer MUST
 apply these rules:
 
 1. If `schemaref` is present, validate it and select the named Reference.
-2. Otherwise, collect References whose class is exactly `schema`.
+2. Otherwise, collect the entries in `references.schema`.
 3. If there is one candidate, select it. No candidates means absence;
    more than one means ambiguous selection.
 
@@ -992,20 +1040,21 @@ Registry specification and model are unchanged by this draft.
 
 ### 10.1. Endpoint References
 
-This profile defines the class identifier
-`https://xregistry.io/classes/endpoint`. A Reference of this class MUST
-identify an endpoint metadata representation conforming to the Endpoint
-Registry specification. The URL identifies metadata, not the messaging
-address that the metadata describes. A Consumer MUST use the Reference URL
+This profile defines the standard Reference type key `endpoint`, without
+aliases. A named Reference in `references.endpoint` MUST identify endpoint
+metadata conforming to the Endpoint Registry specification. The URL
+identifies metadata, not the messaging address that the metadata describes.
+A Consumer MUST use the Reference URL
 unchanged and validate the metadata before using its protocol configuration.
 
 For example, the following named Reference identifies endpoint metadata:
 
 ```json
 {
-  "output": {
-    "class": "https://xregistry.io/classes/endpoint",
-    "url": "https://registry.example/endpoints/pump7-output"
+  "endpoint": {
+    "output": {
+      "url": "https://registry.example/endpoints/pump7-output"
+    }
   }
 }
 ```
@@ -1031,18 +1080,18 @@ does not authorize use of the described endpoint.
 
 - Constraints:
   - OPTIONAL.
-  - The value MUST exactly match the name of an existing Reference whose
-    class is `https://xregistry.io/classes/endpoint`.
+  - The value MUST exactly match the globally unique name of an existing
+    Reference in `references.endpoint`.
   - A Consumer applying this profile MUST validate a present selector.
-    A missing entry or a different class makes the Descriptor invalid
-    under this profile.
+    A missing entry or an entry in another type bucket makes the Descriptor
+    invalid under this profile.
 
 - Examples:
   - `"endpointref": "output"`
 
 When an operation needs one endpoint, the Consumer MUST select the named
-Reference if `endpointref` is present. Otherwise, exactly one Reference of
-this profile's class selects that entry, no candidates means absence, and
+Reference if `endpointref` is present. Otherwise, exactly one entry in
+`references.endpoint` selects that entry, no candidates means absence, and
 more than one means ambiguity. Invalid selectors and ambiguity MUST NOT be
 treated as absence. Failure to obtain or validate a REQUIRED endpoint
 makes that input unavailable.
@@ -1062,7 +1111,7 @@ definition to the Descriptor Resource's `attributes` map:
 }
 ```
 
-The extension declares the field's type. Reference existence, class,
+The extension declares the field's type. Reference existence, bucket,
 selection and endpoint metadata validation follow this profile.
 
 [absolute URI]: https://www.rfc-editor.org/rfc/rfc3986.html#section-4.3

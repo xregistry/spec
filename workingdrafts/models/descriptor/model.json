@@ -24,27 +24,32 @@
               "name": "references",
               "type": "map",
               "required": true,
-              "description": "Named References. The map can be empty; names do not imply a class or message role",
+              "description": "Reference type buckets containing named References; names are unique across all buckets and the map can be empty",
               "item": {
-                "type": "object",
-                "attributes": {
-                  "class": {
-                    "name": "class",
-                    "type": "string",
-                    "required": true,
-                    "description": "Representation class identifier defined by the applicable profile"
-                  },
-                  "url": {
-                    "name": "url",
-                    "type": "urlabsolute",
-                    "required": true,
-                    "description": "Absolute fragment-free retrieval URL, used without modification"
-                  },
-                  "*": {
-                    "name": "*",
-                    "type": "any"
+                "type": "map",
+                "item": {
+                  "type": "object",
+                  "attributes": {
+                    "url": {
+                      "name": "url",
+                      "type": "urlabsolute",
+                      "required": true,
+                      "description": "Absolute fragment-free retrieval URL, used without modification"
+                    },
+                    "*": {
+                      "name": "*",
+                      "type": "any"
+                    }
                   }
                 }
+              }
+            },
+            "data": {
+              "name": "data",
+              "type": "map",
+              "description": "Profile-defined inline values keyed by type; values follow Core and applicable profile definitions and are not retrieved as References",
+              "item": {
+                "type": "any"
               }
             },
             "entityid": {

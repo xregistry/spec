@@ -19,13 +19,9 @@
   "additionalProperties": false,
   "definitions": {
     "Descriptorgroups": {
-      "DescriptorVersionReferencesValue": {
+      "DescriptorVersionReferencesValueValue": {
         "type": "object",
         "properties": {
-          "class": {
-            "type": "string",
-            "description": "Representation class identifier defined by the applicable profile"
-          },
           "url": {
             "type": "uri",
             "description": "Absolute fragment-free retrieval URL, used without modification"
@@ -33,7 +29,6 @@
         },
         "additionalProperties": true,
         "required": [
-          "class",
           "url"
         ]
       },
@@ -89,11 +84,21 @@
           "references": {
             "type": "map",
             "values": {
-              "type": {
-                "$ref": "#/definitions/Descriptorgroups/DescriptorVersionReferencesValue"
+              "type": "map",
+              "values": {
+                "type": {
+                  "$ref": "#/definitions/Descriptorgroups/DescriptorVersionReferencesValueValue"
+                }
               }
             },
-            "description": "Named References. The map can be empty; names do not imply a class or message role"
+            "description": "Reference type buckets containing named References; names are unique across all buckets and the map can be empty"
+          },
+          "data": {
+            "type": "map",
+            "values": {
+              "type": "any"
+            },
+            "description": "Profile-defined inline values keyed by type; values follow Core and applicable profile definitions and are not retrieved as References"
           },
           "entityid": {
             "type": "uri",

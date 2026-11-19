@@ -65,26 +65,29 @@
           },
           "references": {
             "type": "object",
-            "description": "Named References. The map can be empty; names do not imply a class or message role",
+            "description": "Reference type buckets containing named References; names are unique across all buckets and the map can be empty",
             "additionalProperties": {
               "type": "object",
-              "properties": {
-                "class": {
-                  "type": "string",
-                  "description": "Representation class identifier defined by the applicable profile"
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^#]*$",
+                    "description": "Absolute fragment-free retrieval URL, used without modification"
+                  }
                 },
-                "url": {
-                  "type": "string",
-                  "format": "uri",
-                  "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^#]*$",
-                  "description": "Absolute fragment-free retrieval URL, used without modification"
-                }
-              },
-              "required": [
-                "class",
-                "url"
-              ]
+                "required": [
+                  "url"
+                ]
+              }
             }
+          },
+          "data": {
+            "type": "object",
+            "description": "Profile-defined inline values keyed by type; values follow Core and applicable profile definitions and are not retrieved as References",
+            "additionalProperties": {}
           },
           "entityid": {
             "type": "string",

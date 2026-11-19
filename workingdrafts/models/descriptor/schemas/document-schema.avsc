@@ -243,37 +243,49 @@
                         "type": "map",
                         "name": "ReferencesType",
                         "values": {
-                          "type": "record",
+                          "type": "map",
                           "name": "ReferencesItemType",
-                          "fields": [
-                            {
-                              "type": "string",
-                              "doc": "Representation class identifier defined by the applicable profile",
-                              "name": "class"
-                            },
-                            {
-                              "type": "string",
-                              "doc": "Absolute fragment-free retrieval URL, used without modification",
-                              "name": "url"
-                            },
-                            {
-                              "name": "Extensions",
-                              "type": [
-                                "null",
-                                {
-                                  "type": "map",
-                                  "name": "ExtensionsType",
-                                  "default": {},
-                                  "values": "io.xregistry.GenericRecord"
-                                }
-                              ],
-                              "default": null
-                            }
-                          ]
+                          "values": {
+                            "type": "record",
+                            "name": "ReferencesItemItemType",
+                            "fields": [
+                              {
+                                "type": "string",
+                                "doc": "Absolute fragment-free retrieval URL, used without modification",
+                                "name": "url"
+                              },
+                              {
+                                "name": "Extensions",
+                                "type": [
+                                  "null",
+                                  {
+                                    "type": "map",
+                                    "name": "ExtensionsType",
+                                    "default": {},
+                                    "values": "io.xregistry.GenericRecord"
+                                  }
+                                ],
+                                "default": null
+                              }
+                            ]
+                          }
                         }
                       },
                       "name": "references",
-                      "doc": "Named References. The map can be empty; names do not imply a class or message role"
+                      "doc": "Reference type buckets containing named References; names are unique across all buckets and the map can be empty"
+                    },
+                    {
+                      "type": [
+                        "null",
+                        {
+                          "type": "map",
+                          "name": "DataType",
+                          "values": "io.xregistry.GenericRecord"
+                        }
+                      ],
+                      "name": "data",
+                      "doc": "Profile-defined inline values keyed by type; values follow Core and applicable profile definitions and are not retrieved as References",
+                      "default": null
                     },
                     {
                       "type": [

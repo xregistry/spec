@@ -7,6 +7,7 @@
 <!-- words: prebuilding -->
 <!-- words: thingdescription thingmodel usdasset thingref affordanceselector -->
 <!-- words: descriptorgroups processData -->
+<!-- words: opcuawriter -->
 
 Use one metadata-only Descriptor Resource for entity descriptions and shared
 processing inputs. Its named References identify representations that a
@@ -44,10 +45,17 @@ with event linkage defined separately.
 
 ## 2. Decision
 
-A Descriptor contains typed metadata and a `references` map. Each Reference
-has a local name, a representation class, and a retrieval URL. Names let a
-Consumer select an entry when several References have the same class. The
-profile determines how the selected representation is used.
+A Descriptor contains metadata and a `references` map grouped by type.
+Each bucket maps local names to Reference objects containing retrieval URLs.
+Names remain unique across all buckets, so a selector can identify one
+entry without carrying a path. The profile determines how the selected
+representation is used.
+
+The OPTIONAL `data` map holds inline values under profile-defined type
+keys. This separates retrievable documents from inline metadata. A profile
+defines the Core-compatible type of its value; the generic model does not
+turn every value into a string or give URI-valued members retrieval
+semantics.
 
 Asset and Actor descriptions require `entityid` and `entitytype`. A Context
 description can combine several entities without assigning one of them a
@@ -118,31 +126,34 @@ domain specification.
 The [Schema Descriptor profile][Schema profile] defines `schema` and
 `schemaref`; neither belongs to the generic base model. `schemaref` names
 the schema Reference exactly. Without that selector, one
-`schema` candidate selects that entry, zero means absence, and more than one
+entry in `references.schema` selects that entry, zero means absence, and more than one
 means ambiguity when an operation needs a schema. An invalid explicit
 selector invalidates the Descriptor under that profile even when an event
 supplies its own schema. Map order and guessed names cannot repair that
 metadata.
 
-Bare class names matching `[a-z][a-z0-9_]*` as a whole string are reserved
-for classes defined by the profiles hosted in this document. The Schema
-profile defines `schema`; the generic base defines no classes.
-A technology profile defines its own absolute URI class identifiers in a
-namespace controlled by its authority. The WoT profile defines
-`https://xregistry.io/classes/thingdescription` and
-`https://xregistry.io/classes/thingmodel`; the
-[OpenUSD profile][OpenUSD profile] defines
-`https://xregistry.io/classes/usdasset`. The generic model does not enumerate
-those technologies or retrieve the class URIs. A well-formed unknown class
-can be unsupported; a malformed class is invalid metadata.
+Short type keys containing lowercase letters and digits, starting with a
+letter, are reserved for coordinated standard profiles. The Schema profile defines
+`schema`, the WoT profile defines `thingdescription` and `thingmodel`, and
+the [OpenUSD profile][OpenUSD profile] defines `usdasset`. Each type has one
+canonical key across composable standard profiles. A Consumer compares the
+key exactly. URI keys, per-Reference `class` members and flat Reference
+maps are not alternate representations.
 
-Message definitions are excluded from the standard classes because the
+An independently defined type uses a reverse-DNS key controlled by its
+authority, such as `com.example.calibration`. The entire key fits Core's
+63-character map-key limit and is not resolved as a network address.
+The same key rules apply to Reference buckets and inline `data`, but their
+values have distinct roles. A well-formed unknown type can be unsupported;
+a malformed key or a duplicate Reference name is invalid metadata.
+
+Message definitions are excluded from the standard Reference types because the
 Message model retains only one Version. Replacing it can change the metadata
 at the same URL. A direct schema Reference allows the Publisher to select
 and retain the schema used for processing.
 
 The [Endpoint Descriptor profile][Endpoint profile] defines
-`https://xregistry.io/classes/endpoint` and `endpointref` for endpoint
+`endpoint` and `endpointref` for endpoint
 metadata selection. The Endpoint model represents endpoints as Groups,
 without Resource Version URLs. The Publisher therefore preserves the
 referenced metadata through write policy and retention, or serves a
@@ -175,49 +186,27 @@ make cached and newly retrieved descriptions disagree.
 
 ## 4. CloudEvents Without Unnecessary Links
 
-The OPTIONAL `describedby` attribute selects an independently published
-Processing Descriptor. It carries one URL when the event's existing
-attributes do not identify all the shared inputs the Consumer needs.
-The CloudEvents profile defines whether `source`, `subject`, or
-`describedby` selects a description.
+The [CloudEvents extension][CE] owns the common `describedby` contract and
+failure boundary. Applicable profiles define how `source` and `subject`
+identify descriptions and how native metadata is conveyed. xRegistry owns
+the Descriptor's structure, publication and Version stability.
 
-Selection follows event-format decoding. In the CloudEvents JSON format,
-`describedby: null` is unset, so the profile's route for an absent attribute
-applies. An empty or malformed set URL is invalid. A Consumer does not treat
-failure to retrieve an explicitly selected Descriptor as permission to try
-another source.
+An explicit Processing Descriptor supplies the processing inputs that the
+event and profile require from it. Combining incomplete descriptions would
+make interpretation depend on the Consumer's local choices, so the common
+CloudEvents contract determines selection and failure rather than leaving
+each profile to define a competing fallback policy.
 
-An explicit Descriptor supplies all Descriptor inputs that the profile
-requires and the event does not already contain. Merging it with another
-description would leave precedence and conflict handling dependent on the
-Consumer's local configuration. The design therefore keeps one
-authoritative selection.
+Profiles can use an existing event attribute when it already identifies the
+needed description. This permits direct descriptions without requiring a
+Descriptor for every event. The Schema Descriptor profile determines the
+schema candidate within a selected Descriptor; the event binding determines
+precedence relative to a schema supplied by the event.
 
-Without an explicit link, the agreed profile determines the route before
-retrieval: a Descriptor identified by `source`, a direct description
-identified by `subject`, or no retrieval. A URL-looking value does not
-trigger a sequence of speculative requests. Under the WoT profile, a direct
-TD URL and fragment pointer can supply the needed description without a
-Descriptor when the event and profile supply the remaining inputs.
-
-When an explicit Descriptor is present, correlation with a direct TD URL
-succeeds only when it matches exactly one named TD Reference. Missing or
-duplicate matches fail correlation.
-The Consumer does not normalize the URL or retrieve the subject independently
-to bypass that selection. A named short subject disambiguates duplicate
-References. CloudEvents defines the precise grammar and failure behavior.
-
-Schema precedence is the event's `dataschema`, followed by the selected
-Descriptor schema. The Descriptor candidate comes from `schemaref` or a
-unique `schema` Reference. Only absence advances to the next candidate;
-an invalid selector, ambiguous selection, or unavailable selected schema
-does not authorize substitution.
-
-Event identity remains `source` plus `id`. Changing `describedby` does not
-change that identity. Changing the TD Version URL in a direct `subject` can
-change subscription matching. A stable short subject and a separately
-versioned `describedby` allow the description to evolve without changing
-the subject used for filtering.
+The boundary also separates identities: the event's `source` and `id`
+identify the event, while a Descriptor Version identifies its shared
+interpretation. Subject interpretation and filtering consequences follow
+the applicable event profile.
 
 ### What if the subject needs its own description?
 
@@ -231,11 +220,9 @@ Thing. Descriptor-level metadata describes the whole subject; attributes
 inside the selector annotate the selected affordance under the agreed
 vocabulary.
 
-The CloudEvents `subject` carries an absolute, fragment-free URL selecting
-the subject Descriptor Version. A direct TD subject still contains a literal
-`#`, including a trailing `#` for the whole Thing. The two forms can be
-distinguished before retrieval, without inspecting URL paths or trying one
-response type after another.
+The WoT event profile defines how `subject` selects a subject Descriptor
+Version or refers directly to a TD. Its selection and correlation rules
+apply together with the common CloudEvents failure boundary.
 
 For example, `subject` can identify the Descriptor Version
 `https://registry.example/descriptorgroups/subjects/descriptors/pump7-pressure/versions/1`.
@@ -246,25 +233,10 @@ pointer uses JSON Pointer string form; it is not decoded as a URI fragment
 when read from the Descriptor. Omitting the selector selects the whole
 Thing without using an empty pointer.
 
-The subject Descriptor supplies subject metadata only. If `describedby`
-selects a processing Descriptor, the subject's TD URL has to match exactly
-one TD Reference in that processing Descriptor. Missing or duplicate matches
-fail correlation. The Consumer does not take schema or publisher metadata
-from the subject Descriptor to fill gaps in the processing Descriptor.
-
-Without `describedby`, this subject form does not select a processing
-Descriptor through `source`. The event, retained native envelope, and agreed
-profile supply the remaining inputs. A deployment that needs shared
-processing metadata selects a complete processing Descriptor separately.
-One Descriptor can serve both roles when the event explicitly selects it
-for both; the Consumer evaluates each role's requirements.
-
-A missing or invalid `thingref`, an unavailable TD, or an invalid present
-`affordanceselector` stops subject correlation. A present selector needs a
-nonempty pointer selecting exactly one property, action, or event affordance.
-A null selector, missing or null pointer, empty pointer, or pointer to the
-TD root or an affordance map is invalid. The Consumer does not follow
-another subject Descriptor to repair it.
+Subject metadata and processing metadata have separate roles. The applicable
+profiles define their correlation and prevent subject annotations from
+silently supplying missing processing inputs. One Descriptor can serve both
+roles when selected for both, with each role validated independently.
 
 Changing the selection or its processing-significant annotations requires
 a new subject Descriptor Version. Changing its URL in `subject` also changes
@@ -308,9 +280,10 @@ endpoint. Both apply the same completeness, authorization, freshness, and
 Version-selection rules. Content negotiation selects the representation;
 it does not implement those checks.
 
-Collection is limited to `references.*.url`. Identity URIs, class URIs,
-other extension attributes, and transitive dependencies are not retrieved
-automatically. JSON embedding can change bytes through reserialization;
+Collection is limited to `references.*.*.url`. The `documents` map stays
+flat because Reference names are unique across the type buckets. Inline
+`data`, identity URIs, other extension attributes and transitive dependencies
+are not retrieved automatically. JSON embedding can change bytes through reserialization;
 base64 can preserve the decoded representation's bytes.
 
 The server checks caller authorization for each resource, restricts outbound
@@ -321,7 +294,7 @@ publication time but does not remove these obligations.
 
 The representations can be retrieved at different times. A bundle is not
 an atomic snapshot or a dependency closure verified by digests. Consumers
-still validate the class, format, and content they receive.
+still validate the type, format, and content they receive.
 
 ## 6. Relationship to Federation, Publication and WoT
 
@@ -406,17 +379,18 @@ The option changes optionality, not integer width. A profile's encoding
 needs to support the ranges that the profile defines rather than relying on
 this option to widen a field.
 
-The WoT Descriptor profile defines the TD/TM class URIs,
+The WoT Descriptor profile defines the TD/TM Reference buckets,
 projection-plan provenance, resolved TD/TM pairing, and annotated subject
-Descriptors. The [OpenUSD profile][OpenUSD profile] owns its asset class.
+Descriptors. The [OpenUSD profile][OpenUSD profile] owns its asset bucket.
 The [CloudEvents OPC UA extension][OPC profile] defines how shared native
 metadata is conveyed through event attributes, retained envelopes, source parameters,
 and xRegistry Descriptor attributes. The OPC UA companion specification
 references that mapping directly. Native OPC UA types and semantics remain
 defined by OPC UA; the conveyance profile determines which values a Consumer
 uses and how duplicates are compared. The Descriptor sample illustrates
-those extension attributes; the generic model does not define the native
-mapping.
+those values in `data.opcuawriter`; the four existing field names and values
+remain unchanged. The generic model does not define the native mapping or
+retrieve the inline value.
 
 The generic domain defines identity, named References, profile extension
 rules, and publication stability. The Schema and Endpoint Descriptor

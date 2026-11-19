@@ -813,13 +813,14 @@ or processing agreement selects this profile.
 
 #### 5.7.1. Asset References
 
-This profile defines the class identifier
-`https://xregistry.io/classes/usdasset`. The URI is an identifier for the
-class; a Consumer MUST NOT retrieve it merely to classify a Reference.
+This profile defines the standard Reference type key `usdasset`.
+Consumers MUST compare it exactly and MUST NOT treat URI or other
+spellings as aliases for this bucket.
 
-A Reference of this class MUST identify an OpenUSD asset representation at
-its `url`. When an OpenUSD Artifact Registry serves the asset, the Publisher
-MUST provide the document-view URL; see [Section 1.4](#14-document-store).
+A named Reference in `references.usdasset` MUST identify an OpenUSD asset
+representation at its `url`. When an OpenUSD Artifact Registry serves the
+asset, the Publisher MUST provide the document-view URL; see
+[Section 1.4](#14-document-store).
 The Consumer MUST use that URL unchanged and validate the representation
 using a supported OpenUSD format.
 
@@ -827,15 +828,17 @@ For example, the following named Reference selects one asset Version.
 
 ```json
 {
-  "geometry": {
-    "class": "https://xregistry.io/classes/usdasset",
-    "url": "https://assets.example/usdassetgroups/line1/usdassets/pump7/versions/2"
+  "usdasset": {
+    "geometry": {
+      "url": "https://assets.example/usdassetgroups/line1/usdassets/pump7/versions/2"
+    }
   }
 }
 ```
 
-Multiple asset References MAY occur in one Descriptor. The applicable
-profile MUST define selection when an operation requires a particular
+Multiple asset References MAY occur in the `usdasset` bucket. Their names
+MUST remain unique across all Reference buckets in the Descriptor. The
+applicable profile MUST define selection when an operation requires a particular
 asset. A Consumer MUST report a missing, unsupported or ambiguous REQUIRED
 asset rather than select an arbitrary entry.
 
@@ -847,8 +850,8 @@ and available for the intended processing and replay period.
 
 Asset dependencies follow the OpenUSD format and registry resolution
 rules. A Descriptor bundle includes only representations named directly
-by `references.*.url`; dependencies needed by the Consumer can require
-additional retrieval.
+by `references.*.*.url`; inline `data` is not fetched. Dependencies needed
+by the Consumer can require additional retrieval.
 
 An association with an asset does not define an affordance-to-prim mapping,
 coordinate transform or units conversion. A profile requiring those
