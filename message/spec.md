@@ -1101,8 +1101,8 @@ placeholder substitution, it MUST be a valid HTTP response code. The `status`
 and `method` properties are mutually exclusive and MUST NOT be present at the
 same time.
 
-The values of all `string` and `uritemplate`-typed properties and headers and
-query elements MAY contain placeholders using the [RFC6570][RFC6570] Level 1
+The values of all `string` and `uritemplate`-typed properties, HTTP headers, and
+query parameters MAY contain placeholders using the [RFC6570][RFC6570] Level 1
 URI Template syntax. When the same placeholder is used in multiple properties,
 the value of the placeholder is assumed to be identical.
 
@@ -1128,7 +1128,7 @@ The following example defines a message that is sent over HTTP:
     "method": "POST"
   },
   "dataschemaformat": "JsonSchema/draft-07",
-  "dataschemauri": "https://example.com/schemas/com.example.myevent.json",
+  "dataschemauri": "https://example.com/schemas/com.example.myevent.json"
 }
 ```
 
