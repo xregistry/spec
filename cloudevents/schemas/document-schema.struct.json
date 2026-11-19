@@ -1002,29 +1002,17 @@
                 "type": "string",
                 "description": "ID of the message object"
               },
-              "name": {
-                "type": "string",
-                "description": "Name of the object"
-              },
-              "epoch": {
-                "type": "integer",
-                "description": "Epoch of the object"
-              },
               "self": {
-                "type": "uri",
-                "description": "URL of the object"
+                "type": "uri"
+              },
+              "shortself": {
+                "type": "uri"
               },
               "xid": {
-                "type": "uri",
-                "description": "XID of the object"
+                "type": "uri"
               },
-              "description": {
-                "type": "string",
-                "description": "Description of the object"
-              },
-              "documentation": {
-                "type": "uri",
-                "description": "Documentation URL"
+              "epoch": {
+                "type": "uint32"
               },
               "labels": {
                 "type": "map",
@@ -1033,12 +1021,10 @@
                 }
               },
               "createdat": {
-                "type": "datetime",
-                "description": "Creation time"
+                "type": "datetime"
               },
               "modifiedat": {
-                "type": "datetime",
-                "description": "Modification time"
+                "type": "datetime"
               },
               "xref": {
                 "type": "uri"
@@ -1301,29 +1287,17 @@
                 "type": "string",
                 "description": "ID of the schema object"
               },
-              "name": {
-                "type": "string",
-                "description": "Name of the object"
-              },
-              "epoch": {
-                "type": "integer",
-                "description": "Epoch of the object"
-              },
               "self": {
-                "type": "uri",
-                "description": "URL of the object"
+                "type": "uri"
+              },
+              "shortself": {
+                "type": "uri"
               },
               "xid": {
-                "type": "uri",
-                "description": "XID of the object"
+                "type": "uri"
               },
-              "description": {
-                "type": "string",
-                "description": "Description of the object"
-              },
-              "documentation": {
-                "type": "uri",
-                "description": "Documentation URL"
+              "epoch": {
+                "type": "uint32"
               },
               "labels": {
                 "type": "map",
@@ -1332,12 +1306,10 @@
                 }
               },
               "createdat": {
-                "type": "datetime",
-                "description": "Creation time"
+                "type": "datetime"
               },
               "modifiedat": {
-                "type": "datetime",
-                "description": "Modification time"
+                "type": "datetime"
               },
               "xref": {
                 "type": "uri"

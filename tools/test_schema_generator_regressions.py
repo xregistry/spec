@@ -812,8 +812,10 @@ def test_jsonstructure_uri_fields_use_native_reference_type(
         assert properties["location"] == {"type": "uri"}
         assert properties["note"] == {"type": "string"}
     for properties in (root, catalog, mirror, resource, version, meta):
-        for name in ("self", "xid", "documentation"):
+        for name in ("self", "xid"):
             assert properties[name]["type"] == "uri"
+    for properties in (root, catalog, mirror, resource, version):
+        assert properties["documentation"]["type"] == "uri"
     navigation = [
         root["catalogsurl"], root["mirrorsurl"],
         catalog["entriesurl"], mirror["entriesurl"], resource["metaurl"],
@@ -1228,6 +1230,10 @@ def test_jsonstructure_resource_keeps_modelled_default_version_attributes(maxver
     resource = definitions["Entry"]
     version = definitions["EntryVersion"] if maxversions != 1 else resource
     assert resource["additionalProperties"] is False
+    meta = resource["properties"]["meta"]["properties"]
+    assert meta["shortself"]["type"] == "uri"
+    assert meta["epoch"]["type"] == "uint32"
+    assert not {"name", "description", "documentation"} & meta.keys()
     for name in ("format", "settings", "aliases"):
         assert resource["properties"][name] == version["properties"][name]
     assert resource["properties"]["format"] == {
