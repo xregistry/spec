@@ -1190,12 +1190,6 @@
               }
             },
             "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/message"
@@ -1250,12 +1244,6 @@
         "requestBody": {
           "description": "The resource document or xRegistry metadata (depending on URL suffix $details).",
           "content": {
-            "application/octet-stream": {
-              "schema": {
-                "type": "string",
-                "format": "binary"
-              }
-            },
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/message"
@@ -1333,12 +1321,6 @@
         "requestBody": {
           "description": "The new resource version document or xRegistry metadata.",
           "content": {
-            "application/octet-stream": {
-              "schema": {
-                "type": "string",
-                "format": "binary"
-              }
-            },
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/message"
@@ -1379,12 +1361,6 @@
               }
             },
             "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/message"
@@ -1643,12 +1619,6 @@
           "200": {
             "description": "The resource version.",
             "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/message"
@@ -2552,7 +2522,9 @@
                 "items": {}
               },
               "query": {
-                "description": "The HTTP query parameters. This is an opaque native-name map of string keys to string values, not property declaration records. Each key is an HTTP query parameter name, outside the xRegistry map key character set. Keys and values MAY carry RFC6570 Level 1 placeholders"
+                "type": "array",
+                "description": "The HTTP query parameters. This is an ordered array: entry order is preserved and the same 'name' MAY appear more than once. Each entry is an opaque declaration record with an additional REQUIRED 'name' member, defined by the common Property Definitions contract; its 'value', when present, is a string. Names and values MAY carry RFC6570 Level 1 placeholders",
+                "items": {}
               },
               "path": {
                 "type": "string",

@@ -1110,8 +1110,8 @@ determines how the declared property is named.
 | Container shape | Used by | Property name |
 | --- | --- | --- |
 | Flat object with defined member names | CloudEvents `envelopemetadata`, AMQP `properties` | The member name |
-| Native-name map | AMQP `application-properties`, `message-annotations`, `delivery-annotations` and `footer`; Kafka `headers`; HTTP `query` | The map key |
-| Ordered array | HTTP `headers`; NATS `headers`; MQTT `user_properties` | The entry's `name` member |
+| Native-name map | AMQP `application-properties`, `message-annotations`, `delivery-annotations` and `footer`; Kafka `headers` | The map key |
+| Ordered array | HTTP `headers` and `query`; NATS `headers`; MQTT `user_properties` | The entry's `name` member |
 
 CloudEvents `envelopemetadata` is a flat object whose members are the
 CloudEvents context attributes themselves; it does not nest them inside a
@@ -1186,9 +1186,6 @@ the Kafka `headers` model additionally mandated an inner `name`; a declaration
 that still carries that member MUST be migrated by deleting it and keeping
 the outer key. This specification defines no precedence between an outer key
 and an inner name, and defines no alias for the case in which the two agree.
-
-HTTP `query` uses string values, not these declaration records; see the
-[HTTP protocol](#http-protocol) for its shape and migration.
 
 In an ordered array the order of the entries is significant and MUST be
 preserved, the same `name` MAY appear in more than one entry, and the array
@@ -1583,7 +1580,7 @@ properties as defined below:
 | Property  | Type          | Description                 |
 | --------- | ------------- | --------------------------- |
 | `headers` | Array         | The HTTP headers. See below |
-| `query`   | Map           | The HTTP query parameters   |
+| `query`   | `array`        | The HTTP query parameters   |
 | `path`    | `uritemplate` | The HTTP path               |
 | `method`  | `string`      | The HTTP method             |
 | `status`  | `string`      | The HTTP status code (e.g., "200") |
@@ -1594,11 +1591,9 @@ therefore an ordered array of declaration records, each carrying a REQUIRED
 Entry order and repeated names are preserved, and the `name` of each entry
 MUST be a valid HTTP header name.
 
-The `query` property is a native-name map of string keys to string values.
-Each key is the HTTP query parameter name and is not constrained by the
-xRegistry map key rules. Values are strings, not property declaration records.
-Earlier array or declaration-record forms need to be rewritten as this
-string-valued map.
+The `query` property is an ordered array of declaration records with string
+`name` and `value` properties. The `name` property MUST be a valid HTTP query
+parameter name. Entry order and repeated names are preserved.
 
 The `path` property is a URI template.
 
@@ -1610,8 +1605,8 @@ placeholder substitution, it MUST be a valid HTTP response code. The `status`
 and `method` properties are mutually exclusive and MUST NOT be present at the
 same time.
 
-The values of all `string` and `uritemplate`-typed properties and headers and
-query elements MAY contain placeholders using the [RFC6570][RFC6570] Level 1
+The values of all `string` and `uritemplate`-typed properties, HTTP headers, and
+query parameters MAY contain placeholders using the [RFC6570][RFC6570] Level 1
 URI Template syntax. When the same placeholder is used in multiple properties,
 the value of the placeholder is assumed to be identical.
 
@@ -1627,16 +1622,17 @@ The following example defines a message that is sent over HTTP:
         "value": "application/json"
       }
     ],
-    "query": {
-      "foo": {
+    "query": [
+      {
+        "name": "foo",
         "value": "bar"
       }
-    },
+    ],
     "path": "/foo/{bar}",
     "method": "POST"
   },
   "dataschemaformat": "JsonSchema/draft-07",
-  "dataschemauri": "https://example.com/schemas/com.example.myevent.json",
+  "dataschemauri": "https://example.com/schemas/com.example.myevent.json"
 }
 ```
 

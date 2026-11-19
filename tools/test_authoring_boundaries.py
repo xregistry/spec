@@ -49,11 +49,11 @@ MESSAGE_NATIVE_NAME_CONTAINERS = [
     ("AMQP/1.0", "delivery-annotations"),
     ("AMQP/1.0", "footer"),
     ("KAFKA", "headers"),
-    ("HTTP", "query"),
 ]
 
 MESSAGE_ORDERED_ARRAYS = [
     ("HTTP", "headers"),
+    ("HTTP", "query"),
     ("NATS", "headers"),
     ("MQTT/5.0", "user_properties"),
 ]
@@ -570,7 +570,6 @@ def test_no_declaration_container_declares_a_partial_member_set(message_model):
 def test_declaration_records_admit_every_common_member(
     message_schema, protocol, option
 ):
-    """HTTP query admits records structurally, but requires strings normatively."""
     container = _guarded_options(message_schema, "protocol", protocol)[
         "properties"
     ][option]
@@ -748,27 +747,13 @@ def test_opaque_containers_admit_structurally_invalid_data(
     assert _accepts(container, structurally_invalid)
 
 
-def test_legacy_http_query_array_is_prohibited_only_by_the_normative_text():
-    """The array form of HTTP `query` cannot be rejected by a generated schema.
-
-    `protocoloptions.query` is an opaque native-name map, so the generated
-    schema admits any JSON value there, including the obsolete array of
-    records. Requiring a map with string values is therefore a normative
-    obligation on authors and clients, not a generated-schema guarantee.
-    """
-    model = _load(MESSAGE_MODEL)
-    declared = message_options(model, "HTTP")["query"]
-    assert declared["type"] == "any"
-    assert "item" not in declared
-    assert "attributes" not in declared
-
-    document = json.loads(
-        (ROOT / "message" / "schemas" / "document-schema.json").read_text("utf-8")
-    )
-    container = _guarded_options(
-        document["definitions"]["messagegroup-schema"]["message"], "protocol", "HTTP"
-    )["properties"]["query"]
-    legacy = [{"name": "foo", "value": "bar"}]
-    assert _accepts(container, {"apiVersion": "v1", "{parameter}": "{value}"})
-    assert _accepts(container, legacy)
-    assert _accepts(container, {"foo": {"value": "bar"}})
+def test_http_query_requires_an_array_but_leaves_records_opaque(message_schema):
+    container = _guarded_options(message_schema, "protocol", "HTTP")[
+        "properties"
+    ]["query"]
+    assert _accepts(container, [
+        {"name": "tag", "value": "one"},
+        {"name": "tag", "value": "two"},
+    ])
+    assert not _accepts(container, {"tag": "one"})
+    assert _accepts(container, [{"name": "tag", "value": 7}])
