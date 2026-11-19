@@ -895,12 +895,6 @@
                             }
                         },
                         "content": {
-                            "application/octet-stream": {
-                                "schema": {
-                                    "type": "string",
-                                    "format": "binary"
-                                }
-                            },
                             "application/json": {
                                 "schema": {
                                     "$ref": "{%-resourceTypeReference-%}"
@@ -953,12 +947,6 @@
                 "requestBody": {
                     "description": "The resource document or xRegistry metadata (depending on URL suffix $details).",
                     "content": {
-                        "application/octet-stream": {
-                            "schema": {
-                                "type": "string",
-                                "format": "binary"
-                            }
-                        },
                         "application/json": {
                             "schema": { "$ref": "{%-resourceTypeReference-%}" }
                         }
@@ -1021,12 +1009,6 @@
                 "requestBody": {
                     "description": "The new resource version document or xRegistry metadata.",
                     "content": {
-                        "application/octet-stream": {
-                            "schema": {
-                                "type": "string",
-                                "format": "binary"
-                            }
-                        },
                         "application/json": {
                             "schema": { "$ref": "{%-resourceTypeReference-%}" }
                         }
@@ -1036,12 +1018,6 @@
                     "201": {
                         "description": "The created resource version.",
                         "content": {
-                            "application/octet-stream": {
-                                "schema": {
-                                    "type": "string",
-                                    "format": "binary"
-                                }
-                            },
                             "application/json": {
                                 "schema": {
                                     "$ref": "{%-resourceTypeReference-%}"
@@ -1474,12 +1450,6 @@
                     "200": {
                         "description": "The resource version.",
                         "content": {
-                            "application/octet-stream": {
-                                "schema": {
-                                    "type": "string",
-                                    "format": "binary"
-                                }
-                            },
                             "application/json": {
                                 "schema": {
                                     "$ref": "{%-resourceTypeReference-%}"
