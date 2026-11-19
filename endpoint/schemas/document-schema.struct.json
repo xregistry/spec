@@ -983,7 +983,16 @@
                 "type": "uri"
               },
               "epoch": {
-                "type": "uint32"
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "x-xregistryScalar": {
+                  "coreType": "uinteger",
+                  "encoding": "json-number-token",
+                  "constraints": {}
+                },
+                "x-xregistryOptional": true
               },
               "labels": {
                 "type": "map",
@@ -992,10 +1001,28 @@
                 }
               },
               "createdat": {
-                "type": "datetime"
+                "type": [
+                  "datetime",
+                  "null"
+                ],
+                "x-xregistryScalar": {
+                  "coreType": "timestamp",
+                  "encoding": "rfc3339-text",
+                  "constraints": {}
+                },
+                "x-xregistryOptional": true
               },
               "modifiedat": {
-                "type": "datetime"
+                "type": [
+                  "datetime",
+                  "null"
+                ],
+                "x-xregistryScalar": {
+                  "coreType": "timestamp",
+                  "encoding": "rfc3339-text",
+                  "constraints": {}
+                },
+                "x-xregistryOptional": true
               },
               "readonly": {
                 "type": "boolean"
@@ -1007,10 +1034,28 @@
                 "type": "object",
                 "properties": {
                   "effective": {
-                    "type": "datetime"
+                    "type": [
+                      "datetime",
+                      "null"
+                    ],
+                    "x-xregistryScalar": {
+                      "coreType": "timestamp",
+                      "encoding": "rfc3339-text",
+                      "constraints": {}
+                    },
+                    "x-xregistryOptional": true
                   },
                   "removal": {
-                    "type": "datetime"
+                    "type": [
+                      "datetime",
+                      "null"
+                    ],
+                    "x-xregistryScalar": {
+                      "coreType": "timestamp",
+                      "encoding": "rfc3339-text",
+                      "constraints": {}
+                    },
+                    "x-xregistryOptional": true
                   },
                   "alternative": {
                     "type": "uri"
