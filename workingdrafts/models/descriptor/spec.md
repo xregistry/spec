@@ -570,8 +570,8 @@ one device. An additional maintenance Descriptor can have the same
 Actor Descriptor `planner7` has `entityid`, `entitytype`,
 `"references": {}` and inline `data.com.example.actorinfo`. This
 deployment-defined object contains `acme_servicekind` with string value
-`maintenance-planner`. It is profile data, separate from Core attributes
-and top-level selectors. The Descriptor illustrates identity and metadata
+`maintenance-planner`. It is profile data, separate from Core attributes.
+The Descriptor illustrates identity and metadata
 for a software participant.
 The same participant can play different conversation roles while retaining
 its `entityid`.
@@ -587,7 +587,6 @@ Version create/update input; Core supplies response bookkeeping:
 {
   "descriptorid": "pump7-telemetry",
   "versionid": "1",
-  "schemaref": "payload",
   "references": {
     "thingdescription": {
       "pump7": {
@@ -609,6 +608,9 @@ Version create/update input; Core supplies response bookkeeping:
     }
   },
   "data": {
+    "schema": {
+      "schemaref": "payload"
+    },
     "opcuawriter": {
       "opcuapublisherid": "UInt16:12",
       "opcuadatasetwriterid": 17,
@@ -620,7 +622,7 @@ Version create/update input; Core supplies response bookkeeping:
 ```
 
 Under the [Schema Descriptor profile](#9-schema-descriptor-profile),
-`schemaref` selects `payload` in `references.schema`. The
+`data.schema.schemaref` selects `payload` in `references.schema`. The
 `data.opcuawriter` value illustrates inline metadata whose members, types
 and native mapping are defined by the OPC UA profile. The selected schema
 and existing native values are unchanged by this grouping.
@@ -686,7 +688,7 @@ Content-Type: application/json
     "streams": {
       "descriptors": {
         "telemetry": {
-          "schemaref": "payload",
+          "data": { "schema": { "schemaref": "payload" } },
           "references": {
             "schema": {
               "payload": {
@@ -944,9 +946,8 @@ representations received in a bundle.
 
 ## 9. Schema Descriptor Profile
 
-This profile defines schema References and schema selection for a Descriptor.
-It applies when the catalog, publication or processing agreement selects
-this profile. Its attributes extend the generic Descriptor model.
+This profile defines schema References and inline schema selection when
+selected by the applicable agreement.
 
 **Publication note:** This profile is hosted here while the Descriptor
 specification is a working draft. When this draft graduates, move the
@@ -955,12 +956,11 @@ Registry specification and model are unchanged by this draft.
 
 ### 9.1. Schema References
 
-This profile defines the standard Reference type key `schema`, without
-aliases. A named Reference in `references.schema` MUST identify a schema
-document in a format supported by the Consumer. When a Schema Registry
-serves the schema, the Publisher MUST provide its document-view URL.
-The Consumer MUST retrieve that URL unchanged;
-it MUST NOT add `$details` or interpret Registry metadata as the schema.
+This profile defines the type key `schema`, without aliases. An entry in
+`references.schema` MUST identify a supported schema document. For a Schema
+Registry, the Publisher MUST provide its document-view URL. The Consumer
+MUST use it unchanged, without `$details` or interpreting Registry metadata
+as the schema.
 
 The schema MAY be served outside a Schema Registry. Its representation
 MUST satisfy the format and payload requirements of the applicable
@@ -980,25 +980,24 @@ selection and retention.
 ### 9.2. `schemaref` Attribute and Selection
 
 - Type: String
-- Description: The name of the Reference that supplies the Descriptor's
-  payload schema.
+- Description: `data.schema.schemaref` names the payload schema Reference.
 
 - Constraints:
-  - OPTIONAL.
+  - OPTIONAL. Omitted `data`, `data.schema` or `schemaref` means no selector.
+  - Present `data.schema` MUST be an object and a present `schemaref` MUST
+    be a non-null string. Top-level `schemaref` is invalid under this profile.
   - The value MUST exactly match the globally unique name of an existing
     Reference in `references.schema`.
-  - A Consumer applying this profile MUST validate a present selector when
-    validating the Descriptor, including when another source supplies the
-    schema. A missing entry or an entry in another type bucket makes the
-    Descriptor invalid under this profile.
+  - Consumers MUST validate a present selector even when another source
+    supplies the schema. Missing or wrong-bucket entries are invalid.
 
 - Examples:
-  - `"schemaref": "payload"`
+  - `"data": { "schema": { "schemaref": "payload" } }`
 
 When an operation needs the Descriptor-supplied schema, the Consumer MUST
 apply these rules:
 
-1. If `schemaref` is present, validate it and select the named Reference.
+1. If `data.schema.schemaref` is present, validate it and select that Reference.
 2. Otherwise, collect the entries in `references.schema`.
 3. If there is one candidate, select it. No candidates means absence;
    more than one means ambiguous selection.
@@ -1010,28 +1009,27 @@ this candidate and a schema supplied by the event.
 
 ### 9.3. Model Extension
 
-A deployment using this profile SHOULD add the following attribute
-definition to the Descriptor Resource's `attributes` map:
+Deployments SHOULD use this Core attribute-definition fragment for members
+of the inline object at `data.schema`:
 
 ```json
 {
   "schemaref": {
     "name": "schemaref",
     "type": "string",
-    "description": "Exact name of the schema Reference selected by the Schema Descriptor profile"
+    "description": "Exact name selected from references.schema"
   }
 }
 ```
 
-The extension declares the field's type. The Consumer still validates the
-named Reference and selection rules in
-[Section 9.2](#92-schemaref-attribute-and-selection).
+This declares the member's type, not a top-level attribute or Core change.
+Selection follows [Section 9.2](#92-schemaref-attribute-and-selection).
 
 ## 10. Endpoint Descriptor Profile
 
-This profile defines References to asynchronous endpoint metadata in an
-[Endpoint Registry][xRegistry Endpoint]. It applies when the catalog,
-publication or processing agreement selects this profile.
+This profile defines References to asynchronous
+[Endpoint Registry][xRegistry Endpoint] metadata and inline endpoint selection.
+It applies when selected by the applicable agreement.
 
 **Publication note:** This profile is hosted here while the Descriptor
 specification is a working draft. When this draft graduates, move the
@@ -1059,8 +1057,8 @@ For example, the following named Reference identifies endpoint metadata:
 }
 ```
 
-Endpoints are Groups in the Endpoint Registry model, so they have no
-Resource Version URL. The Publisher MUST preserve the representation at a
+Endpoints are Groups and have no Resource Version URL. The Publisher MUST
+preserve the representation at a
 referenced URL for the Descriptor's intended processing and replay period.
 When endpoint metadata changes, the Publisher MUST make the new metadata
 available at a distinct URL and publish a new Descriptor Version referencing
@@ -1075,44 +1073,45 @@ does not authorize use of the described endpoint.
 ### 10.2. `endpointref` Attribute and Selection
 
 - Type: String
-- Description: The name of the Reference that supplies the endpoint
-  metadata selected by this profile.
+- Description: `data.endpoint.endpointref` names the endpoint Reference.
 
 - Constraints:
-  - OPTIONAL.
+  - OPTIONAL. Omitted `data`, `data.endpoint` or `endpointref` means no selector.
+  - Present `data.endpoint` MUST be an object and a present `endpointref`
+    MUST be a non-null string. Top-level `endpointref` is invalid under
+    this profile.
   - The value MUST exactly match the globally unique name of an existing
     Reference in `references.endpoint`.
-  - A Consumer applying this profile MUST validate a present selector.
-    A missing entry or an entry in another type bucket makes the Descriptor
-    invalid under this profile.
+  - Consumers MUST validate a present selector. Missing or wrong-bucket
+    entries are invalid under this profile.
 
 - Examples:
-  - `"endpointref": "output"`
+  - `"data": { "endpoint": { "endpointref": "output" } }`
 
 When an operation needs one endpoint, the Consumer MUST select the named
-Reference if `endpointref` is present. Otherwise, exactly one entry in
-`references.endpoint` selects that entry, no candidates means absence, and
-more than one means ambiguity. Invalid selectors and ambiguity MUST NOT be
-treated as absence. Failure to obtain or validate a REQUIRED endpoint
-makes that input unavailable.
+Reference if `data.endpoint.endpointref` is present. Otherwise, one entry
+in `references.endpoint` selects it, none means absence, and more than one
+means ambiguity. Invalid selectors and ambiguity MUST NOT be treated as
+absence. Failure to obtain or validate a REQUIRED endpoint makes it
+unavailable.
 
 ### 10.3. Model Extension
 
-A deployment using this profile SHOULD add the following attribute
-definition to the Descriptor Resource's `attributes` map:
+Deployments SHOULD use this Core attribute-definition fragment for members
+of the inline object at `data.endpoint`:
 
 ```json
 {
   "endpointref": {
     "name": "endpointref",
     "type": "string",
-    "description": "Exact name of the endpoint metadata Reference selected by the Endpoint Descriptor profile"
+    "description": "Exact name selected from references.endpoint"
   }
 }
 ```
 
-The extension declares the field's type. Reference existence, bucket,
-selection and endpoint metadata validation follow this profile.
+This declares the member's type, not a top-level attribute or Core change.
+Reference selection and endpoint metadata validation follow this profile.
 
 [absolute URI]: https://www.rfc-editor.org/rfc/rfc3986.html#section-4.3
 [Core types]: ../../../core/spec.md#data-types

@@ -124,9 +124,9 @@ domain specification.
 ### Which Reference does the Consumer select?
 
 The [Schema Descriptor profile][Schema profile] defines `schema` and
-`schemaref`; neither belongs to the generic base model. `schemaref` names
-the schema Reference exactly. Without that selector, one
-entry in `references.schema` selects that entry, zero means absence, and more than one
+`data.schema.schemaref`; neither adds a generic selector. It names the
+schema Reference exactly. Without it, one entry in `references.schema`
+selects that entry, zero means absence, and more than one
 means ambiguity when an operation needs a schema. An invalid explicit
 selector invalidates the Descriptor under that profile even when an event
 supplies its own schema. Map order and guessed names cannot repair that
@@ -153,7 +153,7 @@ at the same URL. A direct schema Reference allows the Publisher to select
 and retain the schema used for processing.
 
 The [Endpoint Descriptor profile][Endpoint profile] defines
-`endpoint` and `endpointref` for endpoint
+`endpoint` and `data.endpoint.endpointref` for endpoint
 metadata selection. The Endpoint model represents endpoints as Groups,
 without Resource Version URLs. The Publisher therefore preserves the
 referenced metadata through write policy and retention, or serves a
@@ -213,12 +213,10 @@ the applicable event profile.
 A pointer in an event identifies a location but gives a catalog nowhere to
 attach metadata about that selection. A subject Descriptor provides that
 location without putting the annotations in every event or modifying the TD.
-The WoT profile defines `thingref` to name the local TD Reference and an
-OPTIONAL `affordanceselector` object to select a property, action, or event
-affordance within that TD. Without the selector, the subject is the whole
-Thing. Descriptor-level metadata describes the whole subject; attributes
-inside the selector annotate the selected affordance under the agreed
-vocabulary.
+The WoT profile defines `data.wot.subject.thingref` to name the local TD
+Reference. Its OPTIONAL `affordanceselector` string selects a property,
+action or event affordance; omission selects the whole Thing. The profile
+defines the corresponding annotation semantics.
 
 The WoT event profile defines how `subject` selects a subject Descriptor
 Version or refers directly to a TD. Its selection and correlation rules
@@ -226,12 +224,9 @@ apply together with the common CloudEvents failure boundary.
 
 For example, `subject` can identify the Descriptor Version
 `https://registry.example/descriptorgroups/subjects/descriptors/pump7-pressure/versions/1`.
-Its `thingref` selects Reference `pump7`. An `affordanceselector` with
-`pointer` set to `/properties/processData` selects that property; additional
-profile-defined attributes in the selector describe the selection. The
-pointer uses JSON Pointer string form; it is not decoded as a URI fragment
-when read from the Descriptor. Omitting the selector selects the whole
-Thing without using an empty pointer.
+Its `data.wot.subject.thingref` selects `pump7`; `affordanceselector` set to
+`/properties/processData` selects that property. The string is a JSON Pointer,
+not a URI fragment. Omission selects the whole Thing without an empty pointer.
 
 Subject metadata and processing metadata have separate roles. The applicable
 profiles define their correlation and prevent subject annotations from

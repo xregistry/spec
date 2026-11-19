@@ -46,7 +46,6 @@
         "pump7-telemetry": {
           "descriptorid": "pump7-telemetry",
           "versionid": "1",
-          "schemaref": "payload",
           "references": {
             "thingdescription": {
               "pump7": {
@@ -68,6 +67,9 @@
             }
           },
           "data": {
+            "schema": {
+              "schemaref": "payload"
+            },
             "opcuawriter": {
               "opcuapublisherid": "UInt16:12",
               "opcuadatasetwriterid": 17,

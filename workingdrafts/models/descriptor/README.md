@@ -24,7 +24,7 @@ two TDs, explicit schema selection and typed OPC UA metadata. The Context
 does not inherit metadata from the Asset. Group IDs and entity types are
 illustrative catalog choices. Example URLs are not deployed services.
 The Actor's deployment-defined `acme_servicekind` string is inline under
-`data.com.example.actorinfo`, not a Core attribute or top-level selector.
+`data.com.example.actorinfo`, not a Core attribute.
 
 An Actor Descriptor describes a participant independently of the roles it
 plays in conversations. Publisher, Producer and Consumer are responsibilities
@@ -48,15 +48,15 @@ the former flat Reference shape are not aliases.
 
 The base model permits profile extensions. The
 WoT Descriptor profile owns projection provenance and TD/TM
-selection. A subject Descriptor uses `thingref` to select the TD and an
-OPTIONAL `affordanceselector` to select and annotate a specific affordance.
-Without that selector, the subject is the whole Thing.
+selection. `data.wot.subject.thingref` selects the TD; its OPTIONAL
+`affordanceselector` string selects an affordance. Omission selects the
+whole Thing. The WoT profile defines annotations and event mappings.
 The [OpenUSD Descriptor profile][OpenUSD profile] defines the `usdasset`
 Reference bucket.
 The [Schema Descriptor profile](spec.md#9-schema-descriptor-profile) defines
-the `schema` Reference bucket, `schemaref` and schema selection. The
+the `schema` bucket, `data.schema.schemaref` and schema selection. The
 [Endpoint Descriptor profile](spec.md#10-endpoint-descriptor-profile)
-defines the `endpoint` metadata bucket and `endpointref`. Both profiles are
+defines the `endpoint` bucket and `data.endpoint.endpointref`. Both profiles are
 hosted at the end of this working draft for later relocation into their
 respective specifications. The generic base defines no representation
 types or profile selectors.
@@ -70,7 +70,7 @@ The [CloudEvents OPC UA extension][OPC profile] defines how native identity
 and shared metadata are conveyed through events and Descriptors.
 The stream sample's four existing native fields and values are grouped in
 `data.opcuawriter`. This inline value is not part of Reference retrieval.
-Selectors remain top-level exact names, unique across all Reference buckets.
+Selectors name globally unique References from their profile's inline `data`.
 
 Ordinary TD storage and WoT event processing can operate without
 Descriptors. A route or processing profile that relies on Descriptor
