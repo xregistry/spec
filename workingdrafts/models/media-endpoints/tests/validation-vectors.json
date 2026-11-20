@@ -1,0 +1,97 @@
+{
+  "codecs": [
+    {
+      "id": "default-video-codec",
+      "field": "videocodec",
+      "value": "H264",
+      "result": "accept"
+    },
+    {
+      "id": "default-audio-codec",
+      "field": "audiocodec",
+      "value": "AAC",
+      "result": "accept"
+    },
+    {
+      "id": "known-audio-codec-in-video-field",
+      "field": "videocodec",
+      "value": "AAC",
+      "result": "reject"
+    },
+    {
+      "id": "known-video-codec-in-audio-field",
+      "field": "audiocodec",
+      "value": "H264",
+      "result": "reject"
+    },
+    {
+      "id": "codec-identifier-case-is-not-normalized",
+      "field": "audiocodec",
+      "value": "h264",
+      "result": "accept"
+    },
+    {
+      "id": "unknown-codec-identifier",
+      "field": "audiocodec",
+      "value": "x-vendor-codec",
+      "result": "accept"
+    }
+  ],
+  "streamformats": {
+    "SRT": {
+      "declared": ["mpegts"],
+      "accepted": ["mpegts"],
+      "rejected": ["not-listed"]
+    },
+    "WebRTC": {
+      "declared": ["srtp"],
+      "accepted": ["srtp"],
+      "rejected": ["not-listed"]
+    },
+    "RTSP/1.0": {
+      "declared": ["rtp", "rtp-mpegts"],
+      "accepted": ["rtp", "rtp-mpegts"],
+      "rejected": ["not-listed"]
+    },
+    "RTSP/2.0": {
+      "declared": null,
+      "accepted": ["unlisted-format"],
+      "rejected": []
+    },
+    "RTP/2": {
+      "declared": ["rtp", "rtp-mpegts"],
+      "accepted": ["rtp", "rtp-mpegts"],
+      "rejected": ["not-listed"]
+    },
+    "MPEGTS-UDP": {
+      "declared": ["mpegts"],
+      "accepted": ["mpegts"],
+      "rejected": ["not-listed"]
+    },
+    "RTMP/1.0": {
+      "declared": ["flv"],
+      "accepted": ["flv"],
+      "rejected": ["not-listed"]
+    },
+    "HLS": {
+      "declared": null,
+      "accepted": ["unlisted-format"],
+      "rejected": []
+    },
+    "DASH": {
+      "declared": null,
+      "accepted": ["unlisted-format"],
+      "rejected": []
+    },
+    "RIST-Simple/2020": {
+      "declared": ["rtp-mpegts"],
+      "accepted": ["rtp-mpegts"],
+      "rejected": ["not-listed"]
+    },
+    "RIST-Main/2024": {
+      "declared": ["rtp-mpegts"],
+      "accepted": ["rtp-mpegts"],
+      "rejected": ["not-listed"]
+    }
+  }
+}

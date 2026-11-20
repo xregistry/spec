@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xregistry.io/workingdrafts/bindings/schemas/oci-record.schema.json",
+  "title": "OCI portable entity config, unreleased version 1",
+  "type": "object",
+  "required": ["formatversion", "kind", "entity"],
+  "properties": {
+    "formatversion": {"const": 1},
+    "kind": {"enum": ["registry", "group", "resource", "meta", "version"]},
+    "entity": {"$ref": "#/$defs/entity"},
+    "snapshot": {"enum": ["linked", "offline-complete"]},
+    "modelresolved": {"type": "object"},
+    "document": {
+      "type": "object",
+      "required": ["mode"],
+      "properties": {
+        "mode": {"enum": ["embedded", "external", "metadata-only"]},
+        "origin": {"type": "string", "format": "uri"},
+        "base": {"type": "string", "format": "uri"}
+      },
+      "additionalProperties": false,
+      "if": {"properties": {"mode": {"enum": ["external", "metadata-only"]}}},
+      "then": {"not": {"anyOf": [{"required": ["origin"]}, {"required": ["base"]}]}}
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {"properties": {"kind": {"const": "registry"}}},
+      "then": {
+        "required": ["snapshot", "modelresolved"],
+        "properties": {
+          "entity": {
+            "required": ["registryid", "specversion", "epoch", "createdat", "modifiedat", "model", "modelsource", "capabilities"],
+            "properties": {
+              "xid": {"const": "/"},
+              "registryid": {"$ref": "#/$defs/id"},
+              "specversion": {"type": "string", "minLength": 1},
+              "model": {"type": "object"},
+              "modelsource": {"type": "object"},
+              "capabilities": {
+                "type": "object",
+                "required": ["available"],
+                "properties": {"available": {"type": "object", "minProperties": 1}}
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "not": {"anyOf": [{"required": ["snapshot"]}, {"required": ["modelresolved"]}]}
+      }
+    },
+    {
+      "if": {"properties": {"kind": {"const": "group"}}},
+      "then": {
+        "properties": {
+          "entity": {"required": ["epoch", "createdat", "modifiedat"]}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"kind": {"const": "meta"}}},
+      "then": {
+        "properties": {
+          "entity": {
+            "if": {"required": ["xref"]},
+            "then": {"properties": {"xref": {"type": "string", "pattern": "^/"}}},
+            "else": {
+              "required": ["epoch", "createdat", "modifiedat", "readonly", "defaultversionid", "defaultversionsticky"]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"kind": {"const": "version"}}},
+      "then": {
+        "required": ["document"],
+        "properties": {
+          "entity": {
+            "required": ["versionid", "epoch", "createdat", "modifiedat", "ancestorid", "isdefault"],
+            "properties": {
+              "versionid": {
+                "allOf": [
+                  {"$ref": "#/$defs/id"},
+                  {"not": {"enum": ["null", "request"]}}
+                ]
+              },
+              "ancestorid": {"$ref": "#/$defs/id"},
+              "isdefault": {"type": "boolean"}
+            }
+          }
+        }
+      },
+      "else": {"not": {"required": ["document"]}}
+    }
+  ],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_][A-Za-z0-9_.~:@-]{0,127}$"
+    },
+    "entity": {
+      "type": "object",
+      "required": ["xid"],
+      "properties": {
+        "xid": {"type": "string", "pattern": "^/"},
+        "epoch": {"type": "integer", "minimum": 0},
+        "createdat": {"type": "string", "format": "date-time"},
+        "modifiedat": {"type": "string", "format": "date-time"},
+        "labels": {"type": "object", "additionalProperties": {"type": "string"}},
+        "readonly": {"type": "boolean"},
+        "defaultversionid": {"$ref": "#/$defs/id"},
+        "defaultversionsticky": {"type": "boolean"},
+        "contenttype": {"type": "string", "minLength": 1},
+        "self": false,
+        "shortself": false,
+        "meta": false,
+        "metaurl": false,
+        "versions": false,
+        "versionsurl": false,
+        "versionscount": false,
+        "defaultversionurl": false,
+        "formatvalidated": false,
+        "compatibilityvalidated": false
+      },
+      "additionalProperties": true
+    }
+  },
+  "$comment": "This supplements, not replaces, the Core model. Check typed XIDs, model-defined singular ID attributes, collections, xref provenance, defaults, document modes and descriptor correspondence semantically."
+}

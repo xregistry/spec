@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xregistry.io/workingdrafts/bindings/schemas/oci-graph.schema.json",
+  "title": "OCI snapshot index and manifest restrictions, unreleased version 1",
+  "oneOf": [
+    {"$ref": "#/$defs/index"},
+    {"$ref": "#/$defs/manifest"}
+  ],
+  "$defs": {
+    "annotations": {
+      "type": "object",
+      "properties": {
+        "io.xregistry.oci.version": {"const": "1"},
+        "io.xregistry.oci.kind": {
+          "enum": ["registry", "group", "resource", "meta", "version", "collections", "collection"]
+        },
+        "io.xregistry.oci.xid": {"type": "string", "pattern": "^/"},
+        "io.xregistry.oci.role": {
+          "enum": ["root", "metadata", "meta", "collections", "collection", "entity", "shard", "config", "document", "empty"]
+        },
+        "io.xregistry.oci.mode": {"enum": ["leaf", "branch"]},
+        "io.xregistry.oci.lower": {"type": "string"},
+        "io.xregistry.oci.upper": {"type": "string"}
+      },
+      "propertyNames": {
+        "anyOf": [
+          {
+            "enum": [
+              "io.xregistry.oci.version", "io.xregistry.oci.kind",
+              "io.xregistry.oci.xid", "io.xregistry.oci.role",
+              "io.xregistry.oci.mode", "io.xregistry.oci.lower",
+              "io.xregistry.oci.upper"
+            ]
+          },
+          {"pattern": "^(?!io\\.xregistry\\.oci\\.)"}
+        ]
+      },
+      "additionalProperties": {"type": "string"}
+    },
+    "descriptor": {
+      "type": "object",
+      "required": ["mediaType", "digest", "size", "annotations"],
+      "properties": {
+        "mediaType": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9!#$&^_.+-]{0,126}/[A-Za-z0-9][A-Za-z0-9!#$&^_.+-]{0,126}$"
+        },
+        "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+        "size": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807},
+        "artifactType": {"type": "string"},
+        "annotations": {
+          "allOf": [
+            {"$ref": "#/$defs/annotations"},
+            {"required": ["io.xregistry.oci.role", "io.xregistry.oci.xid"]}
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mediaType": {
+                "not": {
+                  "enum": [
+                    "application/vnd.oci.image.index.v1+json",
+                    "application/vnd.oci.image.manifest.v1+json"
+                  ]
+                }
+              }
+            }
+          },
+          "then": {"not": {"required": ["artifactType"]}}
+        }
+      ]
+    },
+    "nodeAnnotations": {
+      "allOf": [
+        {"$ref": "#/$defs/annotations"},
+        {"required": ["io.xregistry.oci.version", "io.xregistry.oci.kind", "io.xregistry.oci.xid"]}
+      ]
+    },
+    "index": {
+      "type": "object",
+      "required": ["schemaVersion", "mediaType", "artifactType", "annotations", "manifests"],
+      "properties": {
+        "schemaVersion": {"const": 2},
+        "mediaType": {"const": "application/vnd.oci.image.index.v1+json"},
+        "artifactType": {
+          "enum": [
+            "application/vnd.xregistry.registry.v1+json",
+            "application/vnd.xregistry.group.v1+json",
+            "application/vnd.xregistry.resource.v1+json",
+            "application/vnd.xregistry.collections.v1+json",
+            "application/vnd.xregistry.collection.v1+json"
+          ]
+        },
+        "annotations": {"$ref": "#/$defs/nodeAnnotations"},
+        "manifests": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "allOf": [
+              {"$ref": "#/$defs/descriptor"},
+              {
+                "properties": {
+                  "mediaType": {
+                    "enum": [
+                      "application/vnd.oci.image.index.v1+json",
+                      "application/vnd.oci.image.manifest.v1+json"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "annotations": {
+                "properties": {
+                  "io.xregistry.oci.kind": {"enum": ["collection", "collections"]}
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "annotations": {
+                "required": ["io.xregistry.oci.mode", "io.xregistry.oci.lower", "io.xregistry.oci.upper"]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "manifest": {
+      "type": "object",
+      "required": ["schemaVersion", "mediaType", "artifactType", "annotations", "config", "layers"],
+      "properties": {
+        "schemaVersion": {"const": 2},
+        "mediaType": {"const": "application/vnd.oci.image.manifest.v1+json"},
+        "artifactType": {
+          "enum": [
+            "application/vnd.xregistry.metadata.v1+json",
+            "application/vnd.xregistry.version.v1+json"
+          ]
+        },
+        "annotations": {"$ref": "#/$defs/nodeAnnotations"},
+        "config": {
+          "allOf": [
+            {"$ref": "#/$defs/descriptor"},
+            {
+              "properties": {
+                "mediaType": {"const": "application/vnd.xregistry.entity.v1+json"},
+                "annotations": {
+                  "properties": {"io.xregistry.oci.role": {"const": "config"}}
+                }
+              }
+            }
+          ]
+        },
+        "layers": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {
+            "allOf": [
+              {"$ref": "#/$defs/descriptor"},
+              {
+                "properties": {
+                  "mediaType": {
+                    "enum": [
+                      "application/vnd.xregistry.document.v1",
+                      "application/vnd.oci.empty.v1+json"
+                    ]
+                  },
+                  "annotations": {
+                    "properties": {
+                      "io.xregistry.oci.role": {"enum": ["document", "empty"]}
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$comment": "Also validate against OCI Image Specification v1.1.1 schemas. JSON Schema cannot check encoded byte limits, digests, sorted ranges, graph closure, node/edge correspondence or Core model semantics."
+}

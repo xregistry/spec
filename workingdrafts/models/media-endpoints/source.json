@@ -1,0 +1,51 @@
+{
+  "draft": {
+    "repository": "https://github.com/xregistry/spec",
+    "pullRequest": 716,
+    "path": "workingdrafts/models/media-endpoints.md",
+    "revision": "9613f002c82c9568fbefc5f1f0cf0490d6df572a",
+    "gitBlob": "8e7e6d46c21e391c4dd611dbea92f40acf0231d3",
+    "version": "0.1",
+    "date": "2026-09-15",
+    "url": "https://github.com/xregistry/spec/blob/9613f002c82c9568fbefc5f1f0cf0490d6df572a/workingdrafts/models/media-endpoints.md"
+  },
+  "base": {
+    "repository": "https://github.com/xregistry/spec",
+    "revision": "c196b8c48e928d30b58a2eaff707c4de3bcc20b5",
+    "date": "2026-11-06",
+    "models": [
+      {
+        "path": "endpoint/model.json",
+        "gitBlob": "976aeb9603e4e0113bbd08dcc688183a980d4651",
+        "snapshot": "sources/endpoint-model.source.json",
+        "sha256": "866663068e77a1a3a09489e4008f9e2ff7b7bbb5b0e1ff0c75bccec4390d3c74"
+      },
+      {
+        "path": "message/model.json",
+        "gitBlob": "e8ec60bcfa326f1cbaeabbf3c0a2a668f7792189",
+        "snapshot": "sources/message-model.source.json",
+        "sha256": "cae588db40f354f65151e55247f7025299f1fd4a24aab334962404dc8b7086f3"
+      }
+    ]
+  },
+  "modelAdjustments": [
+    {
+      "path": "groups.messagegroups.resources.messages.attributes.protocol.ifvalues.HTTP.siblingattributes.protocoloptions.attributes",
+      "adjustment": "Change the HTTP query declaration to a map of string values.",
+      "reason": "Keeps native query names while constraining each query value to a string."
+    },
+    {
+      "path": "groups.endpoints.attributes.usage",
+      "adjustment": "Keep usage optional and describe mixed role values as guidance while retaining the scalar item enum.",
+      "reason": "Media Endpoints uses usage as optional consumer guidance rather than the base Endpoint role requirement."
+    }
+  ],
+  "artifacts": {
+    "model.json": {
+      "sha256": "f8a0fa6cbd975f4c38ee211d291d5b64416bccc4d9a7242eaf4f9da34367cfa8"
+    },
+    "protocol-options.json": {
+      "sha256": "4fcf905ad2ca26ea8ce03d5ee0a92338622733f313bbca8dd7543a7b2f04d8fb"
+    }
+  }
+}

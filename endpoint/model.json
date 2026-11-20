@@ -962,7 +962,9 @@
           "type": "any"
         }
       },
-      "ximportresources": [ "/messagegroups/messages" ]
+      "ximportresources": [
+        "/messagegroups/messages"
+      ]
     }
   }
 }

@@ -912,6 +912,7 @@ func runSelfTests() bool {
 	testIsTextAllUppercase()
 	testPlainTextIssues()
 	testHeadersRenderedWithIDs()
+	testAllLinksAreEnumerated()
 	testApp()
 
 	failed := 0
@@ -927,6 +928,21 @@ func runSelfTests() bool {
 	fmt.Printf("Validating the tool: %d/%d tests passed\n",
 		len(testResults)-failed, len(testResults))
 	return failed == 0
+}
+
+func testAllLinksAreEnumerated() {
+	cases := []struct{ html, expected string }{
+		{`<a href="https://example.org/public">public</a>`, "https://example.org/public"},
+		{`<a data-link-check="authenticated" href="https://example.org/private">private</a>`, "https://example.org/private"},
+		{`<a href="http://example.org/private" data-link-check="authenticated">private</a>`, "http://example.org/private"},
+		{`<a href="missing.md">local</a>`, "missing.md"},
+		{`<a href="#missing">fragment</a>`, "#missing"},
+	}
+	for i, c := range cases {
+		got := strings.Join(findAllHrefs(c.html), ",")
+		check(fmt.Sprintf("href extraction %d", i), got == c.expected,
+			fmt.Sprintf("got %q, want %q", got, c.expected))
+	}
 }
 
 func indent(s, prefix string) string {
