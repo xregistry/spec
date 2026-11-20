@@ -55,6 +55,7 @@
         "values": {
           "type": "record",
           "name": "MessagegroupType",
+          "namespace": "io.xregistry.messagegroups",
           "fields": [
             {
               "name": "messagegroupid",
@@ -255,7 +256,7 @@
                       "type": [
                         {
                           "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
+                          "namespace": "io.xregistry.messagegroups.messages",
                           "name": "EnvelopeCloudevents10Type",
                           "fields": [
                             {
@@ -278,7 +279,7 @@
                       "type": [
                         {
                           "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
+                          "namespace": "io.xregistry.messagegroups.messages",
                           "name": "ProtocolAmqp10Type",
                           "fields": [
                             {
@@ -290,7 +291,7 @@
                         },
                         {
                           "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
+                          "namespace": "io.xregistry.messagegroups.messages",
                           "name": "ProtocolMqtt311Type",
                           "fields": [
                             {
@@ -302,7 +303,7 @@
                         },
                         {
                           "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
+                          "namespace": "io.xregistry.messagegroups.messages",
                           "name": "ProtocolMqtt50Type",
                           "fields": [
                             {
@@ -314,7 +315,7 @@
                         },
                         {
                           "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
+                          "namespace": "io.xregistry.messagegroups.messages",
                           "name": "ProtocolKAFKAType",
                           "fields": [
                             {
@@ -326,7 +327,7 @@
                         },
                         {
                           "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
+                          "namespace": "io.xregistry.messagegroups.messages",
                           "name": "ProtocolHTTPType",
                           "fields": [
                             {
@@ -338,7 +339,7 @@
                         },
                         {
                           "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
+                          "namespace": "io.xregistry.messagegroups.messages",
                           "name": "ProtocolNATSType",
                           "fields": [
                             {
@@ -391,6 +392,7 @@
         "values": {
           "type": "record",
           "name": "EndpointType",
+          "namespace": "io.xregistry.endpoints",
           "fields": [
             {
               "name": "endpointid",
@@ -479,6 +481,7 @@
                 "items": {
                   "type": "enum",
                   "name": "UsageEnumType",
+                  "namespace": "io.xregistry.endpoints",
                   "symbols": [
                     "subscriber",
                     "consumer",
