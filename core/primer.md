@@ -2,7 +2,7 @@
 
 <!-- words: validatecompatibility validateformat -->
 <!-- words: strictvalidation matchversions messageurl -->
-<!-- words: readme standalone upserts -->
+<!-- words: readme standalone upserts maxversions -->
 
 <!-- no verify-specs -->
 
@@ -108,7 +108,9 @@ normative technical details.
     - [10.25.2. Constraints and `matchversions`](#10252-constraints-and-matchversions)
   - [10.26. Relative Resource URLs in the File
     representation](#1026-relative-resource-urls-in-the-file-representation)
-
+  - [10.27. Binary Attributes](#1027-binary-attributes)
+  - [10.28. Sorting Maps](#1028-sorting-maps)
+  - [10.29. MaxVersions and Pruning](#1029-maxversions-and-pruning)
 
 ## 3. A Quick Introduction to xRegistry
 
@@ -1371,3 +1373,106 @@ of the files of the repository, is possible. When uploading registry content to
 a server, ensure that all relative URLs are resolved and that the referenced
 documents are included in the upload. Client-side tooling may be able to
 assist with this process.
+
+### 10.27. Binary Attributes
+
+Rather than defining a mechanism to manage  attributes that contain binary
+data, whether it's a single byte or an array of bytes, the specification
+defines a `binary` data type which serializes to a base64 encoded string. This,
+however, only dictates how the data appears in "on the wire"; how a client
+or server implementation chooses to store, process or expose that data is out
+of scope for this specification. Note that attributes of `binary` data type
+are treated as scalar attributes - same as other string-derived attributes.
+
+### 10.28. Sorting Maps
+
+The [sort flag](spec.md#sort-flag) allows for queries of collections to have
+their results sorted based on a specified attribute. Since xRegistry
+collections are represented as maps, which are typically unordered, this may
+seem odd. However, for clarity, the specification requires the map to be
+ordered for a few reasons:
+- When [pagination](../pagination/spec.md) is used, the order of the items in
+  the collection must be sorted prior to the set of result pages being
+  determined. This ensure that even if each individual page's map was not
+  sorted, at least every item in page `N` would be positioned correctly
+  relative to items in page `N+1`.
+- While some JSON processing libraries may not support accessing a map in the
+  exact order in which they appeared in the serialization, the specification
+  assumes that this is an implementation detail and recommends that the
+  serialization of each the map "on the wire" be sorted appropriately such
+  that a client that does support direct access to the JSON's ordering can
+  process the items in the sorted order without sorting it themselves.
+
+### 10.29. MaxVersions and Pruning
+
+The `maxversions` feature mandates that the server automatically delete older
+Versions when the number of Versions exceeds that value specified in the
+`maxversions` aspect. On the surface, this is a simple concept. However,
+when combined with the "ancestor Versions" feature and the "sticky Versions"
+feature, it may not be clear which Version deleted.
+
+The following samples aim to provide some clarity.
+
+First, a reminder of a few key rules in the specification:
+- When pruning Versions, the "sticky" Version is excluded from consideration
+  because it is assume to be "special" since a client specifically asked for
+  it to be the "default" Version. So changing it requires an explicit action
+  from the client.
+- Ancestor pointers (the `ancestorid` attribute) will dictate the "new-ness"
+  order of the Versions. In other words, regardless of what other attributes
+  may indicate, if `v1`'s `ancestorid` points to `v2` then `v2` is "older"
+  than `v1` even if `v1`'s `createdat` timestamp is older, and even if
+  alphabetically the ID `v1` is smaller than `v2`.
+- When choosing the next Version to delete, the server must choose the
+  "oldest root" Version (across all ancestor trees), skipping the "default"
+  Version. If there is more than one Version that satisfies the criteria then
+  the choise is based, first, on the old `createdat` timestamp, and then based
+  on the lowest alphabetical ID.
+
+Now, let's examine some scenarios. The presentation of the scenarios will
+follow these rules:
+- The arrows (e.g. `<-`) indicate an `ancestorid` reference. So, `A -> B` mean
+  that `A`'s ancestor is `B`. So `B` is older than `A`.
+- The left-to-right positioning in each row is meant to represent the time-wise
+  order of the Versions. So, `A -> B` means that since `A` is to the left of
+  `B`, `A`' `createdat` timestamp is older than `B`'s (despite `B` being an
+  ancestor of `A`).
+- The letter used is the Version's ID.
+- `Z` is always the current default sticky Version.
+- The 2nd column shows the order in which Versions will be deleted if needed,
+  plus some commentary.
+
+```yaml
+Ancestor Tree(s)                Order of Version Deletion + Comments
+------------------------------  ---------------------------------------------
+Z <- B <- C                     B, C
+                                Just one ancestor tree.
+                                Z is oldest, but since it's skipped due to it
+                                being default/sticky. This makes B the next
+                                oldest and gets deleted first. This action
+                                would make C an ancestor root of a new
+                                ancestor tree
+- - - - - - - - - - - - - - -   - - - - - - - - - - - - - - - - - - - - - - -
+       A <- B <- C              Y, A, X, B, W, C
+Z <- Y <- X <- W                2 ancestor trees.
+                                Skip Z, so Y is deleted first, then X becomes
+                                an ancestor root, leaving 3 ancestor trees
+- - - - - - - - - - - - - - -   - - - - - - - - - - - - - - - - - - - - - - -
+   A <- B <- C                  A, Y, B, X, C, W
+Z <- Y <- X <- W
+- - - - - - - - - - - - - - -   - - - - - - - - - - - - - - - - - - - - - - -
+   A <- B <- C                  A, B, C, Y, X, W
+Z              <- Y <- X <- W
+- - - - - - - - - - - - - - -   - - - - - - - - - - - - - - - - - - - - - - -
+                  C -> B -> A   Y, X, W, A, B, C
+W -> X -> Y -> Z
+- - - - - - - - - - - - - - -   - - - - - - - - - - - - - - - - - - - - - - -
+        C -> B -> A             Y, X, W, A, B, C
+W -> X -> Y -> Z
+- - - - - - - - - - - - - - -   - - - - - - - - - - - - - - - - - - - - - - -
+  C -> B -> A                   A, B, C, Y, X, W
+W -> X -> Y -> Z
+- - - - - - - - - - - - - - -   - - - - - - - - - - - - - - - - - - - - - - -
+  A <- B <- C                   A, B, C, Y, X, W
+W -> X -> Y -> Z
+```
