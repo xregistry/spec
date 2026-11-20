@@ -32,11 +32,9 @@
                     "protocoloptions": {
                         "headers": {
                             "action": {
-                                "name": "action",
                                 "value": "motiondetected"
                             },
                             "deviceid": {
-                                "name": "deviceid",
                                 "value": "{deviceid}"
                             }
                         }
@@ -72,11 +70,9 @@
                     "protocoloptions": {
                         "headers": {
                             "action": {
-                                "name": "action",
                                 "value": "motionended"
                             },
                             "deviceid": {
-                                "name": "deviceid",
                                 "value": "{deviceid}"
                             }
                         }
