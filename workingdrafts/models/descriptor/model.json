@@ -18,50 +18,50 @@
           "maxversions": 0,
           "setversionid": true,
           "modelversion": "0.1",
-          "description": "Metadata describing an entity or shared processing inputs, with named References to representations",
+          "description": "Portable Descriptor fields exposed as native Version metadata with named entries",
           "attributes": {
-            "references": {
-              "name": "references",
+            "entries": {
+              "name": "entries",
               "type": "map",
               "required": true,
-              "description": "Reference type buckets containing named References; names are unique across all buckets and the map can be empty",
+              "description": "Named portable entries; classes, optional URLs and colocated fields follow the applicable profiles",
               "item": {
-                "type": "map",
-                "item": {
-                  "type": "object",
-                  "attributes": {
-                    "url": {
-                      "name": "url",
-                      "type": "urlabsolute",
-                      "required": true,
-                      "description": "Absolute fragment-free retrieval URL, used without modification"
-                    },
-                    "*": {
-                      "name": "*",
-                      "type": "any"
-                    }
+                "type": "object",
+                "attributes": {
+                  "class": {
+                    "name": "class",
+                    "type": "string",
+                    "required": true,
+                    "description": "Exact entry class defined by the applicable profile"
+                  },
+                  "url": {
+                    "name": "url",
+                    "type": "urlabsolute",
+                    "description": "Optional absolute fragment-free HTTP(S) retrieval URL; inline-only profiles forbid it"
+                  },
+                  "*": {
+                    "name": "*",
+                    "type": "any"
                   }
                 }
-              }
-            },
-            "data": {
-              "name": "data",
-              "type": "map",
-              "description": "Profile-defined inline values keyed by type; values follow Core and applicable profile definitions and are not retrieved as References",
-              "item": {
-                "type": "any"
               }
             },
             "entityid": {
               "name": "entityid",
               "type": "uri",
               "matchversions": true,
-              "description": "Absolute fragment-free identity URI of the primary entity; not a retrieval instruction"
+              "description": "Absolute fragment-free identity URI of the described entity; stable across retained Versions"
             },
             "entitytype": {
               "name": "entitytype",
               "type": "uri",
-              "description": "Type URI with a scheme from an agreed vocabulary; a fragment can identify an ontology class; requires entityid"
+              "description": "Type URI with a scheme; ontology fragments permitted; requires entityid"
+            },
+            "bundleurl": {
+              "name": "bundleurl",
+              "type": "urlabsolute",
+              "readonly": true,
+              "description": "Optional direct bundle retrieval URL advertised by a supporting server"
             },
             "*": {
               "name": "*",

@@ -65,9 +65,7 @@ consumer needs in order to compose and render a USD stage.
     - [5.4. Asset Resolution](#54-asset-resolution)
     - [5.5. OpenUSD Registry to Schema Registry](#55-openusd-registry-to-schema-registry)
     - [5.6. OpenUSD Registry to Endpoint Registry](#56-openusd-registry-to-endpoint-registry)
-    - [5.7. Descriptor Profile](#57-descriptor-profile)
-      - [5.7.1. Asset References](#571-asset-references)
-      - [5.7.2. Publication and Retrieval](#572-publication-and-retrieval)
+    - [5.7. Descriptor Provisioning](#57-descriptor-provisioning)
   - [6. Security](#6-security)
 
 ## 1. Overview
@@ -805,60 +803,23 @@ at runtime. Where that data is delivered by an endpoint managed by an xRegistry
 so that a Consumer retrieving a scene can also discover how to animate it. This
 specification defines no correlation mechanism.
 
-### 5.7. Descriptor Profile
+### 5.7. Descriptor Provisioning
 
-This profile defines how an OpenUSD asset is referenced from a
-[Descriptor](../descriptor/spec.md). It applies when a catalog, publication
-or processing agreement selects this profile.
+The [CloudEvents Descriptor profiles][Descriptor profiles] define portable
+OpenUSD entry fields, selection and bundle behavior. The
+[Descriptor Registry](../descriptor/spec.md) stores and versions that
+metadata. This artifact registry provides the linked asset representation.
 
-#### 5.7.1. Asset References
+A Publisher providing an artifact for a Descriptor entry MUST supply its
+document-view URL; see [Section 1.4](#14-document-store). The Publisher
+MUST make REQUIRED assets available before releasing the description for
+use and retain the selected representations for the intended replay period.
+Descriptor and asset versioning remain separate.
 
-This profile defines the standard Reference type key `usdasset`.
-Consumers MUST compare it exactly and MUST NOT treat URI or other
-spellings as aliases for this bucket.
-
-A named Reference in `references.usdasset` MUST identify an OpenUSD asset
-representation at its `url`. When an OpenUSD Artifact Registry serves the
-asset, the Publisher MUST provide the document-view URL; see
-[Section 1.4](#14-document-store).
-The Consumer MUST use that URL unchanged and validate the representation
-using a supported OpenUSD format.
-
-For example, the following named Reference selects one asset Version.
-
-```json
-{
-  "usdasset": {
-    "geometry": {
-      "url": "https://assets.example/usdassetgroups/line1/usdassets/pump7/versions/2"
-    }
-  }
-}
-```
-
-Multiple asset References MAY occur in the `usdasset` bucket. Their names
-MUST remain unique across all Reference buckets in the Descriptor. The
-applicable profile MUST define selection when an operation requires a particular
-asset. A Consumer MUST report a missing, unsupported or ambiguous REQUIRED
-asset rather than select an arbitrary entry.
-
-#### 5.7.2. Publication and Retrieval
-
-Descriptor identity and publication stability follow the Descriptor
-specification. The Publisher MUST keep referenced representations stable
-and available for the intended processing and replay period.
-
-Asset dependencies follow the OpenUSD format and registry resolution
-rules. A Descriptor bundle includes only representations named directly
-by `references.*.*.url`; inline `data` is not fetched. Dependencies needed
-by the Consumer can require additional retrieval.
-
-An association with an asset does not define an affordance-to-prim mapping,
-coordinate transform or units conversion. A profile requiring those
-relations MUST define them explicitly.
-
-Consumers MUST apply authorization, retrieval and resource-limit policies
-before retrieving assets or their dependencies.
+Asset dependencies follow this specification and the OpenUSD format.
+Consumers MUST apply their authorization and retrieval policies to those
+dependencies. A portable bundle does not change the asset's composition
+or dependency-closure requirements.
 
 ## 6. Security
 
@@ -910,3 +871,4 @@ Operators SHOULD be aware of three domain-specific considerations:
 [xRegistry version-ids]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#version-ids
 [xRegistry hasdocument]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#hasdocument
 [xRegistry xref]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#xref-attribute
+[Descriptor profiles]: https://github.com/cloudevents/spec/pull/1406

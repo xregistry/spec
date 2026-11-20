@@ -5,5 +5,5 @@
 See the [OpenUSD Artifact Registry specification](spec.md) and its
 [model](model.json).
 
-The [OpenUSD Descriptor profile](spec.md#57-descriptor-profile) defines the asset
-Reference bucket used by the technology-independent Descriptor model.
+[Provisioning](spec.md#57-descriptor-provisioning) supplies assets for the
+[CloudEvents profile](https://github.com/cloudevents/spec/pull/1406).

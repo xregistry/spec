@@ -19,17 +19,21 @@
   "additionalProperties": false,
   "definitions": {
     "Descriptorgroups": {
-      "DescriptorVersionReferencesValueValue": {
+      "DescriptorVersionEntriesValue": {
         "type": "object",
         "properties": {
+          "class": {
+            "type": "string",
+            "description": "Exact entry class defined by the applicable profile"
+          },
           "url": {
             "type": "uri",
-            "description": "Absolute fragment-free retrieval URL, used without modification"
+            "description": "Optional absolute fragment-free HTTP(S) retrieval URL; inline-only profiles forbid it"
           }
         },
         "additionalProperties": true,
         "required": [
-          "url"
+          "class"
         ]
       },
       "DescriptorVersion": {
@@ -81,37 +85,31 @@
             "type": "datetime",
             "description": "Modification time"
           },
-          "references": {
+          "entries": {
             "type": "map",
             "values": {
-              "type": "map",
-              "values": {
-                "type": {
-                  "$ref": "#/definitions/Descriptorgroups/DescriptorVersionReferencesValueValue"
-                }
+              "type": {
+                "$ref": "#/definitions/Descriptorgroups/DescriptorVersionEntriesValue"
               }
             },
-            "description": "Reference type buckets containing named References; names are unique across all buckets and the map can be empty"
-          },
-          "data": {
-            "type": "map",
-            "values": {
-              "type": "any"
-            },
-            "description": "Profile-defined inline values keyed by type; values follow Core and applicable profile definitions and are not retrieved as References"
+            "description": "Named portable entries; classes, optional URLs and colocated fields follow the applicable profiles"
           },
           "entityid": {
             "type": "uri",
-            "description": "Absolute fragment-free identity URI of the primary entity; not a retrieval instruction"
+            "description": "Absolute fragment-free identity URI of the described entity; stable across retained Versions"
           },
           "entitytype": {
             "type": "uri",
-            "description": "Type URI with a scheme from an agreed vocabulary; a fragment can identify an ontology class; requires entityid"
+            "description": "Type URI with a scheme; ontology fragments permitted; requires entityid"
+          },
+          "bundleurl": {
+            "type": "uri",
+            "description": "Optional direct bundle retrieval URL advertised by a supporting server"
           }
         },
         "additionalProperties": true,
         "required": [
-          "references"
+          "entries"
         ]
       },
       "Descriptor": {
@@ -158,6 +156,79 @@
           "modifiedat": {
             "type": "datetime",
             "description": "Modification time"
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "descriptorid": {
+                "type": "string",
+                "description": "ID of the descriptor object"
+              },
+              "self": {
+                "type": "uri"
+              },
+              "shortself": {
+                "type": "uri"
+              },
+              "xid": {
+                "type": "uri"
+              },
+              "xref": {
+                "type": "uri"
+              },
+              "epoch": {
+                "type": "uint32"
+              },
+              "labels": {
+                "type": "map",
+                "values": {
+                  "type": "string"
+                }
+              },
+              "createdat": {
+                "type": "datetime"
+              },
+              "modifiedat": {
+                "type": "datetime"
+              },
+              "readonly": {
+                "type": "boolean"
+              },
+              "compatibility": {
+                "type": "string"
+              },
+              "deprecated": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "datetime"
+                  },
+                  "removal": {
+                    "type": "datetime"
+                  },
+                  "alternative": {
+                    "type": "uri"
+                  },
+                  "documentation": {
+                    "type": "uri"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "defaultversionid": {
+                "type": "string"
+              },
+              "defaultversionurl": {
+                "type": "uri"
+              },
+              "defaultversionsticky": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          "metaurl": {
+            "type": "uri"
           },
           "versionsurl": {
             "type": "uri"

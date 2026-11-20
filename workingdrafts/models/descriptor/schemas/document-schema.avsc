@@ -241,58 +241,50 @@
                     {
                       "type": {
                         "type": "map",
-                        "name": "ReferencesType",
+                        "name": "EntriesType",
                         "values": {
-                          "type": "map",
-                          "name": "ReferencesItemType",
-                          "values": {
-                            "type": "record",
-                            "name": "ReferencesItemItemType",
-                            "fields": [
-                              {
-                                "type": "string",
-                                "doc": "Absolute fragment-free retrieval URL, used without modification",
-                                "name": "url"
-                              },
-                              {
-                                "name": "Extensions",
-                                "type": [
-                                  "null",
-                                  {
-                                    "type": "map",
-                                    "name": "ExtensionsType",
-                                    "default": {},
-                                    "values": "io.xregistry.GenericRecord"
-                                  }
-                                ],
-                                "default": null
-                              }
-                            ]
-                          }
+                          "type": "record",
+                          "name": "EntriesItemType",
+                          "fields": [
+                            {
+                              "type": "string",
+                              "doc": "Exact entry class defined by the applicable profile",
+                              "name": "class"
+                            },
+                            {
+                              "type": [
+                                "null",
+                                "string"
+                              ],
+                              "doc": "Optional absolute fragment-free HTTP(S) retrieval URL; inline-only profiles forbid it",
+                              "name": "url",
+                              "default": null
+                            },
+                            {
+                              "name": "Extensions",
+                              "type": [
+                                "null",
+                                {
+                                  "type": "map",
+                                  "name": "ExtensionsType",
+                                  "default": {},
+                                  "values": "io.xregistry.GenericRecord"
+                                }
+                              ],
+                              "default": null
+                            }
+                          ]
                         }
                       },
-                      "name": "references",
-                      "doc": "Reference type buckets containing named References; names are unique across all buckets and the map can be empty"
-                    },
-                    {
-                      "type": [
-                        "null",
-                        {
-                          "type": "map",
-                          "name": "DataType",
-                          "values": "io.xregistry.GenericRecord"
-                        }
-                      ],
-                      "name": "data",
-                      "doc": "Profile-defined inline values keyed by type; values follow Core and applicable profile definitions and are not retrieved as References",
-                      "default": null
+                      "name": "entries",
+                      "doc": "Named portable entries; classes, optional URLs and colocated fields follow the applicable profiles"
                     },
                     {
                       "type": [
                         "null",
                         "string"
                       ],
-                      "doc": "Absolute fragment-free identity URI of the primary entity; not a retrieval instruction",
+                      "doc": "Absolute fragment-free identity URI of the described entity; stable across retained Versions",
                       "name": "entityid",
                       "default": null
                     },
@@ -301,8 +293,17 @@
                         "null",
                         "string"
                       ],
-                      "doc": "Type URI with a scheme from an agreed vocabulary; a fragment can identify an ontology class; requires entityid",
+                      "doc": "Type URI with a scheme; ontology fragments permitted; requires entityid",
                       "name": "entitytype",
+                      "default": null
+                    },
+                    {
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "doc": "Optional direct bundle retrieval URL advertised by a supporting server",
+                      "name": "bundleurl",
                       "default": null
                     },
                     {

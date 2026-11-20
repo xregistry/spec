@@ -1190,12 +1190,6 @@
               }
             },
             "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/descriptor"
@@ -1250,12 +1244,6 @@
         "requestBody": {
           "description": "The resource document or xRegistry metadata (depending on URL suffix $details).",
           "content": {
-            "application/octet-stream": {
-              "schema": {
-                "type": "string",
-                "format": "binary"
-              }
-            },
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/descriptor"
@@ -1333,12 +1321,6 @@
         "requestBody": {
           "description": "The new resource version document or xRegistry metadata.",
           "content": {
-            "application/octet-stream": {
-              "schema": {
-                "type": "string",
-                "format": "binary"
-              }
-            },
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/descriptor"
@@ -1379,12 +1361,6 @@
               }
             },
             "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/descriptor"
@@ -1643,12 +1619,6 @@
           "200": {
             "description": "The resource version.",
             "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/descriptor"
@@ -2290,45 +2260,47 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
-          "references": {
+          "entries": {
             "type": "object",
-            "description": "Reference type buckets containing named References; names are unique across all buckets and the map can be empty",
+            "description": "Named portable entries; classes, optional URLs and colocated fields follow the applicable profiles",
             "additionalProperties": {
               "type": "object",
-              "additionalProperties": {
-                "type": "object",
-                "properties": {
-                  "url": {
-                    "type": "string",
-                    "format": "uri",
-                    "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^#]*$",
-                    "description": "Absolute fragment-free retrieval URL, used without modification"
-                  }
+              "properties": {
+                "class": {
+                  "type": "string",
+                  "description": "Exact entry class defined by the applicable profile"
                 },
-                "required": [
-                  "url"
-                ]
-              }
+                "url": {
+                  "type": "string",
+                  "format": "uri",
+                  "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^#]*$",
+                  "description": "Optional absolute fragment-free HTTP(S) retrieval URL; inline-only profiles forbid it"
+                }
+              },
+              "required": [
+                "class"
+              ]
             }
-          },
-          "data": {
-            "type": "object",
-            "description": "Profile-defined inline values keyed by type; values follow Core and applicable profile definitions and are not retrieved as References",
-            "additionalProperties": {}
           },
           "entityid": {
             "type": "string",
             "format": "uri-reference",
-            "description": "Absolute fragment-free identity URI of the primary entity; not a retrieval instruction"
+            "description": "Absolute fragment-free identity URI of the described entity; stable across retained Versions"
           },
           "entitytype": {
             "type": "string",
             "format": "uri-reference",
-            "description": "Type URI with a scheme from an agreed vocabulary; a fragment can identify an ontology class; requires entityid"
+            "description": "Type URI with a scheme; ontology fragments permitted; requires entityid"
+          },
+          "bundleurl": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^#]*$",
+            "description": "Optional direct bundle retrieval URL advertised by a supporting server"
           }
         },
         "required": [
-          "references"
+          "entries"
         ]
       },
       "descriptor": {

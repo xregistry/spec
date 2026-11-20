@@ -1,120 +1,54 @@
 # Descriptor Registry Service - Version 1.0-rc4
 
-<!-- words: describedby entityid entitytype schemaref endpointref thingref affordanceselector -->
-<!-- words: opc ua opcua prebuilt TDs USD affordance OpenUSD -->
-<!-- words: workingdrafts -->
-<!-- words: thingdescription thingmodel usdasset -->
-<!-- words: opcuawriter -->
-<!-- words: GenericRecord -->
-<!-- words: actorinfo servicekind -->
+<!-- words: describedby descriptorid entityid entitytype bundleurl readonly -->
+<!-- words: thingdescription usdasset opcuawriter actorinfo servicekind -->
+<!-- words: OpenUSD opc ua GenericRecord -->
+<!-- words: hasdocument -->
 
-See the [Descriptor Registry specification](spec.md), its
-[design rationale](design/design.md) and [model](model.json). This working
-draft describes assets, devices, actors and shared processing context
-through one metadata-only Resource shape. The companion
-[CloudEvents proposal](https://github.com/cloudevents/spec/pull/1406) owns
-the common `describedby` contract and failure boundary. Applicable profiles
-define `source`/`subject` interpretation and native metadata mappings.
-xRegistry defines Descriptor structure and versioning.
+See the [specification](spec.md), [model](model.json) and
+[design rationale](design/design.md). This working draft maps the portable
+Descriptor fields directly to native xRegistry Version metadata. Ordinary
+GET returns `descriptorid`, `versionid`, `entries`, OPTIONAL identity/bundle
+fields and Core bookkeeping. No translation or Resource document view is
+needed; `hasdocument` remains false.
 
-The [sample](samples/descriptor.json) is a Core create/update input, not a
-complete response. It contains an Asset Descriptor with a TD and USD asset,
-an Actor Descriptor with empty `references`, and a Context Descriptor with
-two TDs, explicit schema selection and typed OPC UA metadata. The Context
-does not inherit metadata from the Asset. Group IDs and entity types are
-illustrative catalog choices. Example URLs are not deployed services.
-The Actor's deployment-defined `acme_servicekind` string is inline under
-`data.com.example.actorinfo`, not a Core attribute.
+The [CloudEvents working draft][CE] owns `describedby`, portable response
+validation, the bundle object and all entry profiles, including WoT,
+OPC UA, Schema, Endpoint and OpenUSD. xRegistry defines storage, writes,
+identity, publication stability and single-hop bundle negotiation. Entry
+profiles are reviewed through that PR; previous pinned sources are not
+authority for the new shape.
 
-An Actor Descriptor describes a participant independently of the roles it
-plays in conversations. Publisher, Producer and Consumer are responsibilities
-that one actor can combine. Processing descriptions supply interpretation
-inputs; execution observations record reported sends, receipts or processing
-outcomes separately.
+Each entry has a REQUIRED `class`, an OPTIONAL absolute HTTP(S)
+URL and colocated profile fields. Linked profiles require the URL; inline
+profiles omit it and reject null. Repeated classes are allowed; selection
+belongs to the profile, not a generic selector.
 
-The generated [JSON Schema](schemas/document-schema.json),
+The [sample](samples/descriptor.json) contains Core create/update inputs,
+not full responses. It includes entity and actor descriptions and shared
+telemetry. Writer metadata is inline with its entry, without a URL.
+Deployment-defined actor metadata uses a domain-qualified class.
+
+Generated [JSON Schema](schemas/document-schema.json),
 [JSON Structure](schemas/document-schema.struct.json),
 [Avro](schemas/document-schema.avsc) and [OpenAPI](schemas/openapi.json)
-describe selected Registry metadata. They do not replace the domain rules:
-absolute identity URI syntax, Reference names and types, selector
-existence/bucket, `entitytype` requiring `entityid`, specialization
-requirements, type-key syntax, globally unique Reference names and
-publication stability need additional validation. The generic model uses
-`references.<type>.<name>.url` for retrievable representations and OPTIONAL
-`data.<type>` for profile-defined inline values. Reference records have no
-`class` field; type keys use coordinated standard tokens or independently
-defined reverse-DNS names within Core's map-key limits. URI type keys and
-the former flat Reference shape are not aliases.
+describe the native projection. They need the portable schema and semantic
+profile checks for URL schemes, class values, linked/inline admission,
+profile selection and retention. Core `entitytype` is xRegistry-specific
+metadata, not a portable entry selector.
 
-The base model permits profile extensions. The
-WoT Descriptor profile owns projection provenance and TD/TM
-selection. `data.wot.subject.thingref` selects the TD; its OPTIONAL
-`affordanceselector` string selects an affordance. Omission selects the
-whole Thing. The WoT profile defines annotations and event mappings.
-The [OpenUSD Descriptor profile][OpenUSD profile] defines the `usdasset`
-Reference bucket.
-The [Schema Descriptor profile](spec.md#9-schema-descriptor-profile) defines
-the `schema` bucket, `data.schema.schemaref` and schema selection. The
-[Endpoint Descriptor profile](spec.md#10-endpoint-descriptor-profile)
-defines the `endpoint` bucket and `data.endpoint.endpointref`. Both profiles are
-hosted at the end of this working draft for later relocation into their
-respective specifications. The generic base defines no representation
-types or profile selectors.
-Standard-profile type keys use one coordinated canonical token:
-`schema`, `thingdescription`, `thingmodel`, `usdasset` or `endpoint`, as
-defined by the respective profile. Independently defined types use
-domain-qualified keys such as `com.example.calibration`; keys are not
-resolved as network addresses. Inline values follow the profile's declared
-Core-compatible types rather than a universal string metadata bag.
-The [CloudEvents OPC UA extension][OPC profile] defines how native identity
-and shared metadata are conveyed through events and Descriptors.
-The stream sample's four existing native fields and values are grouped in
-`data.opcuawriter`. This inline value is not part of Reference retrieval.
-Selectors name globally unique References from their profile's inline `data`.
+`bundleurl` is OPTIONAL server-managed metadata. A supporting deployment
+advertises a direct bundle URL and can negotiate the portable bundled
+media type at the selected URL. Core does not assemble it automatically.
+The portable bundle keeps the same fields, embedding documents only under
+linked entries. [xRegistry negotiation](spec.md#55-bundled-representations)
+retrieves that bundle in one request at the original Descriptor URL.
 
-Ordinary TD storage and WoT event processing can operate without
-Descriptors. A route or processing profile that relies on Descriptor
-inputs requires one. A subject Descriptor identifies the subject and its
-annotations; it does not supply missing processing schema or native metadata
-unless it is also explicitly selected in that processing role.
+Descriptor Avro generation retains the opt-in `--avro-nullable-optionals`.
+This changes field optionality, not Core JSON null semantics or integer
+width. GenericRecord extension values require the existing Avro mapping;
+generated formats are not substitutes for the portable JSON contract.
+The existing top-level Schema, Message, Endpoint and CloudEvents artifacts
+and generator behavior remain unchanged.
 
-The Descriptor Avro generation command uses the opt-in
-`--avro-nullable-optionals` in [tools/Makefile](../../../tools/Makefile).
-It represents absent OPTIONAL fields through nullable field types and
-defaults, including nested References. The generator's default output and
-the published Schema, Message, Endpoint and CloudEvents Avro artifacts are
-unchanged. Avro null values are serialization details, not a change to
-Core JSON response or write semantics.
-The option does not change integer widths; a profile's encoding needs to
-support the value ranges that profile declares.
-The existing Avro `any` projection uses `GenericRecord.object`; it is not a
-direct encoding of every Core value that the generic `data` map permits.
-
-Ordinary GET returns metadata. The OPTIONAL
-[Descriptor bundle](spec.md#74-descriptor-bundle) needs additional
-resolver/serving behavior; generic Core does not assemble it. A configured
-static endpoint can serve a prebuilt bundle subject to the same completeness,
-authorization, freshness and Version-selection rules. It is not a snapshot.
-
-## Scope and Deferred Work
-
-The [comparison with other drafts][draft boundaries] separates Descriptors
-from federation contexts, publication snapshots and runtime readiness.
-The [document alternative][document alternative] remains recorded as a
-trade-off, not the selected model.
-
-Message definitions are not standard References: the Message model retains
-only one Version, so replacing it changes the metadata at the same URL.
-The Schema Descriptor profile references the payload schema directly.
-
-The CloudEvents extensions own event-link and schema selection and OPC UA
-metadata conveyance. The WoT draft owns TD selection and affordance
-annotation rules.
-
-Digest schemes, transitive packaging, a universal entity vocabulary and new
-lifecycle or execution APIs are outside this draft.
-
-[draft boundaries]: design/design.md#6-relationship-to-federation-publication-and-wot
-[document alternative]: design/design.md#71-descriptor-document-alternative
-[OpenUSD profile]: ../openusd/spec.md#57-descriptor-profile
-[OPC profile]: https://github.com/cloudevents/spec/blob/1c4caca73c69a7e076e75fe0727f6a216c83e500/cloudevents/extensions/opcua.md#opc-ua-descriptor-profile
+[CE]: https://github.com/cloudevents/spec/pull/1406
