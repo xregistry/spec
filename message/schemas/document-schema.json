@@ -361,11 +361,10 @@
                               },
                               "type": {
                                 "type": "string",
-                                "description": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types"
+                                "description": "AMQP properties.message-id declaration type from the AMQP type model"
                               },
                               "value": {
-                                "type": "string",
-                                "description": "AMQP properties.message-id value constraint. "
+                                "description": "AMQP properties.message-id value constraint"
                               },
                               "required": {
                                 "type": "boolean",
@@ -641,7 +640,6 @@
                               "description": "The application property type"
                             },
                             "value": {
-                              "type": "string",
                               "description": "Application property value"
                             },
                             "required": {
@@ -665,7 +663,6 @@
                               "description": "The message annotation type"
                             },
                             "value": {
-                              "type": "string",
                               "description": "Annotation value constraint"
                             },
                             "required": {
@@ -689,7 +686,6 @@
                               "description": "The annotation type"
                             },
                             "value": {
-                              "type": "string",
                               "description": "Annotation value constraint"
                             },
                             "required": {
@@ -739,7 +735,6 @@
                               "description": "AMQP footer type"
                             },
                             "value": {
-                              "type": "string",
                               "description": "Footer value constraint"
                             },
                             "required": {
@@ -831,7 +826,12 @@
                       "correlation_data": {
                         "type": "string",
                         "format": "uri-template",
-                        "description": "MQTT correlation data"
+                        "description": "MQTT correlation data as a URI template. Mutually exclusive with 'correlation_data_binary'"
+                      },
+                      "correlation_data_binary": {
+                        "type": "string",
+                        "format": "base64",
+                        "description": "Binary MQTT correlation data as a base64 encoded string. Mutually exclusive with 'correlation_data'"
                       },
                       "content_type": {
                         "type": "string",
@@ -893,16 +893,17 @@
                       "key": {
                         "type": "string",
                         "format": "uri-template",
-                        "description": "The Apache Kafka key as a UTF-8 uri template. Mutually exclusive with 'key_base64'"
+                        "description": "The Apache Kafka key as a UTF-8 uri template. Mutually exclusive with 'key_binary'"
                       },
-                      "key_base64": {
+                      "key_binary": {
                         "type": "string",
+                        "format": "base64",
                         "description": "Binary Apache Kafka key as a base64 encoded string. Mutually exclusive with 'key'"
                       },
                       "headers": {
-                        "type": "object",
+                        "type": "array",
                         "description": "The Apache Kafka headers",
-                        "additionalProperties": {
+                        "items": {
                           "type": "object",
                           "properties": {
                             "name": {
@@ -1467,11 +1468,10 @@
                               },
                               "type": {
                                 "type": "string",
-                                "description": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types"
+                                "description": "AMQP properties.message-id declaration type from the AMQP type model"
                               },
                               "value": {
-                                "type": "string",
-                                "description": "AMQP properties.message-id value constraint. "
+                                "description": "AMQP properties.message-id value constraint"
                               },
                               "required": {
                                 "type": "boolean",
@@ -1747,7 +1747,6 @@
                               "description": "The application property type"
                             },
                             "value": {
-                              "type": "string",
                               "description": "Application property value"
                             },
                             "required": {
@@ -1771,7 +1770,6 @@
                               "description": "The message annotation type"
                             },
                             "value": {
-                              "type": "string",
                               "description": "Annotation value constraint"
                             },
                             "required": {
@@ -1795,7 +1793,6 @@
                               "description": "The annotation type"
                             },
                             "value": {
-                              "type": "string",
                               "description": "Annotation value constraint"
                             },
                             "required": {
@@ -1845,7 +1842,6 @@
                               "description": "AMQP footer type"
                             },
                             "value": {
-                              "type": "string",
                               "description": "Footer value constraint"
                             },
                             "required": {
@@ -1937,7 +1933,12 @@
                       "correlation_data": {
                         "type": "string",
                         "format": "uri-template",
-                        "description": "MQTT correlation data"
+                        "description": "MQTT correlation data as a URI template. Mutually exclusive with 'correlation_data_binary'"
+                      },
+                      "correlation_data_binary": {
+                        "type": "string",
+                        "format": "base64",
+                        "description": "Binary MQTT correlation data as a base64 encoded string. Mutually exclusive with 'correlation_data'"
                       },
                       "content_type": {
                         "type": "string",
@@ -1999,16 +2000,17 @@
                       "key": {
                         "type": "string",
                         "format": "uri-template",
-                        "description": "The Apache Kafka key as a UTF-8 uri template. Mutually exclusive with 'key_base64'"
+                        "description": "The Apache Kafka key as a UTF-8 uri template. Mutually exclusive with 'key_binary'"
                       },
-                      "key_base64": {
+                      "key_binary": {
                         "type": "string",
+                        "format": "base64",
                         "description": "Binary Apache Kafka key as a base64 encoded string. Mutually exclusive with 'key'"
                       },
                       "headers": {
-                        "type": "object",
+                        "type": "array",
                         "description": "The Apache Kafka headers",
-                        "additionalProperties": {
+                        "items": {
                           "type": "object",
                           "properties": {
                             "name": {

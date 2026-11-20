@@ -40,12 +40,13 @@
               "string",
               "uritemplate",
               "integer",
+              "decimal",
               "number",
               "boolean"
             ]
           },
           "value": {
-            "type": "string",
+            "type": "any",
             "description": "Application property value"
           },
           "required": {
@@ -68,12 +69,13 @@
               "string",
               "uritemplate",
               "integer",
+              "decimal",
               "number",
               "boolean"
             ]
           },
           "value": {
-            "type": "string",
+            "type": "any",
             "description": "Annotation value constraint"
           },
           "required": {
@@ -96,12 +98,13 @@
               "string",
               "uritemplate",
               "integer",
+              "decimal",
               "number",
               "boolean"
             ]
           },
           "value": {
-            "type": "string",
+            "type": "any",
             "description": "Annotation value constraint"
           },
           "required": {
@@ -124,12 +127,13 @@
               "string",
               "uritemplate",
               "integer",
+              "decimal",
               "number",
               "boolean"
             ]
           },
           "value": {
-            "type": "string",
+            "type": "any",
             "description": "Footer value constraint"
           },
           "required": {
@@ -152,12 +156,13 @@
               "string",
               "uritemplate",
               "integer",
+              "decimal",
               "number",
               "boolean"
             ]
           },
           "value": {
-            "type": "string",
+            "type": "any",
             "description": "Application property value"
           },
           "required": {
@@ -180,12 +185,13 @@
               "string",
               "uritemplate",
               "integer",
+              "decimal",
               "number",
               "boolean"
             ]
           },
           "value": {
-            "type": "string",
+            "type": "any",
             "description": "Annotation value constraint"
           },
           "required": {
@@ -208,12 +214,13 @@
               "string",
               "uritemplate",
               "integer",
+              "decimal",
               "number",
               "boolean"
             ]
           },
           "value": {
-            "type": "string",
+            "type": "any",
             "description": "Annotation value constraint"
           },
           "required": {
@@ -236,12 +243,13 @@
               "string",
               "uritemplate",
               "integer",
+              "decimal",
               "number",
               "boolean"
             ]
           },
           "value": {
-            "type": "string",
+            "type": "any",
             "description": "Footer value constraint"
           },
           "required": {
@@ -570,7 +578,7 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types",
+                        "description": "AMQP properties.message-id declaration type from the AMQP type model",
                         "enum": [
                           "ulong",
                           "uuid",
@@ -580,8 +588,8 @@
                         ]
                       },
                       "value": {
-                        "type": "string",
-                        "description": "AMQP properties.message-id value constraint. "
+                        "type": "any",
+                        "description": "AMQP properties.message-id value constraint"
                       },
                       "required": {
                         "type": "boolean",
@@ -715,9 +723,9 @@
                         "type": "string",
                         "description": "AMQP correlation-id value type",
                         "enum": [
-                          "binary",
                           "string",
-                          "uritemplate"
+                          "uritemplate",
+                          "binary"
                         ]
                       },
                       "value": {
@@ -1338,7 +1346,7 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types",
+                        "description": "AMQP properties.message-id declaration type from the AMQP type model",
                         "enum": [
                           "ulong",
                           "uuid",
@@ -1348,8 +1356,8 @@
                         ]
                       },
                       "value": {
-                        "type": "string",
-                        "description": "AMQP properties.message-id value constraint. "
+                        "type": "any",
+                        "description": "AMQP properties.message-id value constraint"
                       },
                       "required": {
                         "type": "boolean",
@@ -1483,9 +1491,9 @@
                         "type": "string",
                         "description": "AMQP correlation-id value type",
                         "enum": [
-                          "binary",
                           "string",
-                          "uritemplate"
+                          "uritemplate",
+                          "binary"
                         ]
                       },
                       "value": {
