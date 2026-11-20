@@ -97,8 +97,33 @@ class TestSchemaGenerator:
 
         self.assert_json_structure(schema_data)
         assert schema_data['properties']['schemagroups']['type'] == 'map'
+        schema_resource = schema_data['definitions']['Schemagroups']['Schema']
+        assert schema_resource['properties']['format']['type'] == 'string'
+        assert schema_resource['properties']['meta']['properties']['shortself']['type'] == 'uri'
         schema_version = schema_data['definitions']['Schemagroups']['SchemaVersion']
         assert schema_version['properties']['format']['type'] == 'string'
+
+    def test_json_structure_resource_conditional_attributes_remain_optional(
+        self, schema_model, tools_dir, tmp_path
+    ):
+        model = json.loads(schema_model.read_text(encoding='utf-8'))
+        attributes = model['groups']['schemagroups']['resources']['schemas']['attributes']
+        attributes['format']['ifvalues'] = {
+            'custom': {
+                'siblingattributes': {
+                    'fieldrequired': {'type': 'string', 'required': True}
+                }
+            }
+        }
+        model_path = tmp_path / 'model.json'
+        model_path.write_text(json.dumps(model), encoding='utf-8')
+        schema = self.generate_schema(model_path, 'json-structure', tools_dir)
+        definitions = schema['definitions']['Schemagroups']
+        resource = definitions['Schema']
+        version = definitions['SchemaVersion']
+        assert resource['properties']['fieldrequired']['type'] == 'string'
+        assert 'fieldrequired' not in resource.get('required', [])
+        assert 'fieldrequired' in version['required']
 
     def test_cloudevents_multi_model_json_structure(
         self, endpoint_model, message_model, schema_model, tools_dir

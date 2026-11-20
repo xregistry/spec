@@ -909,10 +909,12 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                 **common_attributes
             }
             resource_attributes = dict(identity_attributes)
+            # Default-Version attributes are optional on Resources: doc-view
+            # responses omit them, and cross-reference writes must omit them.
             resource_attributes.update({
                 attribute_name: {**definition, "required": False}
-                for attribute_name, definition in resource.get(
-                    "attributes", {}
+                for attribute_name, definition in collect_attributes(
+                    resource.get("attributes", {})
                 ).items()
             })
             resource_schema = object_schema(
