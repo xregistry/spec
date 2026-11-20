@@ -379,8 +379,20 @@ events.
 - Action: `created`
   - MUST be generated when a new Resource is created.
 
-  - At least one `io.xregistry.version.created` event MUST also be
-    generated since at least one Version MUST also be created.
+  - If the new Resource is not a cross-reference, at least one
+    `io.xregistry.version.created` event MUST also be generated since at
+    least one Version MUST also be created.
+
+  - Creating a cross-reference Resource MUST NOT generate
+    `io.xregistry.version.created` events for Versions merely exposed through
+    that cross-reference. The target's existing Versions are not created by
+    this operation.
+
+    For example, creating `/dirs/d1/files/f2` with
+    `meta.xref="/dirs/d1/files/f1"` generates a Resource `created` event for
+    `/dirs/d1/files/f2`, but no Version `created` events for the Versions
+    exposed through `f2`. This does not suppress events for Versions actually
+    created elsewhere by the same interaction.
 
   - An `io.xregistry.group.updated` event MUST also be generated where the
     `changed`, if present, MUST include `epoch`, `modifiedat`, `<RESOURCES>`
