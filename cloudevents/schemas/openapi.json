@@ -2372,184 +2372,94 @@
                 }
               },
               "xRegistry-messageid": {
-                "description": "The messageid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-messageid"
               },
               "xRegistry-versionid": {
-                "description": "The versionid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionid"
               },
               "xRegistry-name": {
-                "description": "The name attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-name"
               },
               "xRegistry-description": {
-                "description": "The description attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-description"
               },
               "xRegistry-ancestorid": {
-                "description": "The ancestorid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-ancestorid"
               },
               "xRegistry-format": {
-                "description": "The format attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-format"
               },
               "xRegistry-formatvalidatedreason": {
-                "description": "The formatvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
               },
               "xRegistry-compatibilityvalidatedreason": {
-                "description": "The compatibilityvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
               },
               "xRegistry-self": {
-                "description": "The self attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-self"
               },
               "xRegistry-shortself": {
-                "description": "The shortself attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-shortself"
               },
               "xRegistry-documentation": {
-                "description": "The documentation attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-documentation"
               },
               "xRegistry-icon": {
-                "description": "The icon attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-icon"
               },
               "xRegistry-xid": {
-                "description": "The xid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-xid"
               },
               "xRegistry-epoch": {
-                "description": "The epoch attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-epoch"
               },
               "xRegistry-isdefault": {
-                "description": "The isdefault attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-isdefault"
               },
               "xRegistry-createdat": {
-                "description": "The createdat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-createdat"
               },
               "xRegistry-modifiedat": {
-                "description": "The modifiedat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-modifiedat"
               },
               "xRegistry-formatvalidated": {
-                "description": "The formatvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
               },
               "xRegistry-compatibilityvalidated": {
-                "description": "The compatibilityvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
               },
               "xRegistry-basemessage": {
-                "description": "The basemessage attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-basemessage"
               },
               "xRegistry-envelope": {
-                "description": "The envelope attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-envelope"
               },
               "xRegistry-protocol": {
-                "description": "The protocol attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-protocol"
               },
               "xRegistry-dataschemaformat": {
-                "description": "The dataschemaformat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemaformat"
               },
               "xRegistry-dataschemauri": {
-                "description": "The dataschemauri attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemauri"
               },
               "xRegistry-dataschemaxid": {
-                "description": "The dataschemaxid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemaxid"
               },
               "xRegistry-datacontenttype": {
-                "description": "The datacontenttype attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-datacontenttype"
               },
               "xRegistry-messageurl": {
-                "description": "The messageurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-messageurl"
               },
               "xRegistry-metaurl": {
-                "description": "The metaurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-metaurl"
               },
               "xRegistry-versionsurl": {
-                "description": "The versionsurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionsurl"
               },
               "xRegistry-versionscount": {
-                "description": "The versionscount attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionscount"
               }
             },
             "content": {
@@ -2604,175 +2514,61 @@
             "$ref": "#/components/parameters/specversion"
           },
           {
-            "name": "xRegistry-messageid",
-            "in": "header",
-            "required": false,
-            "description": "The messageid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-messageid"
           },
           {
-            "name": "xRegistry-versionid",
-            "in": "header",
-            "required": false,
-            "description": "The versionid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-versionid"
           },
           {
-            "name": "xRegistry-name",
-            "in": "header",
-            "required": false,
-            "description": "The name attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-name"
           },
           {
-            "name": "xRegistry-description",
-            "in": "header",
-            "required": false,
-            "description": "The description attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-description"
           },
           {
-            "name": "xRegistry-ancestorid",
-            "in": "header",
-            "required": false,
-            "description": "The ancestorid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-ancestorid"
           },
           {
-            "name": "xRegistry-format",
-            "in": "header",
-            "required": false,
-            "description": "The format attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-format"
           },
           {
-            "name": "xRegistry-documentation",
-            "in": "header",
-            "required": false,
-            "description": "The documentation attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-documentation"
           },
           {
-            "name": "xRegistry-icon",
-            "in": "header",
-            "required": false,
-            "description": "The icon attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-icon"
           },
           {
-            "name": "xRegistry-epoch",
-            "in": "header",
-            "required": false,
-            "description": "The epoch attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-epoch"
           },
           {
-            "name": "xRegistry-createdat",
-            "in": "header",
-            "required": false,
-            "description": "The createdat attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-createdat"
           },
           {
-            "name": "xRegistry-modifiedat",
-            "in": "header",
-            "required": false,
-            "description": "The modifiedat attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-modifiedat"
           },
           {
-            "name": "xRegistry-basemessage",
-            "in": "header",
-            "required": false,
-            "description": "The basemessage attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-basemessage"
           },
           {
-            "name": "xRegistry-envelope",
-            "in": "header",
-            "required": false,
-            "description": "The envelope attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-envelope"
           },
           {
-            "name": "xRegistry-protocol",
-            "in": "header",
-            "required": false,
-            "description": "The protocol attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-protocol"
           },
           {
-            "name": "xRegistry-dataschemaformat",
-            "in": "header",
-            "required": false,
-            "description": "The dataschemaformat attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-dataschemaformat"
           },
           {
-            "name": "xRegistry-dataschemauri",
-            "in": "header",
-            "required": false,
-            "description": "The dataschemauri attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-dataschemauri"
           },
           {
-            "name": "xRegistry-dataschemaxid",
-            "in": "header",
-            "required": false,
-            "description": "The dataschemaxid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-dataschemaxid"
           },
           {
-            "name": "xRegistry-datacontenttype",
-            "in": "header",
-            "required": false,
-            "description": "The datacontenttype attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-datacontenttype"
           },
           {
-            "name": "xRegistry-messageurl",
-            "in": "header",
-            "required": false,
-            "description": "The messageurl attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-messageurl"
           }
         ],
         "requestBody": {
@@ -2797,184 +2593,94 @@
             },
             "headers": {
               "xRegistry-messageid": {
-                "description": "The messageid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-messageid"
               },
               "xRegistry-versionid": {
-                "description": "The versionid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionid"
               },
               "xRegistry-name": {
-                "description": "The name attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-name"
               },
               "xRegistry-description": {
-                "description": "The description attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-description"
               },
               "xRegistry-ancestorid": {
-                "description": "The ancestorid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-ancestorid"
               },
               "xRegistry-format": {
-                "description": "The format attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-format"
               },
               "xRegistry-formatvalidatedreason": {
-                "description": "The formatvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
               },
               "xRegistry-compatibilityvalidatedreason": {
-                "description": "The compatibilityvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
               },
               "xRegistry-self": {
-                "description": "The self attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-self"
               },
               "xRegistry-shortself": {
-                "description": "The shortself attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-shortself"
               },
               "xRegistry-documentation": {
-                "description": "The documentation attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-documentation"
               },
               "xRegistry-icon": {
-                "description": "The icon attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-icon"
               },
               "xRegistry-xid": {
-                "description": "The xid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-xid"
               },
               "xRegistry-epoch": {
-                "description": "The epoch attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-epoch"
               },
               "xRegistry-isdefault": {
-                "description": "The isdefault attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-isdefault"
               },
               "xRegistry-createdat": {
-                "description": "The createdat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-createdat"
               },
               "xRegistry-modifiedat": {
-                "description": "The modifiedat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-modifiedat"
               },
               "xRegistry-formatvalidated": {
-                "description": "The formatvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
               },
               "xRegistry-compatibilityvalidated": {
-                "description": "The compatibilityvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
               },
               "xRegistry-basemessage": {
-                "description": "The basemessage attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-basemessage"
               },
               "xRegistry-envelope": {
-                "description": "The envelope attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-envelope"
               },
               "xRegistry-protocol": {
-                "description": "The protocol attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-protocol"
               },
               "xRegistry-dataschemaformat": {
-                "description": "The dataschemaformat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemaformat"
               },
               "xRegistry-dataschemauri": {
-                "description": "The dataschemauri attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemauri"
               },
               "xRegistry-dataschemaxid": {
-                "description": "The dataschemaxid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemaxid"
               },
               "xRegistry-datacontenttype": {
-                "description": "The datacontenttype attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-datacontenttype"
               },
               "xRegistry-messageurl": {
-                "description": "The messageurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-messageurl"
               },
               "xRegistry-metaurl": {
-                "description": "The metaurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-metaurl"
               },
               "xRegistry-versionsurl": {
-                "description": "The versionsurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionsurl"
               },
               "xRegistry-versionscount": {
-                "description": "The versionscount attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionscount"
               }
             }
           },
@@ -3025,175 +2731,61 @@
             "$ref": "#/components/parameters/specversion"
           },
           {
-            "name": "xRegistry-messageid",
-            "in": "header",
-            "required": false,
-            "description": "The messageid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-messageid"
           },
           {
-            "name": "xRegistry-versionid",
-            "in": "header",
-            "required": false,
-            "description": "The versionid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-versionid"
           },
           {
-            "name": "xRegistry-name",
-            "in": "header",
-            "required": false,
-            "description": "The name attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-name"
           },
           {
-            "name": "xRegistry-description",
-            "in": "header",
-            "required": false,
-            "description": "The description attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-description"
           },
           {
-            "name": "xRegistry-ancestorid",
-            "in": "header",
-            "required": false,
-            "description": "The ancestorid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-ancestorid"
           },
           {
-            "name": "xRegistry-format",
-            "in": "header",
-            "required": false,
-            "description": "The format attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-format"
           },
           {
-            "name": "xRegistry-documentation",
-            "in": "header",
-            "required": false,
-            "description": "The documentation attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-documentation"
           },
           {
-            "name": "xRegistry-icon",
-            "in": "header",
-            "required": false,
-            "description": "The icon attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-icon"
           },
           {
-            "name": "xRegistry-epoch",
-            "in": "header",
-            "required": false,
-            "description": "The epoch attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-epoch"
           },
           {
-            "name": "xRegistry-createdat",
-            "in": "header",
-            "required": false,
-            "description": "The createdat attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-createdat"
           },
           {
-            "name": "xRegistry-modifiedat",
-            "in": "header",
-            "required": false,
-            "description": "The modifiedat attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-modifiedat"
           },
           {
-            "name": "xRegistry-basemessage",
-            "in": "header",
-            "required": false,
-            "description": "The basemessage attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-basemessage"
           },
           {
-            "name": "xRegistry-envelope",
-            "in": "header",
-            "required": false,
-            "description": "The envelope attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-envelope"
           },
           {
-            "name": "xRegistry-protocol",
-            "in": "header",
-            "required": false,
-            "description": "The protocol attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-protocol"
           },
           {
-            "name": "xRegistry-dataschemaformat",
-            "in": "header",
-            "required": false,
-            "description": "The dataschemaformat attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-dataschemaformat"
           },
           {
-            "name": "xRegistry-dataschemauri",
-            "in": "header",
-            "required": false,
-            "description": "The dataschemauri attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-dataschemauri"
           },
           {
-            "name": "xRegistry-dataschemaxid",
-            "in": "header",
-            "required": false,
-            "description": "The dataschemaxid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-dataschemaxid"
           },
           {
-            "name": "xRegistry-datacontenttype",
-            "in": "header",
-            "required": false,
-            "description": "The datacontenttype attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-datacontenttype"
           },
           {
-            "name": "xRegistry-messageurl",
-            "in": "header",
-            "required": false,
-            "description": "The messageurl attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-messageurl"
           }
         ],
         "requestBody": {
@@ -3218,166 +2810,85 @@
             },
             "headers": {
               "xRegistry-messageid": {
-                "description": "The messageid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-messageid"
               },
               "xRegistry-versionid": {
-                "description": "The versionid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionid"
               },
               "xRegistry-name": {
-                "description": "The name attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-name"
               },
               "xRegistry-description": {
-                "description": "The description attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-description"
               },
               "xRegistry-ancestorid": {
-                "description": "The ancestorid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-ancestorid"
               },
               "xRegistry-format": {
-                "description": "The format attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-format"
               },
               "xRegistry-formatvalidatedreason": {
-                "description": "The formatvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
               },
               "xRegistry-compatibilityvalidatedreason": {
-                "description": "The compatibilityvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
               },
               "xRegistry-self": {
-                "description": "The self attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-self"
               },
               "xRegistry-shortself": {
-                "description": "The shortself attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-shortself"
               },
               "xRegistry-documentation": {
-                "description": "The documentation attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-documentation"
               },
               "xRegistry-icon": {
-                "description": "The icon attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-icon"
               },
               "xRegistry-xid": {
-                "description": "The xid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-xid"
               },
               "xRegistry-epoch": {
-                "description": "The epoch attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-epoch"
               },
               "xRegistry-isdefault": {
-                "description": "The isdefault attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-isdefault"
               },
               "xRegistry-createdat": {
-                "description": "The createdat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-createdat"
               },
               "xRegistry-modifiedat": {
-                "description": "The modifiedat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-modifiedat"
               },
               "xRegistry-formatvalidated": {
-                "description": "The formatvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
               },
               "xRegistry-compatibilityvalidated": {
-                "description": "The compatibilityvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
               },
               "xRegistry-basemessage": {
-                "description": "The basemessage attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-basemessage"
               },
               "xRegistry-envelope": {
-                "description": "The envelope attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-envelope"
               },
               "xRegistry-protocol": {
-                "description": "The protocol attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-protocol"
               },
               "xRegistry-dataschemaformat": {
-                "description": "The dataschemaformat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemaformat"
               },
               "xRegistry-dataschemauri": {
-                "description": "The dataschemauri attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemauri"
               },
               "xRegistry-dataschemaxid": {
-                "description": "The dataschemaxid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemaxid"
               },
               "xRegistry-datacontenttype": {
-                "description": "The datacontenttype attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-datacontenttype"
               },
               "xRegistry-messageurl": {
-                "description": "The messageurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-messageurl"
               }
             }
           },
@@ -3535,184 +3046,94 @@
                 }
               },
               "xRegistry-messageid": {
-                "description": "The messageid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-messageid"
               },
               "xRegistry-versionid": {
-                "description": "The versionid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionid"
               },
               "xRegistry-name": {
-                "description": "The name attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-name"
               },
               "xRegistry-description": {
-                "description": "The description attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-description"
               },
               "xRegistry-ancestorid": {
-                "description": "The ancestorid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-ancestorid"
               },
               "xRegistry-format": {
-                "description": "The format attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-format"
               },
               "xRegistry-formatvalidatedreason": {
-                "description": "The formatvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
               },
               "xRegistry-compatibilityvalidatedreason": {
-                "description": "The compatibilityvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
               },
               "xRegistry-self": {
-                "description": "The self attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-self"
               },
               "xRegistry-shortself": {
-                "description": "The shortself attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-shortself"
               },
               "xRegistry-documentation": {
-                "description": "The documentation attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-documentation"
               },
               "xRegistry-icon": {
-                "description": "The icon attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-icon"
               },
               "xRegistry-xid": {
-                "description": "The xid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-xid"
               },
               "xRegistry-epoch": {
-                "description": "The epoch attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-epoch"
               },
               "xRegistry-isdefault": {
-                "description": "The isdefault attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-isdefault"
               },
               "xRegistry-createdat": {
-                "description": "The createdat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-createdat"
               },
               "xRegistry-modifiedat": {
-                "description": "The modifiedat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-modifiedat"
               },
               "xRegistry-formatvalidated": {
-                "description": "The formatvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
               },
               "xRegistry-compatibilityvalidated": {
-                "description": "The compatibilityvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
               },
               "xRegistry-basemessage": {
-                "description": "The basemessage attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-basemessage"
               },
               "xRegistry-envelope": {
-                "description": "The envelope attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-envelope"
               },
               "xRegistry-protocol": {
-                "description": "The protocol attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-protocol"
               },
               "xRegistry-dataschemaformat": {
-                "description": "The dataschemaformat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemaformat"
               },
               "xRegistry-dataschemauri": {
-                "description": "The dataschemauri attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemauri"
               },
               "xRegistry-dataschemaxid": {
-                "description": "The dataschemaxid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemaxid"
               },
               "xRegistry-datacontenttype": {
-                "description": "The datacontenttype attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-datacontenttype"
               },
               "xRegistry-messageurl": {
-                "description": "The messageurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-messageurl"
               },
               "xRegistry-metaurl": {
-                "description": "The metaurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-metaurl"
               },
               "xRegistry-versionsurl": {
-                "description": "The versionsurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionsurl"
               },
               "xRegistry-versionscount": {
-                "description": "The versionscount attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionscount"
               }
             },
             "content": {
@@ -3767,175 +3188,61 @@
             "$ref": "#/components/parameters/specversion"
           },
           {
-            "name": "xRegistry-messageid",
-            "in": "header",
-            "required": false,
-            "description": "The messageid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-messageid"
           },
           {
-            "name": "xRegistry-versionid",
-            "in": "header",
-            "required": false,
-            "description": "The versionid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-versionid"
           },
           {
-            "name": "xRegistry-name",
-            "in": "header",
-            "required": false,
-            "description": "The name attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-name"
           },
           {
-            "name": "xRegistry-description",
-            "in": "header",
-            "required": false,
-            "description": "The description attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-description"
           },
           {
-            "name": "xRegistry-ancestorid",
-            "in": "header",
-            "required": false,
-            "description": "The ancestorid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-ancestorid"
           },
           {
-            "name": "xRegistry-format",
-            "in": "header",
-            "required": false,
-            "description": "The format attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-format"
           },
           {
-            "name": "xRegistry-documentation",
-            "in": "header",
-            "required": false,
-            "description": "The documentation attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-documentation"
           },
           {
-            "name": "xRegistry-icon",
-            "in": "header",
-            "required": false,
-            "description": "The icon attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-icon"
           },
           {
-            "name": "xRegistry-epoch",
-            "in": "header",
-            "required": false,
-            "description": "The epoch attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-epoch"
           },
           {
-            "name": "xRegistry-createdat",
-            "in": "header",
-            "required": false,
-            "description": "The createdat attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-createdat"
           },
           {
-            "name": "xRegistry-modifiedat",
-            "in": "header",
-            "required": false,
-            "description": "The modifiedat attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-modifiedat"
           },
           {
-            "name": "xRegistry-basemessage",
-            "in": "header",
-            "required": false,
-            "description": "The basemessage attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-basemessage"
           },
           {
-            "name": "xRegistry-envelope",
-            "in": "header",
-            "required": false,
-            "description": "The envelope attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-envelope"
           },
           {
-            "name": "xRegistry-protocol",
-            "in": "header",
-            "required": false,
-            "description": "The protocol attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-protocol"
           },
           {
-            "name": "xRegistry-dataschemaformat",
-            "in": "header",
-            "required": false,
-            "description": "The dataschemaformat attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-dataschemaformat"
           },
           {
-            "name": "xRegistry-dataschemauri",
-            "in": "header",
-            "required": false,
-            "description": "The dataschemauri attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-dataschemauri"
           },
           {
-            "name": "xRegistry-dataschemaxid",
-            "in": "header",
-            "required": false,
-            "description": "The dataschemaxid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-dataschemaxid"
           },
           {
-            "name": "xRegistry-datacontenttype",
-            "in": "header",
-            "required": false,
-            "description": "The datacontenttype attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-datacontenttype"
           },
           {
-            "name": "xRegistry-messageurl",
-            "in": "header",
-            "required": false,
-            "description": "The messageurl attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-messageurl"
           }
         ],
         "requestBody": {
@@ -3960,184 +3267,94 @@
             },
             "headers": {
               "xRegistry-messageid": {
-                "description": "The messageid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-messageid"
               },
               "xRegistry-versionid": {
-                "description": "The versionid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionid"
               },
               "xRegistry-name": {
-                "description": "The name attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-name"
               },
               "xRegistry-description": {
-                "description": "The description attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-description"
               },
               "xRegistry-ancestorid": {
-                "description": "The ancestorid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-ancestorid"
               },
               "xRegistry-format": {
-                "description": "The format attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-format"
               },
               "xRegistry-formatvalidatedreason": {
-                "description": "The formatvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
               },
               "xRegistry-compatibilityvalidatedreason": {
-                "description": "The compatibilityvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
               },
               "xRegistry-self": {
-                "description": "The self attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-self"
               },
               "xRegistry-shortself": {
-                "description": "The shortself attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-shortself"
               },
               "xRegistry-documentation": {
-                "description": "The documentation attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-documentation"
               },
               "xRegistry-icon": {
-                "description": "The icon attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-icon"
               },
               "xRegistry-xid": {
-                "description": "The xid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-xid"
               },
               "xRegistry-epoch": {
-                "description": "The epoch attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-epoch"
               },
               "xRegistry-isdefault": {
-                "description": "The isdefault attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-isdefault"
               },
               "xRegistry-createdat": {
-                "description": "The createdat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-createdat"
               },
               "xRegistry-modifiedat": {
-                "description": "The modifiedat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-modifiedat"
               },
               "xRegistry-formatvalidated": {
-                "description": "The formatvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
               },
               "xRegistry-compatibilityvalidated": {
-                "description": "The compatibilityvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
               },
               "xRegistry-basemessage": {
-                "description": "The basemessage attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-basemessage"
               },
               "xRegistry-envelope": {
-                "description": "The envelope attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-envelope"
               },
               "xRegistry-protocol": {
-                "description": "The protocol attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-protocol"
               },
               "xRegistry-dataschemaformat": {
-                "description": "The dataschemaformat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemaformat"
               },
               "xRegistry-dataschemauri": {
-                "description": "The dataschemauri attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemauri"
               },
               "xRegistry-dataschemaxid": {
-                "description": "The dataschemaxid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemaxid"
               },
               "xRegistry-datacontenttype": {
-                "description": "The datacontenttype attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-datacontenttype"
               },
               "xRegistry-messageurl": {
-                "description": "The messageurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-messageurl"
               },
               "xRegistry-metaurl": {
-                "description": "The metaurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-metaurl"
               },
               "xRegistry-versionsurl": {
-                "description": "The versionsurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionsurl"
               },
               "xRegistry-versionscount": {
-                "description": "The versionscount attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionscount"
               }
             }
           },
@@ -4188,175 +3405,61 @@
             "$ref": "#/components/parameters/specversion"
           },
           {
-            "name": "xRegistry-messageid",
-            "in": "header",
-            "required": false,
-            "description": "The messageid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-messageid"
           },
           {
-            "name": "xRegistry-versionid",
-            "in": "header",
-            "required": false,
-            "description": "The versionid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-versionid"
           },
           {
-            "name": "xRegistry-name",
-            "in": "header",
-            "required": false,
-            "description": "The name attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-name"
           },
           {
-            "name": "xRegistry-description",
-            "in": "header",
-            "required": false,
-            "description": "The description attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-description"
           },
           {
-            "name": "xRegistry-ancestorid",
-            "in": "header",
-            "required": false,
-            "description": "The ancestorid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-ancestorid"
           },
           {
-            "name": "xRegistry-format",
-            "in": "header",
-            "required": false,
-            "description": "The format attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-format"
           },
           {
-            "name": "xRegistry-documentation",
-            "in": "header",
-            "required": false,
-            "description": "The documentation attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-documentation"
           },
           {
-            "name": "xRegistry-icon",
-            "in": "header",
-            "required": false,
-            "description": "The icon attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-icon"
           },
           {
-            "name": "xRegistry-epoch",
-            "in": "header",
-            "required": false,
-            "description": "The epoch attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-epoch"
           },
           {
-            "name": "xRegistry-createdat",
-            "in": "header",
-            "required": false,
-            "description": "The createdat attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-createdat"
           },
           {
-            "name": "xRegistry-modifiedat",
-            "in": "header",
-            "required": false,
-            "description": "The modifiedat attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-modifiedat"
           },
           {
-            "name": "xRegistry-basemessage",
-            "in": "header",
-            "required": false,
-            "description": "The basemessage attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-basemessage"
           },
           {
-            "name": "xRegistry-envelope",
-            "in": "header",
-            "required": false,
-            "description": "The envelope attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-envelope"
           },
           {
-            "name": "xRegistry-protocol",
-            "in": "header",
-            "required": false,
-            "description": "The protocol attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-protocol"
           },
           {
-            "name": "xRegistry-dataschemaformat",
-            "in": "header",
-            "required": false,
-            "description": "The dataschemaformat attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-dataschemaformat"
           },
           {
-            "name": "xRegistry-dataschemauri",
-            "in": "header",
-            "required": false,
-            "description": "The dataschemauri attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-dataschemauri"
           },
           {
-            "name": "xRegistry-dataschemaxid",
-            "in": "header",
-            "required": false,
-            "description": "The dataschemaxid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-dataschemaxid"
           },
           {
-            "name": "xRegistry-datacontenttype",
-            "in": "header",
-            "required": false,
-            "description": "The datacontenttype attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-datacontenttype"
           },
           {
-            "name": "xRegistry-messageurl",
-            "in": "header",
-            "required": false,
-            "description": "The messageurl attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-messageurl"
           }
         ],
         "requestBody": {
@@ -4381,166 +3484,85 @@
             },
             "headers": {
               "xRegistry-messageid": {
-                "description": "The messageid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-messageid"
               },
               "xRegistry-versionid": {
-                "description": "The versionid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionid"
               },
               "xRegistry-name": {
-                "description": "The name attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-name"
               },
               "xRegistry-description": {
-                "description": "The description attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-description"
               },
               "xRegistry-ancestorid": {
-                "description": "The ancestorid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-ancestorid"
               },
               "xRegistry-format": {
-                "description": "The format attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-format"
               },
               "xRegistry-formatvalidatedreason": {
-                "description": "The formatvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
               },
               "xRegistry-compatibilityvalidatedreason": {
-                "description": "The compatibilityvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
               },
               "xRegistry-self": {
-                "description": "The self attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-self"
               },
               "xRegistry-shortself": {
-                "description": "The shortself attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-shortself"
               },
               "xRegistry-documentation": {
-                "description": "The documentation attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-documentation"
               },
               "xRegistry-icon": {
-                "description": "The icon attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-icon"
               },
               "xRegistry-xid": {
-                "description": "The xid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-xid"
               },
               "xRegistry-epoch": {
-                "description": "The epoch attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-epoch"
               },
               "xRegistry-isdefault": {
-                "description": "The isdefault attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-isdefault"
               },
               "xRegistry-createdat": {
-                "description": "The createdat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-createdat"
               },
               "xRegistry-modifiedat": {
-                "description": "The modifiedat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-modifiedat"
               },
               "xRegistry-formatvalidated": {
-                "description": "The formatvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
               },
               "xRegistry-compatibilityvalidated": {
-                "description": "The compatibilityvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
               },
               "xRegistry-basemessage": {
-                "description": "The basemessage attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-basemessage"
               },
               "xRegistry-envelope": {
-                "description": "The envelope attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-envelope"
               },
               "xRegistry-protocol": {
-                "description": "The protocol attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-protocol"
               },
               "xRegistry-dataschemaformat": {
-                "description": "The dataschemaformat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemaformat"
               },
               "xRegistry-dataschemauri": {
-                "description": "The dataschemauri attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemauri"
               },
               "xRegistry-dataschemaxid": {
-                "description": "The dataschemaxid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemaxid"
               },
               "xRegistry-datacontenttype": {
-                "description": "The datacontenttype attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-datacontenttype"
               },
               "xRegistry-messageurl": {
-                "description": "The messageurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-messageurl"
               }
             }
           },
@@ -4698,142 +3720,73 @@
                 }
               },
               "xRegistry-schemaid": {
-                "description": "The schemaid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-schemaid"
               },
               "xRegistry-versionid": {
-                "description": "The versionid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionid"
               },
               "xRegistry-name": {
-                "description": "The name attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-name"
               },
               "xRegistry-description": {
-                "description": "The description attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-description"
               },
               "xRegistry-ancestorid": {
-                "description": "The ancestorid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-ancestorid"
               },
               "xRegistry-format": {
-                "description": "The format attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-format"
               },
               "xRegistry-formatvalidatedreason": {
-                "description": "The formatvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
               },
               "xRegistry-compatibilityvalidatedreason": {
-                "description": "The compatibilityvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
               },
               "xRegistry-self": {
-                "description": "The self attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-self"
               },
               "xRegistry-shortself": {
-                "description": "The shortself attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-shortself"
               },
               "xRegistry-documentation": {
-                "description": "The documentation attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-documentation"
               },
               "xRegistry-icon": {
-                "description": "The icon attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-icon"
               },
               "xRegistry-xid": {
-                "description": "The xid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-xid"
               },
               "xRegistry-epoch": {
-                "description": "The epoch attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-epoch"
               },
               "xRegistry-isdefault": {
-                "description": "The isdefault attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-isdefault"
               },
               "xRegistry-createdat": {
-                "description": "The createdat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-createdat"
               },
               "xRegistry-modifiedat": {
-                "description": "The modifiedat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-modifiedat"
               },
               "xRegistry-formatvalidated": {
-                "description": "The formatvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
               },
               "xRegistry-compatibilityvalidated": {
-                "description": "The compatibilityvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
               },
               "xRegistry-schemaurl": {
-                "description": "The schemaurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-schemaurl"
               },
               "xRegistry-metaurl": {
-                "description": "The metaurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-metaurl"
               },
               "xRegistry-versionsurl": {
-                "description": "The versionsurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionsurl"
               },
               "xRegistry-versionscount": {
-                "description": "The versionscount attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionscount"
               }
             },
             "content": {
@@ -4894,112 +3847,40 @@
             "$ref": "#/components/parameters/specversion"
           },
           {
-            "name": "xRegistry-schemaid",
-            "in": "header",
-            "required": false,
-            "description": "The schemaid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-schemaid"
           },
           {
-            "name": "xRegistry-versionid",
-            "in": "header",
-            "required": false,
-            "description": "The versionid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-versionid"
           },
           {
-            "name": "xRegistry-name",
-            "in": "header",
-            "required": false,
-            "description": "The name attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-name"
           },
           {
-            "name": "xRegistry-description",
-            "in": "header",
-            "required": false,
-            "description": "The description attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-description"
           },
           {
-            "name": "xRegistry-ancestorid",
-            "in": "header",
-            "required": false,
-            "description": "The ancestorid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-ancestorid"
           },
           {
-            "name": "xRegistry-format",
-            "in": "header",
-            "required": false,
-            "description": "The format attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-format"
           },
           {
-            "name": "xRegistry-documentation",
-            "in": "header",
-            "required": false,
-            "description": "The documentation attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-documentation"
           },
           {
-            "name": "xRegistry-icon",
-            "in": "header",
-            "required": false,
-            "description": "The icon attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-icon"
           },
           {
-            "name": "xRegistry-epoch",
-            "in": "header",
-            "required": false,
-            "description": "The epoch attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-epoch"
           },
           {
-            "name": "xRegistry-createdat",
-            "in": "header",
-            "required": false,
-            "description": "The createdat attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-createdat"
           },
           {
-            "name": "xRegistry-modifiedat",
-            "in": "header",
-            "required": false,
-            "description": "The modifiedat attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-modifiedat"
           },
           {
-            "name": "xRegistry-schemaurl",
-            "in": "header",
-            "required": false,
-            "description": "The schemaurl attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-schemaurl"
           }
         ],
         "requestBody": {
@@ -5030,142 +3911,73 @@
             },
             "headers": {
               "xRegistry-schemaid": {
-                "description": "The schemaid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-schemaid"
               },
               "xRegistry-versionid": {
-                "description": "The versionid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionid"
               },
               "xRegistry-name": {
-                "description": "The name attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-name"
               },
               "xRegistry-description": {
-                "description": "The description attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-description"
               },
               "xRegistry-ancestorid": {
-                "description": "The ancestorid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-ancestorid"
               },
               "xRegistry-format": {
-                "description": "The format attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-format"
               },
               "xRegistry-formatvalidatedreason": {
-                "description": "The formatvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
               },
               "xRegistry-compatibilityvalidatedreason": {
-                "description": "The compatibilityvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
               },
               "xRegistry-self": {
-                "description": "The self attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-self"
               },
               "xRegistry-shortself": {
-                "description": "The shortself attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-shortself"
               },
               "xRegistry-documentation": {
-                "description": "The documentation attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-documentation"
               },
               "xRegistry-icon": {
-                "description": "The icon attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-icon"
               },
               "xRegistry-xid": {
-                "description": "The xid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-xid"
               },
               "xRegistry-epoch": {
-                "description": "The epoch attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-epoch"
               },
               "xRegistry-isdefault": {
-                "description": "The isdefault attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-isdefault"
               },
               "xRegistry-createdat": {
-                "description": "The createdat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-createdat"
               },
               "xRegistry-modifiedat": {
-                "description": "The modifiedat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-modifiedat"
               },
               "xRegistry-formatvalidated": {
-                "description": "The formatvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
               },
               "xRegistry-compatibilityvalidated": {
-                "description": "The compatibilityvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
               },
               "xRegistry-schemaurl": {
-                "description": "The schemaurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-schemaurl"
               },
               "xRegistry-metaurl": {
-                "description": "The metaurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-metaurl"
               },
               "xRegistry-versionsurl": {
-                "description": "The versionsurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionsurl"
               },
               "xRegistry-versionscount": {
-                "description": "The versionscount attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionscount"
               }
             }
           },
@@ -5216,112 +4028,40 @@
             "$ref": "#/components/parameters/specversion"
           },
           {
-            "name": "xRegistry-schemaid",
-            "in": "header",
-            "required": false,
-            "description": "The schemaid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-schemaid"
           },
           {
-            "name": "xRegistry-versionid",
-            "in": "header",
-            "required": false,
-            "description": "The versionid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-versionid"
           },
           {
-            "name": "xRegistry-name",
-            "in": "header",
-            "required": false,
-            "description": "The name attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-name"
           },
           {
-            "name": "xRegistry-description",
-            "in": "header",
-            "required": false,
-            "description": "The description attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-description"
           },
           {
-            "name": "xRegistry-ancestorid",
-            "in": "header",
-            "required": false,
-            "description": "The ancestorid attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-ancestorid"
           },
           {
-            "name": "xRegistry-format",
-            "in": "header",
-            "required": false,
-            "description": "The format attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-format"
           },
           {
-            "name": "xRegistry-documentation",
-            "in": "header",
-            "required": false,
-            "description": "The documentation attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-documentation"
           },
           {
-            "name": "xRegistry-icon",
-            "in": "header",
-            "required": false,
-            "description": "The icon attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-icon"
           },
           {
-            "name": "xRegistry-epoch",
-            "in": "header",
-            "required": false,
-            "description": "The epoch attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-epoch"
           },
           {
-            "name": "xRegistry-createdat",
-            "in": "header",
-            "required": false,
-            "description": "The createdat attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-createdat"
           },
           {
-            "name": "xRegistry-modifiedat",
-            "in": "header",
-            "required": false,
-            "description": "The modifiedat attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-modifiedat"
           },
           {
-            "name": "xRegistry-schemaurl",
-            "in": "header",
-            "required": false,
-            "description": "The schemaurl attribute.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/xRegistry-schemaurl"
           }
         ],
         "requestBody": {
@@ -5358,124 +4098,64 @@
             },
             "headers": {
               "xRegistry-schemaid": {
-                "description": "The schemaid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-schemaid"
               },
               "xRegistry-versionid": {
-                "description": "The versionid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionid"
               },
               "xRegistry-name": {
-                "description": "The name attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-name"
               },
               "xRegistry-description": {
-                "description": "The description attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-description"
               },
               "xRegistry-ancestorid": {
-                "description": "The ancestorid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-ancestorid"
               },
               "xRegistry-format": {
-                "description": "The format attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-format"
               },
               "xRegistry-formatvalidatedreason": {
-                "description": "The formatvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
               },
               "xRegistry-compatibilityvalidatedreason": {
-                "description": "The compatibilityvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
               },
               "xRegistry-self": {
-                "description": "The self attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-self"
               },
               "xRegistry-shortself": {
-                "description": "The shortself attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-shortself"
               },
               "xRegistry-documentation": {
-                "description": "The documentation attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-documentation"
               },
               "xRegistry-icon": {
-                "description": "The icon attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-icon"
               },
               "xRegistry-xid": {
-                "description": "The xid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-xid"
               },
               "xRegistry-epoch": {
-                "description": "The epoch attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-epoch"
               },
               "xRegistry-isdefault": {
-                "description": "The isdefault attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-isdefault"
               },
               "xRegistry-createdat": {
-                "description": "The createdat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-createdat"
               },
               "xRegistry-modifiedat": {
-                "description": "The modifiedat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-modifiedat"
               },
               "xRegistry-formatvalidated": {
-                "description": "The formatvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
               },
               "xRegistry-compatibilityvalidated": {
-                "description": "The compatibilityvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
               },
               "xRegistry-schemaurl": {
-                "description": "The schemaurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-schemaurl"
               }
             }
           },
@@ -6030,166 +4710,85 @@
             },
             "headers": {
               "xRegistry-messageid": {
-                "description": "The messageid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-messageid"
               },
               "xRegistry-versionid": {
-                "description": "The versionid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionid"
               },
               "xRegistry-name": {
-                "description": "The name attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-name"
               },
               "xRegistry-description": {
-                "description": "The description attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-description"
               },
               "xRegistry-ancestorid": {
-                "description": "The ancestorid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-ancestorid"
               },
               "xRegistry-format": {
-                "description": "The format attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-format"
               },
               "xRegistry-formatvalidatedreason": {
-                "description": "The formatvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
               },
               "xRegistry-compatibilityvalidatedreason": {
-                "description": "The compatibilityvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
               },
               "xRegistry-self": {
-                "description": "The self attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-self"
               },
               "xRegistry-shortself": {
-                "description": "The shortself attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-shortself"
               },
               "xRegistry-documentation": {
-                "description": "The documentation attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-documentation"
               },
               "xRegistry-icon": {
-                "description": "The icon attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-icon"
               },
               "xRegistry-xid": {
-                "description": "The xid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-xid"
               },
               "xRegistry-epoch": {
-                "description": "The epoch attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-epoch"
               },
               "xRegistry-isdefault": {
-                "description": "The isdefault attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-isdefault"
               },
               "xRegistry-createdat": {
-                "description": "The createdat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-createdat"
               },
               "xRegistry-modifiedat": {
-                "description": "The modifiedat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-modifiedat"
               },
               "xRegistry-formatvalidated": {
-                "description": "The formatvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
               },
               "xRegistry-compatibilityvalidated": {
-                "description": "The compatibilityvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
               },
               "xRegistry-basemessage": {
-                "description": "The basemessage attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-basemessage"
               },
               "xRegistry-envelope": {
-                "description": "The envelope attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-envelope"
               },
               "xRegistry-protocol": {
-                "description": "The protocol attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-protocol"
               },
               "xRegistry-dataschemaformat": {
-                "description": "The dataschemaformat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemaformat"
               },
               "xRegistry-dataschemauri": {
-                "description": "The dataschemauri attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemauri"
               },
               "xRegistry-dataschemaxid": {
-                "description": "The dataschemaxid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemaxid"
               },
               "xRegistry-datacontenttype": {
-                "description": "The datacontenttype attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-datacontenttype"
               },
               "xRegistry-messageurl": {
-                "description": "The messageurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-messageurl"
               }
             }
           },
@@ -6299,166 +4898,85 @@
             },
             "headers": {
               "xRegistry-messageid": {
-                "description": "The messageid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-messageid"
               },
               "xRegistry-versionid": {
-                "description": "The versionid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionid"
               },
               "xRegistry-name": {
-                "description": "The name attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-name"
               },
               "xRegistry-description": {
-                "description": "The description attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-description"
               },
               "xRegistry-ancestorid": {
-                "description": "The ancestorid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-ancestorid"
               },
               "xRegistry-format": {
-                "description": "The format attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-format"
               },
               "xRegistry-formatvalidatedreason": {
-                "description": "The formatvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
               },
               "xRegistry-compatibilityvalidatedreason": {
-                "description": "The compatibilityvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
               },
               "xRegistry-self": {
-                "description": "The self attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-self"
               },
               "xRegistry-shortself": {
-                "description": "The shortself attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-shortself"
               },
               "xRegistry-documentation": {
-                "description": "The documentation attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-documentation"
               },
               "xRegistry-icon": {
-                "description": "The icon attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-icon"
               },
               "xRegistry-xid": {
-                "description": "The xid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-xid"
               },
               "xRegistry-epoch": {
-                "description": "The epoch attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-epoch"
               },
               "xRegistry-isdefault": {
-                "description": "The isdefault attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-isdefault"
               },
               "xRegistry-createdat": {
-                "description": "The createdat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-createdat"
               },
               "xRegistry-modifiedat": {
-                "description": "The modifiedat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-modifiedat"
               },
               "xRegistry-formatvalidated": {
-                "description": "The formatvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
               },
               "xRegistry-compatibilityvalidated": {
-                "description": "The compatibilityvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
               },
               "xRegistry-basemessage": {
-                "description": "The basemessage attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-basemessage"
               },
               "xRegistry-envelope": {
-                "description": "The envelope attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-envelope"
               },
               "xRegistry-protocol": {
-                "description": "The protocol attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-protocol"
               },
               "xRegistry-dataschemaformat": {
-                "description": "The dataschemaformat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemaformat"
               },
               "xRegistry-dataschemauri": {
-                "description": "The dataschemauri attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemauri"
               },
               "xRegistry-dataschemaxid": {
-                "description": "The dataschemaxid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-dataschemaxid"
               },
               "xRegistry-datacontenttype": {
-                "description": "The datacontenttype attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-datacontenttype"
               },
               "xRegistry-messageurl": {
-                "description": "The messageurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-messageurl"
               }
             }
           },
@@ -6574,124 +5092,64 @@
             },
             "headers": {
               "xRegistry-schemaid": {
-                "description": "The schemaid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-schemaid"
               },
               "xRegistry-versionid": {
-                "description": "The versionid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-versionid"
               },
               "xRegistry-name": {
-                "description": "The name attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-name"
               },
               "xRegistry-description": {
-                "description": "The description attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-description"
               },
               "xRegistry-ancestorid": {
-                "description": "The ancestorid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-ancestorid"
               },
               "xRegistry-format": {
-                "description": "The format attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-format"
               },
               "xRegistry-formatvalidatedreason": {
-                "description": "The formatvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
               },
               "xRegistry-compatibilityvalidatedreason": {
-                "description": "The compatibilityvalidatedreason attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
               },
               "xRegistry-self": {
-                "description": "The self attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-self"
               },
               "xRegistry-shortself": {
-                "description": "The shortself attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-shortself"
               },
               "xRegistry-documentation": {
-                "description": "The documentation attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-documentation"
               },
               "xRegistry-icon": {
-                "description": "The icon attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-icon"
               },
               "xRegistry-xid": {
-                "description": "The xid attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-xid"
               },
               "xRegistry-epoch": {
-                "description": "The epoch attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-epoch"
               },
               "xRegistry-isdefault": {
-                "description": "The isdefault attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-isdefault"
               },
               "xRegistry-createdat": {
-                "description": "The createdat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-createdat"
               },
               "xRegistry-modifiedat": {
-                "description": "The modifiedat attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-modifiedat"
               },
               "xRegistry-formatvalidated": {
-                "description": "The formatvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
               },
               "xRegistry-compatibilityvalidated": {
-                "description": "The compatibilityvalidated attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
               },
               "xRegistry-schemaurl": {
-                "description": "The schemaurl attribute.",
-                "schema": {
-                  "type": "string"
-                }
+                "$ref": "#/components/headers/xRegistry-schemaurl"
               }
             }
           },
@@ -6826,6 +5284,195 @@
           "type": "boolean"
         },
         "description": "If true, returns the document view (with relative URLs and default version data removed). See spec: Doc."
+      },
+      "xRegistry-messageid": {
+        "name": "xRegistry-messageid",
+        "in": "header",
+        "required": false,
+        "description": "The messageid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-versionid": {
+        "name": "xRegistry-versionid",
+        "in": "header",
+        "required": false,
+        "description": "The versionid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-name": {
+        "name": "xRegistry-name",
+        "in": "header",
+        "required": false,
+        "description": "The name attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-description": {
+        "name": "xRegistry-description",
+        "in": "header",
+        "required": false,
+        "description": "The description attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-ancestorid": {
+        "name": "xRegistry-ancestorid",
+        "in": "header",
+        "required": false,
+        "description": "The ancestorid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-format": {
+        "name": "xRegistry-format",
+        "in": "header",
+        "required": false,
+        "description": "The format attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-documentation": {
+        "name": "xRegistry-documentation",
+        "in": "header",
+        "required": false,
+        "description": "The documentation attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-icon": {
+        "name": "xRegistry-icon",
+        "in": "header",
+        "required": false,
+        "description": "The icon attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-epoch": {
+        "name": "xRegistry-epoch",
+        "in": "header",
+        "required": false,
+        "description": "The epoch attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-createdat": {
+        "name": "xRegistry-createdat",
+        "in": "header",
+        "required": false,
+        "description": "The createdat attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-modifiedat": {
+        "name": "xRegistry-modifiedat",
+        "in": "header",
+        "required": false,
+        "description": "The modifiedat attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-basemessage": {
+        "name": "xRegistry-basemessage",
+        "in": "header",
+        "required": false,
+        "description": "The basemessage attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-envelope": {
+        "name": "xRegistry-envelope",
+        "in": "header",
+        "required": false,
+        "description": "The envelope attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-protocol": {
+        "name": "xRegistry-protocol",
+        "in": "header",
+        "required": false,
+        "description": "The protocol attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-dataschemaformat": {
+        "name": "xRegistry-dataschemaformat",
+        "in": "header",
+        "required": false,
+        "description": "The dataschemaformat attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-dataschemauri": {
+        "name": "xRegistry-dataschemauri",
+        "in": "header",
+        "required": false,
+        "description": "The dataschemauri attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-dataschemaxid": {
+        "name": "xRegistry-dataschemaxid",
+        "in": "header",
+        "required": false,
+        "description": "The dataschemaxid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-datacontenttype": {
+        "name": "xRegistry-datacontenttype",
+        "in": "header",
+        "required": false,
+        "description": "The datacontenttype attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-messageurl": {
+        "name": "xRegistry-messageurl",
+        "in": "header",
+        "required": false,
+        "description": "The messageurl attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-schemaid": {
+        "name": "xRegistry-schemaid",
+        "in": "header",
+        "required": false,
+        "description": "The schemaid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-schemaurl": {
+        "name": "xRegistry-schemaurl",
+        "in": "header",
+        "required": false,
+        "description": "The schemaurl attribute.",
+        "schema": {
+          "type": "string"
+        }
       }
     },
     "responses": {
@@ -8437,6 +7084,200 @@
               "$ref": "#/components/schemas/schema"
             }
           }
+        }
+      }
+    },
+    "headers": {
+      "xRegistry-messageid": {
+        "description": "The messageid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-versionid": {
+        "description": "The versionid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-name": {
+        "description": "The name attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-description": {
+        "description": "The description attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-ancestorid": {
+        "description": "The ancestorid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-format": {
+        "description": "The format attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-formatvalidatedreason": {
+        "description": "The formatvalidatedreason attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-compatibilityvalidatedreason": {
+        "description": "The compatibilityvalidatedreason attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-self": {
+        "description": "The self attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-shortself": {
+        "description": "The shortself attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-documentation": {
+        "description": "The documentation attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-icon": {
+        "description": "The icon attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-xid": {
+        "description": "The xid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-epoch": {
+        "description": "The epoch attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-isdefault": {
+        "description": "The isdefault attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-createdat": {
+        "description": "The createdat attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-modifiedat": {
+        "description": "The modifiedat attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-formatvalidated": {
+        "description": "The formatvalidated attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-compatibilityvalidated": {
+        "description": "The compatibilityvalidated attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-basemessage": {
+        "description": "The basemessage attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-envelope": {
+        "description": "The envelope attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-protocol": {
+        "description": "The protocol attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-dataschemaformat": {
+        "description": "The dataschemaformat attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-dataschemauri": {
+        "description": "The dataschemauri attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-dataschemaxid": {
+        "description": "The dataschemaxid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-datacontenttype": {
+        "description": "The datacontenttype attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-messageurl": {
+        "description": "The messageurl attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-metaurl": {
+        "description": "The metaurl attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-versionsurl": {
+        "description": "The versionsurl attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-versionscount": {
+        "description": "The versionscount attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-schemaid": {
+        "description": "The schemaid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-schemaurl": {
+        "description": "The schemaurl attribute.",
+        "schema": {
+          "type": "string"
         }
       }
     }

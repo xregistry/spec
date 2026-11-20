@@ -229,6 +229,16 @@ def generate_openapi(model_definition):
                 "#http-header-processing)."
             )
 
+    def header_component(section, name, definition):
+        components = openapi["components"].setdefault(section, {})
+        key = name
+        suffix = 2
+        while key in components and components[key] != definition:
+            key = f"{name}-{suffix}"
+            suffix += 1
+        components[key] = definition
+        return {"$ref": f"#/components/{section}/{key}"}
+
     def document_path_template(template, resource):
         path_item = copy.deepcopy(template)
         if not resource.get("hasdocument", True):
@@ -464,14 +474,17 @@ def generate_openapi(model_definition):
                         reference_header_processing(operation, families)
                         for status, response in operation["responses"].items():
                             if status.startswith("2"):
-                                response.setdefault("headers", {}).update(copy.deepcopy(fields))
+                                response.setdefault("headers", {}).update({
+                                    name: header_component("headers", name, header)
+                                    for name, header in fields.items()
+                                })
                         if method in ("put", "post"):
                             request_fields, _ = document_header_fields(resource, "version", True)
                             operation.setdefault("parameters", []).extend(
-                                {
+                                header_component("parameters", name, {
                                     "name": name, "in": "header", "required": False,
-                                    **copy.deepcopy(header)
-                                }
+                                    **header
+                                })
                                 for name, header in request_fields.items()
                             )
 
