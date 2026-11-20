@@ -7,6 +7,68 @@
   "name": "CloudEventsRegistryDocument",
   "type": "object",
   "properties": {
+    "registryid": {
+      "type": "string"
+    },
+    "specversion": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string",
+      "description": "Name of the object"
+    },
+    "epoch": {
+      "type": "integer",
+      "description": "Epoch of the object"
+    },
+    "self": {
+      "type": "uri",
+      "description": "URL of the object"
+    },
+    "xid": {
+      "type": "uri",
+      "description": "XID of the object"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the object"
+    },
+    "documentation": {
+      "type": "uri",
+      "description": "Documentation URL"
+    },
+    "labels": {
+      "type": "map",
+      "values": {
+        "type": "string"
+      }
+    },
+    "createdat": {
+      "type": "datetime",
+      "description": "Creation time"
+    },
+    "modifiedat": {
+      "type": "datetime",
+      "description": "Modification time"
+    },
+    "model": {
+      "type": "map",
+      "values": {
+        "type": "any"
+      }
+    },
+    "modelsource": {
+      "type": "map",
+      "values": {
+        "type": "any"
+      }
+    },
+    "capabilities": {
+      "type": "map",
+      "values": {
+        "type": "any"
+      }
+    },
     "messagegroups": {
       "type": "map",
       "values": {
@@ -14,6 +76,12 @@
           "$ref": "#/definitions/Messagegroups/Messagegroup"
         }
       }
+    },
+    "messagegroupsurl": {
+      "type": "uri"
+    },
+    "messagegroupscount": {
+      "type": "uint32"
     },
     "endpoints": {
       "type": "map",
@@ -23,6 +91,12 @@
         }
       }
     },
+    "endpointsurl": {
+      "type": "uri"
+    },
+    "endpointscount": {
+      "type": "uint32"
+    },
     "schemagroups": {
       "type": "map",
       "values": {
@@ -30,6 +104,12 @@
           "$ref": "#/definitions/Schemagroups/Schemagroup"
         }
       }
+    },
+    "schemagroupsurl": {
+      "type": "uri"
+    },
+    "schemagroupscount": {
+      "type": "uint32"
     }
   },
   "additionalProperties": false,
@@ -912,6 +992,9 @@
             "additionalProperties": false,
             "description": "AMQP message metadata constraints"
           },
+          "metaurl": {
+            "type": "uri"
+          },
           "meta": {
             "type": "object",
             "properties": {
@@ -928,9 +1011,6 @@
               "xid": {
                 "type": "uri"
               },
-              "xref": {
-                "type": "uri"
-              },
               "epoch": {
                 "type": "uint32"
               },
@@ -945,6 +1025,9 @@
               },
               "modifiedat": {
                 "type": "datetime"
+              },
+              "xref": {
+                "type": "uri"
               },
               "readonly": {
                 "type": "boolean"
@@ -981,9 +1064,6 @@
               }
             },
             "additionalProperties": false
-          },
-          "metaurl": {
-            "type": "uri"
           }
         },
         "additionalProperties": false
@@ -1048,6 +1128,12 @@
                 "$ref": "#/definitions/Messagegroups/Message"
               }
             }
+          },
+          "messagesurl": {
+            "type": "uri"
+          },
+          "messagescount": {
+            "type": "uint32"
           }
         },
         "additionalProperties": true
@@ -1102,6 +1188,15 @@
           "modifiedat": {
             "type": "datetime",
             "description": "Modification time"
+          },
+          "isdefault": {
+            "type": "boolean"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "contenttype": {
+            "type": "string"
           },
           "format": {
             "type": "string"
@@ -1166,6 +1261,25 @@
             "type": "datetime",
             "description": "Modification time"
           },
+          "versionid": {
+            "type": "string",
+            "description": "ID of the default schema version"
+          },
+          "isdefault": {
+            "type": "boolean"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "contenttype": {
+            "type": "string"
+          },
+          "format": {
+            "type": "string"
+          },
+          "metaurl": {
+            "type": "uri"
+          },
           "meta": {
             "type": "object",
             "properties": {
@@ -1182,9 +1296,6 @@
               "xid": {
                 "type": "uri"
               },
-              "xref": {
-                "type": "uri"
-              },
               "epoch": {
                 "type": "uint32"
               },
@@ -1199,6 +1310,9 @@
               },
               "modifiedat": {
                 "type": "datetime"
+              },
+              "xref": {
+                "type": "uri"
               },
               "readonly": {
                 "type": "boolean"
@@ -1236,9 +1350,6 @@
             },
             "additionalProperties": false
           },
-          "metaurl": {
-            "type": "uri"
-          },
           "schema": {
             "type": "any",
             "description": "Embedded schema document"
@@ -1266,7 +1377,7 @@
             }
           }
         },
-        "additionalProperties": false
+        "additionalProperties": true
       },
       "Schemagroup": {
         "type": "object",
@@ -1323,6 +1434,12 @@
                 "$ref": "#/definitions/Schemagroups/Schema"
               }
             }
+          },
+          "schemasurl": {
+            "type": "uri"
+          },
+          "schemascount": {
+            "type": "uint32"
           }
         },
         "additionalProperties": true
@@ -1638,6 +1755,12 @@
                 "$ref": "#/definitions/Messagegroups/Message"
               }
             }
+          },
+          "messagesurl": {
+            "type": "uri"
+          },
+          "messagescount": {
+            "type": "uint32"
           }
         },
         "additionalProperties": true,

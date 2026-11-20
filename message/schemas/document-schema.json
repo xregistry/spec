@@ -2,11 +2,75 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://xregistry.io/xreg/xregistryspecs/message-v1/schemas/document-schema.json",
   "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the object"
+    },
+    "epoch": {
+      "type": "integer",
+      "description": "Epoch time of the object creation"
+    },
+    "self": {
+      "type": "string",
+      "format": "uri-reference",
+      "description": "URL of the object"
+    },
+    "xid": {
+      "type": "string",
+      "format": "xid",
+      "description": "Relative URL of the object"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the object"
+    },
+    "documentation": {
+      "type": "string",
+      "format": "uri-reference",
+      "description": "URI of the documentation of the object"
+    },
+    "labels": {
+      "type": "object",
+      "description": "Labels for the object"
+    },
+    "createdat": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Time of the object creation"
+    },
+    "modifiedat": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Time of the object modification"
+    },
+    "registryid": {
+      "type": "string"
+    },
+    "specversion": {
+      "type": "string"
+    },
+    "model": {
+      "type": "object"
+    },
+    "modelsource": {
+      "type": "object"
+    },
+    "capabilities": {
+      "type": "object"
+    },
     "messagegroups": {
       "type": "object",
       "additionalProperties": {
         "$ref": "#/definitions/messagegroup-schema/messagegroup"
       }
+    },
+    "messagegroupsurl": {
+      "type": "string",
+      "format": "uri-reference"
+    },
+    "messagegroupscount": {
+      "type": "integer",
+      "minimum": 0
     }
   },
   "definitions": {
@@ -58,6 +122,100 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
+          },
+          "metaurl": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the object"
+              },
+              "epoch": {
+                "type": "integer",
+                "description": "Epoch time of the object creation"
+              },
+              "self": {
+                "type": "string",
+                "format": "uri-reference",
+                "description": "URL of the object"
+              },
+              "xid": {
+                "type": "string",
+                "format": "xid",
+                "description": "Relative URL of the object"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the object"
+              },
+              "documentation": {
+                "type": "string",
+                "format": "uri-reference",
+                "description": "URI of the documentation of the object"
+              },
+              "labels": {
+                "type": "object",
+                "description": "Labels for the object"
+              },
+              "createdat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time of the object creation"
+              },
+              "modifiedat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Time of the object modification"
+              },
+              "messageid": {
+                "type": "string"
+              },
+              "xref": {
+                "type": "string",
+                "format": "uri-reference"
+              },
+              "readonly": {
+                "type": "boolean"
+              },
+              "compatibility": {
+                "type": "string"
+              },
+              "deprecated": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "removal": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "alternative": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  },
+                  "documentation": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  }
+                }
+              },
+              "defaultversionid": {
+                "type": "string"
+              },
+              "defaultversionurl": {
+                "type": "string",
+                "format": "uri-reference"
+              },
+              "defaultversionsticky": {
+                "type": "boolean"
+              }
+            }
           },
           "basemessage": {
             "type": "string",
@@ -1165,9 +1323,18 @@
             "additionalProperties": {
               "$ref": "#/definitions/messagegroup-schema/message"
             }
+          },
+          "messagesurl": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "messagescount": {
+            "type": "integer",
+            "minimum": 0
           }
         }
       }
     }
-  }
+  },
+  "type": "object"
 }
