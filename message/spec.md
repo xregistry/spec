@@ -1207,7 +1207,7 @@ following properties are defined, with type constraints:
 | `to`                   | `uritemplate`    | address of the node to send the message to                                       |
 | `subject`              | `string`         | message subject                                                                  |
 | `reply-to`             | `uritemplate`    | address of the node to which the receiver of this message ought to send replies  |
-| `correlation-id`       | `string`         | client-specific id that can be used to mark or identify messages between clients |
+| `correlation-id`       | (see note below) | client-specific id that can be used to mark or identify messages between clients |
 | `content-type`         | `string`         | MIME content type for the message                                                |
 | `content-encoding`     | `string`         | MIME content encoding for the message                                            |
 | `absolute-expiry-time` | `timestamp`      | time when this message is considered expired                                     |
@@ -1225,6 +1225,10 @@ The `user-id` declaration permits the `binary`, `string`, and `uritemplate`
 types. Its native AMQP type remains `binary`. For both properties, a binary
 `value` encoded as JSON MUST use the Base64 encoding defined in
 [RFC 4648, Section 4][RFC4648].
+
+The `correlation-id` declaration permits the `binary`, `string`, and
+`uritemplate` types. A binary `value` encoded as JSON MUST use the Base64
+encoding defined in [RFC 4648, Section 4][RFC4648].
 
 The xRegistry `content-type` declaration uses `string` for MIME values such
 as `application/json`. Its native AMQP encoding remains as defined by
@@ -1307,7 +1311,7 @@ indicate whether the property is supported for the respective MQTT version.
 | `correlation_data`         | `uritemplate` | no         | yes      | Correlation data                 |
 | `correlation_data_binary`  | `binary`      | no         | yes      | Binary correlation data         |
 | `content_type`             | `uritemplate` | no         | yes      | MIME content type of the payload |
-| `user_properties`          | Array         | no         | yes      | User properties                  |
+| `user_properties`          | `array`       | no         | yes      | User properties                  |
 
 The `correlation_data` and `correlation_data_binary` properties are mutually
 exclusive and MUST NOT be present at the same time.
@@ -1360,7 +1364,7 @@ The following properties are defined:
 | `partition`  | `integer`     | The partition to which the record is to be sent or has been received from |
 | `key`        | `uritemplate` | The key that is associated with the record, UTF-8 encoded                 |
 | `key_binary` | `binary`      | The key that is associated with the record as a base64 encoded string     |
-| `headers`    | Array         | An array of headers to set on the record                                  |
+| `headers`    | `array`       | An array of headers to set on the record                                  |
 
 The `key` and `key_binary` properties are mutually exclusive and MUST NOT be
 present at the same time.

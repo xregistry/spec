@@ -575,7 +575,8 @@
                                   "default": "string",
                                   "enum": [
                                     "string",
-                                    "uritemplate"
+                                    "uritemplate",
+                                    "binary"
                                   ]
                                 },
                                 "value": {

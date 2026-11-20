@@ -716,7 +716,8 @@
                         "description": "AMQP correlation-id value type",
                         "enum": [
                           "string",
-                          "uritemplate"
+                          "uritemplate",
+                          "binary"
                         ]
                       },
                       "value": {
@@ -1483,7 +1484,8 @@
                         "description": "AMQP correlation-id value type",
                         "enum": [
                           "string",
-                          "uritemplate"
+                          "uritemplate",
+                          "binary"
                         ]
                       },
                       "value": {
