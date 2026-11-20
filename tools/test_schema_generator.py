@@ -253,9 +253,8 @@ class TestSchemaGenerator:
         versions = next(field for field in resource['fields'] if field['name'] == 'versions')
         version = versions['type'][1]['values']
         for owner, namespace in (
-            (group, 'io.xregistry.devicegroups.devicegroup.group'),
-            (resource, 'io.xregistry.devicegroups.devices.resource'),
-            (version, 'io.xregistry.devicegroups.devices.versions'),
+            (group, 'io.xregistry.devicegroups'),
+            (resource, 'io.xregistry.devicegroups.devices'),
         ):
             mode = next(field for field in owner['fields'] if field['name'] == 'mode')
             branches = [branch for branch in mode['type'] if isinstance(branch, dict)]
@@ -270,6 +269,9 @@ class TestSchemaGenerator:
             if isinstance(extensions, list):
                 extensions = next(branch for branch in extensions if isinstance(branch, dict))
             assert extensions['name'] == 'ExtensionsType'
+
+        mode = next(field for field in version['fields'] if field['name'] == 'mode')
+        assert mode['type'] == ['io.xregistry.devicegroups.devices.ModeAlphaType']
 
     def test_avro_group_and_resource_attribute_names_do_not_collide(
         self, tools_dir, tmp_path

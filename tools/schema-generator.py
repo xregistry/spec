@@ -1103,6 +1103,16 @@ def generate_avro_schema(model_definition) -> dict:
     avro_generic_record_emitted = False
     record_types = set()
 
+    def reference_named_types(schema):
+        # The Resource overlay defines these types before the Versions use them.
+        if isinstance(schema, list):
+            return [reference_named_types(item) for item in schema]
+        if isinstance(schema, dict):
+            if schema.get("type") in ("record", "enum", "fixed"):
+                return f"{schema['namespace']}.{schema['name']}"
+            return {key: reference_named_types(value) for key, value in schema.items()}
+        return schema
+
     def handle_item(resource_schema, type, item, name, enum_values=None, namespace="io.xregistry"):
         if type == "object":
             if "attributes" in item:
@@ -1365,10 +1375,17 @@ def generate_avro_schema(model_definition) -> dict:
                     resource_version_schema = copy.deepcopy(resource_schema)
                     resource_version_schema["fields"].extend(copy.deepcopy(version_fields))
                     resource_version_schema["name"] = pascal(resource_name)+"VersionType"
-                    handle_attributes(resource_version_schema, attributes, f"{group_namespace}.{resource['plural']}.versions")
                     overlay = {"fields": copy.deepcopy(version_fields)}
-                    handle_attributes(overlay, attributes, f"{group_namespace}.{resource['plural']}.resource")
+                    handle_attributes(overlay, attributes, f"{group_namespace}.{resource['plural']}")
                     for field in overlay["fields"]:
+                        version_field = copy.deepcopy(field)
+                        version_field["type"] = reference_named_types(version_field["type"])
+                        for index, existing in enumerate(resource_version_schema["fields"]):
+                            if existing["name"] == version_field["name"]:
+                                resource_version_schema["fields"][index] = version_field
+                                break
+                        else:
+                            resource_version_schema["fields"].append(version_field)
                         branches = field["type"] if isinstance(field["type"], list) else [field["type"]]
                         field["type"] = ["null", *[branch for branch in branches if branch != "null"]]
                         field["default"] = None
@@ -1388,7 +1405,7 @@ def generate_avro_schema(model_definition) -> dict:
                         {"name": "versionscount", "type": ["null", "long"], "default": None}
                     ])
                 else:
-                    handle_attributes(resource_schema, attributes, f"{group_namespace}.{resource['plural']}.resource")
+                    handle_attributes(resource_schema, attributes, f"{group_namespace}.{resource['plural']}")
 
                 resource_collection_fields.append({
                     "name": camel(resource["plural"]),
@@ -1419,7 +1436,7 @@ def generate_avro_schema(model_definition) -> dict:
             "fields": props,
         }
         attributes = group.get("attributes", {})
-        handle_attributes(group_schema, attributes, f"{group_namespace}.{group_name}.group")
+        handle_attributes(group_schema, attributes, group_namespace)
         for resource_collection in resource_collection_fields:
             group_schema["fields"].append(resource_collection)
         groups_schema = {
