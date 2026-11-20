@@ -11,6 +11,7 @@ from pathlib import Path
 import avro.schema
 import jsonschema
 import pytest
+from jsonpointer import resolve_pointer
 from openapi_spec_validator import validate_spec
 
 
@@ -431,8 +432,12 @@ class TestSchemaGenerator:
 
         document_openapi = self.generate_schema(model_path, 'openapi', tools_dir)
         for path in paths:
-            content = document_openapi['paths'][path]['get']['responses']['200']['content']
+            response = document_openapi['paths'][path]['get']['responses']['200']
+            content = response['content']
             assert set(content) == {'application/json', 'application/octet-stream'}
+            for name in ('xRegistry-schemaid', 'xRegistry-format'):
+                reference = response['headers'][name]['$ref']
+                assert resolve_pointer(document_openapi, reference[1:])['schema']['type'] == 'string'
 
         resource['hasdocument'] = False
         model_path.write_text(json.dumps(model), encoding='utf-8')
@@ -440,6 +445,71 @@ class TestSchemaGenerator:
         for path in paths:
             content = metadata_openapi['paths'][path]['get']['responses']['200']['content']
             assert set(content) == {'application/json'}
+
+    def test_openapi_document_headers_share_components(self, schema_model, tools_dir, tmp_path):
+        model = json.loads(schema_model.read_text(encoding='utf-8'))
+        group = model['groups']['schemagroups']
+        schema = group['resources']['schemas']
+        schema['attributes'].update({
+            'shared': {'type': 'string'},
+            'schemaonly': {'type': 'string'},
+            'locked': {'type': 'string', 'readonly': True},
+        })
+        group['resources']['artifacts'] = {
+            'singular': 'artifact',
+            'attributes': {
+                'shared': {'type': 'string'},
+                'artifactonly': {'type': 'string'},
+            },
+        }
+        model_path = tmp_path / 'model.json'
+        model_path.write_text(json.dumps(model), encoding='utf-8')
+        api = self.generate_schema(model_path, 'openapi', tools_dir)
+        validate_spec(api)
+
+        schema_path = '/schemagroups/{groupid}/schemas/{resourceid}'
+        artifact_path = '/schemagroups/{groupid}/artifacts/{resourceid}'
+        schema_get = api['paths'][schema_path]['get']['responses']['200']['headers']
+        artifact_get = api['paths'][artifact_path]['get']['responses']['200']['headers']
+        version_path = schema_path + '/versions/{versionid}'
+        version_get = api['paths'][version_path]['get']['responses']['200']['headers']
+        shared_ref = schema_get['xRegistry-shared']['$ref']
+        assert shared_ref == artifact_get['xRegistry-shared']['$ref']
+        assert shared_ref == version_get['xRegistry-shared']['$ref']
+        assert resolve_pointer(api, shared_ref[1:]) == {
+            'description': 'The shared attribute.',
+            'schema': {'type': 'string'},
+        }
+        assert 'xRegistry-schemaonly' in schema_get
+        assert 'xRegistry-schemaonly' not in artifact_get
+        assert 'xRegistry-artifactonly' in artifact_get
+        assert 'xRegistry-locked' in schema_get
+        assert 'xRegistry-metaurl' in schema_get
+        assert 'xRegistry-metaurl' not in version_get
+
+        def request_headers(path, method):
+            parameters = api['paths'][path][method]['parameters']
+            resolved = [
+                resolve_pointer(api, p['$ref'][1:]) if '$ref' in p else p
+                for p in parameters
+            ]
+            return {p['name']: p for p in resolved if p['in'] == 'header'}
+
+        schema_put = request_headers(schema_path, 'put')
+        artifact_post = request_headers(artifact_path, 'post')
+        assert schema_put['xRegistry-shared'] == artifact_post['xRegistry-shared'] == {
+            'name': 'xRegistry-shared',
+            'in': 'header',
+            'required': False,
+            'description': 'The shared attribute.',
+            'schema': {'type': 'string'},
+        }
+        assert 'xRegistry-schemaonly' in schema_put
+        assert 'xRegistry-schemaonly' not in artifact_post
+        assert 'xRegistry-locked' not in schema_put
+        shared_parameter_ref = '#/components/parameters/xRegistry-shared'
+        assert {'$ref': shared_parameter_ref} in api['paths'][schema_path]['put']['parameters']
+        assert {'$ref': shared_parameter_ref} in api['paths'][artifact_path]['post']['parameters']
 
     def test_openapi_single_version_paths_preserve_imports_and_media_types(
         self, schema_model, tools_dir, tmp_path
@@ -636,6 +706,15 @@ class TestSchemaGenerator:
 
             # Validate with OpenAPI spec validator
             validate_spec(schema_data)
+            for path in (
+                '/messagegroups/{groupid}/messages/{resourceid}',
+                '/endpoints/{groupid}/messages/{resourceid}',
+            ):
+                operation = schema_data['paths'][path]
+                assert operation['get']['responses']['200']['headers']['xRegistry-messageid'] == {
+                    '$ref': '#/components/headers/xRegistry-messageid'
+                }
+                assert {'$ref': '#/components/parameters/xRegistry-messageid'} in operation['put']['parameters']
             # For OpenAPI, check that we have flat keys (no nested structure)
             if 'components' in schema_data and 'schemas' in schema_data['components']:
                 schemas = schema_data['components']['schemas']
