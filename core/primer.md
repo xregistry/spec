@@ -108,7 +108,7 @@ normative technical details.
     - [10.25.2. Constraints and `matchversions`](#10252-constraints-and-matchversions)
   - [10.26. Relative Resource URLs in the File
     representation](#1026-relative-resource-urls-in-the-file-representation)
-
+  - [10.27. Binary Attributes](#1027-binary-attributes)
 
 ## 3. A Quick Introduction to xRegistry
 
@@ -1371,3 +1371,13 @@ of the files of the repository, is possible. When uploading registry content to
 a server, ensure that all relative URLs are resolved and that the referenced
 documents are included in the upload. Client-side tooling may be able to
 assist with this process.
+
+### 10.27. Binary Attributes
+
+Rather than defining a mechanism to manage  attributes that contain binary
+data, whether it's a single byte or an array of bytes, the specification
+defines a `binary` data type which serializes to a base64 encoded string. This,
+however, only dictates how the data appears in "on the wire"; how a client
+or server implementation chooses to store, process or expose that data is out
+of scope for this specification. Note that attributes of `binary` data type
+are treated as scalar attributes - same as other string-derived attributes.
