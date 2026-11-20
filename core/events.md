@@ -136,7 +136,7 @@ Notes about the use of CloudEvents:
   specification. Implementations MUST adhere to the
   [CloudEvents](https://cloudevents.io) specification.
 - For CloudEvents context attributes that are not explicitly defined (such as
-  `id`), unless otherwise stated, implementations are free to chose an
+  `id`), unless otherwise stated, implementations are free to choose an
   appropriate value.
 - Some xRegistry event attributes will appear to be duplicated in the
   CloudEvents context attributes. This is to allow for middleware to examine
@@ -192,7 +192,10 @@ Example:
 
 ### `xid`
 
-This REQUIRED attribute MUST be the xRegistry XID of the entity.
+This REQUIRED attribute MUST be the path to the data/entity. In most cases
+this will be an entity's XID, but if the data does not have an XID associated
+with it (e.g. `/modelsource`), then it is the relative path from the root
+of the registry to that data. This value MUST start with a leading `/`.
 
 This value MUST also appear as the CloudEvents
 [`subject`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#subject)

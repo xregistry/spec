@@ -14,7 +14,7 @@
     "registry": {
       "description": "Absolute URL of the Registry",
       "type": "string",
-      "format": "uri",
+      "format": "uri"
     },
     "xid": {
       "description": "xid of the entity the event is about",
