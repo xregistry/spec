@@ -416,6 +416,36 @@ class TestSchemaGenerator:
             content = metadata_openapi['paths'][path]['get']['responses']['200']['content']
             assert set(content) == {'application/json'}
 
+    def test_openapi_single_version_paths_preserve_imports_and_media_types(
+        self, schema_model, tools_dir, tmp_path
+    ):
+        model = json.loads(schema_model.read_text(encoding='utf-8'))
+        group_plural, group = next(iter(model['groups'].items()))
+        resource_plural, resource = next(iter(group['resources'].items()))
+        resource['maxversions'] = 1
+        model['groups']['mirrors'] = {
+            'singular': 'mirror',
+            'ximportresources': [f'/{group_plural}/{resource_plural}'],
+        }
+        paths = (
+            f'/{group_plural}/{{groupid}}/{resource_plural}/{{resourceid}}/versions/{{versionid}}',
+            f'/mirrors/{{groupid}}/{resource_plural}/{{resourceid}}/versions/{{versionid}}',
+        )
+        model_path = tmp_path / 'model.json'
+        for hasdocument in (True, False):
+            resource['hasdocument'] = hasdocument
+            model_path.write_text(json.dumps(model), encoding='utf-8')
+            openapi = self.generate_schema(model_path, 'openapi', tools_dir)
+            for path in paths:
+                content = openapi['paths'][path]['get']['responses']['200']['content']
+                expected_types = {'application/json'}
+                if hasdocument:
+                    expected_types.add('application/octet-stream')
+                assert set(content) == expected_types
+                assert content['application/json']['schema']['$ref'] == (
+                    f"#/components/schemas/{resource['singular']}Version"
+                )
+
     def test_makefile_message_json_schema_with_schema_id(self, message_model, tools_dir):
         """Test message model JSON Schema generation with schema-id (matches Makefile)."""
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as tmp:
