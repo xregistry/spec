@@ -1203,7 +1203,7 @@ following properties are defined, with type constraints:
 | Property               | Type             | Description                                                                      |
 | ---------------------- | ---------------- | -------------------------------------------------------------------------------- |
 | `message-id`           | (see note below) | uniquely identifies a message within the message system                          |
-| `user-id`              | `binary`         | identity of the user responsible for producing the message                       |
+| `user-id`              | (see note below) | identity of the user responsible for producing the message                       |
 | `to`                   | `uritemplate`    | address of the node to send the message to                                       |
 | `subject`              | `string`         | message subject                                                                  |
 | `reply-to`             | `uritemplate`    | address of the node to which the receiver of this message ought to send replies  |
@@ -1215,14 +1215,16 @@ following properties are defined, with type constraints:
 | `group-sequence`       | `integer`        | position of this message within its group                                        |
 | `reply-to-group-id`    | `uritemplate`    | group-id to which the receiver of this message ought to send replies to          |
 
-The `message-id` permits the Core declaration types `uinteger`, `string`,
-`binary`, and `uritemplate`. UUID values use strings. When a binary value is
-encoded as JSON, its representation MUST use the Base64 encoding defined in
+The `message-id` declaration's `type` specifies the AMQP type to which the
+xRegistry value is projected. It permits `ulong`, `uuid`, `binary`, `string`,
+and `uritemplate`; `uritemplate` is a template for an AMQP `string`. A `value`
+constraint for the `message-id` property SHOULD NOT be defined in the message
+definition except for the case where the `message-id` is a `uritemplate`.
+
+The `user-id` declaration permits the `binary`, `string`, and `uritemplate`
+types. Its native AMQP type remains `binary`. For both properties, a binary
+`value` encoded as JSON MUST use the Base64 encoding defined in
 [RFC 4648, Section 4][RFC4648].
-The native identifier types remain those defined by
-[AMQP Message Properties][AMQP 1.0 Message Properties]. A `value` constraint
-for the `message-id` property SHOULD NOT be defined in the message definition
-except for the case where the `message-id` is a `uritemplate`.
 
 The xRegistry `content-type` declaration uses `string` for MIME values such
 as `application/json`. Its native AMQP encoding remains as defined by
@@ -1302,9 +1304,13 @@ indicate whether the property is supported for the respective MQTT version.
 | `payload_format_indicator` | `integer`     | no         | yes      | Payload format indicator         |
 | `message_expiry_interval`  | `integer`     | no         | yes      | Message expiry interval          |
 | `response_topic`           | `uritemplate` | no         | yes      | Response topic                   |
-| `correlation_data`         | `binary`      | no         | yes      | Correlation data                 |
+| `correlation_data`         | `uritemplate` | no         | yes      | Correlation data                 |
+| `correlation_data_binary`  | `binary`      | no         | yes      | Binary correlation data         |
 | `content_type`             | `uritemplate` | no         | yes      | MIME content type of the payload |
 | `user_properties`          | Array         | no         | yes      | User properties                  |
+
+The `correlation_data` and `correlation_data_binary` properties are mutually
+exclusive and MUST NOT be present at the same time.
 
 Like HTTP, MQTT allows for multiple user properties with the same name,
 so the `user_properties` property is an array of objects, each of which
@@ -1348,15 +1354,15 @@ corresponding to the application properties collection of other protocols.
 
 The following properties are defined:
 
-| Property     | Type      | Description                                                               |
-| ------------ | --------- | ------------------------------------------------------------------------- |
-| `topic`      | `string`  | The topic the record will be appended to                                  |
-| `partition`  | `integer` | The partition to which the record is to be sent or has been received from |
-| `key`        | `string`  | The key that is associated with the record, UTF-8 encoded                 |
-| `key_base64` | `binary`  | The key that is associated with the record as a base64 encoded string     |
-| `headers`    | `map`     | A map of headers to set on the record                                     |
+| Property     | Type          | Description                                                               |
+| ------------ | ------------- | ------------------------------------------------------------------------- |
+| `topic`      | `uritemplate` | The topic the record will be appended to                                  |
+| `partition`  | `integer`     | The partition to which the record is to be sent or has been received from |
+| `key`        | `uritemplate` | The key that is associated with the record, UTF-8 encoded                 |
+| `key_binary` | `binary`      | The key that is associated with the record as a base64 encoded string     |
+| `headers`    | Array         | An array of headers to set on the record                                  |
 
-The `key` and `key_base64` properties are mutually exclusive and MUST NOT be
+The `key` and `key_binary` properties are mutually exclusive and MUST NOT be
 present at the same time.
 
 The `partition` property is included because there are cases where applications

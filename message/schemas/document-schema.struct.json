@@ -450,11 +450,12 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP properties.message-id declaration type from the xRegistry Core type system",
+                        "description": "AMQP properties.message-id declaration type from the AMQP type model",
                         "enum": [
-                          "uinteger",
-                          "string",
+                          "ulong",
+                          "uuid",
                           "binary",
+                          "string",
                           "uritemplate"
                         ]
                       },
@@ -483,12 +484,14 @@
                         "type": "string",
                         "description": "AMQP properties.user-id value type",
                         "enum": [
-                          "binary"
+                          "binary",
+                          "string",
+                          "uritemplate"
                         ]
                       },
                       "value": {
-                        "type": "binary",
-                        "description": "AMQP properties.user-id binary value constraint"
+                        "type": "string",
+                        "description": "AMQP properties.user-id value constraint"
                       },
                       "required": {
                         "type": "boolean",

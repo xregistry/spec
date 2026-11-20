@@ -2447,7 +2447,7 @@
                       },
                       "type": {
                         "type": "string",
-                        "description": "AMQP properties.message-id declaration type from the xRegistry Core type system"
+                        "description": "AMQP properties.message-id declaration type from the AMQP type model"
                       },
                       "value": {
                         "description": "AMQP properties.message-id value constraint"
@@ -2471,8 +2471,7 @@
                       },
                       "value": {
                         "type": "string",
-                        "format": "base64",
-                        "description": "AMQP properties.user-id binary value constraint"
+                        "description": "AMQP properties.user-id value constraint"
                       },
                       "required": {
                         "type": "boolean",
@@ -2912,11 +2911,17 @@
               },
               "correlation_data": {
                 "type": "string",
+                "format": "uri-template",
+                "description": "MQTT correlation data as a URI template. Mutually exclusive with 'correlation_data_binary'"
+              },
+              "correlation_data_binary": {
+                "type": "string",
                 "format": "base64",
-                "description": "MQTT correlation data"
+                "description": "Binary MQTT correlation data as a base64 encoded string. Mutually exclusive with 'correlation_data'"
               },
               "content_type": {
                 "type": "string",
+                "format": "uri-template",
                 "description": "MQTT content type"
               },
               "user_properties": {
@@ -2974,17 +2979,17 @@
               "key": {
                 "type": "string",
                 "format": "uri-template",
-                "description": "The Apache Kafka key as a UTF-8 uri template. Mutually exclusive with 'key_base64'"
+                "description": "The Apache Kafka key as a UTF-8 uri template. Mutually exclusive with 'key_binary'"
               },
-              "key_base64": {
+              "key_binary": {
                 "type": "string",
                 "format": "base64",
                 "description": "Binary Apache Kafka key as a base64 encoded string. Mutually exclusive with 'key'"
               },
               "headers": {
-                "type": "object",
+                "type": "array",
                 "description": "The Apache Kafka headers",
-                "additionalProperties": {
+                "items": {
                   "type": "object",
                   "properties": {
                     "name": {
