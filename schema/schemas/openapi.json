@@ -1715,7 +1715,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/schema"
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/schemaVersion"
+                  }
                 }
               }
             }
@@ -1770,7 +1773,7 @@
               "schema": {
                 "type": "object",
                 "additionalProperties": {
-                  "$ref": "#/components/schemas/schema"
+                  "$ref": "#/components/schemas/schemaVersion"
                 }
               }
             }
@@ -1784,7 +1787,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/schema"
+                    "$ref": "#/components/schemas/schemaVersion"
                   }
                 }
               }
@@ -1860,7 +1863,7 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/schema"
+                  "$ref": "#/components/schemas/schemaVersion"
                 }
               }
             },
@@ -2701,6 +2704,9 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
+          },
+          "format": {
+            "type": "string"
           },
           "versionsurl": {
             "type": "string",
