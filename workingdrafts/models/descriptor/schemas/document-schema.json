@@ -1,0 +1,230 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://xregistry.io/workingdrafts/models/descriptor/schemas/document-schema.json",
+  "properties": {
+    "descriptorgroups": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/descriptorgroup-schema/descriptorgroup"
+      }
+    }
+  },
+  "definitions": {
+    "descriptorgroup-schema": {
+      "descriptorVersion": {
+        "type": "object",
+        "properties": {
+          "versionid": {
+            "type": "string",
+            "description": "ID of the descriptor version"
+          },
+          "descriptorid": {
+            "type": "string",
+            "description": "ID of the descriptor object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "entries": {
+            "type": "object",
+            "description": "Named portable entries; classes, optional URLs and colocated fields follow the applicable profiles",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "class": {
+                  "type": "string",
+                  "description": "Exact entry class defined by the applicable profile"
+                },
+                "url": {
+                  "type": "string",
+                  "format": "uri",
+                  "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^#]*$",
+                  "description": "Optional absolute fragment-free HTTP(S) retrieval URL; inline-only profiles forbid it"
+                }
+              },
+              "required": [
+                "class"
+              ]
+            }
+          },
+          "entityid": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Absolute fragment-free identity URI of the described entity; stable across retained Versions"
+          },
+          "entitytype": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Type URI with a scheme; ontology fragments permitted; requires entityid"
+          },
+          "bundleurl": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^#]*$",
+            "description": "Optional direct bundle retrieval URL advertised by a supporting server"
+          }
+        },
+        "required": [
+          "entries"
+        ]
+      },
+      "descriptor": {
+        "type": "object",
+        "properties": {
+          "descriptorid": {
+            "type": "string",
+            "description": "ID of the descriptor object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "versionsurl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "versionscount": {
+            "type": "integer"
+          },
+          "versions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/descriptorgroup-schema/descriptorVersion"
+            }
+          }
+        }
+      },
+      "descriptorgroup": {
+        "type": "object",
+        "properties": {
+          "descriptorgroupid": {
+            "type": "string",
+            "description": "ID of the descriptorgroup object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "descriptors": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/descriptorgroup-schema/descriptor"
+            }
+          }
+        }
+      }
+    }
+  }
+}

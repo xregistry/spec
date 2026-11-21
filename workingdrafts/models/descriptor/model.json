@@ -1,0 +1,75 @@
+{
+  "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
+  "groups": {
+    "descriptorgroups": {
+      "singular": "descriptorgroup",
+      "modelversion": "0.1",
+      "description": "Application-organized collections of Descriptors",
+      "attributes": {
+        "*": {
+          "name": "*",
+          "type": "any"
+        }
+      },
+      "resources": {
+        "descriptors": {
+          "singular": "descriptor",
+          "hasdocument": false,
+          "maxversions": 0,
+          "setversionid": true,
+          "modelversion": "0.1",
+          "description": "Portable Descriptor fields exposed as native Version metadata with named entries",
+          "attributes": {
+            "entries": {
+              "name": "entries",
+              "type": "map",
+              "required": true,
+              "description": "Named portable entries; classes, optional URLs and colocated fields follow the applicable profiles",
+              "item": {
+                "type": "object",
+                "attributes": {
+                  "class": {
+                    "name": "class",
+                    "type": "string",
+                    "required": true,
+                    "description": "Exact entry class defined by the applicable profile"
+                  },
+                  "url": {
+                    "name": "url",
+                    "type": "urlabsolute",
+                    "description": "Optional absolute fragment-free HTTP(S) retrieval URL; inline-only profiles forbid it"
+                  },
+                  "*": {
+                    "name": "*",
+                    "type": "any"
+                  }
+                }
+              }
+            },
+            "entityid": {
+              "name": "entityid",
+              "type": "uri",
+              "matchversions": true,
+              "description": "Absolute fragment-free identity URI of the described entity; stable across retained Versions"
+            },
+            "entitytype": {
+              "name": "entitytype",
+              "type": "uri",
+              "description": "Type URI with a scheme; ontology fragments permitted; requires entityid"
+            },
+            "bundleurl": {
+              "name": "bundleurl",
+              "type": "urlabsolute",
+              "readonly": true,
+              "description": "Optional direct bundle retrieval URL advertised by a supporting server"
+            },
+            "*": {
+              "name": "*",
+              "type": "any"
+            }
+          }
+        }
+      }
+    }
+  }
+}

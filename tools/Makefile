@@ -103,6 +103,10 @@ makeschema: loadpython
 	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/xreg/xregistryspecs/cloudevents-v1/schemas/document-schema.struct.json --schema-name CloudEventsRegistryDocument --output cloudevents/schemas/document-schema.struct.json endpoint/model.json message/model.json schema/model.json
 	@python tools/schema-generator.py --type avro-schema --output cloudevents/schemas/document-schema.avsc endpoint/model.json message/model.json schema/model.json
 	@python tools/schema-generator.py --type openapi --output cloudevents/schemas/openapi.json endpoint/model.json message/model.json schema/model.json
+	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/workingdrafts/models/descriptor/schemas/document-schema.json --output workingdrafts/models/descriptor/schemas/document-schema.json workingdrafts/models/descriptor/model.json
+	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/workingdrafts/models/descriptor/schemas/document-schema.struct.json --schema-name DescriptorRegistryDocument --output workingdrafts/models/descriptor/schemas/document-schema.struct.json workingdrafts/models/descriptor/model.json
+	@python tools/schema-generator.py --type avro-schema --avro-nullable-optionals --output workingdrafts/models/descriptor/schemas/document-schema.avsc workingdrafts/models/descriptor/model.json
+	@python tools/schema-generator.py --type openapi --output workingdrafts/models/descriptor/schemas/openapi.json workingdrafts/models/descriptor/model.json
 	@echo
 
 docker:

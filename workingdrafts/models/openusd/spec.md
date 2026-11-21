@@ -15,7 +15,7 @@
 <!-- words: compatibilityvalidatedreason fabrikam contoso pumps robotics -->
 <!-- words: plant turbine addressspace assetcontainergroups disambiguator -->
 <!-- words: federatable interoperate opc schemaplugin schemaplugingroups ua -->
-<!-- words: userinfo -->
+<!-- words: userinfo affordance -->
 
 ## Abstract
 
@@ -65,6 +65,7 @@ consumer needs in order to compose and render a USD stage.
     - [5.4. Asset Resolution](#54-asset-resolution)
     - [5.5. OpenUSD Registry to Schema Registry](#55-openusd-registry-to-schema-registry)
     - [5.6. OpenUSD Registry to Endpoint Registry](#56-openusd-registry-to-endpoint-registry)
+    - [5.7. Descriptor Provisioning](#57-descriptor-provisioning)
   - [6. Security](#6-security)
 
 ## 1. Overview
@@ -802,6 +803,24 @@ at runtime. Where that data is delivered by an endpoint managed by an xRegistry
 so that a Consumer retrieving a scene can also discover how to animate it. This
 specification defines no correlation mechanism.
 
+### 5.7. Descriptor Provisioning
+
+The [CloudEvents Descriptor profiles][Descriptor profiles] define portable
+OpenUSD entry fields, selection and bundle behavior. The
+[Descriptor Registry](../descriptor/spec.md) stores and versions that
+metadata. This artifact registry provides the linked asset representation.
+
+A Publisher providing an artifact for a Descriptor entry MUST supply its
+document-view URL; see [Section 1.4](#14-document-store). The Publisher
+MUST make REQUIRED assets available before releasing the description for
+use and retain the selected representations for the intended replay period.
+Descriptor and asset versioning remain separate.
+
+Asset dependencies follow this specification and the OpenUSD format.
+Consumers MUST apply their authorization and retrieval policies to those
+dependencies. A portable bundle does not change the asset's composition
+or dependency-closure requirements.
+
 ## 6. Security
 
 Like the [xRegistry Core][xRegistry Core] specification, this specification
@@ -852,3 +871,4 @@ Operators SHOULD be aware of three domain-specific considerations:
 [xRegistry version-ids]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#version-ids
 [xRegistry hasdocument]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#hasdocument
 [xRegistry xref]: https://xregistry.io/xreg/xregistryspecs/core-v1/docs/spec.html#xref-attribute
+[Descriptor profiles]: https://github.com/cloudevents/spec/pull/1406
