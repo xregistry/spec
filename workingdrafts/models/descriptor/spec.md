@@ -7,7 +7,7 @@
 <!-- words: thingdescription thingdescriptiongroups thingdescriptions -->
 <!-- words: usdasset usdassetgroups usdassets opcuawriter -->
 <!-- words: opcuapublisherid opcuadatasetwriterid opcuadatasetwritername -->
-<!-- words: opcuadatasetname UInt16 PumpProcessData -->
+<!-- words: opcuadatasetname UInt16 PumpProcessData affordanceselector processData -->
 <!-- words: acme servicekind actorinfo -->
 <!-- words: descriptorurl ETags OpenUSD prebuilt reserializing -->
 
@@ -401,9 +401,8 @@ null entry URLs in the portable metadata.
 
 ## 6. Examples
 
-This native Version input supplies two TD entries, a payload schema, an
-OpenUSD asset and inline writer metadata. CloudEvents owns their profiles.
-The subject-driven event profile selects the named `pump7` entry.
+This native Version input provides TD entries, a schema, an asset and inline
+writer metadata. The CloudEvents publication profile names `pump7` as its TD entry.
 
 ```json
 {
@@ -412,7 +411,8 @@ The subject-driven event profile selects the named `pump7` entry.
   "entries": {
     "pump7": {
       "class": "thingdescription",
-      "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3.0.0"
+      "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3.0.0",
+      "affordanceselector": "/properties/processData"
     },
     "gateway1": {
       "class": "thingdescription",
@@ -437,10 +437,9 @@ The subject-driven event profile selects the named `pump7` entry.
 }
 ```
 
-The [sample](samples/descriptor.json) also includes an entity description
-and a deployment-defined actor entry. Inline entries omit URLs. The native
-writer values and TD/schema/asset Versions retain their existing meanings;
-no generic selector or inferred metadata merge is introduced.
+The [sample](samples/descriptor.json) also includes entity and actor
+descriptions. Inline entries omit URLs. Writer values and TD/schema/asset
+Versions are unchanged; no generic selector or inferred merge is introduced.
 
 ## 7. Validation and Failure Handling
 

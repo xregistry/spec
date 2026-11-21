@@ -47,7 +47,8 @@
           "entries": {
             "pump7": {
               "class": "thingdescription",
-              "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3.0.0"
+              "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3.0.0",
+              "affordanceselector": "/properties/processData"
             },
             "gateway1": {
               "class": "thingdescription",
