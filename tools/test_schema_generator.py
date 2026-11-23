@@ -207,6 +207,46 @@ class TestSchemaGenerator:
         except Exception as e:
             pytest.fail(f"Avro schema validation failed: {e}")
 
+    @pytest.mark.parametrize('maxversions', [None, 0, 1, 2])
+    def test_avro_resource_fields_do_not_depend_on_maxversions(
+        self, tools_dir, tmp_path, maxversions
+    ):
+        resource = {
+            'singular': 'device',
+            'attributes': {
+                'color': {'type': 'string'},
+                'modes': {
+                    'type': 'array',
+                    'item': {'type': 'string', 'enum': ['on', 'off']}
+                }
+            }
+        }
+        model = {
+            'groups': {
+                'devicegroups': {
+                    'singular': 'devicegroup',
+                    'resources': {'devices': resource}
+                }
+            }
+        }
+        model_path = tmp_path / 'model.json'
+        model_path.write_text(json.dumps(model), encoding='utf-8')
+        expected = self.generate_schema(model_path, 'avro-schema', tools_dir)
+        if maxversions is not None:
+            resource['maxversions'] = maxversions
+        model_path.write_text(json.dumps(model), encoding='utf-8')
+        actual = self.generate_schema(model_path, 'avro-schema', tools_dir)
+
+        assert actual == expected
+        schema = avro.schema.parse(json.dumps(actual))
+        group = schema.fields_dict['devicegroups'].type.values
+        device = group.fields_dict['devices'].type.values
+        assert {'color', 'modes', 'versionid', 'versions', 'versionsurl', 'versionscount'} <= set(
+            device.fields_dict
+        )
+        versions = device.fields_dict['versions'].type.schemas[1]
+        assert {'color', 'modes', 'versionid'} <= set(versions.values.fields_dict)
+
     def test_avro_nested_types_use_owner_namespaces_without_owner_prefixes(
         self, tools_dir, tmp_path
     ):
@@ -419,13 +459,12 @@ class TestSchemaGenerator:
         messagegroup_type = messagegroups_field['type']['values']
         messages_field = next(f for f in messagegroup_type['fields'] if f['name'] == 'messages')
         message_type = messages_field['type']['values']
-        dataschema_field = next((f for f in message_type['fields'] if f['name'] == 'dataschema'), None)
-        
-        if dataschema_field:
-            # Should be a reference to GenericRecord, not an inline definition
-            field_type = dataschema_field['type']
-            assert field_type == 'io.xregistry.GenericRecord', \
-                "'any' type should map to GenericRecord reference"
+        dataschema_field = next(f for f in message_type['fields'] if f['name'] == 'dataschema')
+        assert dataschema_field['type'] == ['null', 'io.xregistry.GenericRecord']
+        versions_field = next(f for f in message_type['fields'] if f['name'] == 'versions')
+        version_type = versions_field['type'][1]['values']
+        version_dataschema = next(f for f in version_type['fields'] if f['name'] == 'dataschema')
+        assert version_dataschema['type'] == 'io.xregistry.GenericRecord'
 
     # Tests matching Makefile schema generation commands
     def test_makefile_schema_json_schema_with_schema_id(self, schema_model, tools_dir):

@@ -1365,47 +1365,44 @@ def generate_avro_schema(model_definition) -> dict:
                     "fields": props
                 }
                 attributes = resource.get("attributes", {})
-                if resource.get("maxversions", 0) != 1:
-                    version_fields = [
-                        {"name": "versionid", "type": "string", "description": f"ID of the {resource_name} version"},
-                        {"name": "ancestorid", "type": "string"},
-                        {"name": "isdefault", "type": "boolean"},
-                        {"name": "contenttype", "type": ["null", "string"], "default": None}
-                    ]
-                    resource_version_schema = copy.deepcopy(resource_schema)
-                    resource_version_schema["fields"].extend(copy.deepcopy(version_fields))
-                    resource_version_schema["name"] = pascal(resource_name)+"VersionType"
-                    overlay = {"fields": copy.deepcopy(version_fields)}
-                    handle_attributes(overlay, attributes, f"{group_namespace}.{resource['plural']}")
-                    for field in overlay["fields"]:
-                        version_field = copy.deepcopy(field)
-                        version_field["type"] = reference_named_types(version_field["type"])
-                        for index, existing in enumerate(resource_version_schema["fields"]):
-                            if existing["name"] == version_field["name"]:
-                                resource_version_schema["fields"][index] = version_field
-                                break
-                        else:
-                            resource_version_schema["fields"].append(version_field)
-                        branches = field["type"] if isinstance(field["type"], list) else [field["type"]]
-                        field["type"] = ["null", *[branch for branch in branches if branch != "null"]]
-                        field["default"] = None
-                        for index, existing in enumerate(resource_schema["fields"]):
-                            if existing["name"] == field["name"]:
-                                resource_schema["fields"][index] = field
-                                break
-                        else:
-                            resource_schema["fields"].append(field)
-                    resource_schema["fields"].extend([
-                        {
-                            "name": "versions",
-                            "type": ["null", {"type": "map", "values": resource_version_schema}],
-                            "default": None
-                        },
-                        {"name": "versionsurl", "type": ["null", "string"], "default": None},
-                        {"name": "versionscount", "type": ["null", "long"], "default": None}
-                    ])
-                else:
-                    handle_attributes(resource_schema, attributes, f"{group_namespace}.{resource['plural']}")
+                version_fields = [
+                    {"name": "versionid", "type": "string", "description": f"ID of the {resource_name} version"},
+                    {"name": "ancestorid", "type": "string"},
+                    {"name": "isdefault", "type": "boolean"},
+                    {"name": "contenttype", "type": ["null", "string"], "default": None}
+                ]
+                resource_version_schema = copy.deepcopy(resource_schema)
+                resource_version_schema["fields"].extend(copy.deepcopy(version_fields))
+                resource_version_schema["name"] = pascal(resource_name)+"VersionType"
+                overlay = {"fields": copy.deepcopy(version_fields)}
+                handle_attributes(overlay, attributes, f"{group_namespace}.{resource['plural']}")
+                for field in overlay["fields"]:
+                    version_field = copy.deepcopy(field)
+                    version_field["type"] = reference_named_types(version_field["type"])
+                    for index, existing in enumerate(resource_version_schema["fields"]):
+                        if existing["name"] == version_field["name"]:
+                            resource_version_schema["fields"][index] = version_field
+                            break
+                    else:
+                        resource_version_schema["fields"].append(version_field)
+                    branches = field["type"] if isinstance(field["type"], list) else [field["type"]]
+                    field["type"] = ["null", *[branch for branch in branches if branch != "null"]]
+                    field["default"] = None
+                    for index, existing in enumerate(resource_schema["fields"]):
+                        if existing["name"] == field["name"]:
+                            resource_schema["fields"][index] = field
+                            break
+                    else:
+                        resource_schema["fields"].append(field)
+                resource_schema["fields"].extend([
+                    {
+                        "name": "versions",
+                        "type": ["null", {"type": "map", "values": resource_version_schema}],
+                        "default": None
+                    },
+                    {"name": "versionsurl", "type": ["null", "string"], "default": None},
+                    {"name": "versionscount", "type": ["null", "long"], "default": None}
+                ])
 
                 resource_collection_fields.append({
                     "name": camel(resource["plural"]),
