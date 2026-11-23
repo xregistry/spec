@@ -14,8 +14,7 @@
 <!-- words: shortself -->
 <!-- words: allowprerelease contentdigest minversion prereleases unversioned versionorigin -->
 <!-- words: marcschier namespace sourcename uav viewversion iri jsonld -->
-<!-- words: wotversion wotdigest topology percent dereferenceable -->
-<!-- words: vn -->
+<!-- words: percent dereferenceable affordanceselector -->
 
 ## Abstract
 
@@ -1022,101 +1021,43 @@ like `urn:fabrikam:lamp@3` that every recipient has to take apart. The
 identifier stays a WoT identifier, and the version stays a `versionid` the
 recipient can put straight into a URL.
 
-A structured URI query is another way to carry distinct identifier and version
-parameters. It does not require duplicate transport headers. The proposed
-CloudEvents WoT profile below uses this representation; the general transport
-guidance above does not require separate CloudEvents context attributes.
-
 #### 5.3.1. CloudEvents WoT Source Resolution
 
-The CloudEvents WoT profile is proposed. A CloudEvent using this profile MUST
-carry Thing identity in the `source` URI-reference using the query parameters
-below. The profile does not prescribe the URI scheme or the rest of the
-URI-reference. The `source` MUST conform to CloudEvents Core; it MAY be
-relative, although Core recommends an absolute URI. A fragment, including an
-empty fragment, is permitted. This profile does not assign it a meaning.
+CloudEvents for a TD in this Registry MUST follow the proposed CloudEvents WoT
+profile, `cloudevents/extensions/wot.md` in
+[CloudEvents PR 1406](https://github.com/cloudevents/spec/pull/1406). The profile
+requires `describedby` and selects the TD through a Descriptor entry of class
+`thingdescription`. The publication profile selects that entry by name or,
+without a name, by the unique entry of that class. `source` and `subject`
+retain their CloudEvents Core meanings; neither a `wotid` nor a `wotversion`
+source query selects the TD or provides a fallback.
 
-The `wotid` query parameter carries the Thing's WoT identifier. When present,
-`wotversion` carries an exact xRegistry `versionid`, not a minimum-version
-floor or the TD's `version.model`. The `wotid` parameter MUST precede the
-OPTIONAL `wotversion` parameter, separated by `;`. Other query parameters MAY
-follow the standardized parameters. This profile does not assign them a
-meaning; a publication contract MAY define their semantics. A Consumer MUST
-NOT reject a `source` solely because it contains additional query parameters.
+For a TD in this Registry, the Descriptor Publisher SHOULD use the document
+URL of an explicit Thing Description Version as the entry's `url`. A Resource URL
+returns the current Core default Version, including a sticky default, and
+therefore does not identify a stable view.
 
-```text
-https://factory.example.com/line1?wotid=urn:fabrikam:lamp:42;wotversion=1.0.0;site=north
-```
+The Document bytes of the referenced Version MUST be the resolved TD view.
+Producing or publishing the view MUST NOT overwrite or rewrite stored authored
+source bytes ([Section 5.2](#52-preserving-customer-documents)). When the
+resolved view differs from the authored source, the Producer MUST publish the
+resolved bytes as a publication Version and retain the authored source bytes
+separately. The Descriptor Publisher MUST NOT reference an authored source Version
+whose bytes do not represent the resolved view.
 
-The standardized parameter names are case-sensitive and MUST appear literally.
-Each MUST use `name=value` with a non-empty value. `wotid` MUST appear exactly
-once; `wotversion` MUST NOT appear more than once. A Producer MUST place
-`wotid` first and, when present, `wotversion` immediately after it. Additional
-parameters MUST follow them.
+When the resolved view or its source closure changes, the Producer MUST create
+a new publication Version according to [Section 1.3](#13-versioning) and MUST
+NOT reuse an authored instance version for the changed view. The Descriptor
+Publisher MUST NOT change the resolved view at a previously published Version
+URL and MUST publish a new Descriptor Version that references the new publication
+Version. These rules apply to publication Versions referenced by this profile,
+not to all xRegistry Versions.
 
-For standardized values, a Producer MUST use UTF-8 percent encoding with
-uppercase hexadecimal digits. RFC 3986 `unreserved` characters and
-`!$'()*,:@/?` MUST remain unescaped. `%`, `;`, `=`, `&`, `+`, and `#` within a
-standardized value MUST be percent-encoded. A Producer MUST NOT use
-form-query encoding or encode a space as `+` for these values. These encoding
-requirements do not apply to additional parameters.
-
-A Consumer MUST split the query at `;` before decoding the standardized
-values. It MUST reject a missing or empty `wotid`, an empty `wotversion`, a
-duplicate standardized parameter, or a standardized parameter in the wrong
-position. For a standardized value, it MUST reject an invalid percent escape,
-invalid UTF-8, or an unescaped character outside the permitted set. It MUST
-percent-decode each standardized value exactly once and MUST NOT interpret `+`
-as a space. These validation rules do not apply to additional parameters.
-
-These are query parameters within `source`, not separate CloudEvents
-`wotid`, `wotversion`, or `wotdigest` context attributes. This does not remove
-the Registry's `wotid` metadata attribute or equate it with
-`thingdescriptionid` or `versionid`.
-
-A configured resolver MUST select exactly one Thing Description Resource whose
-`wotid` equals the decoded identifier within its configured scope. A missing
-match MUST produce `not-found`; ambiguous matches MUST produce an error rather
-than selecting an arbitrary Resource. Group-scoped lookup and uniqueness
-follow [Section 5.3](#53-lookup).
-
-When `wotversion` is present, the resolver MUST select that exact Version or
-fail as `not-found`. When it is absent, the resolver MUST select the Resource's
-current Core default Version, including a sticky default, or fail as
-`not-found` if no default is available. It MUST NOT apply the floor or
-prerelease selection of Section 5.4 to this CloudEvents source selection.
-References within the selected TD still follow their applicable resolution
-rules. The unversioned source can therefore resolve to a different view after
-the default changes.
-
-For this profile, an explicit `wotversion` MUST identify a stable logical
-resolved TD view. A Producer MUST create a new publication Version of the
-selected Thing Description Resource when that view changes, including when
-its source closure changes. The new Version MUST follow
-[Section 1.3](#13-versioning), including assignment from an authored
-SemVer `version.instance` or the generated-id rules. A Producer MUST NOT reuse
-an authored instance version for a changed published view. This requirement
-applies to publication Versions used by this profile; it does not make all
-xRegistry Versions immutable or change Core's general update semantics.
-
-The resolved TD is the result of applying the applicable WoT resolution rules
-to the selected sources. Producing or publishing that result MUST NOT overwrite
-or rewrite stored authored source bytes
-([Section 5.2](#52-preserving-customer-documents)).
-For a CloudEvent using this profile, the Document bytes of the selected
-publication Version MUST be that resolved TD view. A Producer MUST NOT select
-an authored source Version whose bytes do not represent the resolved view.
-When the resolved view differs from the authored source, the Producer MUST
-publish the resolved bytes as a publication Version and retain the authored
-source bytes separately. This applies both to the exact Version selected by
-`wotversion` and to the Core default selected when `wotversion` is absent.
-
-The CloudEvents `subject` MUST address the resolved TD, not an unresolved
-source document. It MUST be an RFC 6901 URI-fragment JSON Pointer, with `#`
-addressing the whole resolved TD. For example, `#/events/overheated` addresses
-that event affordance in the resolved view. A Consumer MUST apply the pointer
-to the Document bytes of the selected publication Version and MUST report
-failure if the pointer does not identify a value.
+The entry's OPTIONAL `affordanceselector` is a plain JSON Pointer selecting a
+property, action or event in the referenced Version's resolved Document bytes,
+not Registry metadata or an unresolved source document. Omission selects the
+whole Thing. A Consumer MUST report a missing, invalid, ambiguous or unavailable
+Descriptor, TD or selector rather than substitute another description.
 
 A Consumer MAY retrieve the published resolved TD or reconstruct the same
 logical view from a complete pinned source closure and the applicable
@@ -1127,32 +1068,14 @@ dependencies or a pointer into an unresolved source document.
 the existing closure extension and schema alone do not establish that such
 reconstruction is possible.
 
-The event carries no digest that proves TD content integrity. An explicit
-version identifies the stable view but is not a content-integrity check.
 Independent source and publication closure digests remain applicable.
 
-The CloudEvents `type` identifies the event's payload contract, not the
-Registry Resource or TD Version. The
-[unversioned CloudEvents WoT profile draft](https://github.com/cloudevents/spec/pull/1406)
-defines its dot-separated symbol and revision. Its final segment MUST be
-`vN`, where `N` is a positive decimal integer without leading zeros. The
-publication profile MUST assign the same revision to the same payload
-contract. A Producer MUST use a new revision when a member is added or
-removed, a member's type or meaning changes, or the payload envelope changes,
-even when the change is backwardly compatible.
+The CloudEvents `type` identifies the payload contract, not the Registry
+Resource or TD Version; its revision is independent of `version.instance`,
+`version.model`, `versionid`, and the Descriptor Version.
 
-Changing an individual value or the presence of an already OPTIONAL member
-does not change the contract revision. Changing `wotversion`, `versionid`, or
-`dataschema` alone does not change it either; a change to the payload contract
-still requires a new revision. This revision is independent of a TD's
-`version.instance` and a TM's `version.model`. The publication
-profile or binding defines the payload mapping and its contract revision;
-these rules do not change WoT Resource identity, Version assignment, or
-compatibility policy.
-
-The [CloudEvents samples](samples/cloudevents.json) illustrate exact-version
-and current-default sources, with subjects addressing an affordance and the
-whole TD respectively.
+The [CloudEvents samples](samples/cloudevents.json) address an affordance and
+the whole TD through Descriptors that reference an explicit Version.
 
 ### 5.4. Versioned Reference Resolution
 
@@ -1556,8 +1479,8 @@ by [WoT-TD 1.1][WoT-TD-1.1]. This specification requires nothing more:
 
 - A registry MUST accept and serve a valid TD whose affordances are all
   declared in one document, with no grouping construct of any kind.
-- A registry MUST NOT require an affordance to belong to a group in order to
-  be stored, retrieved, or referenced.
+- A registry MUST NOT require an affordance to belong to a group before the
+  registry stores, retrieves, or references it.
 - Nothing in this specification — Resource layout, identity, versioning, or
   cross-referencing — depends on affordances being partitioned.
 

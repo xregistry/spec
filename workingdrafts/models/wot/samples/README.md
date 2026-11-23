@@ -2,7 +2,7 @@
 
 <!-- words: WoT thingdescriptiongroups thingmodelgroups fabrikam wotid derivedfrom byom contoso standardsbody maturity affordance minversion versionorigin -->
 <!-- words: factoryfloor inletpressure -->
-<!-- words: cloudevents wotversion wotdigest topology percent affordances standalone -->
+<!-- words: cloudevents descriptorid describedby thingdescriptions affordances standalone affordanceselector -->
 
 [registry.json](registry.json) illustrates document identity, compatible
 Versions and provenance metadata using the [WoT Registry model](../model.json).
@@ -44,22 +44,42 @@ shape only.
 
 [cloudevents.json](cloudevents.json) contains two standalone CloudEvents as
 sample data, not a transport batch. They refer to the lamp TD's resolved view
-using the [proposed WoT source profile](../spec.md#531-cloudevents-wot-source-resolution).
+using the [proposed WoT profile](../spec.md#531-cloudevents-wot-source-resolution).
 The absolute first `source` and relative second `source` illustrate that the
-profile does not prescribe a URI scheme or the rest of the URI-reference.
-The resolver is configured to use Group `Fabrikam.FactoryFloor.01`.
-The percent-decoded `wotid` selects Resource `urn.fabrikam.lamp.42`; the
-Resource id is not part of the event source. The first source includes
-`site=north%2Fsouth`, an independently encoded additional query parameter that
-this profile does not interpret. Its URI fragment is also independent of the
-CloudEvents `subject`. The second source has an empty fragment.
+profile does not prescribe a URI scheme. Their `subject` values label the Thing
+for filtering, not document selection. Each event's `describedby` selects one
+of these Descriptor Versions; other Core metadata is omitted:
 
-The first event pins `wotversion=1.0.0`, matching the lamp TD's
-`version.instance` and Registry `versionid`, and addresses
-`#/events/overheated` in the resolved TD. This sample's TD declares its
-affordances directly, so that pointer selects the locally declared event.
-The second event omits `wotversion` and uses `#` for the whole resolved TD.
-It selects the current default, which can change after publication.
+```json
+[
+  {
+    "descriptorid": "lamp-42-temperature",
+    "versionid": "1",
+    "entries": {
+      "lamp42": {
+        "class": "thingdescription",
+        "url": "https://registry.example/thingdescriptiongroups/Fabrikam.FactoryFloor.01/thingdescriptions/urn.fabrikam.lamp.42/versions/1.0.0",
+        "affordanceselector": "/events/overheated"
+      }
+    }
+  },
+  {
+    "descriptorid": "lamp-42",
+    "versionid": "1",
+    "entries": {
+      "lamp42": {
+        "class": "thingdescription",
+        "url": "https://registry.example/thingdescriptiongroups/Fabrikam.FactoryFloor.01/thingdescriptions/urn.fabrikam.lamp.42/versions/1.0.0"
+      }
+    }
+  }
+]
+```
+
+Each entry's `url` identifies the lamp TD Version's document. The first
+Descriptor's plain JSON Pointer selects `/events/overheated`; the second
+omits the selector for the whole Thing. The sample TD declares that event
+affordance directly.
 
 Both events use `com.fabrikam.lamp.overheated.v1`. Their payload contract
 defines a numeric `temperature` member; the different values and TD selection
@@ -67,6 +87,5 @@ do not change that contract. The publication profile assigns the final `v1`
 segment independently of the TD's `version.instance` and Registry `versionid`.
 Adding a payload member, even an OPTIONAL one, requires a new contract revision.
 
-Neither event has separate `wotid`, `wotversion` or `wotdigest` attributes.
 The samples do not claim that the proposed closure envelope can reconstruct
 a composed TD or that an event version proves content integrity.

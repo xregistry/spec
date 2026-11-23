@@ -4,7 +4,7 @@ from copy import deepcopy
 import json
 from pathlib import Path
 import re
-from urllib.parse import quote, unquote, urldefrag, urljoin, urlsplit
+from urllib.parse import parse_qsl, unquote, urldefrag, urljoin, urlsplit
 
 import jsonschema
 import pytest
@@ -512,46 +512,38 @@ def test_closure_requires_exact_version_xids(field, value):
 @pytest.mark.parametrize(
     (
         "index",
-        "expected_query",
         "expected_subject",
         "expected_scheme",
         "expected_netloc",
         "expected_path",
-        "expected_extra",
         "expected_fragment",
     ),
     [
         (
             0,
-            {"wotid": "urn:fabrikam:lamp:42", "wotversion": "1.0.0"},
-            "#/events/overheated",
+            "lamp42",
             "https",
             "factory.example.com",
             "/line1",
-            "site=north%2Fsouth",
             "source-context",
         ),
         (
             1,
-            {"wotid": "urn:fabrikam:lamp:42"},
-            "#",
+            "lamp42",
             "",
             "",
             "../things/lamp-42",
-            None,
             "",
         ),
     ],
-    ids=["absolute-source-fragment-and-extra", "relative-source-empty-fragment"],
+    ids=["absolute-source", "relative-source"],
 )
 def test_cloudevents_source_and_subject_match_lamp_td(
     index,
-    expected_query,
     expected_subject,
     expected_scheme,
     expected_netloc,
     expected_path,
-    expected_extra,
     expected_fragment,
 ):
     events = json.loads((ROOT / "samples" / "cloudevents.json").read_bytes())
@@ -564,6 +556,7 @@ def test_cloudevents_source_and_subject_match_lamp_td(
         "type",
         "subject",
         "datacontenttype",
+        "describedby",
         "data",
     }
     assert event["specversion"] == "1.0"
@@ -587,52 +580,47 @@ def test_cloudevents_source_and_subject_match_lamp_td(
     )
     assert source.fragment == expected_fragment
     assert "#" in event["source"]
-    parameters = source.query.split(";")
-    parsed_parameters = [value.split("=", 1) for value in parameters]
-    query = {
-        name: unquote(value)
-        for name, value in parsed_parameters
-        if name in {"wotid", "wotversion"}
+    names = {
+        name
+        for name, _ in parse_qsl(source.query.replace(";", "&"), keep_blank_values=True)
     }
-    assert query == expected_query
-    names = [name for name, _ in parsed_parameters]
-    if "wotversion" in names:
-        assert names[:2] == ["wotid", "wotversion"]
-    else:
-        assert names[0] == "wotid"
-    additional = [
-        f"{name}={value}"
-        for name, value in parsed_parameters
-        if name not in {"wotid", "wotversion"}
-    ]
-    assert additional == ([expected_extra] if expected_extra else [])
-    safe = "!$'()*,:@/?"
-    expected_standardized = ";".join(
-        f"{key}={quote(value, safe=safe, encoding='utf-8', errors='strict')}"
-        for key, value in expected_query.items()
+    assert names.isdisjoint({"wotid", "wotversion"})
+
+    descriptor_url = urlsplit(event["describedby"])
+    assert descriptor_url.scheme == "https"
+    assert descriptor_url.netloc == "registry.example"
+    assert "#" not in event["describedby"]
+
+    readme = (ROOT / "samples" / "README.md").read_text(encoding="utf-8")
+    descriptors = json.loads(re.search(r"```json\n(.*?)\n```", readme, re.DOTALL)[1])
+    descriptor = descriptors[index]
+    assert descriptor_url.path == (
+        f"/descriptorgroups/subjects/descriptors/{descriptor['descriptorid']}"
+        f"/versions/{descriptor['versionid']}"
     )
-    assert source.query.startswith(expected_standardized)
-    assert "wotid=urn:fabrikam:lamp:42" in source.query
+    entries = [
+        entry for entry in descriptor["entries"].values()
+        if entry["class"] == "thingdescription"
+    ]
+    assert len(entries) == 1
+    entry = entries[0]
 
     registry = json.loads((ROOT / "samples" / "registry.json").read_bytes())
-    resources = registry["thingdescriptiongroups"]["Fabrikam.FactoryFloor.01"][
+    resource = registry["thingdescriptiongroups"]["Fabrikam.FactoryFloor.01"][
         "thingdescriptions"
-    ]
-    matches = [
-        value for value in resources.values() if value["wotid"] == query["wotid"]
-    ]
-    assert len(matches) == 1
-    resource = matches[0]
-    assert resource is resources["urn.fabrikam.lamp.42"]
+    ]["urn.fabrikam.lamp.42"]
     td = resource["thingdescription"]
-    assert td["id"] == query["wotid"]
+    assert td["id"] == "urn:fabrikam:lamp:42"
     assert resource["versionid"] == td["version"]["instance"] == "1.0.0"
-    if "wotversion" in query:
-        assert query["wotversion"] == resource["versionid"]
+    assert entry["url"] == (
+        "https://registry.example/thingdescriptiongroups/"
+        "Fabrikam.FactoryFloor.01/thingdescriptions/urn.fabrikam.lamp.42/"
+        f"versions/{resource['versionid']}"
+    )
 
     assert event["subject"] == expected_subject
     selected = td
-    pointer = unquote(event["subject"][1:])
+    pointer = entry.get("affordanceselector", "")
     for token in pointer.split("/")[1:]:
         selected = selected[token.replace("~1", "/").replace("~0", "~")]
     if index == 0:

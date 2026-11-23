@@ -1036,8 +1036,9 @@ from `model.json` using the repository's existing generator: JSON Schema,
 JSON Structure, Avro, and HTTP OpenAPI. The OpenAPI description concerns the
 catalog's HTTP API, not the wire APIs of all advertised bindings.
 
-There is no hand-maintained full Resource schema duplicating the authoritative
-model. Generated descriptions do not replace semantic validation of:
+This repository does not maintain a separate full Resource schema that
+duplicates the authoritative model. Generated descriptions do not replace
+semantic validation of:
 
 - Nonempty identifiers,
 - Absolute credential-free endpoints,
