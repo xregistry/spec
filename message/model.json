@@ -399,7 +399,7 @@
                                 },
                                 "type": {
                                   "name": "type",
-                                  "description": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types",
+                                  "description": "AMQP properties.message-id declaration type from the AMQP type model",
                                   "type": "string",
                                   "enum": [
                                     "ulong",
@@ -411,8 +411,8 @@
                                 },
                                 "value": {
                                   "name": "value",
-                                  "description": "AMQP properties.message-id value constraint. ",
-                                  "type": "string"
+                                  "description": "AMQP properties.message-id value constraint",
+                                  "type": "any"
                                 },
                                 "required": {
                                   "name": "required",
@@ -437,7 +437,7 @@
                                   "description": "AMQP properties.user-id value type",
                                   "type": "string",
                                   "required": true,
-                                  "default": "string",
+                                  "default": "binary",
                                   "enum": [
                                     "binary",
                                     "string",
@@ -574,9 +574,9 @@
                                   "required": true,
                                   "default": "string",
                                   "enum": [
-                                    "binary",
                                     "string",
-                                    "uritemplate"
+                                    "uritemplate",
+                                    "binary"
                                   ]
                                 },
                                 "value": {
@@ -846,6 +846,7 @@
                                   "string",
                                   "uritemplate",
                                   "integer",
+                                  "decimal",
                                   "number",
                                   "boolean"
                                 ],
@@ -855,7 +856,7 @@
                               "value": {
                                 "name": "value",
                                 "description": "Application property value",
-                                "type": "string"
+                                "type": "any"
                               },
                               "required": {
                                 "name": "required",
@@ -886,6 +887,7 @@
                                   "string",
                                   "uritemplate",
                                   "integer",
+                                  "decimal",
                                   "number",
                                   "boolean"
                                 ],
@@ -895,7 +897,7 @@
                               "value": {
                                 "name": "value",
                                 "description": "Annotation value constraint",
-                                "type": "string"
+                                "type": "any"
                               },
                               "required": {
                                 "name": "required",
@@ -926,6 +928,7 @@
                                   "string",
                                   "uritemplate",
                                   "integer",
+                                  "decimal",
                                   "number",
                                   "boolean"
                                 ],
@@ -935,7 +938,7 @@
                               "value": {
                                 "name": "value",
                                 "description": "Annotation value constraint",
-                                "type": "string"
+                                "type": "any"
                               },
                               "required": {
                                 "name": "required",
@@ -1007,6 +1010,7 @@
                                   "string",
                                   "uritemplate",
                                   "integer",
+                                  "decimal",
                                   "number",
                                   "boolean"
                                 ],
@@ -1016,7 +1020,7 @@
                               "value": {
                                 "name": "value",
                                 "description": "Footer value constraint",
-                                "type": "string"
+                                "type": "any"
                               },
                               "required": {
                                 "name": "required",
@@ -1102,8 +1106,13 @@
                         },
                         "correlation_data": {
                           "name": "correlation_data",
-                          "description": "MQTT correlation data",
+                          "description": "MQTT correlation data as a URI template. Mutually exclusive with 'correlation_data_binary'",
                           "type": "uritemplate"
+                        },
+                        "correlation_data_binary": {
+                          "name": "correlation_data_binary",
+                          "description": "Binary MQTT correlation data as a base64 encoded string. Mutually exclusive with 'correlation_data'",
+                          "type": "binary"
                         },
                         "content_type": {
                           "name": "content_type",
@@ -1158,18 +1167,18 @@
                         },
                         "key": {
                           "name": "key",
-                          "description": "The Apache Kafka key as a UTF-8 uri template. Mutually exclusive with 'key_base64'",
+                          "description": "The Apache Kafka key as a UTF-8 uri template. Mutually exclusive with 'key_binary'",
                           "type": "uritemplate"
                         },
-                        "key_base64": {
-                          "name": "key_base64",
+                        "key_binary": {
+                          "name": "key_binary",
                           "description": "Binary Apache Kafka key as a base64 encoded string. Mutually exclusive with 'key'",
-                          "type": "string"
+                          "type": "binary"
                         },
                         "headers": {
                           "name": "headers",
                           "description": "The Apache Kafka headers",
-                          "type": "map",
+                          "type": "array",
                           "item": {
                             "type": "object",
                             "attributes": {
