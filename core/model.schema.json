@@ -411,7 +411,7 @@
         "type": {
           "type": "string",
           "enum": [
-            "boolean", "string", "integer", "uinteger", "decimal",
+            "boolean", "binary", "string", "integer", "uinteger", "decimal",
             "uri", "uriabsolute", "urirelative", "uritemplate",
             "url", "urlabsolute", "urlrelative",
             "timestamp", "xid", "xidtype",
@@ -460,7 +460,7 @@
         "type": {
           "type": "string",
           "enum": [
-            "boolean", "string", "integer", "uinteger", "decimal",
+            "boolean", "binary", "string", "integer", "uinteger", "decimal",
             "uri", "uriabsolute", "urirelative", "uritemplate",
             "url", "urlabsolute", "urlrelative",
             "timestamp", "xid", "xidtype",
@@ -629,7 +629,7 @@
         "type": {
           "type": "string",
           "enum": [
-            "boolean", "string", "integer", "uinteger", "decimal",
+            "boolean", "binary", "string", "integer", "uinteger", "decimal",
             "uri", "uriabsolute", "urirelative", "uritemplate",
             "url", "urlabsolute", "urlrelative",
             "timestamp", "xid", "xidtype",

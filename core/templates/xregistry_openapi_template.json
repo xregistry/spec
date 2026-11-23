@@ -863,38 +863,11 @@
                     "200": {
                         "description": "The resource (or a redirect if a RESOURCEurl is set).",
                         "headers": {
-                            "resource-id": {
-                                "$ref": "#/components/headers/resource-id"
-                            },
-                            "resource-version": {
-                                "$ref": "#/components/headers/resource-version"
-                            },
-                            "resource-name": {
-                                "$ref": "#/components/headers/resource-name"
-                            },
-                            "resource-self": {
-                                "$ref": "#/components/headers/resource-self"
-                            },
-                            "resource-description": {
-                                "$ref": "#/components/headers/resource-description"
-                            },
-                            "resource-documentation": {
-                                "$ref": "#/components/headers/resource-documentation"
-                            },
-                            "resource-labels": {
-                                "$ref": "#/components/headers/resource-labels"
-                            },
-                            "resource-createdat": {
-                                "$ref": "#/components/headers/resource-createdat"
-                            },
-                            "resource-modifiedat": {
-                                "$ref": "#/components/headers/resource-modifiedat"
-                            },
                             "Content-Location": {
                                 "description": "Permalink location of the returned version.",
                                 "schema": {
                                     "type": "string",
-                                    "format": "uri"
+                                    "format": "uri-reference"
                                 }
                             }
                         },
@@ -1011,35 +984,6 @@
                 "responses": {
                     "201": {
                         "description": "The created resource version.",
-                        "headers": {
-                            "resource-id": {
-                                "$ref": "#/components/headers/resource-id"
-                            },
-                            "resource-version": {
-                                "$ref": "#/components/headers/resource-version"
-                            },
-                            "resource-name": {
-                                "$ref": "#/components/headers/resource-name"
-                            },
-                            "resource-self": {
-                                "$ref": "#/components/headers/resource-self"
-                            },
-                            "resource-description": {
-                                "$ref": "#/components/headers/resource-description"
-                            },
-                            "resource-documentation": {
-                                "$ref": "#/components/headers/resource-documentation"
-                            },
-                            "resource-labels": {
-                                "$ref": "#/components/headers/resource-labels"
-                            },
-                            "resource-createdat": {
-                                "$ref": "#/components/headers/resource-createdat"
-                            },
-                            "resource-modifiedat": {
-                                "$ref": "#/components/headers/resource-modifiedat"
-                            }
-                        },
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1432,7 +1376,10 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "{%-resourceTypeReference-%}"
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "$ref": "{%-resourceTypeReference-%}"
+                                    }
                                 }
                             }
                         }
@@ -1716,66 +1663,6 @@
                 "allowEmptyValue": true,
                 "schema": { "type": "string", "enum": [""] },
                 "description": "Boolean presence flag: serialize as bare ?doc, not ?doc=true or ?doc=false. Omit it to disable document view. OpenAPI's empty-value representation does not mandate whether '=' is emitted; clients must preserve the bare wire form required by the HTTP binding."
-            }
-        },
-        "headers": {
-            "resource-id": {
-                "description": "The resource identifier. MUST be percent-encoded per xRegistry specifications (i.e. all non-printable ASCII characters, spaces, quotes, and percent signs must be encoded).",
-                "schema": {
-                    "type": "string"
-                }
-            },
-            "resource-version": {
-                "description": "The resource version identifier. MUST be percent-encoded per xRegistry specifications.",
-                "schema": {
-                    "type": "string"
-                }
-            },
-            "resource-name": {
-                "description": "The resource name. MUST be percent-encoded per xRegistry specifications.",
-                "schema": {
-                    "type": "string"
-                }
-            },
-            "resource-self": {
-                "description": "The self URL of the resource. MUST be percent-encoded per xRegistry specifications.",
-                "schema": {
-                    "type": "string",
-                    "format": "uri"
-                }
-            },
-            "resource-description": {
-                "description": "The resource description. MUST be percent-encoded per xRegistry specifications.",
-                "schema": {
-                    "type": "string"
-                }
-            },
-            "resource-documentation": {
-                "description": "The resource documentation URL. MUST be percent-encoded per xRegistry specifications.",
-                "schema": {
-                    "type": "string",
-                    "format": "uri"
-                }
-            },
-            "resource-labels": {
-                "description": "Serialized resource labels. MUST be percent-encoded per xRegistry specifications.",
-                "schema": {
-                    "type": "string"
-                }
-            },
-            "resource-createdat": {
-                "description": "The resource creation timestamp. MUST be percent-encoded per xRegistry specifications.",
-                "schema": {
-                    "type": "string",
-                    "format": "date-time"
-                }
-            },
-            "resource-modifiedat": {
-                "description": "The resource modification timestamp. MUST be percent-encoded per xRegistry specifications.",
-                "schema": {
-                    "type": "string",
-                    "format": "date-time"
-                }
             }
         },
         "responses": {

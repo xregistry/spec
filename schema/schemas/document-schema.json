@@ -92,8 +92,7 @@
         "type": "object",
         "properties": {
           "versionid": {
-            "type": "string",
-            "description": "ID of the schema version"
+            "type": "string"
           },
           "schemaid": {
             "type": "string",
@@ -332,6 +331,9 @@
           "compatibilityvalidatedreason": {
             "type": "string"
           },
+          "schema": {},
+          "schemabase64": {},
+          "schemaurl": {},
           "versionsurl": {
             "type": "string",
             "format": "uri"

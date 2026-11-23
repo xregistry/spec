@@ -344,7 +344,7 @@ def test_validator_attributes_an_overlay_failure_to_the_expanded_stage(tmp_path)
 
 def test_validator_attributes_a_structural_failure_to_the_source_stage(tmp_path):
     path = tmp_path / "model.json"
-    path.write_text(json.dumps(with_attribute({"type": "binary"})), encoding="utf-8")
+    path.write_text(json.dumps(with_attribute({"type": "unknown-type"})), encoding="utf-8")
     report = VALIDATE_MODELS.validate_model(path, MODEL_SCHEMA)
     assert report.errors
     assert any(VALIDATE_MODELS.SOURCE_STAGE in error for error in report.errors)
@@ -651,13 +651,13 @@ def test_empty_scalar_attribute_enum_is_admitted():
 
 
 @pytest.mark.parametrize("position", ["attribute", "item", "wildcard"])
-def test_the_undefined_core_binary_type_is_rejected(position):
+def test_core_binary_type_is_admitted(position):
     cases = {
         "attribute": with_attribute({"type": "binary"}),
         "item": with_attribute({"type": "array", "item": {"type": "binary"}}),
         "wildcard": source_model(attributes={"*": {"type": "binary"}}),
     }
-    source_rejects(cases[position])
+    source_accepts(cases[position])
 
 
 def test_typemap_binary_remains_legal():
@@ -4849,11 +4849,9 @@ def test_identity_only_resource_aliases_do_not_require_target_defaults(
         if hasdocument and maxversions == 1:
             normal["entry"] = {"example": 1}
         checker.validate(normal)
-        if maxversions == 1:
-            invalid = copy.deepcopy(normal)
-            del invalid["region"]
-            with pytest.raises(jsonschema.ValidationError):
-                checker.validate(invalid)
+        without_overlay = copy.deepcopy(normal)
+        del without_overlay["region"]
+        checker.validate(without_overlay)
     root = {**core_registry(), group: {"c": {"entries": {"alias": alias}}}}
     response(schema, "/").validate(root)
     assert alias == before
@@ -4913,7 +4911,7 @@ def parameter_refs(openapi, path, method):
 
 
 def version_response_reference(maxversions):
-    return "#/components/schemas/entry" + ("" if maxversions == 1 else "Version")
+    return "#/components/schemas/entryVersion"
 
 
 def core_version(maxversions, hasdocument, versionid="v1"):
@@ -5060,8 +5058,8 @@ def test_bare_document_routes_carry_domain_documents_not_metadata(group, maxvers
         }
     for method in ("put", "post"):
         assert "#/components/parameters/version-epoch" in parameter_refs(schema, path, method)
-    assert "resource-id" in schema["paths"][path]["get"]["responses"]["200"]["headers"]
-    assert "resource-version" in schema["paths"][path]["post"]["responses"]["201"]["headers"]
+    assert "xRegistry-entryid" in schema["paths"][path]["get"]["responses"]["200"]["headers"]
+    assert "xRegistry-versionid" in schema["paths"][path]["post"]["responses"]["201"]["headers"]
 
 
 @pytest.mark.parametrize("group", ["catalogs", "mirrors"])

@@ -131,6 +131,9 @@
             "type": "datetime",
             "description": "Modification time"
           },
+          "format": {
+            "type": "string"
+          },
           "meta": {
             "type": "object",
             "properties": {
@@ -231,7 +234,7 @@
             }
           }
         },
-        "additionalProperties": false
+        "additionalProperties": true
       },
       "Schemagroup": {
         "type": "object",
