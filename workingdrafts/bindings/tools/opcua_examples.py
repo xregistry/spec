@@ -431,7 +431,7 @@ def _request(sequence):
         raise FederationError("integrity_error", "Selected Version does not match requested Version")
     before = _object(sequence.get("before", {}), "Version observation")
     if "versionid" in before and before["versionid"] != selected.rsplit("/", 1)[1]:
-        raise FederationError("integrity_error", "VersionId Property differs from selected XID")
+        raise FederationError("integrity_error", "Version identifier observation differs from selected XID")
     return selected
 
 

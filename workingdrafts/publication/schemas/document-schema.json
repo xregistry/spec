@@ -11,9 +11,13 @@
   },
   "definitions": {
     "publication-schema": {
-      "channel": {
+      "channelVersion": {
         "type": "object",
         "properties": {
+          "versionid": {
+            "type": "string",
+            "description": "ID of the channel version"
+          },
           "channelid": {
             "type": "string",
             "description": "ID of the channel object"
@@ -61,9 +65,76 @@
           }
         }
       },
-      "object": {
+      "channel": {
         "type": "object",
         "properties": {
+          "channelid": {
+            "type": "string",
+            "description": "ID of the channel object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "versionsurl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "versionscount": {
+            "type": "integer"
+          },
+          "versions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/publication-schema/channelVersion"
+            }
+          }
+        }
+      },
+      "objectVersion": {
+        "type": "object",
+        "properties": {
+          "versionid": {
+            "type": "string",
+            "description": "ID of the object version"
+          },
           "objectid": {
             "type": "string",
             "description": "ID of the object object"
@@ -176,9 +247,76 @@
           }
         ]
       },
-      "snapshot": {
+      "object": {
         "type": "object",
         "properties": {
+          "objectid": {
+            "type": "string",
+            "description": "ID of the object object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "versionsurl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "versionscount": {
+            "type": "integer"
+          },
+          "versions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/publication-schema/objectVersion"
+            }
+          }
+        }
+      },
+      "snapshotVersion": {
+        "type": "object",
+        "properties": {
+          "versionid": {
+            "type": "string",
+            "description": "ID of the snapshot version"
+          },
           "snapshotid": {
             "type": "string",
             "description": "ID of the snapshot object"
@@ -293,6 +431,72 @@
             }
           }
         ]
+      },
+      "snapshot": {
+        "type": "object",
+        "properties": {
+          "snapshotid": {
+            "type": "string",
+            "description": "ID of the snapshot object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch time of the object creation"
+          },
+          "self": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "string",
+            "format": "xid",
+            "description": "Relative URL of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "URI of the documentation of the object"
+          },
+          "labels": {
+            "type": "object",
+            "description": "Labels for the object"
+          },
+          "createdat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object creation"
+          },
+          "modifiedat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of the object modification"
+          },
+          "contenttype": {
+            "type": "string"
+          },
+          "versionsurl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "versionscount": {
+            "type": "integer"
+          },
+          "versions": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/publication-schema/snapshotVersion"
+            }
+          }
+        }
       },
       "publication": {
         "type": "object",

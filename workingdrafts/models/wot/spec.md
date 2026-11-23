@@ -15,6 +15,7 @@
 <!-- words: allowprerelease contentdigest minversion prereleases unversioned versionorigin -->
 <!-- words: marcschier namespace sourcename uav viewversion iri jsonld -->
 <!-- words: percent dereferenceable affordanceselector -->
+<!-- words: compatibilityline wotversionprofile wotversion vn -->
 
 ## Abstract
 
@@ -429,7 +430,7 @@ working draft. It versions the WoT model independently of the xRegistry Core
 specification version in a Registry's `specversion`.
 
 The following form shows the SemVer serialization. An incremental Registry
-uses the same collections and additionally exposes the optional Version
+uses the same collections and additionally exposes the OPTIONAL Version
 attribute `compatibilityline` (Section 5.5.2).
 
 ```yaml

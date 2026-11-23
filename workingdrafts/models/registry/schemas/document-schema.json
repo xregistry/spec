@@ -196,6 +196,89 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
+          "xregurl": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "xRegistry HTTP Registry root URL."
+          },
+          "weburl": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Human-facing website. Not a resolution advertisement."
+          },
+          "registrytypes": {
+            "type": "array",
+            "description": "Descriptive domain or model URI identifiers.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "authority": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "Administrative authority identifier. Not a trust claim."
+          },
+          "federationprofiles": {
+            "type": "array",
+            "description": "Ordered access advertisements for one logical Registry.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "binding": {
+                  "type": "string",
+                  "description": "Nonempty, case-sensitive binding identifier."
+                },
+                "endpoint": {
+                  "type": "string",
+                  "format": "uri-reference",
+                  "description": "Absolute, credential-free binding endpoint URI."
+                },
+                "priority": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Lower values are preferred. Absence means 0."
+                },
+                "parameters": {
+                  "type": "object",
+                  "description": "Binding parameters. Absence means an empty object.",
+                  "properties": {}
+                }
+              },
+              "required": [
+                "binding",
+                "endpoint"
+              ]
+            }
+          },
+          "relationships": {
+            "type": "array",
+            "description": "Descriptive links to catalog entries, not instructions.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Nonempty relationship identifier."
+                },
+                "target": {
+                  "type": "string",
+                  "format": "uri-reference",
+                  "description": "Catalog-root Resource XID or absolute entry URI."
+                },
+                "labels": {
+                  "type": "object",
+                  "description": "Ordinary Core labels describing this relationship.",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "type",
+                "target"
+              ]
+            }
+          },
           "versionsurl": {
             "type": "string",
             "format": "uri"

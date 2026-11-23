@@ -227,6 +227,46 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
+          "versionorigin": {
+            "type": "string",
+            "description": "Server-set origin of the Version id: authored from a SemVer version.instance, or generated as 0.0.0-N."
+          },
+          "format": {
+            "type": "string",
+            "description": "The document format. All Versions of a Thing Description share one format"
+          },
+          "wotid": {
+            "type": "string",
+            "description": "The authored WoT identifier of this Thing Description - the value of the document's 'id' member, verbatim. It is the document's identity in the WoT identifier space and is distinct from the thingdescriptionid, which is the Resource id within this registry and is chosen by the client. All Versions of a Thing Description share one wotid; it MUST NOT encode a revision of the document it names"
+          },
+          "derivedfrom": {
+            "type": "array",
+            "description": "The authored WoT identifiers of the Thing Models this Thing Description extends or composes - authored identifiers, not xids, so a resolver matches them against the document's own references directly",
+            "items": {
+              "type": "string"
+            }
+          },
+          "license": {
+            "type": "string",
+            "description": "The license the document is offered under, as an SPDX license expression or a URL. Advisory provenance metadata"
+          },
+          "publisher": {
+            "type": "string",
+            "description": "The organization that published the document. Advisory provenance metadata"
+          },
+          "standardsbody": {
+            "type": "string",
+            "description": "The standards organization that defines or endorses the document, where one does, for example 'W3C' or 'OPC Foundation'. Advisory provenance metadata"
+          },
+          "canonicalurl": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "The canonical upstream location of the document, where it is also published outside this registry. Advisory provenance metadata"
+          },
+          "maturity": {
+            "type": "string",
+            "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document"
+          },
           "versionsurl": {
             "type": "string",
             "format": "uri"
@@ -509,6 +549,46 @@
             "type": "string",
             "format": "date-time",
             "description": "Time of the object modification"
+          },
+          "versionorigin": {
+            "type": "string",
+            "description": "Server-set origin of the Version id: authored from a SemVer version.model, or generated as 0.0.0-N."
+          },
+          "format": {
+            "type": "string",
+            "description": "The document format. All Versions of a Thing Model share one format"
+          },
+          "wotid": {
+            "type": "string",
+            "description": "The authored WoT identifier of this Thing Model, equal to its document id when present. It includes the major version and is stable across compatible revisions. It is distinct from the client-chosen thingmodelid."
+          },
+          "derivedfrom": {
+            "type": "array",
+            "description": "The authored WoT identifiers of the Thing Models this Thing Model extends via 'tm:extends', composes via 'tm:submodel', or references via 'tm:ref' - authored identifiers, not xids, so a resolver matches them against the document's own references directly",
+            "items": {
+              "type": "string"
+            }
+          },
+          "license": {
+            "type": "string",
+            "description": "The license the document is offered under, as an SPDX license expression or a URL. Advisory provenance metadata"
+          },
+          "publisher": {
+            "type": "string",
+            "description": "The organization that published the document. Advisory provenance metadata"
+          },
+          "standardsbody": {
+            "type": "string",
+            "description": "The standards organization that defines or endorses the document, where one does, for example 'W3C' or 'OPC Foundation'. Advisory provenance metadata"
+          },
+          "canonicalurl": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "The canonical upstream location of the document, where it is also published outside this registry. Advisory provenance metadata"
+          },
+          "maturity": {
+            "type": "string",
+            "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document"
           },
           "versionsurl": {
             "type": "string",

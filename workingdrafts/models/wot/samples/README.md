@@ -2,7 +2,7 @@
 
 <!-- words: WoT thingdescriptiongroups thingmodelgroups fabrikam wotid derivedfrom byom contoso standardsbody maturity affordance minversion versionorigin -->
 <!-- words: factoryfloor inletpressure -->
-<!-- words: cloudevents descriptorid describedby thingdescriptions affordances standalone affordanceselector -->
+<!-- words: cloudevents descriptorid describedby thingdescription thingdescriptions affordances standalone affordanceselector -->
 
 [registry.json](registry.json) illustrates document identity, compatible
 Versions and provenance metadata using the [WoT Registry model](../model.json).

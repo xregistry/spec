@@ -1754,44 +1754,107 @@
         "tags": [
           "Resource"
         ],
-        "description": "Gets the resource (default version). Supports $details view via the 'doc' query parameter. (See spec: Retrieving a Resource and Retrieving a Resource as Metadata)",
+        "description": "Gets the resource (default version). Supports $details view via the 'doc' query parameter. (See spec: Retrieving a Resource and Retrieving a Resource as Metadata)\n\nSee the [xRegistry Core HTTP Header Processing rules](https://github.com/xregistry/spec/blob/main/core/http.md#http-header-processing).",
         "responses": {
           "200": {
             "description": "The resource (or a redirect if a RESOURCEurl is set).",
             "headers": {
-              "resource-id": {
-                "$ref": "#/components/headers/resource-id"
-              },
-              "resource-version": {
-                "$ref": "#/components/headers/resource-version"
-              },
-              "resource-name": {
-                "$ref": "#/components/headers/resource-name"
-              },
-              "resource-self": {
-                "$ref": "#/components/headers/resource-self"
-              },
-              "resource-description": {
-                "$ref": "#/components/headers/resource-description"
-              },
-              "resource-documentation": {
-                "$ref": "#/components/headers/resource-documentation"
-              },
-              "resource-labels": {
-                "$ref": "#/components/headers/resource-labels"
-              },
-              "resource-createdat": {
-                "$ref": "#/components/headers/resource-createdat"
-              },
-              "resource-modifiedat": {
-                "$ref": "#/components/headers/resource-modifiedat"
-              },
               "Content-Location": {
                 "description": "Permalink location of the returned version.",
                 "schema": {
                   "type": "string",
-                  "format": "uri"
+                  "format": "uri-reference"
                 }
+              },
+              "xRegistry-thingdescriptionid": {
+                "$ref": "#/components/headers/xRegistry-thingdescriptionid"
+              },
+              "xRegistry-versionid": {
+                "$ref": "#/components/headers/xRegistry-versionid"
+              },
+              "xRegistry-name": {
+                "$ref": "#/components/headers/xRegistry-name"
+              },
+              "xRegistry-description": {
+                "$ref": "#/components/headers/xRegistry-description"
+              },
+              "xRegistry-ancestorid": {
+                "$ref": "#/components/headers/xRegistry-ancestorid"
+              },
+              "xRegistry-format": {
+                "$ref": "#/components/headers/xRegistry-format"
+              },
+              "xRegistry-formatvalidatedreason": {
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
+              },
+              "xRegistry-compatibilityvalidatedreason": {
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
+              },
+              "xRegistry-self": {
+                "$ref": "#/components/headers/xRegistry-self"
+              },
+              "xRegistry-shortself": {
+                "$ref": "#/components/headers/xRegistry-shortself"
+              },
+              "xRegistry-documentation": {
+                "$ref": "#/components/headers/xRegistry-documentation"
+              },
+              "xRegistry-icon": {
+                "$ref": "#/components/headers/xRegistry-icon"
+              },
+              "xRegistry-xid": {
+                "$ref": "#/components/headers/xRegistry-xid"
+              },
+              "xRegistry-epoch": {
+                "$ref": "#/components/headers/xRegistry-epoch"
+              },
+              "xRegistry-isdefault": {
+                "$ref": "#/components/headers/xRegistry-isdefault"
+              },
+              "xRegistry-createdat": {
+                "$ref": "#/components/headers/xRegistry-createdat"
+              },
+              "xRegistry-modifiedat": {
+                "$ref": "#/components/headers/xRegistry-modifiedat"
+              },
+              "xRegistry-formatvalidated": {
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
+              },
+              "xRegistry-compatibilityvalidated": {
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
+              },
+              "xRegistry-versionorigin": {
+                "$ref": "#/components/headers/xRegistry-versionorigin"
+              },
+              "xRegistry-wotid": {
+                "$ref": "#/components/headers/xRegistry-wotid"
+              },
+              "xRegistry-license": {
+                "$ref": "#/components/headers/xRegistry-license"
+              },
+              "xRegistry-publisher": {
+                "$ref": "#/components/headers/xRegistry-publisher"
+              },
+              "xRegistry-standardsbody": {
+                "$ref": "#/components/headers/xRegistry-standardsbody"
+              },
+              "xRegistry-canonicalurl": {
+                "$ref": "#/components/headers/xRegistry-canonicalurl"
+              },
+              "xRegistry-maturity": {
+                "$ref": "#/components/headers/xRegistry-maturity"
+              },
+              "xRegistry-thingdescriptionurl": {
+                "$ref": "#/components/headers/xRegistry-thingdescriptionurl"
+              },
+              "xRegistry-metaurl": {
+                "$ref": "#/components/headers/xRegistry-metaurl"
+              },
+              "xRegistry-versionsurl": {
+                "$ref": "#/components/headers/xRegistry-versionsurl"
+              },
+              "xRegistry-versionscount": {
+                "$ref": "#/components/headers/xRegistry-versionscount"
               }
             },
             "content": {
@@ -1827,7 +1890,7 @@
         "tags": [
           "Resource"
         ],
-        "description": "Creates or updates a resource. Accepts either the raw document (when $details is not used) or a full xRegistry metadata serialization (when $details is used). (See spec: Creating or Updating Resources and Versions, Resource Metadata vs Resource Document)",
+        "description": "Creates or updates a resource. Accepts either the raw document (when $details is not used) or a full xRegistry metadata serialization (when $details is used). (See spec: Creating or Updating Resources and Versions, Resource Metadata vs Resource Document)\n\nSee the [xRegistry Core HTTP Header Processing rules](https://github.com/xregistry/spec/blob/main/core/http.md#http-header-processing).",
         "parameters": [
           {
             "in": "query",
@@ -1850,6 +1913,60 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-thingdescriptionid"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-versionid"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-name"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-description"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-ancestorid"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-format"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-documentation"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-icon"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-epoch"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-createdat"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-modifiedat"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-wotid"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-license"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-publisher"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-standardsbody"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-canonicalurl"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-maturity"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-thingdescriptionurl"
           }
         ],
         "requestBody": {
@@ -1877,6 +1994,98 @@
                   "$ref": "#/components/schemas/thingdescription"
                 }
               }
+            },
+            "headers": {
+              "xRegistry-thingdescriptionid": {
+                "$ref": "#/components/headers/xRegistry-thingdescriptionid"
+              },
+              "xRegistry-versionid": {
+                "$ref": "#/components/headers/xRegistry-versionid"
+              },
+              "xRegistry-name": {
+                "$ref": "#/components/headers/xRegistry-name"
+              },
+              "xRegistry-description": {
+                "$ref": "#/components/headers/xRegistry-description"
+              },
+              "xRegistry-ancestorid": {
+                "$ref": "#/components/headers/xRegistry-ancestorid"
+              },
+              "xRegistry-format": {
+                "$ref": "#/components/headers/xRegistry-format"
+              },
+              "xRegistry-formatvalidatedreason": {
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
+              },
+              "xRegistry-compatibilityvalidatedreason": {
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
+              },
+              "xRegistry-self": {
+                "$ref": "#/components/headers/xRegistry-self"
+              },
+              "xRegistry-shortself": {
+                "$ref": "#/components/headers/xRegistry-shortself"
+              },
+              "xRegistry-documentation": {
+                "$ref": "#/components/headers/xRegistry-documentation"
+              },
+              "xRegistry-icon": {
+                "$ref": "#/components/headers/xRegistry-icon"
+              },
+              "xRegistry-xid": {
+                "$ref": "#/components/headers/xRegistry-xid"
+              },
+              "xRegistry-epoch": {
+                "$ref": "#/components/headers/xRegistry-epoch"
+              },
+              "xRegistry-isdefault": {
+                "$ref": "#/components/headers/xRegistry-isdefault"
+              },
+              "xRegistry-createdat": {
+                "$ref": "#/components/headers/xRegistry-createdat"
+              },
+              "xRegistry-modifiedat": {
+                "$ref": "#/components/headers/xRegistry-modifiedat"
+              },
+              "xRegistry-formatvalidated": {
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
+              },
+              "xRegistry-compatibilityvalidated": {
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
+              },
+              "xRegistry-versionorigin": {
+                "$ref": "#/components/headers/xRegistry-versionorigin"
+              },
+              "xRegistry-wotid": {
+                "$ref": "#/components/headers/xRegistry-wotid"
+              },
+              "xRegistry-license": {
+                "$ref": "#/components/headers/xRegistry-license"
+              },
+              "xRegistry-publisher": {
+                "$ref": "#/components/headers/xRegistry-publisher"
+              },
+              "xRegistry-standardsbody": {
+                "$ref": "#/components/headers/xRegistry-standardsbody"
+              },
+              "xRegistry-canonicalurl": {
+                "$ref": "#/components/headers/xRegistry-canonicalurl"
+              },
+              "xRegistry-maturity": {
+                "$ref": "#/components/headers/xRegistry-maturity"
+              },
+              "xRegistry-thingdescriptionurl": {
+                "$ref": "#/components/headers/xRegistry-thingdescriptionurl"
+              },
+              "xRegistry-metaurl": {
+                "$ref": "#/components/headers/xRegistry-metaurl"
+              },
+              "xRegistry-versionsurl": {
+                "$ref": "#/components/headers/xRegistry-versionsurl"
+              },
+              "xRegistry-versionscount": {
+                "$ref": "#/components/headers/xRegistry-versionscount"
+              }
             }
           },
           "400": {
@@ -1898,21 +2107,12 @@
       },
       "post": {
         "summary": "Post new resource version",
-        "description": "Creates a new version of the resource. If the resource does not exist, it is created at version 1; if it exists, the new version is created (default version may be updated using setdefaultversionid). (See spec: Creating or Updating Resources and Versions, Default Version of a Resource)",
+        "description": "Creates a new version of the resource. If the resource does not exist, it is created at version 1; if it exists, the new version is created (default version may be updated using setdefaultversionid). (See spec: Creating or Updating Resources and Versions, Default Version of a Resource)\n\nSee the [xRegistry Core HTTP Header Processing rules](https://github.com/xregistry/spec/blob/main/core/http.md#http-header-processing).",
         "operationId": "postThingdescriptiongroupThingdescription",
         "tags": [
           "Resource"
         ],
         "parameters": [
-          {
-            "$ref": "#/components/parameters/resource-description"
-          },
-          {
-            "$ref": "#/components/parameters/resource-documentation"
-          },
-          {
-            "$ref": "#/components/parameters/resource-labels"
-          },
           {
             "in": "query",
             "name": "setdefaultversionid",
@@ -1933,6 +2133,60 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-thingdescriptionid"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-versionid"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-name"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-description"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-ancestorid"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-format"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-documentation"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-icon"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-epoch"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-createdat"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-modifiedat"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-wotid"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-license"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-publisher"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-standardsbody"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-canonicalurl"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-maturity"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-thingdescriptionurl"
           }
         ],
         "requestBody": {
@@ -1954,35 +2208,6 @@
         "responses": {
           "201": {
             "description": "The created resource version.",
-            "headers": {
-              "resource-id": {
-                "$ref": "#/components/headers/resource-id"
-              },
-              "resource-version": {
-                "$ref": "#/components/headers/resource-version"
-              },
-              "resource-name": {
-                "$ref": "#/components/headers/resource-name"
-              },
-              "resource-self": {
-                "$ref": "#/components/headers/resource-self"
-              },
-              "resource-description": {
-                "$ref": "#/components/headers/resource-description"
-              },
-              "resource-documentation": {
-                "$ref": "#/components/headers/resource-documentation"
-              },
-              "resource-labels": {
-                "$ref": "#/components/headers/resource-labels"
-              },
-              "resource-createdat": {
-                "$ref": "#/components/headers/resource-createdat"
-              },
-              "resource-modifiedat": {
-                "$ref": "#/components/headers/resource-modifiedat"
-              }
-            },
             "content": {
               "application/octet-stream": {
                 "schema": {
@@ -1994,6 +2219,89 @@
                 "schema": {
                   "$ref": "#/components/schemas/thingdescription"
                 }
+              }
+            },
+            "headers": {
+              "xRegistry-thingdescriptionid": {
+                "$ref": "#/components/headers/xRegistry-thingdescriptionid"
+              },
+              "xRegistry-versionid": {
+                "$ref": "#/components/headers/xRegistry-versionid"
+              },
+              "xRegistry-name": {
+                "$ref": "#/components/headers/xRegistry-name"
+              },
+              "xRegistry-description": {
+                "$ref": "#/components/headers/xRegistry-description"
+              },
+              "xRegistry-ancestorid": {
+                "$ref": "#/components/headers/xRegistry-ancestorid"
+              },
+              "xRegistry-format": {
+                "$ref": "#/components/headers/xRegistry-format"
+              },
+              "xRegistry-formatvalidatedreason": {
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
+              },
+              "xRegistry-compatibilityvalidatedreason": {
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
+              },
+              "xRegistry-self": {
+                "$ref": "#/components/headers/xRegistry-self"
+              },
+              "xRegistry-shortself": {
+                "$ref": "#/components/headers/xRegistry-shortself"
+              },
+              "xRegistry-documentation": {
+                "$ref": "#/components/headers/xRegistry-documentation"
+              },
+              "xRegistry-icon": {
+                "$ref": "#/components/headers/xRegistry-icon"
+              },
+              "xRegistry-xid": {
+                "$ref": "#/components/headers/xRegistry-xid"
+              },
+              "xRegistry-epoch": {
+                "$ref": "#/components/headers/xRegistry-epoch"
+              },
+              "xRegistry-isdefault": {
+                "$ref": "#/components/headers/xRegistry-isdefault"
+              },
+              "xRegistry-createdat": {
+                "$ref": "#/components/headers/xRegistry-createdat"
+              },
+              "xRegistry-modifiedat": {
+                "$ref": "#/components/headers/xRegistry-modifiedat"
+              },
+              "xRegistry-formatvalidated": {
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
+              },
+              "xRegistry-compatibilityvalidated": {
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
+              },
+              "xRegistry-versionorigin": {
+                "$ref": "#/components/headers/xRegistry-versionorigin"
+              },
+              "xRegistry-wotid": {
+                "$ref": "#/components/headers/xRegistry-wotid"
+              },
+              "xRegistry-license": {
+                "$ref": "#/components/headers/xRegistry-license"
+              },
+              "xRegistry-publisher": {
+                "$ref": "#/components/headers/xRegistry-publisher"
+              },
+              "xRegistry-standardsbody": {
+                "$ref": "#/components/headers/xRegistry-standardsbody"
+              },
+              "xRegistry-canonicalurl": {
+                "$ref": "#/components/headers/xRegistry-canonicalurl"
+              },
+              "xRegistry-maturity": {
+                "$ref": "#/components/headers/xRegistry-maturity"
+              },
+              "xRegistry-thingdescriptionurl": {
+                "$ref": "#/components/headers/xRegistry-thingdescriptionurl"
               }
             }
           },
@@ -2138,44 +2446,107 @@
         "tags": [
           "Resource"
         ],
-        "description": "Gets the resource (default version). Supports $details view via the 'doc' query parameter. (See spec: Retrieving a Resource and Retrieving a Resource as Metadata)",
+        "description": "Gets the resource (default version). Supports $details view via the 'doc' query parameter. (See spec: Retrieving a Resource and Retrieving a Resource as Metadata)\n\nSee the [xRegistry Core HTTP Header Processing rules](https://github.com/xregistry/spec/blob/main/core/http.md#http-header-processing).",
         "responses": {
           "200": {
             "description": "The resource (or a redirect if a RESOURCEurl is set).",
             "headers": {
-              "resource-id": {
-                "$ref": "#/components/headers/resource-id"
-              },
-              "resource-version": {
-                "$ref": "#/components/headers/resource-version"
-              },
-              "resource-name": {
-                "$ref": "#/components/headers/resource-name"
-              },
-              "resource-self": {
-                "$ref": "#/components/headers/resource-self"
-              },
-              "resource-description": {
-                "$ref": "#/components/headers/resource-description"
-              },
-              "resource-documentation": {
-                "$ref": "#/components/headers/resource-documentation"
-              },
-              "resource-labels": {
-                "$ref": "#/components/headers/resource-labels"
-              },
-              "resource-createdat": {
-                "$ref": "#/components/headers/resource-createdat"
-              },
-              "resource-modifiedat": {
-                "$ref": "#/components/headers/resource-modifiedat"
-              },
               "Content-Location": {
                 "description": "Permalink location of the returned version.",
                 "schema": {
                   "type": "string",
-                  "format": "uri"
+                  "format": "uri-reference"
                 }
+              },
+              "xRegistry-thingmodelid": {
+                "$ref": "#/components/headers/xRegistry-thingmodelid"
+              },
+              "xRegistry-versionid": {
+                "$ref": "#/components/headers/xRegistry-versionid"
+              },
+              "xRegistry-name": {
+                "$ref": "#/components/headers/xRegistry-name"
+              },
+              "xRegistry-description": {
+                "$ref": "#/components/headers/xRegistry-description"
+              },
+              "xRegistry-ancestorid": {
+                "$ref": "#/components/headers/xRegistry-ancestorid"
+              },
+              "xRegistry-format": {
+                "$ref": "#/components/headers/xRegistry-format"
+              },
+              "xRegistry-formatvalidatedreason": {
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
+              },
+              "xRegistry-compatibilityvalidatedreason": {
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
+              },
+              "xRegistry-self": {
+                "$ref": "#/components/headers/xRegistry-self"
+              },
+              "xRegistry-shortself": {
+                "$ref": "#/components/headers/xRegistry-shortself"
+              },
+              "xRegistry-documentation": {
+                "$ref": "#/components/headers/xRegistry-documentation"
+              },
+              "xRegistry-icon": {
+                "$ref": "#/components/headers/xRegistry-icon"
+              },
+              "xRegistry-xid": {
+                "$ref": "#/components/headers/xRegistry-xid"
+              },
+              "xRegistry-epoch": {
+                "$ref": "#/components/headers/xRegistry-epoch"
+              },
+              "xRegistry-isdefault": {
+                "$ref": "#/components/headers/xRegistry-isdefault"
+              },
+              "xRegistry-createdat": {
+                "$ref": "#/components/headers/xRegistry-createdat"
+              },
+              "xRegistry-modifiedat": {
+                "$ref": "#/components/headers/xRegistry-modifiedat"
+              },
+              "xRegistry-formatvalidated": {
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
+              },
+              "xRegistry-compatibilityvalidated": {
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
+              },
+              "xRegistry-versionorigin": {
+                "$ref": "#/components/headers/xRegistry-versionorigin"
+              },
+              "xRegistry-wotid": {
+                "$ref": "#/components/headers/xRegistry-wotid"
+              },
+              "xRegistry-license": {
+                "$ref": "#/components/headers/xRegistry-license"
+              },
+              "xRegistry-publisher": {
+                "$ref": "#/components/headers/xRegistry-publisher"
+              },
+              "xRegistry-standardsbody": {
+                "$ref": "#/components/headers/xRegistry-standardsbody"
+              },
+              "xRegistry-canonicalurl": {
+                "$ref": "#/components/headers/xRegistry-canonicalurl"
+              },
+              "xRegistry-maturity": {
+                "$ref": "#/components/headers/xRegistry-maturity"
+              },
+              "xRegistry-thingmodelurl": {
+                "$ref": "#/components/headers/xRegistry-thingmodelurl"
+              },
+              "xRegistry-metaurl": {
+                "$ref": "#/components/headers/xRegistry-metaurl"
+              },
+              "xRegistry-versionsurl": {
+                "$ref": "#/components/headers/xRegistry-versionsurl"
+              },
+              "xRegistry-versionscount": {
+                "$ref": "#/components/headers/xRegistry-versionscount"
               }
             },
             "content": {
@@ -2211,7 +2582,7 @@
         "tags": [
           "Resource"
         ],
-        "description": "Creates or updates a resource. Accepts either the raw document (when $details is not used) or a full xRegistry metadata serialization (when $details is used). (See spec: Creating or Updating Resources and Versions, Resource Metadata vs Resource Document)",
+        "description": "Creates or updates a resource. Accepts either the raw document (when $details is not used) or a full xRegistry metadata serialization (when $details is used). (See spec: Creating or Updating Resources and Versions, Resource Metadata vs Resource Document)\n\nSee the [xRegistry Core HTTP Header Processing rules](https://github.com/xregistry/spec/blob/main/core/http.md#http-header-processing).",
         "parameters": [
           {
             "in": "query",
@@ -2234,6 +2605,60 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-thingmodelid"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-versionid"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-name"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-description"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-ancestorid"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-format"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-documentation"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-icon"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-epoch"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-createdat"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-modifiedat"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-wotid"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-license"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-publisher"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-standardsbody"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-canonicalurl"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-maturity"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-thingmodelurl"
           }
         ],
         "requestBody": {
@@ -2261,6 +2686,98 @@
                   "$ref": "#/components/schemas/thingmodel"
                 }
               }
+            },
+            "headers": {
+              "xRegistry-thingmodelid": {
+                "$ref": "#/components/headers/xRegistry-thingmodelid"
+              },
+              "xRegistry-versionid": {
+                "$ref": "#/components/headers/xRegistry-versionid"
+              },
+              "xRegistry-name": {
+                "$ref": "#/components/headers/xRegistry-name"
+              },
+              "xRegistry-description": {
+                "$ref": "#/components/headers/xRegistry-description"
+              },
+              "xRegistry-ancestorid": {
+                "$ref": "#/components/headers/xRegistry-ancestorid"
+              },
+              "xRegistry-format": {
+                "$ref": "#/components/headers/xRegistry-format"
+              },
+              "xRegistry-formatvalidatedreason": {
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
+              },
+              "xRegistry-compatibilityvalidatedreason": {
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
+              },
+              "xRegistry-self": {
+                "$ref": "#/components/headers/xRegistry-self"
+              },
+              "xRegistry-shortself": {
+                "$ref": "#/components/headers/xRegistry-shortself"
+              },
+              "xRegistry-documentation": {
+                "$ref": "#/components/headers/xRegistry-documentation"
+              },
+              "xRegistry-icon": {
+                "$ref": "#/components/headers/xRegistry-icon"
+              },
+              "xRegistry-xid": {
+                "$ref": "#/components/headers/xRegistry-xid"
+              },
+              "xRegistry-epoch": {
+                "$ref": "#/components/headers/xRegistry-epoch"
+              },
+              "xRegistry-isdefault": {
+                "$ref": "#/components/headers/xRegistry-isdefault"
+              },
+              "xRegistry-createdat": {
+                "$ref": "#/components/headers/xRegistry-createdat"
+              },
+              "xRegistry-modifiedat": {
+                "$ref": "#/components/headers/xRegistry-modifiedat"
+              },
+              "xRegistry-formatvalidated": {
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
+              },
+              "xRegistry-compatibilityvalidated": {
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
+              },
+              "xRegistry-versionorigin": {
+                "$ref": "#/components/headers/xRegistry-versionorigin"
+              },
+              "xRegistry-wotid": {
+                "$ref": "#/components/headers/xRegistry-wotid"
+              },
+              "xRegistry-license": {
+                "$ref": "#/components/headers/xRegistry-license"
+              },
+              "xRegistry-publisher": {
+                "$ref": "#/components/headers/xRegistry-publisher"
+              },
+              "xRegistry-standardsbody": {
+                "$ref": "#/components/headers/xRegistry-standardsbody"
+              },
+              "xRegistry-canonicalurl": {
+                "$ref": "#/components/headers/xRegistry-canonicalurl"
+              },
+              "xRegistry-maturity": {
+                "$ref": "#/components/headers/xRegistry-maturity"
+              },
+              "xRegistry-thingmodelurl": {
+                "$ref": "#/components/headers/xRegistry-thingmodelurl"
+              },
+              "xRegistry-metaurl": {
+                "$ref": "#/components/headers/xRegistry-metaurl"
+              },
+              "xRegistry-versionsurl": {
+                "$ref": "#/components/headers/xRegistry-versionsurl"
+              },
+              "xRegistry-versionscount": {
+                "$ref": "#/components/headers/xRegistry-versionscount"
+              }
             }
           },
           "400": {
@@ -2282,21 +2799,12 @@
       },
       "post": {
         "summary": "Post new resource version",
-        "description": "Creates a new version of the resource. If the resource does not exist, it is created at version 1; if it exists, the new version is created (default version may be updated using setdefaultversionid). (See spec: Creating or Updating Resources and Versions, Default Version of a Resource)",
+        "description": "Creates a new version of the resource. If the resource does not exist, it is created at version 1; if it exists, the new version is created (default version may be updated using setdefaultversionid). (See spec: Creating or Updating Resources and Versions, Default Version of a Resource)\n\nSee the [xRegistry Core HTTP Header Processing rules](https://github.com/xregistry/spec/blob/main/core/http.md#http-header-processing).",
         "operationId": "postThingmodelgroupThingmodel",
         "tags": [
           "Resource"
         ],
         "parameters": [
-          {
-            "$ref": "#/components/parameters/resource-description"
-          },
-          {
-            "$ref": "#/components/parameters/resource-documentation"
-          },
-          {
-            "$ref": "#/components/parameters/resource-labels"
-          },
           {
             "in": "query",
             "name": "setdefaultversionid",
@@ -2317,6 +2825,60 @@
           },
           {
             "$ref": "#/components/parameters/specversion"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-thingmodelid"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-versionid"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-name"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-description"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-ancestorid"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-format"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-documentation"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-icon"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-epoch"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-createdat"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-modifiedat"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-wotid"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-license"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-publisher"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-standardsbody"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-canonicalurl"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-maturity"
+          },
+          {
+            "$ref": "#/components/parameters/xRegistry-thingmodelurl"
           }
         ],
         "requestBody": {
@@ -2338,35 +2900,6 @@
         "responses": {
           "201": {
             "description": "The created resource version.",
-            "headers": {
-              "resource-id": {
-                "$ref": "#/components/headers/resource-id"
-              },
-              "resource-version": {
-                "$ref": "#/components/headers/resource-version"
-              },
-              "resource-name": {
-                "$ref": "#/components/headers/resource-name"
-              },
-              "resource-self": {
-                "$ref": "#/components/headers/resource-self"
-              },
-              "resource-description": {
-                "$ref": "#/components/headers/resource-description"
-              },
-              "resource-documentation": {
-                "$ref": "#/components/headers/resource-documentation"
-              },
-              "resource-labels": {
-                "$ref": "#/components/headers/resource-labels"
-              },
-              "resource-createdat": {
-                "$ref": "#/components/headers/resource-createdat"
-              },
-              "resource-modifiedat": {
-                "$ref": "#/components/headers/resource-modifiedat"
-              }
-            },
             "content": {
               "application/octet-stream": {
                 "schema": {
@@ -2378,6 +2911,89 @@
                 "schema": {
                   "$ref": "#/components/schemas/thingmodel"
                 }
+              }
+            },
+            "headers": {
+              "xRegistry-thingmodelid": {
+                "$ref": "#/components/headers/xRegistry-thingmodelid"
+              },
+              "xRegistry-versionid": {
+                "$ref": "#/components/headers/xRegistry-versionid"
+              },
+              "xRegistry-name": {
+                "$ref": "#/components/headers/xRegistry-name"
+              },
+              "xRegistry-description": {
+                "$ref": "#/components/headers/xRegistry-description"
+              },
+              "xRegistry-ancestorid": {
+                "$ref": "#/components/headers/xRegistry-ancestorid"
+              },
+              "xRegistry-format": {
+                "$ref": "#/components/headers/xRegistry-format"
+              },
+              "xRegistry-formatvalidatedreason": {
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
+              },
+              "xRegistry-compatibilityvalidatedreason": {
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
+              },
+              "xRegistry-self": {
+                "$ref": "#/components/headers/xRegistry-self"
+              },
+              "xRegistry-shortself": {
+                "$ref": "#/components/headers/xRegistry-shortself"
+              },
+              "xRegistry-documentation": {
+                "$ref": "#/components/headers/xRegistry-documentation"
+              },
+              "xRegistry-icon": {
+                "$ref": "#/components/headers/xRegistry-icon"
+              },
+              "xRegistry-xid": {
+                "$ref": "#/components/headers/xRegistry-xid"
+              },
+              "xRegistry-epoch": {
+                "$ref": "#/components/headers/xRegistry-epoch"
+              },
+              "xRegistry-isdefault": {
+                "$ref": "#/components/headers/xRegistry-isdefault"
+              },
+              "xRegistry-createdat": {
+                "$ref": "#/components/headers/xRegistry-createdat"
+              },
+              "xRegistry-modifiedat": {
+                "$ref": "#/components/headers/xRegistry-modifiedat"
+              },
+              "xRegistry-formatvalidated": {
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
+              },
+              "xRegistry-compatibilityvalidated": {
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
+              },
+              "xRegistry-versionorigin": {
+                "$ref": "#/components/headers/xRegistry-versionorigin"
+              },
+              "xRegistry-wotid": {
+                "$ref": "#/components/headers/xRegistry-wotid"
+              },
+              "xRegistry-license": {
+                "$ref": "#/components/headers/xRegistry-license"
+              },
+              "xRegistry-publisher": {
+                "$ref": "#/components/headers/xRegistry-publisher"
+              },
+              "xRegistry-standardsbody": {
+                "$ref": "#/components/headers/xRegistry-standardsbody"
+              },
+              "xRegistry-canonicalurl": {
+                "$ref": "#/components/headers/xRegistry-canonicalurl"
+              },
+              "xRegistry-maturity": {
+                "$ref": "#/components/headers/xRegistry-maturity"
+              },
+              "xRegistry-thingmodelurl": {
+                "$ref": "#/components/headers/xRegistry-thingmodelurl"
               }
             }
           },
@@ -2495,7 +3111,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/thingdescription"
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/thingdescriptionVersion"
+                  }
                 }
               }
             }
@@ -2550,7 +3169,7 @@
               "schema": {
                 "type": "object",
                 "additionalProperties": {
-                  "$ref": "#/components/schemas/thingdescription"
+                  "$ref": "#/components/schemas/thingdescriptionVersion"
                 }
               }
             }
@@ -2564,7 +3183,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/thingdescription"
+                    "$ref": "#/components/schemas/thingdescriptionVersion"
                   }
                 }
               }
@@ -2641,7 +3260,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/thingmodel"
+                  "type": "object",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/thingmodelVersion"
+                  }
                 }
               }
             }
@@ -2696,7 +3318,7 @@
               "schema": {
                 "type": "object",
                 "additionalProperties": {
-                  "$ref": "#/components/schemas/thingmodel"
+                  "$ref": "#/components/schemas/thingmodelVersion"
                 }
               }
             }
@@ -2710,7 +3332,7 @@
                 "schema": {
                   "type": "object",
                   "additionalProperties": {
-                    "$ref": "#/components/schemas/thingmodel"
+                    "$ref": "#/components/schemas/thingmodelVersion"
                   }
                 }
               }
@@ -2773,7 +3395,7 @@
         "tags": [
           "ResourceVersion"
         ],
-        "description": "Gets a specific version of a resource. Returns either the document (if not $details) or the metadata view. (See spec: Retrieving a Version and Retrieving a Version as Metadata)",
+        "description": "Gets a specific version of a resource. Returns either the document (if not $details) or the metadata view. (See spec: Retrieving a Version and Retrieving a Version as Metadata)\n\nSee the [xRegistry Core HTTP Header Processing rules](https://github.com/xregistry/spec/blob/main/core/http.md#http-header-processing).",
         "responses": {
           "200": {
             "description": "The resource version.",
@@ -2786,8 +3408,91 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/thingdescription"
+                  "$ref": "#/components/schemas/thingdescriptionVersion"
                 }
+              }
+            },
+            "headers": {
+              "xRegistry-thingdescriptionid": {
+                "$ref": "#/components/headers/xRegistry-thingdescriptionid"
+              },
+              "xRegistry-versionid": {
+                "$ref": "#/components/headers/xRegistry-versionid"
+              },
+              "xRegistry-name": {
+                "$ref": "#/components/headers/xRegistry-name"
+              },
+              "xRegistry-description": {
+                "$ref": "#/components/headers/xRegistry-description"
+              },
+              "xRegistry-ancestorid": {
+                "$ref": "#/components/headers/xRegistry-ancestorid"
+              },
+              "xRegistry-format": {
+                "$ref": "#/components/headers/xRegistry-format"
+              },
+              "xRegistry-formatvalidatedreason": {
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
+              },
+              "xRegistry-compatibilityvalidatedreason": {
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
+              },
+              "xRegistry-self": {
+                "$ref": "#/components/headers/xRegistry-self"
+              },
+              "xRegistry-shortself": {
+                "$ref": "#/components/headers/xRegistry-shortself"
+              },
+              "xRegistry-documentation": {
+                "$ref": "#/components/headers/xRegistry-documentation"
+              },
+              "xRegistry-icon": {
+                "$ref": "#/components/headers/xRegistry-icon"
+              },
+              "xRegistry-xid": {
+                "$ref": "#/components/headers/xRegistry-xid"
+              },
+              "xRegistry-epoch": {
+                "$ref": "#/components/headers/xRegistry-epoch"
+              },
+              "xRegistry-isdefault": {
+                "$ref": "#/components/headers/xRegistry-isdefault"
+              },
+              "xRegistry-createdat": {
+                "$ref": "#/components/headers/xRegistry-createdat"
+              },
+              "xRegistry-modifiedat": {
+                "$ref": "#/components/headers/xRegistry-modifiedat"
+              },
+              "xRegistry-formatvalidated": {
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
+              },
+              "xRegistry-compatibilityvalidated": {
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
+              },
+              "xRegistry-versionorigin": {
+                "$ref": "#/components/headers/xRegistry-versionorigin"
+              },
+              "xRegistry-wotid": {
+                "$ref": "#/components/headers/xRegistry-wotid"
+              },
+              "xRegistry-license": {
+                "$ref": "#/components/headers/xRegistry-license"
+              },
+              "xRegistry-publisher": {
+                "$ref": "#/components/headers/xRegistry-publisher"
+              },
+              "xRegistry-standardsbody": {
+                "$ref": "#/components/headers/xRegistry-standardsbody"
+              },
+              "xRegistry-canonicalurl": {
+                "$ref": "#/components/headers/xRegistry-canonicalurl"
+              },
+              "xRegistry-maturity": {
+                "$ref": "#/components/headers/xRegistry-maturity"
+              },
+              "xRegistry-thingdescriptionurl": {
+                "$ref": "#/components/headers/xRegistry-thingdescriptionurl"
               }
             }
           },
@@ -2884,7 +3589,7 @@
         "tags": [
           "ResourceVersion"
         ],
-        "description": "Gets a specific version of a resource. Returns either the document (if not $details) or the metadata view. (See spec: Retrieving a Version and Retrieving a Version as Metadata)",
+        "description": "Gets a specific version of a resource. Returns either the document (if not $details) or the metadata view. (See spec: Retrieving a Version and Retrieving a Version as Metadata)\n\nSee the [xRegistry Core HTTP Header Processing rules](https://github.com/xregistry/spec/blob/main/core/http.md#http-header-processing).",
         "responses": {
           "200": {
             "description": "The resource version.",
@@ -2897,8 +3602,91 @@
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/thingmodel"
+                  "$ref": "#/components/schemas/thingmodelVersion"
                 }
+              }
+            },
+            "headers": {
+              "xRegistry-thingmodelid": {
+                "$ref": "#/components/headers/xRegistry-thingmodelid"
+              },
+              "xRegistry-versionid": {
+                "$ref": "#/components/headers/xRegistry-versionid"
+              },
+              "xRegistry-name": {
+                "$ref": "#/components/headers/xRegistry-name"
+              },
+              "xRegistry-description": {
+                "$ref": "#/components/headers/xRegistry-description"
+              },
+              "xRegistry-ancestorid": {
+                "$ref": "#/components/headers/xRegistry-ancestorid"
+              },
+              "xRegistry-format": {
+                "$ref": "#/components/headers/xRegistry-format"
+              },
+              "xRegistry-formatvalidatedreason": {
+                "$ref": "#/components/headers/xRegistry-formatvalidatedreason"
+              },
+              "xRegistry-compatibilityvalidatedreason": {
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidatedreason"
+              },
+              "xRegistry-self": {
+                "$ref": "#/components/headers/xRegistry-self"
+              },
+              "xRegistry-shortself": {
+                "$ref": "#/components/headers/xRegistry-shortself"
+              },
+              "xRegistry-documentation": {
+                "$ref": "#/components/headers/xRegistry-documentation"
+              },
+              "xRegistry-icon": {
+                "$ref": "#/components/headers/xRegistry-icon"
+              },
+              "xRegistry-xid": {
+                "$ref": "#/components/headers/xRegistry-xid"
+              },
+              "xRegistry-epoch": {
+                "$ref": "#/components/headers/xRegistry-epoch"
+              },
+              "xRegistry-isdefault": {
+                "$ref": "#/components/headers/xRegistry-isdefault"
+              },
+              "xRegistry-createdat": {
+                "$ref": "#/components/headers/xRegistry-createdat"
+              },
+              "xRegistry-modifiedat": {
+                "$ref": "#/components/headers/xRegistry-modifiedat"
+              },
+              "xRegistry-formatvalidated": {
+                "$ref": "#/components/headers/xRegistry-formatvalidated"
+              },
+              "xRegistry-compatibilityvalidated": {
+                "$ref": "#/components/headers/xRegistry-compatibilityvalidated"
+              },
+              "xRegistry-versionorigin": {
+                "$ref": "#/components/headers/xRegistry-versionorigin"
+              },
+              "xRegistry-wotid": {
+                "$ref": "#/components/headers/xRegistry-wotid"
+              },
+              "xRegistry-license": {
+                "$ref": "#/components/headers/xRegistry-license"
+              },
+              "xRegistry-publisher": {
+                "$ref": "#/components/headers/xRegistry-publisher"
+              },
+              "xRegistry-standardsbody": {
+                "$ref": "#/components/headers/xRegistry-standardsbody"
+              },
+              "xRegistry-canonicalurl": {
+                "$ref": "#/components/headers/xRegistry-canonicalurl"
+              },
+              "xRegistry-maturity": {
+                "$ref": "#/components/headers/xRegistry-maturity"
+              },
+              "xRegistry-thingmodelurl": {
+                "$ref": "#/components/headers/xRegistry-thingmodelurl"
               }
             }
           },
@@ -2993,34 +3781,6 @@
         },
         "description": "The unique identifier of the resource version."
       },
-      "resource-description": {
-        "name": "resource-description",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "string"
-        },
-        "description": "The description attribute for a resource."
-      },
-      "resource-documentation": {
-        "name": "resource-documentation",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "string",
-          "format": "uri"
-        },
-        "description": "The documentation URL for a resource."
-      },
-      "resource-labels": {
-        "name": "resource-labels",
-        "in": "query",
-        "required": false,
-        "schema": {
-          "type": "string"
-        },
-        "description": "The labels attribute for a resource."
-      },
       "specversion": {
         "name": "specversion",
         "in": "query",
@@ -3061,65 +3821,185 @@
           "type": "boolean"
         },
         "description": "If true, returns the document view (with relative URLs and default version data removed). See spec: Doc."
-      }
-    },
-    "headers": {
-      "resource-id": {
-        "description": "The resource identifier. MUST be percent-encoded per xRegistry specifications (i.e. all non-printable ASCII characters, spaces, quotes, and percent signs must be encoded).",
+      },
+      "xRegistry-thingdescriptionid": {
+        "name": "xRegistry-thingdescriptionid",
+        "in": "header",
+        "required": false,
+        "description": "The thingdescriptionid attribute.",
         "schema": {
           "type": "string"
         }
       },
-      "resource-version": {
-        "description": "The resource version identifier. MUST be percent-encoded per xRegistry specifications.",
+      "xRegistry-versionid": {
+        "name": "xRegistry-versionid",
+        "in": "header",
+        "required": false,
+        "description": "The versionid attribute.",
         "schema": {
           "type": "string"
         }
       },
-      "resource-name": {
-        "description": "The resource name. MUST be percent-encoded per xRegistry specifications.",
+      "xRegistry-name": {
+        "name": "xRegistry-name",
+        "in": "header",
+        "required": false,
+        "description": "The name attribute.",
         "schema": {
           "type": "string"
         }
       },
-      "resource-self": {
-        "description": "The self URL of the resource. MUST be percent-encoded per xRegistry specifications.",
-        "schema": {
-          "type": "string",
-          "format": "uri"
-        }
-      },
-      "resource-description": {
-        "description": "The resource description. MUST be percent-encoded per xRegistry specifications.",
+      "xRegistry-description": {
+        "name": "xRegistry-description",
+        "in": "header",
+        "required": false,
+        "description": "The description attribute.",
         "schema": {
           "type": "string"
         }
       },
-      "resource-documentation": {
-        "description": "The resource documentation URL. MUST be percent-encoded per xRegistry specifications.",
-        "schema": {
-          "type": "string",
-          "format": "uri"
-        }
-      },
-      "resource-labels": {
-        "description": "Serialized resource labels. MUST be percent-encoded per xRegistry specifications.",
+      "xRegistry-ancestorid": {
+        "name": "xRegistry-ancestorid",
+        "in": "header",
+        "required": false,
+        "description": "The ancestorid attribute.",
         "schema": {
           "type": "string"
         }
       },
-      "resource-createdat": {
-        "description": "The resource creation timestamp. MUST be percent-encoded per xRegistry specifications.",
+      "xRegistry-format": {
+        "name": "xRegistry-format",
+        "in": "header",
+        "required": false,
+        "description": "The format attribute.",
         "schema": {
-          "type": "string",
-          "format": "date-time"
+          "type": "string"
         }
       },
-      "resource-modifiedat": {
-        "description": "The resource modification timestamp. MUST be percent-encoded per xRegistry specifications.",
+      "xRegistry-documentation": {
+        "name": "xRegistry-documentation",
+        "in": "header",
+        "required": false,
+        "description": "The documentation attribute.",
         "schema": {
-          "type": "string",
-          "format": "date-time"
+          "type": "string"
+        }
+      },
+      "xRegistry-icon": {
+        "name": "xRegistry-icon",
+        "in": "header",
+        "required": false,
+        "description": "The icon attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-epoch": {
+        "name": "xRegistry-epoch",
+        "in": "header",
+        "required": false,
+        "description": "The epoch attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-createdat": {
+        "name": "xRegistry-createdat",
+        "in": "header",
+        "required": false,
+        "description": "The createdat attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-modifiedat": {
+        "name": "xRegistry-modifiedat",
+        "in": "header",
+        "required": false,
+        "description": "The modifiedat attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-wotid": {
+        "name": "xRegistry-wotid",
+        "in": "header",
+        "required": false,
+        "description": "The wotid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-license": {
+        "name": "xRegistry-license",
+        "in": "header",
+        "required": false,
+        "description": "The license attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-publisher": {
+        "name": "xRegistry-publisher",
+        "in": "header",
+        "required": false,
+        "description": "The publisher attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-standardsbody": {
+        "name": "xRegistry-standardsbody",
+        "in": "header",
+        "required": false,
+        "description": "The standardsbody attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-canonicalurl": {
+        "name": "xRegistry-canonicalurl",
+        "in": "header",
+        "required": false,
+        "description": "The canonicalurl attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-maturity": {
+        "name": "xRegistry-maturity",
+        "in": "header",
+        "required": false,
+        "description": "The maturity attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-thingdescriptionurl": {
+        "name": "xRegistry-thingdescriptionurl",
+        "in": "header",
+        "required": false,
+        "description": "The thingdescriptionurl attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-thingmodelid": {
+        "name": "xRegistry-thingmodelid",
+        "in": "header",
+        "required": false,
+        "description": "The thingmodelid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-thingmodelurl": {
+        "name": "xRegistry-thingmodelurl",
+        "in": "header",
+        "required": false,
+        "description": "The thingmodelurl attribute.",
+        "schema": {
+          "type": "string"
         }
       }
     },
@@ -3718,6 +4598,46 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
+          "versionorigin": {
+            "type": "string",
+            "description": "Server-set origin of the Version id: authored from a SemVer version.instance, or generated as 0.0.0-N."
+          },
+          "format": {
+            "type": "string",
+            "description": "The document format. All Versions of a Thing Description share one format"
+          },
+          "wotid": {
+            "type": "string",
+            "description": "The authored WoT identifier of this Thing Description - the value of the document's 'id' member, verbatim. It is the document's identity in the WoT identifier space and is distinct from the thingdescriptionid, which is the Resource id within this registry and is chosen by the client. All Versions of a Thing Description share one wotid; it MUST NOT encode a revision of the document it names"
+          },
+          "derivedfrom": {
+            "type": "array",
+            "description": "The authored WoT identifiers of the Thing Models this Thing Description extends or composes - authored identifiers, not xids, so a resolver matches them against the document's own references directly",
+            "items": {
+              "type": "string"
+            }
+          },
+          "license": {
+            "type": "string",
+            "description": "The license the document is offered under, as an SPDX license expression or a URL. Advisory provenance metadata"
+          },
+          "publisher": {
+            "type": "string",
+            "description": "The organization that published the document. Advisory provenance metadata"
+          },
+          "standardsbody": {
+            "type": "string",
+            "description": "The standards organization that defines or endorses the document, where one does, for example 'W3C' or 'OPC Foundation'. Advisory provenance metadata"
+          },
+          "canonicalurl": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "The canonical upstream location of the document, where it is also published outside this registry. Advisory provenance metadata"
+          },
+          "maturity": {
+            "type": "string",
+            "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document"
+          },
           "versionsurl": {
             "type": "string",
             "format": "uri"
@@ -3999,6 +4919,46 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
+          "versionorigin": {
+            "type": "string",
+            "description": "Server-set origin of the Version id: authored from a SemVer version.model, or generated as 0.0.0-N."
+          },
+          "format": {
+            "type": "string",
+            "description": "The document format. All Versions of a Thing Model share one format"
+          },
+          "wotid": {
+            "type": "string",
+            "description": "The authored WoT identifier of this Thing Model, equal to its document id when present. It includes the major version and is stable across compatible revisions. It is distinct from the client-chosen thingmodelid."
+          },
+          "derivedfrom": {
+            "type": "array",
+            "description": "The authored WoT identifiers of the Thing Models this Thing Model extends via 'tm:extends', composes via 'tm:submodel', or references via 'tm:ref' - authored identifiers, not xids, so a resolver matches them against the document's own references directly",
+            "items": {
+              "type": "string"
+            }
+          },
+          "license": {
+            "type": "string",
+            "description": "The license the document is offered under, as an SPDX license expression or a URL. Advisory provenance metadata"
+          },
+          "publisher": {
+            "type": "string",
+            "description": "The organization that published the document. Advisory provenance metadata"
+          },
+          "standardsbody": {
+            "type": "string",
+            "description": "The standards organization that defines or endorses the document, where one does, for example 'W3C' or 'OPC Foundation'. Advisory provenance metadata"
+          },
+          "canonicalurl": {
+            "type": "string",
+            "format": "uri-reference",
+            "description": "The canonical upstream location of the document, where it is also published outside this registry. Advisory provenance metadata"
+          },
+          "maturity": {
+            "type": "string",
+            "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document"
+          },
           "versionsurl": {
             "type": "string",
             "format": "uri"
@@ -4068,6 +5028,200 @@
               "$ref": "#/components/schemas/thingmodel"
             }
           }
+        }
+      }
+    },
+    "headers": {
+      "xRegistry-thingdescriptionid": {
+        "description": "The thingdescriptionid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-versionid": {
+        "description": "The versionid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-name": {
+        "description": "The name attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-description": {
+        "description": "The description attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-ancestorid": {
+        "description": "The ancestorid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-format": {
+        "description": "The format attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-formatvalidatedreason": {
+        "description": "The formatvalidatedreason attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-compatibilityvalidatedreason": {
+        "description": "The compatibilityvalidatedreason attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-self": {
+        "description": "The self attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-shortself": {
+        "description": "The shortself attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-documentation": {
+        "description": "The documentation attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-icon": {
+        "description": "The icon attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-xid": {
+        "description": "The xid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-epoch": {
+        "description": "The epoch attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-isdefault": {
+        "description": "The isdefault attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-createdat": {
+        "description": "The createdat attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-modifiedat": {
+        "description": "The modifiedat attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-formatvalidated": {
+        "description": "The formatvalidated attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-compatibilityvalidated": {
+        "description": "The compatibilityvalidated attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-versionorigin": {
+        "description": "The versionorigin attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-wotid": {
+        "description": "The wotid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-license": {
+        "description": "The license attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-publisher": {
+        "description": "The publisher attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-standardsbody": {
+        "description": "The standardsbody attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-canonicalurl": {
+        "description": "The canonicalurl attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-maturity": {
+        "description": "The maturity attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-thingdescriptionurl": {
+        "description": "The thingdescriptionurl attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-metaurl": {
+        "description": "The metaurl attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-versionsurl": {
+        "description": "The versionsurl attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-versionscount": {
+        "description": "The versionscount attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-thingmodelid": {
+        "description": "The thingmodelid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-thingmodelurl": {
+        "description": "The thingmodelurl attribute.",
+        "schema": {
+          "type": "string"
         }
       }
     }

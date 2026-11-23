@@ -64,6 +64,7 @@
 <!-- words: registryreadrequestdatatype registryreadresultdatatype securechannel -->
 <!-- words: signandencrypt snapshotid snapshotlimits targetepoch targetxid -->
 <!-- words: typedaccess unauthored xrefs resourcecollectiontype -->
+<!-- words: browsable filetypes hascomponent -->
 
 ## Abstract
 
@@ -1394,6 +1395,11 @@ NodeId and the requested `FileHandle`. A client discovers the logical Resource
 separately by Browsing the domain resource collection for the child whose
 BrowseName is `ResourceId`.
 
+If an otherwise valid and authorized get-or-create Call uses an empty
+`VersionId` for an existing Resource with no usable default, it MUST fail
+with `Bad_NotFound`, returning no usable Version outputs or file handle
+and making no change. It MUST NOT select or create another Version.
+
 For mutable default-Version metadata updates, the client MAY use the logical
 Resource's delegated Properties and `Labels` or target the selected exact
 Version directly. Both paths update the exact Version against its `Epoch`.
@@ -1416,6 +1422,10 @@ To read a Resource's default document, the client resolves the logical
 `ResourceType` for `ResourceId`, calls `Open` for read, repeats `Read`,
 then calls `Close`. At `Open`, the server pins the handle to the current
 default exact Version; a later default switch does not redirect it.
+
+If that Resource still exposes its file but has no usable default Version,
+an otherwise valid and authorized `Open` MUST return `Bad_NotFound` without
+a usable handle. It MUST NOT select or create another Version.
 
 The client MAY reproduce Resource response metadata by reading the logical
 Resource's delegated `Size`, `Writable`, `MimeType`, `LastModifiedTime`,
