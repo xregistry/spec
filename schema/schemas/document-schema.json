@@ -362,6 +362,22 @@
               }
             }
           },
+          "versionid": {
+            "type": "string",
+            "description": "ID of the schema version"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "isdefault": {
+            "type": "boolean"
+          },
+          "contenttype": {
+            "type": "string"
+          },
+          "format": {
+            "type": "string"
+          },
           "versionsurl": {
             "type": "string",
             "format": "uri-reference"

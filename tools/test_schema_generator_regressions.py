@@ -388,10 +388,9 @@ def test_openapi_version_routes_use_version_metadata(
         "meta": {"defaultversionid": "v1", "deprecated": {}},
         "metaurl": f"https://example.com/{group}/c/entries/e/meta",
     }
-    if maxversions != 1:
-        resource["versionsurl"] = (
-            f"https://example.com/{group}/c/entries/e/versions"
-        )
+    resource["versionsurl"] = (
+        f"https://example.com/{group}/c/entries/e/versions"
+    )
     jsonschema.Draft7Validator(resource_schema).validate(resource)
     resource_path = schema["paths"][base]
     resource_reference = {"$ref": "#/components/schemas/entry"}
@@ -851,7 +850,7 @@ def test_jsonstructure_versions_keep_meta_controls_separate(maxversions):
     validate_model(model)
     schema = GENERATOR.generate_json_structure(model)
     resource = schema["definitions"]["Catalogs"]["Entry"]
-    version = resource if maxversions == 1 else schema["definitions"]["Catalogs"]["EntryVersion"]
+    version = schema["definitions"]["Catalogs"]["EntryVersion"]
     assert version["additionalProperties"] is False
     assert version["required"] == ["title"]
     properties = version["properties"]
@@ -1228,7 +1227,7 @@ def test_jsonstructure_resource_keeps_modelled_default_version_attributes(maxver
     schema = GENERATOR.generate_json_structure(parity_model(maxversions))
     definitions = schema["definitions"]["Catalogs"]
     resource = definitions["Entry"]
-    version = definitions["EntryVersion"] if maxversions != 1 else resource
+    version = definitions["EntryVersion"]
     assert resource["additionalProperties"] is False
     meta = resource["properties"]["meta"]["properties"]
     assert meta["shortself"]["type"] == "uri"
@@ -1243,10 +1242,7 @@ def test_jsonstructure_resource_keeps_modelled_default_version_attributes(maxver
         "mode": {"type": "string"}
     }
     assert sorted(version["required"]) == ["format", "settings"]
-    assert ("versions" in resource["properties"]) is (maxversions != 1)
-    if maxversions == 1:
-        assert sorted(resource["required"]) == ["format", "settings"]
-        return
+    assert "versions" in resource["properties"]
     # A cross-referenced Resource carries no default Version attributes, so
     # the Resource's copies are declared but not required.
     assert "required" not in resource
@@ -1415,10 +1411,7 @@ def test_openapi_resource_response_keeps_versions_navigation_requirement(maxvers
     read.validate(complete)
     read.validate({"entryid": "e", "meta": {"xref": "/catalogs/c2/entries/e2"}})
     requirement = "anyOf" in openapi["components"]["schemas"]["entry"]
-    assert requirement is (maxversions != 1)
-    if not requirement:
-        assert "entryInput" not in openapi["components"]["schemas"]
-        return
+    assert requirement
     with pytest.raises(jsonschema.ValidationError) as error:
         read.validate({"entryid": "e"})
     assert error.value.validator == "anyOf"
@@ -1571,7 +1564,7 @@ def test_openapi_document_headers_keep_resource_and_version_context_apart(
                       paths[base]["put"]["responses"]["201"]):
         headers = operation["headers"]
         assert "xRegistry-metaurl" in headers
-        assert (set(NAVIGATION_HEADERS) <= set(headers)) is (maxversions != 1)
+        assert set(NAVIGATION_HEADERS) <= set(headers)
     for operation in (paths[base]["post"]["responses"]["201"],
                       paths[base + "/versions/{versionid}"]["get"]["responses"]["200"]):
         headers = operation["headers"]

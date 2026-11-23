@@ -924,16 +924,16 @@
                                                         "null",
                                                         "string"
                                                       ],
-                                                      "doc": "AMQP properties.message-id type constraint. The type values refer to the AMQP type model` and the defined message-id types",
+                                                      "doc": "AMQP properties.message-id declaration type from the AMQP type model",
                                                       "name": "type",
                                                       "default": null
                                                     },
                                                     {
                                                       "type": [
                                                         "null",
-                                                        "string"
+                                                        "io.xregistry.GenericRecord"
                                                       ],
-                                                      "doc": "AMQP properties.message-id value constraint. ",
+                                                      "doc": "AMQP properties.message-id value constraint",
                                                       "name": "value",
                                                       "default": null
                                                     },
@@ -1591,7 +1591,7 @@
                                               {
                                                 "type": [
                                                   "null",
-                                                  "string"
+                                                  "io.xregistry.GenericRecord"
                                                 ],
                                                 "doc": "Application property value",
                                                 "name": "value",
@@ -1645,7 +1645,7 @@
                                               {
                                                 "type": [
                                                   "null",
-                                                  "string"
+                                                  "io.xregistry.GenericRecord"
                                                 ],
                                                 "doc": "Annotation value constraint",
                                                 "name": "value",
@@ -1699,7 +1699,7 @@
                                               {
                                                 "type": [
                                                   "null",
-                                                  "string"
+                                                  "io.xregistry.GenericRecord"
                                                 ],
                                                 "doc": "Annotation value constraint",
                                                 "name": "value",
@@ -1813,7 +1813,7 @@
                                               {
                                                 "type": [
                                                   "null",
-                                                  "string"
+                                                  "io.xregistry.GenericRecord"
                                                 ],
                                                 "doc": "Footer value constraint",
                                                 "name": "value",
@@ -1966,8 +1966,17 @@
                                         "null",
                                         "string"
                                       ],
-                                      "doc": "MQTT correlation data",
+                                      "doc": "MQTT correlation data as a URI template. Mutually exclusive with 'correlation_data_binary'",
                                       "name": "correlationData",
+                                      "default": null
+                                    },
+                                    {
+                                      "type": [
+                                        "null",
+                                        "bytes"
+                                      ],
+                                      "doc": "Binary MQTT correlation data as a base64 encoded string. Mutually exclusive with 'correlation_data'",
+                                      "name": "correlationDataBinary",
                                       "default": null
                                     },
                                     {
@@ -2065,26 +2074,26 @@
                                         "null",
                                         "string"
                                       ],
-                                      "doc": "The Apache Kafka key as a UTF-8 uri template. Mutually exclusive with 'key_base64'",
+                                      "doc": "The Apache Kafka key as a UTF-8 uri template. Mutually exclusive with 'key_binary'",
                                       "name": "key",
                                       "default": null
                                     },
                                     {
                                       "type": [
                                         "null",
-                                        "string"
+                                        "bytes"
                                       ],
                                       "doc": "Binary Apache Kafka key as a base64 encoded string. Mutually exclusive with 'key'",
-                                      "name": "keyBase64",
+                                      "name": "keyBinary",
                                       "default": null
                                     },
                                     {
                                       "type": [
                                         "null",
                                         {
-                                          "type": "map",
-                                          "name": "MessageProtocolKAFKAProtocoloptionsHeadersType",
-                                          "values": {
+                                          "type": "array",
+                                          "name": "MessageProtocolKAFKAProtocoloptionsHeadersArrayType",
+                                          "items": {
                                             "type": "record",
                                             "namespace": "io.xregistry.messagegroups",
                                             "name": "MessageProtocolKAFKAProtocoloptionsHeadersItemType",
