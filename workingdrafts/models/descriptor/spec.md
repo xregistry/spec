@@ -367,8 +367,8 @@ For a bundle, it MUST return `200 OK` with
 `Content-Type: application/vnd.xregistry.descriptor-bundle+json`, or apply
 the conditional response rules for that representation.
 Absent `Accept` or `*/*` alone retains ordinary JSON at the ordinary
-Descriptor URL. A server implementing negotiation MUST return `406 Not
-Acceptable` when it cannot provide an acceptable representation. Consumers
+Descriptor URL. A server implementing negotiation MUST return
+`406 Not Acceptable` when it cannot provide an acceptable representation. Consumers
 MUST distinguish responses by media type and reject an unexpected format.
 
 Once bundling is selected, assembly failure MUST return an error rather
