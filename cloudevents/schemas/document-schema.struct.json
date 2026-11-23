@@ -35,6 +35,305 @@
   "additionalProperties": false,
   "definitions": {
     "Messagegroups": {
+      "MessageVersion": {
+        "type": "object",
+        "properties": {
+          "versionid": {
+            "type": "string",
+            "description": "ID of the message version"
+          },
+          "messageid": {
+            "type": "string",
+            "description": "ID of the message object"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the object"
+          },
+          "epoch": {
+            "type": "integer",
+            "description": "Epoch of the object"
+          },
+          "self": {
+            "type": "uri",
+            "description": "URL of the object"
+          },
+          "xid": {
+            "type": "uri",
+            "description": "XID of the object"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the object"
+          },
+          "documentation": {
+            "type": "uri",
+            "description": "Documentation URL"
+          },
+          "labels": {
+            "type": "map",
+            "values": {
+              "type": "string"
+            }
+          },
+          "createdat": {
+            "type": "datetime",
+            "description": "Creation time"
+          },
+          "modifiedat": {
+            "type": "datetime",
+            "description": "Modification time"
+          },
+          "basemessage": {
+            "type": "uri",
+            "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
+          },
+          "envelope": {
+            "type": "string",
+            "description": "Message envelope format identifier. OPTIONAL when no owning or referencing Message Group or Endpoint declares an envelope constraint; an unbound Message MAY still declare its own envelope. The available effective definition, after base Message inheritance or cross-reference resolution, MUST satisfy every applicable context: case-insensitive selector equality for a Group, or the Endpoint's envelope constraints with version refinement under the envelope's version rules. Context selectors are not automatically copied into Messages. If the effective definition is unavailable, compatibility is unresolved; this does not require Registry-side acquisition or target existence. The predefined envelope format is 'CloudEvents/1.0'"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups"
+          },
+          "dataschemaformat": {
+            "type": "string",
+            "description": "The schema format applicable to the message payload, equivalent to the 'format' attribute of the schema registry"
+          },
+          "dataschema": {
+            "type": "any",
+            "description": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry"
+          },
+          "dataschemauri": {
+            "type": "uri",
+            "description": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry"
+          },
+          "dataschemaxid": {
+            "type": "uri",
+            "description": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry."
+          },
+          "datacontenttype": {
+            "type": "string",
+            "description": "The content type for the message payload"
+          },
+          "envelopemetadata": {
+            "type": "object",
+            "properties": {
+              "specversion": {
+                "type": "any",
+                "description": "CloudEvents specversion declaration https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#specversion. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
+              },
+              "id": {
+                "type": "any",
+                "description": "CloudEvents id declaration https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#id. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
+              },
+              "type": {
+                "type": "any",
+                "description": "CloudEvents type declaration https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#type. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
+              },
+              "source": {
+                "type": "any",
+                "description": "CloudEvents source declaration https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#source-1. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
+              },
+              "subject": {
+                "type": "any",
+                "description": "CloudEvents subject declaration https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#subject. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
+              },
+              "time": {
+                "type": "any",
+                "description": "CloudEvents time declaration https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#time. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
+              },
+              "dataschema": {
+                "type": "any",
+                "description": "CloudEvents dataschema declaration https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#dataschema. The URI of the schema for the event payload. Absence indicates no known schema. This attribute corresponds to the 'dataschemauri' attribute in the message definition and MUST be the same as the 'dataschemauri' attribute of the definition if present. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
+              },
+              "datacontenttype": {
+                "type": "any",
+                "description": "CloudEvents datacontenttype declaration https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#datacontenttype. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
+              }
+            },
+            "additionalProperties": true,
+            "description": "CloudEvents attribute declarations, adding constraints to the CloudEvents envelope not yet covered by the CloudEvents spec https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md"
+          },
+          "envelopeoptions": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "description": "Whether CloudEvents 'binary' or 'structured' mode will be used",
+                "enum": [
+                  "binary",
+                  "structured"
+                ]
+              },
+              "format": {
+                "type": "string",
+                "description": "The media type format used to serialize the CloudEvent in the case of mode=structured"
+              }
+            },
+            "additionalProperties": true,
+            "description": "Envelope metadata constraints"
+          },
+          "protocoloptions": {
+            "type": "object",
+            "properties": {
+              "properties": {
+                "type": "object",
+                "properties": {
+                  "messageId": {
+                    "type": "any",
+                    "description": "AMQP properties.message-id declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
+                    "altnames": {
+                      "json": "message-id"
+                    }
+                  },
+                  "userId": {
+                    "type": "any",
+                    "description": "AMQP properties.user-id declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
+                    "altnames": {
+                      "json": "user-id"
+                    }
+                  },
+                  "to": {
+                    "type": "any",
+                    "description": "AMQP properties.to declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
+                  },
+                  "subject": {
+                    "type": "any",
+                    "description": "AMQP properties.subject declaration. AMQP declarations are OPTIONAL and the common contract does not mark this one as mandatory. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract"
+                  },
+                  "replyTo": {
+                    "type": "any",
+                    "description": "AMQP properties.reply-to declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
+                    "altnames": {
+                      "json": "reply-to"
+                    }
+                  },
+                  "correlationId": {
+                    "type": "any",
+                    "description": "AMQP properties.correlation-id declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
+                    "altnames": {
+                      "json": "correlation-id"
+                    }
+                  },
+                  "contentType": {
+                    "type": "any",
+                    "description": "AMQP properties.content-type declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
+                    "altnames": {
+                      "json": "content-type"
+                    }
+                  },
+                  "contentEncoding": {
+                    "type": "any",
+                    "description": "AMQP properties.content-encoding declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
+                    "altnames": {
+                      "json": "content-encoding"
+                    }
+                  },
+                  "absoluteExpiryTime": {
+                    "type": "any",
+                    "description": "AMQP properties.absolute-expiry-time declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
+                    "altnames": {
+                      "json": "absolute-expiry-time"
+                    }
+                  },
+                  "creationTime": {
+                    "type": "any",
+                    "description": "AMQP properties.creation-time declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
+                    "altnames": {
+                      "json": "creation-time"
+                    }
+                  },
+                  "groupId": {
+                    "type": "any",
+                    "description": "AMQP properties.group-id declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
+                    "altnames": {
+                      "json": "group-id"
+                    }
+                  },
+                  "groupSequence": {
+                    "type": "any",
+                    "description": "AMQP properties.group-sequence declaration. A declared integer 'value' is preserved as a JSON number and is not stringified. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
+                    "altnames": {
+                      "json": "group-sequence"
+                    }
+                  },
+                  "replyToGroupId": {
+                    "type": "any",
+                    "description": "AMQP properties.reply-to-group-id declaration. The whole declaration record is opaque JSON data; its members and their permitted kinds are defined by the common Property Definitions contract",
+                    "altnames": {
+                      "json": "reply-to-group-id"
+                    }
+                  }
+                },
+                "additionalProperties": false,
+                "description": "AMQP properties section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-properties"
+              },
+              "applicationProperties": {
+                "type": "any",
+                "description": "AMQP application-properties section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-application-properties. The whole section is an opaque native-name map: each key is a string naming one property and each value is a declaration record defined by the common Property Definitions contract",
+                "altnames": {
+                  "json": "application-properties"
+                }
+              },
+              "messageAnnotations": {
+                "type": "any",
+                "description": "AMQP message-annotations section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-message-annotations. The whole section is an opaque native-name map: each key is a string naming one annotation and each value is a declaration record defined by the common Property Definitions contract",
+                "altnames": {
+                  "json": "message-annotations"
+                }
+              },
+              "deliveryAnnotations": {
+                "type": "any",
+                "description": "AMQP delivery-annotations section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-delivery-annotations. The whole section is an opaque native-name map: each key is a string naming one annotation and each value is a declaration record defined by the common Property Definitions contract",
+                "altnames": {
+                  "json": "delivery-annotations"
+                }
+              },
+              "header": {
+                "type": "object",
+                "properties": {
+                  "durable": {
+                    "type": "boolean",
+                    "description": "AMQP durable flag"
+                  },
+                  "priority": {
+                    "type": "integer",
+                    "description": "AMQP priority"
+                  },
+                  "ttl": {
+                    "type": "integer",
+                    "description": "AMQP time-to-live (milliseconds)"
+                  },
+                  "firstAcquirer": {
+                    "type": "boolean",
+                    "description": "AMQP first-acquirer flag",
+                    "altnames": {
+                      "json": "first-acquirer"
+                    }
+                  },
+                  "deliveryCount": {
+                    "type": "integer",
+                    "description": "AMQP delivery-count",
+                    "altnames": {
+                      "json": "delivery-count"
+                    }
+                  }
+                },
+                "additionalProperties": false,
+                "description": "AMQP header section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-header"
+              },
+              "footer": {
+                "type": "any",
+                "description": "AMQP footer section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-footer. The whole section is an opaque native-name map: each key is a string naming one footer property and each value is a declaration record defined by the common Property Definitions contract"
+              }
+            },
+            "additionalProperties": false,
+            "description": "AMQP message metadata constraints"
+          }
+        },
+        "additionalProperties": false
+      },
       "Message": {
         "type": "object",
         "properties": {
@@ -267,21 +566,21 @@
               },
               "applicationProperties": {
                 "type": "any",
-                "description": "AMQP application-properties section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-application-properties. The whole section is an opaque native-name map: each key is an AMQP symbol naming one property and each value is a declaration record defined by the common Property Definitions contract",
+                "description": "AMQP application-properties section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-application-properties. The whole section is an opaque native-name map: each key is a string naming one property and each value is a declaration record defined by the common Property Definitions contract",
                 "altnames": {
                   "json": "application-properties"
                 }
               },
               "messageAnnotations": {
                 "type": "any",
-                "description": "AMQP message-annotations section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-message-annotations. The whole section is an opaque native-name map: each key is an AMQP symbol naming one annotation and each value is a declaration record defined by the common Property Definitions contract",
+                "description": "AMQP message-annotations section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-message-annotations. The whole section is an opaque native-name map: each key is a string naming one annotation and each value is a declaration record defined by the common Property Definitions contract",
                 "altnames": {
                   "json": "message-annotations"
                 }
               },
               "deliveryAnnotations": {
                 "type": "any",
-                "description": "AMQP delivery-annotations section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-delivery-annotations. The whole section is an opaque native-name map: each key is an AMQP symbol naming one annotation and each value is a declaration record defined by the common Property Definitions contract",
+                "description": "AMQP delivery-annotations section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-delivery-annotations. The whole section is an opaque native-name map: each key is a string naming one annotation and each value is a declaration record defined by the common Property Definitions contract",
                 "altnames": {
                   "json": "delivery-annotations"
                 }
@@ -321,7 +620,7 @@
               },
               "footer": {
                 "type": "any",
-                "description": "AMQP footer section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-footer. The whole section is an opaque native-name map: each key is an AMQP symbol naming one footer property and each value is a declaration record defined by the common Property Definitions contract"
+                "description": "AMQP footer section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-footer. The whole section is an opaque native-name map: each key is a string naming one footer property and each value is a declaration record defined by the common Property Definitions contract"
               }
             },
             "additionalProperties": false,
@@ -399,6 +698,20 @@
           },
           "metaurl": {
             "type": "uri"
+          },
+          "versionsurl": {
+            "type": "uri"
+          },
+          "versionscount": {
+            "type": "uint32"
+          },
+          "versions": {
+            "type": "map",
+            "values": {
+              "type": {
+                "$ref": "#/definitions/Messagegroups/MessageVersion"
+              }
+            }
           }
         },
         "additionalProperties": false
@@ -581,6 +894,9 @@
             "type": "datetime",
             "description": "Modification time"
           },
+          "format": {
+            "type": "string"
+          },
           "meta": {
             "type": "object",
             "properties": {
@@ -681,7 +997,7 @@
             }
           }
         },
-        "additionalProperties": false
+        "additionalProperties": true
       },
       "Schemagroup": {
         "type": "object",

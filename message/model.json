@@ -213,17 +213,17 @@
                         "application-properties": {
                           "name": "application-properties",
                           "type": "any",
-                          "description": "AMQP application-properties section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-application-properties. The whole section is an opaque native-name map: each key is an AMQP symbol naming one property and each value is a declaration record defined by the common Property Definitions contract"
+                          "description": "AMQP application-properties section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-application-properties. The whole section is an opaque native-name map: each key is a string naming one property and each value is a declaration record defined by the common Property Definitions contract"
                         },
                         "message-annotations": {
                           "name": "message-annotations",
                           "type": "any",
-                          "description": "AMQP message-annotations section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-message-annotations. The whole section is an opaque native-name map: each key is an AMQP symbol naming one annotation and each value is a declaration record defined by the common Property Definitions contract"
+                          "description": "AMQP message-annotations section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-message-annotations. The whole section is an opaque native-name map: each key is a string naming one annotation and each value is a declaration record defined by the common Property Definitions contract"
                         },
                         "delivery-annotations": {
                           "name": "delivery-annotations",
                           "type": "any",
-                          "description": "AMQP delivery-annotations section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-delivery-annotations. The whole section is an opaque native-name map: each key is an AMQP symbol naming one annotation and each value is a declaration record defined by the common Property Definitions contract"
+                          "description": "AMQP delivery-annotations section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-delivery-annotations. The whole section is an opaque native-name map: each key is a string naming one annotation and each value is a declaration record defined by the common Property Definitions contract"
                         },
                         "header": {
                           "name": "header",
@@ -269,7 +269,7 @@
                         "footer": {
                           "name": "footer",
                           "type": "any",
-                          "description": "AMQP footer section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-footer. The whole section is an opaque native-name map: each key is an AMQP symbol naming one footer property and each value is a declaration record defined by the common Property Definitions contract"
+                          "description": "AMQP footer section https://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-messaging-v1.0-os.html#type-footer. The whole section is an opaque native-name map: each key is a string naming one footer property and each value is a declaration record defined by the common Property Definitions contract"
                         }
                       }
                     }
@@ -348,6 +348,11 @@
                           "description": "MQTT correlation data. This is binary data: its JSON representation is an RFC4648 section 4 base64 string, not a URI template. A declaration written against the earlier uritemplate typing needs the migration described in the MQTT protocol section",
                           "type": "string"
                         },
+                        "correlation_data_binary": {
+                          "name": "correlation_data_binary",
+                          "description": "Binary MQTT correlation data as a base64 encoded string. Mutually exclusive with 'correlation_data'",
+                          "type": "binary"
+                        },
                         "content_type": {
                           "name": "content_type",
                           "description": "MQTT content type",
@@ -384,18 +389,21 @@
                         },
                         "key": {
                           "name": "key",
-                          "description": "The Apache Kafka key as a UTF-8 uri template. Mutually exclusive with 'key_base64'",
+                          "description": "The Apache Kafka key as a UTF-8 uri template. Mutually exclusive with 'key_binary'",
                           "type": "uritemplate"
                         },
-                        "key_base64": {
-                          "name": "key_base64",
+                        "key_binary": {
+                          "name": "key_binary",
                           "description": "Binary Apache Kafka key as a base64 encoded string. Mutually exclusive with 'key'",
-                          "type": "string"
+                          "type": "binary"
                         },
                         "headers": {
                           "name": "headers",
-                          "description": "The Apache Kafka headers. The whole section is an opaque native-name map: each key is a Kafka header name and is the sole canonical name of that header. Each value is a declaration record defined by the common Property Definitions contract and MUST NOT carry a redundant inner 'name' member",
-                          "type": "any"
+                          "description": "The Apache Kafka headers. This is an ordered array: entry order is preserved and the same 'name' MAY appear more than once. Each entry is an opaque declaration record with an additional REQUIRED 'name' member, defined by the common Property Definitions contract",
+                          "type": "array",
+                          "item": {
+                            "type": "any"
+                          }
                         }
                       }
                     }

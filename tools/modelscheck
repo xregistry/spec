@@ -17,7 +17,7 @@ badPatterns=(
 trap clean EXIT
 
 export XR_IMAGE=ghcr.io/xregistry/xr
-export XRSERVER_IMAGE=ghcr.io/xregistry/xrserver-all
+export XRSERVER_IMAGE=ghcr.io/xregistry/xrserver
 export XR_SERVER=http://localhost:8383
 
 export XR="xr"
@@ -30,9 +30,9 @@ fi
 # Start an xrserver to test loading the models and sample data
 echo -n "# Starting xrserver"
 docker run -qdti --name xrserver -p 8383:8080 $XRSERVER_IMAGE \
-    --rootapp=xreg > /dev/null
+    --backend=memory --rootapp=xreg > /dev/null
 
-while ! curl --silent --fail $XR_SERVER > /dev/null;do echo -n . && sleep 2;done
+while ! curl --silent --fail $XR_SERVER > /dev/null;do echo -n . && sleep .1;done
 echo ; echo
 
 # Validate all model.json files in the entire repo

@@ -48,10 +48,10 @@ MESSAGE_NATIVE_NAME_CONTAINERS = [
     ("AMQP/1.0", "message-annotations"),
     ("AMQP/1.0", "delivery-annotations"),
     ("AMQP/1.0", "footer"),
-    ("KAFKA", "headers"),
 ]
 
 MESSAGE_ORDERED_ARRAYS = [
+    ("KAFKA", "headers"),
     ("HTTP", "headers"),
     ("HTTP", "query"),
     ("NATS", "headers"),
@@ -625,10 +625,10 @@ def test_present_literal_null_value_differs_from_an_absent_value(message_schema)
     assert "value" not in section["unconstrained"]
 
 
-def test_kafka_headers_are_named_by_their_outer_map_key(message_model):
+def test_kafka_headers_keep_ordered_opaque_declarations(message_model):
     headers = message_options(message_model, "KAFKA")["headers"]
-    assert headers["type"] == "any"
-    assert "item" not in headers
+    assert headers["type"] == "array"
+    assert headers["item"] == {"type": "any"}
     assert "attributes" not in headers
 
 
@@ -637,18 +637,25 @@ def test_kafka_headers_are_named_by_their_outer_map_key(message_model):
     sorted(SAMPLE_ROOT.rglob("*.xreg.json")),
     ids=lambda path: str(path.relative_to(ROOT)),
 )
-def test_samples_carry_no_redundant_kafka_inner_header_name(sample):
+def test_samples_use_named_kafka_header_array_entries(sample):
     document = _load(sample)
     offenders = []
 
     def visit(node, path):
         if isinstance(node, dict):
             if node.get("protocol") == "KAFKA":
-                headers = node.get("protocoloptions", {}).get("headers", {})
-                if isinstance(headers, dict):
-                    for key, record in headers.items():
-                        if isinstance(record, dict) and "name" in record:
-                            offenders.append(f"{path}/protocoloptions/headers/{key}")
+                headers = node.get("protocoloptions", {}).get("headers")
+                if headers is not None:
+                    if not isinstance(headers, list):
+                        offenders.append(f"{path}/protocoloptions/headers")
+                    else:
+                        for index, record in enumerate(headers):
+                            if not isinstance(record, dict) or not isinstance(
+                                record.get("name"), str
+                            ):
+                                offenders.append(
+                                    f"{path}/protocoloptions/headers/{index}"
+                                )
             for key, value in node.items():
                 visit(value, f"{path}/{key}")
         elif isinstance(node, list):
@@ -663,7 +670,7 @@ def test_samples_carry_no_redundant_kafka_inner_header_name(sample):
     ("protocol", "option", "kind"),
     [
         ("KAFKA", "partition", "integer"),
-        ("KAFKA", "key_base64", "string"),
+        ("KAFKA", "key_binary", "binary"),
         ("MQTT/5.0", "qos", "integer"),
         ("MQTT/5.0", "retain", "boolean"),
         ("MQTT/5.0", "correlation_data", "string"),
@@ -672,7 +679,7 @@ def test_samples_carry_no_redundant_kafka_inner_header_name(sample):
     ],
     ids=[
         "kafka-partition",
-        "kafka-key-base64",
+        "kafka-key-binary",
         "mqtt-qos",
         "mqtt-retain",
         "mqtt-correlation-data",
@@ -741,8 +748,8 @@ def test_opaque_containers_admit_structurally_invalid_data(
     this test records the limit rather than asserting a rejection that the
     generated schemas cannot make.
     """
-    container = _guarded_options(message_schema, "protocol", "KAFKA")["properties"][
-        "headers"
+    container = _guarded_options(message_schema, "protocol", "AMQP/1.0")["properties"][
+        "application-properties"
     ]
     assert _accepts(container, structurally_invalid)
 
