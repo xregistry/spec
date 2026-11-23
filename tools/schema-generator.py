@@ -158,6 +158,94 @@ def camel(string):
 
 def generate_openapi(model_definition):
 
+    scalar_header_types = {
+        "boolean", "decimal", "integer", "uinteger", "string", "timestamp",
+        "uri", "uriabsolute", "urirelative", "uritemplate",
+        "url", "urlabsolute", "urlrelative", "xid", "xidtype",
+    }
+    core_header_attributes = {
+        "versionid": {"type": "string"},
+        **{name: {"type": "string"} for name in (
+            "name", "description", "ancestorid", "format", "formatvalidatedreason",
+            "compatibilityvalidatedreason"
+        )},
+        **{name: {"type": "url"} for name in (
+            "self", "shortself", "documentation", "icon"
+        )},
+        "xid": {"type": "xid"},
+        "epoch": {"type": "uinteger"},
+        "isdefault": {"type": "boolean"},
+        "labels": {"type": "map", "item": {"type": "string"}},
+        "createdat": {"type": "timestamp"},
+        "modifiedat": {"type": "timestamp"},
+        "formatvalidated": {"type": "boolean"},
+        "compatibilityvalidated": {"type": "boolean"},
+    }
+    readonly_headers = {
+        "self", "shortself", "xid", "isdefault", "formatvalidated",
+        "formatvalidatedreason", "compatibilityvalidated",
+        "compatibilityvalidatedreason"
+    }
+
+    def header_attributes(attributes):
+        collected = dict(attributes)
+        for definition in attributes.values():
+            for condition in definition.get("ifvalues", {}).values():
+                for name, sibling in header_attributes(
+                    condition.get("siblingattributes", {})
+                ).items():
+                    collected.setdefault(name, sibling)
+        return collected
+
+    def document_header_fields(resource, level, request=False):
+        singular = resource["singular"]
+        attributes = {
+            singular + "id": {"type": "string"},
+            **core_header_attributes,
+            **header_attributes(resource.get("attributes", {})),
+            singular + "url": {"type": "url"},
+        }
+        if level == "resource" and not request:
+            attributes["metaurl"] = {"type": "url"}
+            attributes["versionsurl"] = {"type": "url"}
+            attributes["versionscount"] = {"type": "uinteger"}
+        excluded = {"*", "contenttype", singular, singular + "base64", "meta", "versions"}
+        fields = {}
+        families = []
+        for name, definition in attributes.items():
+            if name in excluded or (
+                request and (name in readonly_headers or definition.get("readonly", False))
+            ):
+                continue
+            kind = definition.get("type")
+            if kind in scalar_header_types:
+                fields["xRegistry-" + name] = {
+                    "description": f"The {name} attribute.",
+                    "schema": {"type": "string"},
+                }
+            elif kind == "map" and definition.get("item", {}).get("type") in scalar_header_types:
+                families.append(f"`xRegistry-{name}.<KEYNAME>`")
+        return fields, families
+
+    def reference_header_processing(operation, families):
+        if families:
+            operation["description"] = (
+                operation.get("description", "") + "\n\n"
+                "See the [xRegistry Core HTTP Header Processing rules]"
+                "(https://github.com/xregistry/spec/blob/main/core/http.md"
+                "#http-header-processing)."
+            )
+
+    def header_component(section, name, definition):
+        components = openapi["components"].setdefault(section, {})
+        key = name
+        suffix = 2
+        while key in components and components[key] != definition:
+            key = f"{name}-{suffix}"
+            suffix += 1
+        components[key] = definition
+        return {"$ref": f"#/components/{section}/{key}"}
+
     def document_path_template(template, resource):
         path_item = copy.deepcopy(template)
         if not resource.get("hasdocument", True):
@@ -331,7 +419,7 @@ def generate_openapi(model_definition):
             for _, resource in group.get("resources", {}).items():
                 resource = resolve_resource(group, resource)
                 versions_template_copy = copy.deepcopy(versions_template)
-                replace_refs(versions_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}")
+                replace_refs(versions_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}Version")
                 replace_refs(versions_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(versions_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}/versions"]= versions_template_copy
@@ -340,7 +428,7 @@ def generate_openapi(model_definition):
                 xid_resource_singular = model_definition["groups"][xid_group_plural]["resources"][xid_resource_plural]["singular"]
                 xid_group_singular = model_definition["groups"][xid_group_plural]["singular"]
                 versions_template_copy = copy.deepcopy(versions_template)
-                replace_refs(versions_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{xid_resource_singular}")
+                replace_refs(versions_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{xid_resource_singular}Version")
                 replace_refs(versions_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{xid_group_singular}")
                 replace_ops(versions_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(xid_resource_plural)}")
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{xid_resource_plural}/{{resourceid}}/versions"]= versions_template_copy
@@ -352,7 +440,7 @@ def generate_openapi(model_definition):
             for _, resource in group.get("resources", {}).items():
                 resource = resolve_resource(group, resource)
                 versionid_template_copy = document_path_template(versionid_template, resource)
-                replace_refs(versionid_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}")
+                replace_refs(versionid_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{resource['singular']}Version")
                 replace_refs(versionid_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{group['singular']}")
                 replace_ops(versionid_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(resource['singular'])}")
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}/versions/{{versionid}}"]= versionid_template_copy
@@ -363,12 +451,49 @@ def generate_openapi(model_definition):
                 source_group = model_definition["groups"][xid_group_plural]
                 source_resource = resolve_resource(source_group, source_group["resources"][xid_resource_plural])
                 versionid_template_copy = document_path_template(versionid_template, source_resource)
-                replace_refs(versionid_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{xid_resource_singular}")
+                replace_refs(versionid_template_copy, "{%-resourceTypeReference-%}", f"#/components/schemas/{xid_resource_singular}Version")
                 replace_refs(versionid_template_copy, "{%-groupTypeReference-%}", f"#/components/schemas/{xid_group_singular}")
                 replace_ops(versionid_template_copy, "{%-resourceNameSingular-%}", f"{pascal(group['singular'])}{pascal(xid_resource_plural)}")
                 openapi["paths"][f"/{group['plural']}/{{groupid}}/{xid_resource_plural}/{{resourceid}}/versions/{{versionid}}"]= versionid_template_copy
 
         openapi["paths"].pop(path)
+
+        for group in model_definition.get("groups", {}).values():
+            resources = [
+                (group, resource) for resource in group.get("resources", {}).values()
+            ]
+            for imported in group.get("ximportresources", []):
+                source_group, plural = imported.split("/")[1:]
+                owner = model_definition["groups"][source_group]
+                resources.append((owner, owner["resources"][plural]))
+            for owner, definition in resources:
+                resource = resolve_resource(owner, definition)
+                base = f"/{group['plural']}/{{groupid}}/{resource['plural']}/{{resourceid}}"
+                for path, level in (
+                    (base, "resource"), (base + "/versions/{versionid}", "version")
+                ):
+                    for method in ("get", "put", "post"):
+                        operation = openapi["paths"][path].get(method)
+                        if operation is None:
+                            continue
+                        response_level = "version" if method == "post" else level
+                        fields, families = document_header_fields(resource, response_level)
+                        reference_header_processing(operation, families)
+                        for status, response in operation["responses"].items():
+                            if status.startswith("2"):
+                                response.setdefault("headers", {}).update({
+                                    name: header_component("headers", name, header)
+                                    for name, header in fields.items()
+                                })
+                        if method in ("put", "post"):
+                            request_fields, _ = document_header_fields(resource, "version", True)
+                            operation.setdefault("parameters", []).extend(
+                                header_component("parameters", name, {
+                                    "name": name, "in": "header", "required": False,
+                                    **header
+                                })
+                                for name, header in request_fields.items()
+                            )
 
         registry_entity_schema = openapi["components"]["schemas"]["RegistryEntity"]
         for _, group in model_definition.get("groups", {}).items():
@@ -683,35 +808,37 @@ def generate_json_schema(model_definition, for_openapi=False, schema_id='') -> d
                 }
 
             attributes = resource.get("attributes", {})
-            if resource.get("maxversions", -1) != 1:
-                resource_version_schema = copy.deepcopy(resource_schema)
-                props = {}
-                props["versionid"] = {"type": "string", "description": f"ID of the {resource_name} version"}
-                props.update(copy.deepcopy(resource_version_schema["properties"]))
-                resource_version_schema["properties"] = props
-                handle_attributes(resource_version_schema, attributes)
+            resource_version_schema = copy.deepcopy(resource_schema)
+            props = {}
+            props["versionid"] = {"type": "string", "description": f"ID of the {resource_name} version"}
+            props.update(copy.deepcopy(resource_version_schema["properties"]))
+            resource_version_schema["properties"] = props
+            handle_attributes(resource_version_schema, attributes)
 
-                resource_schema.pop("oneOf", None)
-                resource_schema["properties"].update({
-                    "versionsurl": {"type": "string", "format": "uri"},
-                    "versionscount": {"type": "integer"},
-                    "versions": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "$ref": f"{group_definition_prefix}{resource_name}Version"
-                        }
+            resource_schema.pop("oneOf", None)
+            resource_attributes = {
+                name: {**definition, "required": False}
+                for name, definition in attributes.items()
+            }
+            handle_attributes(resource_schema, resource_attributes)
+            resource_schema["properties"].update({
+                "versionsurl": {"type": "string", "format": "uri"},
+                "versionscount": {"type": "integer"},
+                "versions": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": f"{group_definition_prefix}{resource_name}Version"
                     }
-                })
+                }
+            })
 
-                # For OpenAPI: flat keys, for JSON Schema: nested structure
-                if for_openapi:
-                    schema_definitions[f"{resource_name}Version"] = resource_version_schema
-                else:
-                    if f"{group_name}-schema" not in schema_definitions:
-                        schema_definitions[f"{group_name}-schema"] = {}
-                    schema_definitions[f"{group_name}-schema"][f"{resource_name}Version"] = resource_version_schema
+            # For OpenAPI: flat keys, for JSON Schema: nested structure
+            if for_openapi:
+                schema_definitions[f"{resource_name}Version"] = resource_version_schema
             else:
-                handle_attributes(resource_schema, attributes)
+                if f"{group_name}-schema" not in schema_definitions:
+                    schema_definitions[f"{group_name}-schema"] = {}
+                schema_definitions[f"{group_name}-schema"][f"{resource_name}Version"] = resource_version_schema
 
             # For OpenAPI: flat keys, for JSON Schema: nested structure
             if for_openapi:
@@ -914,8 +1041,14 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                 **common_attributes
             }
             resource_attributes = dict(identity_attributes)
-            if resource.get("maxversions", -1) == 1:
-                resource_attributes.update(resource.get("attributes", {}))
+            # Default-Version attributes are optional on Resources: doc-view
+            # responses omit them, and cross-reference writes must omit them.
+            resource_attributes.update({
+                attribute_name: {**definition, "required": False}
+                for attribute_name, definition in collect_attributes(
+                    resource.get("attributes", {})
+                ).items()
+            })
             resource_schema = object_schema(
                 resource_attributes, namespace, resource_type_name
             )
@@ -968,35 +1101,34 @@ def generate_json_structure(model_definition, schema_id='', schema_name='') -> d
                         "description": f"URL of the {resource_singular} document"
                     }
                 })
-            if resource.get("maxversions", -1) != 1:
-                version_type_name = resource_type_name + "Version"
-                version_schema = object_schema(
-                    {
-                        "versionid": {
-                            "type": "string",
-                            "description": f"ID of the {resource_singular} version"
-                        },
-                        **identity_attributes,
-                        **resource.get("attributes", {})
+            version_type_name = resource_type_name + "Version"
+            version_schema = object_schema(
+                {
+                    "versionid": {
+                        "type": "string",
+                        "description": f"ID of the {resource_singular} version"
                     },
-                    namespace,
-                    version_type_name
-                )
-                if resource.get("hasdocument", True):
-                    version_schema["properties"].update({
-                        resource_singular: {"type": "any"},
-                        resource_singular + "base64": {"type": "binary"},
-                        resource_singular + "url": {"type": "uri"}
-                    })
-                add_definition(namespace, version_type_name, version_schema)
-                resource_schema["properties"].update({
-                    "versionsurl": {"type": "uri"},
-                    "versionscount": {"type": "uint32"},
-                    "versions": {
-                        "type": "map",
-                        "values": reference(namespace, version_type_name)
-                    }
+                    **identity_attributes,
+                    **resource.get("attributes", {})
+                },
+                namespace,
+                version_type_name
+            )
+            if resource.get("hasdocument", True):
+                version_schema["properties"].update({
+                    resource_singular: {"type": "any"},
+                    resource_singular + "base64": {"type": "binary"},
+                    resource_singular + "url": {"type": "uri"}
                 })
+            add_definition(namespace, version_type_name, version_schema)
+            resource_schema["properties"].update({
+                "versionsurl": {"type": "uri"},
+                "versionscount": {"type": "uint32"},
+                "versions": {
+                    "type": "map",
+                    "values": reference(namespace, version_type_name)
+                }
+            })
             add_definition(namespace, resource_type_name, resource_schema)
             resource_collections[resource_plural] = {
                 "type": "map",
