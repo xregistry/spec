@@ -63,6 +63,139 @@
           "modifiedat": {
             "type": "datetime",
             "description": "Modification time"
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "channelid": {
+                "type": "string",
+                "description": "ID of the channel object"
+              },
+              "self": {
+                "type": "uri"
+              },
+              "shortself": {
+                "type": "uri"
+              },
+              "xid": {
+                "type": "uri"
+              },
+              "xref": {
+                "type": "uri"
+              },
+              "epoch": {
+                "type": "uint32"
+              },
+              "labels": {
+                "type": "map",
+                "values": {
+                  "type": "string"
+                }
+              },
+              "createdat": {
+                "type": "datetime"
+              },
+              "modifiedat": {
+                "type": "datetime"
+              },
+              "readonly": {
+                "type": "boolean"
+              },
+              "compatibility": {
+                "type": "string"
+              },
+              "deprecated": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "datetime"
+                  },
+                  "removal": {
+                    "type": "datetime"
+                  },
+                  "alternative": {
+                    "type": "uri"
+                  },
+                  "documentation": {
+                    "type": "uri"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "defaultversionid": {
+                "type": "string"
+              },
+              "defaultversionurl": {
+                "type": "uri"
+              },
+              "defaultversionsticky": {
+                "type": "boolean"
+              },
+              "scope": {
+                "type": "uri",
+                "description": "Immutable publication scope; not a Group identity."
+              },
+              "head": {
+                "type": "object",
+                "properties": {
+                  "reference": {
+                    "type": "object",
+                    "properties": {
+                      "registry": {
+                        "type": "object",
+                        "properties": {
+                          "binding": {
+                            "type": "string"
+                          },
+                          "endpoint": {
+                            "type": "uri"
+                          },
+                          "parameters": {
+                            "type": "object",
+                            "properties": {},
+                            "additionalProperties": false
+                          }
+                        },
+                        "additionalProperties": false,
+                        "required": [
+                          "binding",
+                          "endpoint"
+                        ]
+                      },
+                      "version": {
+                        "type": "uri"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                      "registry",
+                      "version"
+                    ]
+                  },
+                  "digest": {
+                    "type": "string"
+                  },
+                  "size": {
+                    "type": "uint32"
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "reference",
+                  "digest",
+                  "size"
+                ],
+                "description": "One authoritative manifest reference; requires an epoch-checked Meta update."
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "scope",
+              "head"
+            ]
+          },
+          "metaurl": {
+            "type": "uri"
           }
         },
         "additionalProperties": false
@@ -111,6 +244,79 @@
           "modifiedat": {
             "type": "datetime",
             "description": "Modification time"
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "objectid": {
+                "type": "string",
+                "description": "ID of the object object"
+              },
+              "self": {
+                "type": "uri"
+              },
+              "shortself": {
+                "type": "uri"
+              },
+              "xid": {
+                "type": "uri"
+              },
+              "xref": {
+                "type": "uri"
+              },
+              "epoch": {
+                "type": "uint32"
+              },
+              "labels": {
+                "type": "map",
+                "values": {
+                  "type": "string"
+                }
+              },
+              "createdat": {
+                "type": "datetime"
+              },
+              "modifiedat": {
+                "type": "datetime"
+              },
+              "readonly": {
+                "type": "boolean"
+              },
+              "compatibility": {
+                "type": "string"
+              },
+              "deprecated": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "datetime"
+                  },
+                  "removal": {
+                    "type": "datetime"
+                  },
+                  "alternative": {
+                    "type": "uri"
+                  },
+                  "documentation": {
+                    "type": "uri"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "defaultversionid": {
+                "type": "string"
+              },
+              "defaultversionurl": {
+                "type": "uri"
+              },
+              "defaultversionsticky": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          "metaurl": {
+            "type": "uri"
           },
           "object": {
             "type": "any",
@@ -177,6 +383,79 @@
             "enum": [
               "application/json"
             ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "snapshotid": {
+                "type": "string",
+                "description": "ID of the snapshot object"
+              },
+              "self": {
+                "type": "uri"
+              },
+              "shortself": {
+                "type": "uri"
+              },
+              "xid": {
+                "type": "uri"
+              },
+              "xref": {
+                "type": "uri"
+              },
+              "epoch": {
+                "type": "uint32"
+              },
+              "labels": {
+                "type": "map",
+                "values": {
+                  "type": "string"
+                }
+              },
+              "createdat": {
+                "type": "datetime"
+              },
+              "modifiedat": {
+                "type": "datetime"
+              },
+              "readonly": {
+                "type": "boolean"
+              },
+              "compatibility": {
+                "type": "string"
+              },
+              "deprecated": {
+                "type": "object",
+                "properties": {
+                  "effective": {
+                    "type": "datetime"
+                  },
+                  "removal": {
+                    "type": "datetime"
+                  },
+                  "alternative": {
+                    "type": "uri"
+                  },
+                  "documentation": {
+                    "type": "uri"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "defaultversionid": {
+                "type": "string"
+              },
+              "defaultversionurl": {
+                "type": "uri"
+              },
+              "defaultversionsticky": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          },
+          "metaurl": {
+            "type": "uri"
           },
           "snapshot": {
             "type": "any",

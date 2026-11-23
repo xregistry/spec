@@ -1856,12 +1856,6 @@
               }
             },
             "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/channel"
@@ -1916,12 +1910,6 @@
         "requestBody": {
           "description": "The resource document or xRegistry metadata (depending on URL suffix $details).",
           "content": {
-            "application/octet-stream": {
-              "schema": {
-                "type": "string",
-                "format": "binary"
-              }
-            },
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/channel"
@@ -1999,12 +1987,6 @@
         "requestBody": {
           "description": "The new resource version document or xRegistry metadata.",
           "content": {
-            "application/octet-stream": {
-              "schema": {
-                "type": "string",
-                "format": "binary"
-              }
-            },
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/channel"
@@ -2045,12 +2027,6 @@
               }
             },
             "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/channel"
@@ -3369,12 +3345,6 @@
           "200": {
             "description": "The resource version.",
             "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "type": "string",
-                  "format": "binary"
-                }
-              },
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/channel"

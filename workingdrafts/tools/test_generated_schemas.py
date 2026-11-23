@@ -116,6 +116,21 @@ class TestGeneratedSchemas:
         assert data == checked
         self.assert_valid_schema(data, schema_type)
 
+    @pytest.mark.parametrize('schema_type,filename', FORMATS)
+    def test_incremental_wot_schema_reproduction(
+        self, tools_dir, tmp_path, schema_type, filename
+    ):
+        model = tools_dir.parent / 'workingdrafts/models/wot/model-incremental.json'
+        checked = json.loads(
+            (model.parent / 'schemas/incremental' / filename).read_text(encoding='utf-8')
+        )
+        data = self.generate_schema(
+            [model], schema_type, tools_dir, tmp_path,
+            self.generation_args(checked, schema_type),
+        )
+        assert data == checked
+        self.assert_valid_schema(data, schema_type)
+
     def test_registry_model_avro_schema_valid(self, tools_dir, tmp_path):
         model = tools_dir.parent / 'workingdrafts' / 'models' / 'registry' / 'model.json'
         data = self.generate_schema([model], 'avro-schema', tools_dir, tmp_path)

@@ -7,8 +7,9 @@
 <!-- words: workflow workflows -->
 <!-- words: href namespace nodeids opc workaround iri -->
 
-This document proposes an incremental versioning profile for WoT registries.
-No implementation exists yet. The
+The [WoT Registry specification](../../models/wot/spec.md#55-incremental-profile)
+defines the incremental versioning profile. This document explains the design
+and operating workflows; it does not establish adapter conformance. The
 [full design](#wot-versioning-design-and-operating-workflows) describes the
 mechanisms and 63 operating workflows, including defaults and exact pins in
 the [D7 selection flow][D7]. The
@@ -19,8 +20,8 @@ the [D7 selection flow][D7]. The
 - Managing channels and snapshots
 - Exporting manifests and federating sources
 
-The existing [specification](../../models/wot/spec.md) defines SemVer rules. The
-[vectors](../../models/wot/tests/resolution/README.md) exercise that baseline.
+The [specification](../../models/wot/spec.md) retains SemVer rules. The
+[vectors](../../models/wot/tests/resolution/README.md) exercise resolution.
 
 ### Decision and problem
 
@@ -589,7 +590,8 @@ not validate authored bytes or prove dependency closure.
 
 ### Status and reading guide
 
-This informative design proposes an incremental profile for review. It does
+This informative design explains the incremental profile in the WoT Registry
+draft. It does
 not implement that profile or make its vocabulary, diagnostics, or mappings
 normative. The [WoT specification](../../models/wot/spec.md) defines the SemVer
 baseline, the [model](../../models/wot/model.json) describes its data model,
@@ -666,8 +668,8 @@ Absence means legacy SemVer; an unknown profile causes version-aware
 resolution to fail. Integer-looking content does not identify a profile.
 
 The design retains `../model.json` as the SemVer model and proposes a separate
-`model-incremental.json`. The latter is a planned artifact, not a file
-delivered by this review update. Providers and offline catalogs carry
+[`model-incremental.json`](../../models/wot/model-incremental.json).
+Providers and offline catalogs carry
 equivalent profile information for their candidate sets.
 
 Core's [`versionmode`][Core versionmode] aspect selects the Version mode.

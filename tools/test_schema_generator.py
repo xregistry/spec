@@ -384,6 +384,38 @@ class TestSchemaGenerator:
                 for group_key in nested_groups:
                     assert isinstance(schemas[group_key], dict), f"'{group_key}' should be a nested object"
 
+    def test_openapi_document_media_types_follow_hasdocument(
+        self, schema_model, tools_dir, tmp_path
+    ):
+        model = json.loads(schema_model.read_text(encoding='utf-8'))
+        group_key, group = next(iter(model['groups'].items()))
+        resource_key, resource = next(iter(group['resources'].items()))
+        resource['hasdocument'] = True
+        group_plural = group.get('plural', group_key)
+        resource_plural = resource.get('plural', resource_key)
+        resource_path = (
+            f"/{group_plural}/{{groupid}}/"
+            f"{resource_plural}/{{resourceid}}"
+        )
+        paths = (
+            resource_path,
+            f"{resource_path}/versions/{{versionid}}",
+        )
+        model_path = tmp_path / 'model.json'
+        model_path.write_text(json.dumps(model), encoding='utf-8')
+
+        document_openapi = self.generate_schema(model_path, 'openapi', tools_dir)
+        for path in paths:
+            content = document_openapi['paths'][path]['get']['responses']['200']['content']
+            assert set(content) == {'application/json', 'application/octet-stream'}
+
+        resource['hasdocument'] = False
+        model_path.write_text(json.dumps(model), encoding='utf-8')
+        metadata_openapi = self.generate_schema(model_path, 'openapi', tools_dir)
+        for path in paths:
+            content = metadata_openapi['paths'][path]['get']['responses']['200']['content']
+            assert set(content) == {'application/json'}
+
     def test_makefile_message_json_schema_with_schema_id(self, message_model, tools_dir):
         """Test message model JSON Schema generation with schema-id (matches Makefile)."""
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as tmp:
