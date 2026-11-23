@@ -235,6 +235,8 @@ The following describes the attributes of the Registry model:
 - The "TYPE" of the attribute being defined. MUST be one of the data types
   (in lower case) defined in [Attributes and
   Extensions](./spec.md#attributes-and-extensions).
+- For a `binary` attribute, values used in `enum` and `default` MUST be
+  Base64-encoded strings as defined for the `binary` data type.
 
 ### `attributes.<STRING>.enum`
 - Type: Array of values of type `attributes.<STRING>.type`.
