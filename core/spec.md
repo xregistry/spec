@@ -855,6 +855,9 @@ be one of the following data types:
      [xRegistry model](./model.md#registry-model) definition, MUST NOT be
      accepted and MUST generate an error
      ([invalid_attribute](#invalid_attribute)).
+- `binary` - a sequence of octets. When serialized as JSON, a binary value MUST
+  be represented as a Base64-encoded string using
+  [RFC 4648 Section 4](https://www.rfc-editor.org/rfc/rfc4648#section-4).
 - `boolean` - case-sensitive `true` or `false`.
 - `decimal` - number (integer or floating point).
 - `integer` - signed integer.
@@ -915,6 +918,7 @@ are relative to and any constraints on their values, if any. How, or where,
 this is specified is out of scope of this specification.
 
 The "scalar" data types are:
+  - `binary`
   - `boolean`
   - `decimal`
   - `integer`
