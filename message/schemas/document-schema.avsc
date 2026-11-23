@@ -364,6 +364,64 @@
                               "x-xregistryScalarTree": {
                                 "type": "object",
                                 "properties": {
+                                  "properties": {
+                                    "type": "object",
+                                    "properties": {
+                                      "message-id": {
+                                        "type": "object",
+                                        "properties": {
+                                          "value": {
+                                            "type": "any",
+                                            "optional": true
+                                          }
+                                        },
+                                        "optional": true
+                                      }
+                                    },
+                                    "optional": true
+                                  },
+                                  "application-properties": {
+                                    "type": "map",
+                                    "item": {
+                                      "type": "object",
+                                      "properties": {
+                                        "value": {
+                                          "type": "any",
+                                          "optional": true
+                                        }
+                                      },
+                                      "optional": false
+                                    },
+                                    "optional": true
+                                  },
+                                  "message-annotations": {
+                                    "type": "map",
+                                    "item": {
+                                      "type": "object",
+                                      "properties": {
+                                        "value": {
+                                          "type": "any",
+                                          "optional": true
+                                        }
+                                      },
+                                      "optional": false
+                                    },
+                                    "optional": true
+                                  },
+                                  "delivery-annotations": {
+                                    "type": "map",
+                                    "item": {
+                                      "type": "object",
+                                      "properties": {
+                                        "value": {
+                                          "type": "any",
+                                          "optional": true
+                                        }
+                                      },
+                                      "optional": false
+                                    },
+                                    "optional": true
+                                  },
                                   "header": {
                                     "type": "object",
                                     "properties": {
@@ -393,6 +451,20 @@
                                         "optional": false,
                                         "default": "0"
                                       }
+                                    },
+                                    "optional": true
+                                  },
+                                  "footer": {
+                                    "type": "map",
+                                    "item": {
+                                      "type": "object",
+                                      "properties": {
+                                        "value": {
+                                          "type": "any",
+                                          "optional": true
+                                        }
+                                      },
+                                      "optional": false
                                     },
                                     "optional": true
                                   }

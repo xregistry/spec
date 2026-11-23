@@ -196,6 +196,9 @@
             "description": "Modification time",
             "x-xregistryOptional": true
           },
+          "format": {
+            "type": "string"
+          },
           "meta": {
             "type": "object",
             "properties": {
@@ -350,7 +353,7 @@
             }
           }
         },
-        "additionalProperties": false
+        "additionalProperties": true
       },
       "Schemagroup": {
         "type": "object",
