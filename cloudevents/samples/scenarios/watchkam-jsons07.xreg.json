@@ -30,16 +30,16 @@
                     },
                     "protocol": "KAFKA",
                     "protocoloptions": {
-                        "headers": {
-                            "action": {
+                        "headers": [
+                            {
                                 "name": "action",
                                 "value": "motiondetected"
                             },
-                            "deviceid": {
+                            {
                                 "name": "deviceid",
                                 "value": "{deviceid}"
                             }
-                        }
+                        ]
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
                     "dataschemauri": "/schemagroups/Fabrikam.Watchkam/schemas/Fabrikam.Watchkam.MotionDetectedEventData"
@@ -70,16 +70,16 @@
                     },
                     "protocol": "KAFKA",
                     "protocoloptions": {
-                        "headers": {
-                            "action": {
+                        "headers": [
+                            {
                                 "name": "action",
                                 "value": "motionended"
                             },
-                            "deviceid": {
+                            {
                                 "name": "deviceid",
                                 "value": "{deviceid}"
                             }
-                        }
+                        ]
                     },
                     "dataschemaformat": "JSONSchema/Draft-07",
                     "dataschemauri": "/schemagroups/Fabrikam.Watchkam/schemas/Fabrikam.Watchkam.MotionEndedEventData"
