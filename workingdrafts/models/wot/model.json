@@ -1,5 +1,15 @@
 {
   "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
+  "attributes": {
+    "wotversionprofile": {
+      "type": "string",
+      "required": true,
+      "readonly": true,
+      "strict": true,
+      "enum": ["semver"],
+      "default": "semver"
+    }
+  },
   "groups": {
     "thingdescriptiongroups": {
       "singular": "thingdescriptiongroup",

@@ -64,6 +64,7 @@ storing, managing, and discovering W3C
       - [5.4.2. Resolver Algorithm](#542-resolver-algorithm)
       - [5.4.3. Errors and Test Vectors](#543-errors-and-test-vectors)
       - [5.4.4. Publication closure](#544-publication-closure)
+    - [5.5. Incremental Profile](#55-incremental-profile)
   - [6. Relationships and Cross-References](#6-relationships-and-cross-references)
     - [6.1. Thing Description to Thing Model](#61-thing-description-to-thing-model)
     - [6.2. Thing Description to Thing Description](#62-thing-description-to-thing-description)
@@ -131,6 +132,20 @@ composing a TD from Thing Models or binding an affordance to an endpoint
 depends on those references independently of the Registry's checks.
 
 ### 1.3. Versioning
+
+A Registry exposes either the SemVer [model](model.json) or the
+[incremental model](model-incremental.json). The read-only Registry
+attribute `wotversionprofile` identifies the model as `semver` or
+`incremental`. Where a trusted source is known to implement the legacy
+SemVer model, omission denotes `semver`; omission MUST NOT identify an
+arbitrary Core provider as SemVer. An unrecognized profile fails
+version-aware selection with `unknown-profile`. Neither a Version ID
+nor an authored document field identifies the profile.
+
+The SemVer-specific assignment, compatibility and successor rules below
+apply only to the SemVer profile. The incremental profile uses
+[Section 5.5](#55-incremental-profile) instead and retains the shared
+document, identity and retrieval rules.
 
 Each Version of a `thingdescription` or `thingmodel` Resource holds a complete
 WoT document, stored without rewriting its bytes. A Resource's `wotid` and
@@ -407,16 +422,21 @@ contains.
 
 ## 3. WoT Registry Model
 
-The authoritative xRegistry extension model of the WoT Registry resides in
-[model.json](model.json). Its `modelversion` is `0.1` while this remains a
+The authoritative xRegistry extension models of the WoT Registry reside in
+[model.json](model.json) for SemVer and
+[model-incremental.json](model-incremental.json) for incremental.
+Their `modelversion` is `0.1` while this remains a
 working draft. It versions the WoT model independently of the xRegistry Core
 specification version in a Registry's `specversion`.
 
-The JSON serialization of a WoT Registry adheres to this form:
+The following form shows the SemVer serialization. An incremental Registry
+uses the same collections and additionally exposes the optional Version
+attribute `compatibilityline` (Section 5.5.2).
 
 ```yaml
 {
   "specversion": "<STRING>",                       # xRegistry core attributes
+  "wotversionprofile": "semver",
   "registryid": "<STRING>",
   "self": "<URL>",
   "xid": "<XID>",
@@ -613,14 +633,14 @@ complete WoT-TD 1.1 JSON-LD document. Inside Thing Description Groups, its
 Resource Type (`<RESOURCE>`) name is `thingdescription` and its collection
 name is `thingdescriptions`.
 
-Thing Description Resources MUST use Core [`versionmode`][Core versionmode]
+In the SemVer profile, Thing Description Resources MUST use Core [`versionmode`][Core versionmode]
 value `semver` and [`singleversionroot`][Core singleversionroot]
 value `true`, as specified in [Section 1.3](#13-versioning). Core derives
 `ancestorid` by SemVer precedence and enforces one root
 ([`ancestorid`][Core ancestorid]).
 
 The Version-level `versionorigin` attribute is REQUIRED, read-only, and uses
-the strict enumeration `authored` or `generated`. The `versionid` is assigned
+the strict enumeration `authored` or `generated`. In the SemVer profile the `versionid` is assigned
 from `version.instance` when that member is SemVer without build metadata.
 Otherwise it is the lowest free `0.0.0-N` id. The original document bytes,
 including `version.instance`, are not rewritten.
@@ -701,7 +721,7 @@ Models are defined in [Section 1.3](#13-versioning), subject to Core's
 [`compatibility`][Core compatibility] and
 [`versionid`][Core versionid] semantics. The Version-level `versionorigin` is
 a REQUIRED string with the strict enumeration `authored` or `generated`, and is
-read-only. The model declares `compatibility` under `metaattributes`, with
+read-only. The SemVer model declares `compatibility` under `metaattributes`, with
 `required: true` and `default: backward`, as Core requires for an attribute
 with a default.
 
@@ -850,8 +870,8 @@ defines one such construction. No convention is mandated by this
 specification, and a Consumer MUST NOT assume that an id it did not assign
 was produced by one.
 
-A `wotid` MUST NOT encode a compatible revision of the document it names. A
-Thing Model's major version MUST be included in that stable identity, for
+A `wotid` MUST NOT encode a compatible revision of the document it names. In
+the SemVer profile a Thing Model's major version MUST be included in that stable identity, for
 example `urn:fabrikam:lamp:v1` or `https://fabrikam.example/tm/lamp/v1`. Minor
 and patch revisions are carried by `versionid` and `version.model`, not
 appended to the identifier. No particular spelling of the major-version token
@@ -859,7 +879,7 @@ is mandated.
 
 When a document is revised compatibly, its `wotid` and Resource id MUST
 remain unchanged, and a new Version is created under the same Resource. A
-Thing Model breaking revision uses a distinct major-version `wotid` as
+SemVer Thing Model breaking revision uses a distinct major-version `wotid` as
 specified in [Section 5.1.1](#511-breaking-changes-and-successor-identifiers).
 A Thing Description major revision remains under its existing `id` and
 `wotid`. A new TD identifier names a different concrete Thing.
@@ -887,6 +907,9 @@ records that whether a future revision ought to define a derivation for the
 second case is not yet settled.
 
 #### 5.1.1. Breaking Changes and Successor Identifiers
+
+This subsection applies to SemVer. Incremental compatibility boundaries
+follow Section 5.5.2.
 
 A breaking Thing Model change MUST use a new major-version `wotid` and a
 distinct Resource. The predecessor's `wotid` MUST NOT be modified. A major
@@ -1156,12 +1179,28 @@ whole TD respectively.
 
 ### 5.4. Versioned Reference Resolution
 
+Sections 5.4.1 through 5.4.3 define SemVer selection. A resolver
+determines the target profile before interpreting floors or comparing
+Versions. Incremental selection follows Section 5.5.
+
 #### 5.4.1. Floors and Pins
 
 A reference MAY carry a minimum SemVer, called its floor, but MUST NOT carry
 a version range. `tm:minVersion` is a member of `tm:extends` or
 `tm:submodel` links and a sibling of `tm:ref`. `td:minVersion` is a member
 of `td:extends` or `td:subthing` links and a sibling of `td:ref`.
+
+On the same occurrences and on a TD `type` link, a consumer MUST accept
+`uav:minVersion` as the equivalent explicit SemVer floor. More than one
+explicit floor term on an occurrence is `invalid-floor`, even when the
+values agree. `uav:compatibilityLine` on a reference to a SemVer target is
+`invalid-line`.
+
+The `uav` terms expand under the Binding namespace
+`http://opcfoundation.org/UA/WoT-Binding/`. Consumers MUST recognize these
+terms by expanded IRI using the active context. The line is a URI-valued
+string and the floor is a string. These terms do not add link operators or
+change the carrier rules in W3C WoT 1.1.
 
 A floor MUST be a SemVer 2.0.0 string without build metadata. A floor is not a
 Core identifier, so Core's 128-character [id limit][Core id constraints] does
@@ -1408,9 +1447,11 @@ choose a target.
 For each external reference occurrence, the Producer and Consumer MUST resolve
 the authored `href` against the source document's captured base and remove its
 fragment before matching captured URI identities. The operator's resolution
-rules determine whether a Resource or exact Version is selected. For
+rules determine whether a Resource or exact Version is selected. For SemVer
 `tm:ref` and `td:ref` references that identify a Resource by `wotid`, Section
-5.4.2 determines the selected Version. A document-view URI recorded as
+5.4.2 determines the selected Version. For incremental references, use
+Section 5.5.3 to check the captured binding against its authored requirement.
+A document-view URI recorded as
 identifying an exact Version selects that Version; a Resource-level URI uses
 the captured view's selection state. The closure binding still MUST preserve
 the authored `href` unchanged. In every case, its target MUST identify the
@@ -1444,6 +1485,102 @@ references; another closure profile is needed to cover those dependencies.
 The schema and sample validate descriptor shape only. They do not verify that
 a publication covers every in-scope reference or binds it to the correct
 Version.
+
+### 5.5. Incremental Profile
+
+#### 5.5.1. Publication
+
+The incremental model uses Core `versionmode: manual` and
+`singleversionroot: false`. Core lineage and default retrieval do not
+define compatibility or numeric ordering. An endpoint MUST NOT switch
+profiles in place after publishing Versions.
+
+A Version ID is a string matching `[1-9][0-9]*` and fitting Core's
+128-character limit. The publishing authority MUST maintain a durable
+high-water mark for each authoritative Resource sequence, including
+deleted Versions. It MUST assign the ID as follows:
+
+1. If TM `version.model` or TD `version.instance` is a canonical
+   positive integer string, use that value and set `versionorigin` to
+   `authored`. Reject it if oversized or not greater than the mark.
+2. Otherwise preserve the authored field, including absence, assign
+   the mark plus one, and set `versionorigin` to `generated`. If no ID
+   fits, reject publication.
+3. If the caller supplied a Version ID, reject invalid syntax as
+   `invalid-version` or a different assignment as `version-mismatch`.
+4. Commit the bytes, metadata and new mark atomically. Failed writes
+   MUST NOT expose a Version or change the mark.
+
+The mark starts at zero for a fresh sequence. Deleting a Resource or
+restoring a backup MUST NOT permit reuse under the same authoritative
+sequence identity. Migration uses a separate endpoint, with explicit
+old-to-new mappings if numbering changes. A resolver MUST NOT compare
+numbers from independent sequences. It MAY compare replica results
+only against verified original sequence identity and numbering.
+
+#### 5.5.2. Compatibility Line
+
+A compatibility line is an absolute URI compared exactly. A later
+Version in a line claims that it can substitute for every earlier
+Version of that Resource in the same line under the publisher's
+documented public interface. Neither shared ancestry nor a larger ID
+proves compatibility. The SemVer rule requiring a TM major in `wotid`
+does not apply. A breaking update to the same logical document can
+start a different line without changing `wotid`.
+
+An authorized Producer MAY set root `uav:compatibilityLine` or supply
+Version metadata `compatibilityline` without changing the document
+bytes. If both are present they MUST agree exactly, or publication
+fails as `inconsistent-publication`. A value, when supplied, MUST be an
+absolute URI; null or an empty string is not omission. Creation fixes
+the effective value, including absence. Changing it requires a new
+Version. Replacing the document bytes also requires a new Version.
+A missing line MUST NOT be inferred from `wotid`, a digest or
+the Version ID.
+
+The publisher MUST bind a claim to the profile, authoritative Resource
+sequence, exact Version and content digest. A Consumer MUST accept it
+only from an authorized publisher or configured trusted provider acting
+for that sequence. A Version without an accepted claim MAY be fetched
+directly but MUST NOT satisfy compatibility-line selection. The
+incremental model does not assert Core Resource-wide backward
+compatibility across different lines.
+
+#### 5.5.3. Reference Selection and Replay
+
+An unpinned incremental reference MUST specify target
+`uav:compatibilityLine` and MAY specify `uav:minVersion` as a positive
+integer string in that target's authoritative sequence. These members
+apply to a supported link, source-manifest entry, or object containing
+an inline reference. The document root's line does not constrain its
+dependencies. An incremental target has no implicit floor from either
+authored version field, no SemVer major cap, and no prerelease filter.
+A generated integer is a normal candidate.
+
+A missing line fails as `compatibility-required`. Invalid line syntax
+or using a line on a SemVer target fails as `invalid-line`. An invalid
+numeric floor fails as `invalid-version`; supplying a SemVer floor term
+on an incremental target, or supplying competing floor terms, fails
+as `invalid-floor`.
+
+For live selection, the Consumer MUST identify one authoritative
+Resource sequence before comparing Version IDs. If the Core default
+is sticky, it MUST use that Version only if it satisfies the trusted
+line and floor; otherwise it MUST return `unsatisfied` without trying
+another Version. If not sticky, it MUST select the numerically highest
+eligible Version or return `unsatisfied`. A missing sticky Version
+returns `not-found`. Evaluate a document-local reference against the
+containing Version without substituting another Version. Apply a valid
+fragment after selecting the document.
+
+Raw exact replay bypasses live line, floor, and default selection.
+A Version ID pin selects that Version; a digest pin selects the
+highest numeric revision among matches in the same sequence. A failed
+pin MUST NOT fall back to live selection. Section 5.4.4 snapshot
+composition MUST instead evaluate the requested line and floor against
+the already bound Version, including when a reference uses a captured
+exact document URL. It MUST NOT consult a live default or retry with
+another Version. Core Resource GET still returns its Core default.
 
 ## 6. Relationships and Cross-References
 
