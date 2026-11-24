@@ -18,7 +18,6 @@ attributesstringitem
 attributesstringnamecharset
 attributesstringtarget
 attrs
-audiocodec
 authorityuri
 avro
 avrotize
@@ -345,7 +344,6 @@ src
 ssl
 stakeholders
 storeid
-streamformat
 stringified
 stringify
 strictvalidation
@@ -399,7 +397,6 @@ versionmodes
 versionscount
 versionsurl
 vid
-videocodec
 vnd
 watchkam
 waterboiler

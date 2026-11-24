@@ -505,7 +505,7 @@
                                   "name": "type",
                                   "description": "AMQP properties.subject value type",
                                   "type": "string",
-                                  "enum": [
+                                  "enum" : [
                                     "string",
                                     "uritemplate"
                                   ]
@@ -642,9 +642,7 @@
                                   "type": "string",
                                   "required": true,
                                   "default": "string",
-                                  "enum": [
-                                    "string"
-                                  ]
+                                  "enum" : ["string"]
                                 },
                                 "value": {
                                   "name": "value",
@@ -1321,7 +1319,7 @@
                           "description": "The NATS reply subject",
                           "type": "uritemplate"
                         },
-                        "headers": {
+                        "headers" : {
                           "name": "headers",
                           "description": "The NATS headers",
                           "type": "array",
