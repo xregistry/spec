@@ -1220,6 +1220,11 @@ both. Authored references MUST NOT carry Registry replay pins. A projection
 source's declared byte digest is a separate check on the selected source
 (Section 5.4.4), not a request to choose a Version by digest.
 
+When the resolver derives an implicit floor for a SemVer-target link from
+`version.model`, a present value MUST satisfy the SemVer floor rules above.
+An invalid value MUST produce `invalid-version`. Core's 128-character ID
+limit does not apply to this floor.
+
 <a id="553-reference-selection-and-replay"></a>
 
 #### 5.4.2. Resolver Algorithm

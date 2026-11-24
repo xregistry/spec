@@ -139,6 +139,77 @@ def test_huge_implicit_semver_floor_with_no_matching_version_is_unsatisfied():
     )
 
 
+@pytest.mark.parametrize(
+    "model",
+    [
+        pytest.param("latest", id="malformed-semver"),
+        pytest.param("1.2.3+build", id="build-metadata"),
+        pytest.param("0.0.0-1", id="generated-id"),
+        pytest.param(None, id="null"),
+        pytest.param(1, id="non-string"),
+    ],
+)
+def test_present_invalid_implicit_model_floor_returns_invalid_version(model):
+    target = "urn:example:pump-model:v1"
+    check_vectors.check_case(
+        "invalid-implicit-model-floor",
+        {
+            "registry": [
+                {
+                    "wotid": target,
+                    "defaultversionsticky": False,
+                    "defaultversionid": "1.0.0",
+                    "versions": [
+                        {
+                            "versionid": "1.0.0",
+                            "versionorigin": "authored",
+                            "contentdigest": "sha256:" + "0" * 64,
+                        }
+                    ],
+                }
+            ],
+            "reference": {"kind": "type", "target": target},
+            "document": {
+                "version.model": model,
+                "typeLinks": [{"target": target}],
+            },
+            "expect": {"error": "invalid-version"},
+        },
+    )
+
+
+def test_null_implicit_model_floor_preserves_ambiguous_floor_precedence():
+    target = "urn:example:pump-model:v1"
+    check_vectors.check_case(
+        "null-implicit-model-floor-ambiguous",
+        {
+            "registry": [
+                {
+                    "wotid": target,
+                    "defaultversionsticky": False,
+                    "defaultversionid": "1.0.0",
+                    "versions": [
+                        {
+                            "versionid": "1.0.0",
+                            "versionorigin": "authored",
+                            "contentdigest": "sha256:" + "0" * 64,
+                        }
+                    ],
+                }
+            ],
+            "reference": {"kind": "type", "target": target},
+            "document": {
+                "version.model": None,
+                "typeLinks": [
+                    {"target": target},
+                    {"target": "urn:example:controller-model:v1"},
+                ],
+            },
+            "expect": {"error": "ambiguous-floor"},
+        },
+    )
+
+
 def test_authored_semver_version_id_remains_core_length_limited():
     target = "urn:example:pump:v1"
     version = "1.0.0-" + "a" * 123

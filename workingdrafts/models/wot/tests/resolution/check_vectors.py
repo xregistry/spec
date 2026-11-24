@@ -86,8 +86,14 @@ def floor_for(case):
     document = case.get("document", {})
     if reference["kind"] == "type" and document:
         links = document["typeLinks"]
+        model_present = "version.model" in document
         model = document.get("version.model")
-        if model is not None and len(links) > 1 and any("minVersion" not in link for link in links):
+        ambiguous_model_floor = (
+            model_present
+            and len(links) > 1
+            and any("minVersion" not in link for link in links)
+        )
+        if ambiguous_model_floor:
             raise OutcomeError("ambiguous-floor")
         # The reference is a normalized projection of this exact link.
         matches = [link for link in links if link["target"] == reference["target"]]
@@ -97,7 +103,7 @@ def floor_for(case):
             if "minVersion" in link:
                 validate_floor(link["minVersion"])
         effective = validate_floor(floor) if floor is not None else None
-        if model is not None:
+        if model_present:
             implicit = validate_floor(model)
             if effective is None or effective < implicit:
                 effective = implicit
@@ -112,6 +118,8 @@ def parse_version_id(text):
 
 
 def validate_floor(text):
+    if not isinstance(text, str):
+        raise OutcomeError("invalid-version")
     version = Version(text)
     if GENERATED.fullmatch(text):
         raise OutcomeError("invalid-version")
