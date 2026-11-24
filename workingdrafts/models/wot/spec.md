@@ -1205,10 +1205,11 @@ conforming Resource of the required target kind.
 Ordinary Resource retrieval still serves the [Core default][Core defaults].
 The resolver uses [`defaultversionsticky`][Core defaultversionsticky] for
 live selection only. In manual mode the Core default need not be the highest
-numeric Version. For live non-sticky SemVer selection, exclude prereleases,
-including generated ids, unless the caller sets `allowPrerelease` or the
-effective floor is a prerelease. This eligibility rule does not weaken a
-floor or TD major cap. An Incremental candidate MUST have an accepted claim
+numeric Version. For live selection and snapshot composition, a SemVer
+prerelease, including a generated id, is ineligible unless the caller sets
+`allowPrerelease` or the effective floor is a prerelease. Only a sticky
+default in live selection bypasses this filter. The filter does not weaken
+the floor or TD major cap. An Incremental candidate MUST have an accepted claim
 for the requested line and meet any numeric floor.
 
 For `tm:ref` and `td:ref`, resolve the URI-reference against the
@@ -1222,9 +1223,9 @@ The TD major cap still applies. For Incremental, use the containing
 Version's trusted line and Version ID. Apply a valid fragment after selecting
 the document.
 
-A successful resolution MUST return `(wotid, versionid, contentdigest,
-origin)`. `origin` identifies the Registry that supplied the stored bytes
-and `contentdigest` is their digest.
+A successful resolution MUST return `(wotid, versionid, contentdigest, origin)`.
+`origin` identifies the Registry that supplied the stored bytes and
+`contentdigest` is their digest.
 
 Raw replay does not validate the referring document. When validation or
 composition uses the retrieved content, it MUST still apply the document and
