@@ -29,7 +29,7 @@ flowchart TD
     C["Core: entities, model and HTTP"] --> R["Registry domain: catalog entries"]
     C --> F["Federation: source context and selection"]
     R --> F
-    F --> B["HTTP / OCI / Git / File / OPC UA bindings"]
+    F --> B["HTTP / OCI / Git / File / OPC UA / MQTT bindings"]
     F --> P["Publication extension: channels and snapshots"]
     P --> D["Domain closure and compatibility, for example WoT"]
 ```
@@ -54,6 +54,7 @@ Use the entry point for your task:
 | [Git](bindings/git.md) | Commit-pinned document-tree access. |
 | [File](bindings/file.md) | Local document-tree and OCI-layout access. |
 | [OPC UA](bindings/opcua.md) | Native OPC UA API and federation integration. |
+| [MQTT 5.0 RPC](bindings/mqtt.md) | Read-only Federation operations in single-packet MQTT request and reply publications. |
 
 ### Choosing a Binding
 
@@ -64,6 +65,7 @@ Use the entry point for your task:
 | Git | A repository containing a directory mapping. Remote acquisition uses HTTPS. | Resolve a ref or annotated tag once and retain the commit. Read Git objects rather than checkout files. | Git object access and the directory mapping reader. |
 | File | No xRegistry service. Use local storage or an OS-mounted file share containing a directory mapping or OCI layout. | Verify bytes against the selected root and its descriptors. A mutable directory has no implicit immutable pin. | Filesystem access, containment checks and the reader for the chosen format. |
 | OPC UA | An OPC UA server exposing the Registry nodes and document access described by the binding. | Reads usually observe live state. Session handles and per-node timestamps are not snapshot identifiers. | OPC UA Services, Registry-root selection and namespace remapping. Check the binding's explicit domain-mapping and companion-draft dependencies. |
+| MQTT | A TLS-enabled MQTT 5.0 broker and a serving Registry with a request topic for its exposed view. | Correlation and expiry do not pin a revision. | MQTT 5.0 request and reply properties and single-packet JSON payloads. |
 
 The binding used to access a source Registry need not be the binding exposed
 to consumers. For example, an API server can serve HTTP clients from a local

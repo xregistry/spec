@@ -1,6 +1,6 @@
 # xRegistry Federation
 
-<!-- words: applicationuri federationprofiles nfc nodeid nodeids opc opcua rebasing registrygroups registryroot reparse standalone symlinks transportprofileuri ua website weburl xregurl -->
+<!-- words: applicationuri federationprofiles nfc nodeid nodeids opc opcua rebasing registrygroups registryroot reparse requesttopic standalone symlinks transportprofileuri ua website weburl xregurl -->
 <!-- words: py sequencediagram -->
 <!-- words: assetid selectedxid -->
 <!-- words: usda -->
@@ -63,8 +63,9 @@ defines which supplier Registries participate and their order.
 
 This specification defines how resolvers interpret resolution requests.
 [HTTP](../bindings/http-federation.md), [OCI](../bindings/oci.md),
-[Git](../bindings/git.md), [File](../bindings/file.md), and
-[OPC UA](../bindings/opcua.md) define how to perform those reads. The
+[Git](../bindings/git.md), [File](../bindings/file.md),
+[OPC UA](../bindings/opcua.md), and [MQTT](../bindings/mqtt.md) define how
+to perform those reads. The
 [directory mapping format](../bindings/mapping.md) is shared by Git and File.
 Native bindings do not require an HTTP facade.
 
@@ -574,6 +575,7 @@ are case-sensitive. The values defined by this family are:
 | `git` | HTTPS repository URL | `revision`: full ref or complete object ID. `path` defaults to `xregistry`, with an empty string selecting the repository root. |
 | `file` | File URI selecting a directory | `layout`: `document-tree` or `oci-layout`. `reference` for OCI layout selection only. |
 | `opcua` | Native UA endpoint URL | `registryroot`: portable NodeId. OPTIONAL `applicationuri` and `transportprofileuri`. |
+| `mqtt` | `mqtts://host[:port]` | `requesttopic`: concrete MQTT Topic Name for the [exposed Registry view](../bindings/mqtt.md#advertisement). |
 
 The bindings define parameter grammars and their supported transports.
 Endpoints MUST be absolute URIs and MUST NOT embed credentials. A selected

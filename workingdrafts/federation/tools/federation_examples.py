@@ -205,6 +205,7 @@ _PROFILE_PARAMETERS = {
     "git": {"revision", "path"},
     "file": {"layout", "reference"},
     "opcua": {"registryroot", "applicationuri", "transportprofileuri"},
+    "mqtt": {"requesttopic"},
 }
 
 
@@ -301,7 +302,7 @@ def validate_profile(profile):
         raise FederationError("unsupported_operation", "Unknown profile parameter")
     if "#" in profile["endpoint"] or "?" in profile["endpoint"]:
         raise FederationError("invalid_package", "Endpoint has query or fragment")
-    if binding in ("http", "git", "oci", "opcua") and not uri.hostname:
+    if binding in ("http", "git", "oci", "opcua", "mqtt") and not uri.hostname:
         raise FederationError("invalid_package", "Missing endpoint host")
     if binding == "http" and uri.scheme not in ("http", "https"):
         raise FederationError("invalid_package", "HTTP endpoint scheme")
@@ -359,6 +360,22 @@ def validate_profile(profile):
         for parameter in ("applicationuri", "transportprofileuri"):
             if parameter in parameters:
                 _absolute_uri(parameters[parameter])
+    if binding == "mqtt":
+        if uri.scheme != "mqtts":
+            raise FederationError("unsupported_operation", "MQTT transport not TLS")
+        if uri.path or uri.port == 0 or not re.fullmatch(
+            r"(?:\[[^\]]+\]|[^:\[\]]+)(?::[0-9]+)?", uri.netloc
+        ):
+            raise FederationError("invalid_package", "MQTT endpoint must be a broker authority")
+        topic = parameters.get("requesttopic")
+        if not isinstance(topic, str) or not topic or any(c in topic for c in "\x00+#"):
+            raise FederationError("invalid_package", "Invalid MQTT request topic")
+        try:
+            length = len(topic.encode("utf-8"))
+        except UnicodeError as error:
+            raise FederationError("invalid_package", "Invalid MQTT request topic") from error
+        if length > 65535:
+            raise FederationError("invalid_package", "Invalid MQTT request topic")
 
 
 def select_profile(entry, supported, *, binding=None):

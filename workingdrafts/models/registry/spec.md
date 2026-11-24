@@ -1,7 +1,7 @@
 # Registry-of-Registries Service - Version 1.0-rc1
 
 <!-- words: applicationuri federationprofiles nodeid nsu opcua registryroot -->
-<!-- words: registrytypes transportprofileuri weburl xregurl -->
+<!-- words: registrytypes requesttopic transportprofileuri weburl xregurl -->
 <!-- words: categoryid curated docx mcp namespace nfc nodeset opc opcfoundation -->
 <!-- words: opencontainers parametersreference publicschemas readme -->
 <!-- words: registrygroups registryurl ssh ua uabinary uasc uatcp unversioned -->
@@ -46,6 +46,7 @@ describes.
   - [5.5. File](#55-file)
   - [5.6. OPC UA](#56-opc-ua)
   - [5.7. Extensions](#57-extensions)
+  - [5.8. MQTT](#58-mqtt)
 - [6. Discovery and Selection](#6-discovery-and-selection)
   - [6.1. Entry Selection](#61-entry-selection)
   - [6.2. Advertisement Selection](#62-advertisement-selection)
@@ -67,7 +68,7 @@ Registry.
 
 ### 1.1. Scope
 
-The catalog MAY advertise HTTP, OCI, Git, File, OPC UA, or extension
+The catalog MAY advertise HTTP, OCI, Git, File, OPC UA, MQTT, or extension
 bindings. [Shared federation][Federation] defines the read operations and
 Registry context established after selection. A catalog does not have to
 implement those bindings, serve an HTTP facade for them, proxy their
@@ -460,7 +461,7 @@ Profile-specific extensions belong inside `parameters`.
 - Constraints:
   - REQUIRED and MUST be nonempty.
   - MUST be compared case-sensitively, without normalization.
-  - This revision defines `http`, `oci`, `git`, `file`, and `opcua`.
+  - This revision defines `http`, `oci`, `git`, `file`, `opcua`, and `mqtt`.
     Other strings remain valid catalog data.
   - An unknown value MUST NOT be executed as a known binding. For example,
     `HTTP` is not an alias for `http`.
@@ -748,6 +749,17 @@ fields are valid. A Consumer that does not implement their semantics MUST
 exclude them from supported resolution candidates. It MUST NOT infer a
 known binding from their endpoints. Parameters in an extension profile are
 owned by that extension. Their names do not activate built-in semantics.
+
+### 5.8. MQTT
+
+The `mqtt` profile provides access to an exposed Registry view through the
+[MQTT 5.0 RPC binding](../../bindings/mqtt.md). The endpoint MUST be a
+broker URI of the form `mqtts://host[:port]`, with no credentials, path,
+query, or fragment. `parameters.requesttopic` is REQUIRED and MUST be a
+concrete MQTT Topic Name. The broker and request topic select the view;
+they do not identify an entity within it. No other parameters are defined.
+See the binding's [advertisement rules](../../bindings/mqtt.md#advertisement)
+for validation and port selection.
 
 ## 6. Discovery and Selection
 

@@ -51,7 +51,8 @@
                       "oci",
                       "git",
                       "file",
-                      "opcua"
+                      "opcua",
+                      "mqtt"
                     ],
                     "strict": false
                   },

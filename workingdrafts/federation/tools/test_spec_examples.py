@@ -1,14 +1,59 @@
-"""Keep the federation selection walkthrough executable and byte-accurate."""
+"""Keep the federation examples executable and byte-accurate."""
 
+import base64
 from copy import deepcopy
+import json
+from pathlib import Path
+import re
 from unittest.mock import Mock
+from uuid import RFC_4122, UUID
 
 import pytest
+from jsonschema import Draft202012Validator
 
 from workingdrafts.federation.tools.federation_examples import (
     FederationError, select_label, select_profile, select_version, validate_profile,
+    validate_xid,
 )
 from workingdrafts.federation.tools.federation_resolution_examples import Source, resolve_resource_read
+
+
+def test_published_mqtt_example_selects_and_returns_exact_version_bytes():
+    federation = Path(__file__).resolve().parents[1]
+    draft = (federation.parent / "bindings" / "mqtt.md").read_text(encoding="utf-8")
+    snippets = [json.loads(body) for body in re.findall(r"^```json\n(.*?)\n```$", draft, re.M | re.S)]
+    profile = next(snippet for snippet in snippets if "binding" in snippet)
+    selected = select_profile({"federationprofiles": [profile]}, {"mqtt"})
+    exchange = next(snippet for snippet in snippets if "request" in snippet)
+    request, reply = exchange["request"], exchange["reply"]
+
+    assert request["topic"] == selected["parameters"]["requesttopic"]
+    assert reply["topic"] == request["responsetopic"] != request["topic"]
+    assert "responsetopic" not in reply
+    correlation = bytes.fromhex(request["correlationdata"])
+    identifier = UUID(bytes=correlation)
+    assert identifier.variant == RFC_4122 and identifier.version == 4
+    assert bytes.fromhex(reply["correlationdata"]) == correlation
+    assert 1 <= reply["messageexpiryinterval"] <= request["messageexpiryinterval"] <= 4294967295
+    for packet in (request, reply):
+        assert packet["qos"] == 1 and packet["retain"] == 0
+        assert packet["contenttype"] == "application/json" and packet["payloadformatindicator"] == 1
+        assert packet["userproperties"].count(["mrpc-version", "mrpc/1.0"]) == 1
+    assert request["userproperties"] == [["mrpc-version", "mrpc/1.0"]]
+    assert reply["userproperties"] == [["mrpc-version", "mrpc/1.0"], ["mrpc-status", "200"]]
+
+    request_schema = json.loads((federation / "schemas" / "request.json").read_text(encoding="utf-8"))
+    Draft202012Validator(request_schema).validate(request["payload"])
+    target = validate_xid(request["payload"]["target"])
+    assert request["payload"]["operation"] == "document"
+    assert set(reply["payload"]) == {"result"}
+    result = reply["payload"]["result"]
+    assert result["origin"]["selectedxid"] == target
+    assert result["origin"]["revision"] is None
+    assert base64.b64decode(result["value"]["base64"], validate=True) == b"v2\n"
+    assert {snippet["error"]["code"] for snippet in snippets if set(snippet) == {"error"}} == {
+        "not_found", "limit_exceeded",
+    }
 
 
 def test_retained_selection_requests_labels_and_independent_contexts():

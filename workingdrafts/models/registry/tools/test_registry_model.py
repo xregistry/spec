@@ -12,7 +12,7 @@ from workingdrafts.federation.tools.federation_examples import (
 
 
 REGISTRY_DIR = Path(__file__).resolve().parents[1]
-BUILTINS = {"http", "oci", "git", "file", "opcua"}
+BUILTINS = {"http", "oci", "git", "file", "opcua", "mqtt"}
 HTTP = {"binding": "http", "endpoint": "https://registry.example.test/root"}
 OCI = {
     "binding": "oci",
@@ -36,6 +36,11 @@ UA = {
         "registryroot": "nsu=urn:example:xregistry;s=Registries/Catalog",
         "applicationuri": "urn:example:ua:catalog-server",
     },
+}
+MQTT = {
+    "binding": "mqtt",
+    "endpoint": "mqtts://broker.example.test:8883",
+    "parameters": {"requesttopic": "registries/catalog/reads"},
 }
 EXTENSION = {
     "binding": "com.example.discovery",
@@ -170,6 +175,9 @@ def test_registry_website_only_entry_is_valid_but_not_resolvable(
             {"federationprofiles": [UA]}, BUILTINS, None, 0, id="opcua-portable-root",
         ),
         pytest.param(
+            {"federationprofiles": [HTTP, MQTT]}, BUILTINS, "mqtt", 1, id="mqtt-tls-topic",
+        ),
+        pytest.param(
             {"federationprofiles": [EXTENSION, dict(OCI, priority=0), GIT, HTTP]},
             BUILTINS, None, 1, id="stable-tie-after-unsupported-filter",
         ),
@@ -213,6 +221,35 @@ def test_registry_resolvable_entry_requires_supported_valid_advertisement(
         assert selected == attributes["federationprofiles"][outcome]
         assert selected is version["federationprofiles"][outcome]
     assert base_catalog == before
+
+
+@pytest.mark.parametrize(
+    "overrides,code,message",
+    [
+        ({"endpoint": "mqtt://broker.example.test"}, "unsupported_operation",
+         "MQTT transport not TLS"),
+        ({"endpoint": "mqtts://broker.example.test/"}, "invalid_package",
+         "MQTT endpoint must be a broker authority"),
+        ({"endpoint": "mqtts://broker.example.test:0"}, "invalid_package",
+         "MQTT endpoint must be a broker authority"),
+        ({"endpoint": "mqtts://broker.example.test:"}, "invalid_package",
+         "MQTT endpoint must be a broker authority"),
+        ({"endpoint": "mqtts://user@broker.example.test"}, "policy_denied",
+         "Embedded credentials prohibited"),
+        ({"parameters": {}}, "invalid_package", "Invalid MQTT request topic"),
+        ({"parameters": {"requesttopic": ""}}, "invalid_package", "Invalid MQTT request topic"),
+        ({"parameters": {"requesttopic": "read/+"}}, "invalid_package", "Invalid MQTT request topic"),
+        ({"parameters": {"requesttopic": "read/#"}}, "invalid_package", "Invalid MQTT request topic"),
+        ({"parameters": {"requesttopic": "read/\x00"}}, "invalid_package", "Invalid MQTT request topic"),
+        ({"parameters": {"requesttopic": "\u00e9" * 32768}}, "invalid_package",
+         "Invalid MQTT request topic"),
+        ({"parameters": {"requesttopic": "read", "extra": True}}, "unsupported_operation",
+         "Unknown profile parameter"),
+    ],
+)
+def test_selected_mqtt_advertisement_must_be_valid_without_falling_back(overrides, code, message):
+    entry = {"federationprofiles": [dict(MQTT, **overrides), dict(HTTP, priority=10)]}
+    _assert_federation_error(entry, code, message)
 
 
 def test_registry_version_and_profile_selection_over_sample_catalog():
