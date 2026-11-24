@@ -147,9 +147,9 @@ comment. Whitespace in these snippets is non-normative.
 
 #### API
 
-An API is a logical interface contract that defines one or more operations. An
-API Resource represents this logical interface. An API Version stores a
-concrete API document.
+An API is a logical interface contract that defines one or more operations.
+An API Resource represents this logical interface, and an API Version stores
+a concrete API document.
 
 #### API Document
 
@@ -310,11 +310,10 @@ reason. Without a compatibility policy, these result attributes MUST be absent.
 ### API References and Operation Locators
 
 An API Resource or Version reference identifies the API contract as a whole.
-Other documents can reference a specific interface or operation through the
-deep-reference locators that this specification defines for those elements,
-similar to the [Schema Registry][schema] locators for individual type
-definitions. Consumers can also use these locators wherever they need to
-identify part of an API precisely.
+Other documents can use this specification's deep-reference locators to
+identify a specific interface or operation, much as [Schema Registry][schema]
+locators identify individual type definitions. Consumers can use these locators
+whenever they need to identify part of an API precisely.
 
 An API reference combines a Core Resource or Version XID or absolute URL with
 an operation locator. A Resource reference selects its default Version. A
@@ -520,8 +519,8 @@ The following locator uses a `messages` member name.
 #operations/GetUserProfile
 ```
 
-The request, response, errors, and one-way flag remain authoritative in that
-protocol.
+The protocol is authoritative for the request, response, errors, and one-way
+flag.
 
 #### Apache Avro IDL
 
@@ -537,8 +536,8 @@ The following locator uses the message name in the resolved protocol.
 ```
 
 Imported protocol messages participate in operation resolution after native
-import processing. The request, response, errors, and one-way flag remain
-authoritative in the resolved protocol.
+import processing. The resolved protocol is authoritative for the request,
+response, errors, and one-way flag.
 
 #### GraphQL
 

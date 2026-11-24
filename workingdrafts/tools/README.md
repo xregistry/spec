@@ -8,8 +8,8 @@
 Use the [schema generator](../../tools/schema-generator.py) to produce JSON
 Schema, JSON Structure, Avro and OpenAPI descriptions of working-draft
 metadata. Each model and its specification remain authoritative. The
-generated files describe Registry metadata, not the contents of OpenUSD or
-WoT documents, and do not validate those document contents.
+generated files describe Registry metadata. They do not describe or
+validate the contents of OpenUSD or WoT documents.
 
 | Model | Input | Generated files |
 | --- | --- | --- |
@@ -58,7 +58,7 @@ The Avro regression checks use the Registry model's `federationprofiles`
 and `relationships` arrays. Their object items retain their declared
 fields rather than becoming empty or incomplete types. Additional cases
 cover typed and generic object items in arrays, maps and nested collections.
-This fix does not change generation for the established models.
+Generation for the established models is unchanged.
 
 Reproduction and parsing do not establish complete fidelity to a model or
 Core conformance. The existing generator does not preserve every Meta

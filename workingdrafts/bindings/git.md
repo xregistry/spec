@@ -51,9 +51,9 @@ the commit, the [directory mapping format](mapping.md) keeps Registry
 metadata separate from domain bytes.
 
 For example, a repository at `https://example.com/registries.git` can store
-the mapping under `xregistry`. Selecting `refs/tags/release-1` and requesting
-`/documents/main/assets/item/versions/v1` causes the resolver to pin the tag's
-commit before reading the corresponding Git blobs. The resolver reads no
+the mapping under `xregistry`. When a consumer selects `refs/tags/release-1`
+and requests `/documents/main/assets/item/versions/v1`, the resolver pins the
+tag's commit before reading the corresponding Git blobs. The resolver reads no
 working-tree files and does not use a Git timestamp to select the newest
 Resource Version.
 
@@ -262,14 +262,13 @@ A producer MUST publish a complete document-tree mapping at the advertised
 path in one commit. A native resolver MUST implement locator validation,
 commit pinning, object-only reads, the common operations, and the rejection
 rules in the "Unsupported Indirections" and "Errors and Security" sections.
-An offline-complete snapshot additionally contains all declared document bytes
-locally.
+An offline-complete snapshot also contains all declared document bytes locally.
 
 The [shared generator](../federation/tools/generate_examples.py) creates a
 new bare repository from a named Registry in
-[examples.json](../federation/samples/examples.json). It stores the directory mapping
-under `xregistry`, creates a deterministic synthetic commit at
-`refs/heads/main`, and creates the annotated tag `refs/tags/snapshot`.
+[examples.json](../federation/samples/examples.json). It stores the directory
+mapping under `xregistry`, creates a deterministic synthetic commit at
+`refs/heads/main`, and adds the annotated tag `refs/tags/snapshot`.
 It reports the full commit ID and selected tree path. Author identity,
 timestamps and object bytes are fixed example data, not the contributor's
 identity or working-tree state. No remote is configured, and generation

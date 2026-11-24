@@ -59,7 +59,7 @@ describes.
 
 ## 1. Overview
 
-A Registry of Registries is an xRegistry Registry that serves as a catalog.
+A Registry of Registries is a catalog implemented as an xRegistry Registry.
 Its `category` Groups organize `registry` Resources. Each Resource describes
 one independently administered Registry or a website listed for discovery.
 Its Versions record successive descriptions, not copies of the described
@@ -826,9 +826,8 @@ MUST retain those distinctions. In particular, a matching explicit HTTP
 advertisement does not change the implicit candidate's zero priority.
 Map iteration order MUST NOT be used to rank advertisements.
 
-The following table summarizes how caller choice and policy constrain the
-candidates before priority ranks them. Priority neither replaces an explicit
-choice nor bypasses access policy.
+Caller choice and policy narrow the candidate set before ranking by priority.
+Priority neither replaces an explicit choice nor bypasses access policy.
 
 | Selection input | Result |
 | --- | --- |
@@ -1052,8 +1051,8 @@ JSON object order cannot encode advertisement preference.
 
 Derived artifacts MUST NOT override Core or this specification when a
 generator omits a constraint or produces an incompatible description.
-Current limitations and reproduction commands are documented alongside the
-generated files rather than changing the domain model to accommodate them.
+The documentation alongside the generated files lists current limitations and
+reproduction commands. Those limitations do not change the domain model.
 
 ## References
 

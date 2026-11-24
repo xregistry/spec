@@ -85,9 +85,8 @@ python -B -m workingdrafts.bindings.tools.mapping_examples document D:\temp\xreg
 ```
 
 The selected File root is `file:///D:/temp/xregistry-file-portable`, with
-`layout: "document-tree"`. The selected root has no extra `xregistry`
-directory. Although the generator reports the root hash, the output
-directory remains mutable.
+`layout: "document-tree"` and no extra `xregistry` directory. The generator
+reports the root hash, but the output directory remains mutable.
 A selective read checks only the bytes it references; the `validate`
 command checks the complete declared graph. For local OCI output, use the
 [OCI generation and reading commands](oci.md#generate-and-read-a-layout)
@@ -240,8 +239,8 @@ rewriting `xref` into a filesystem link, or fetching arbitrary domain links.
 The caller MUST authorize a filesystem boundary before the resolver opens
 the selected directory. The resolver MUST verify that the directory is
 within that boundary, then constrain all internal reads to that selected
-root. A mere string prefix test is insufficient: `root-other` is not
-inside `root`.
+root. A string prefix test is insufficient: `root-other` is not inside
+`root`.
 
 The resolver MUST check every directory component, including components of
 the selected root, for symlinks and Windows reparse points. Internal objects
@@ -324,7 +323,7 @@ A producer MUST provide a complete snapshot in one explicitly declared
 layout. A consumer MUST implement that layout's metadata/document semantics
 and all applicable containment and consistency rules. A consumer MUST
 identify which layouts it implements. Support for one does not imply the
-other. An offline-complete claim additionally requires the selected layout's
+other. An offline-complete claim also requires the selected layout's
 offline content closure.
 
 The [document helper](tools/mapping_examples.py) implements only

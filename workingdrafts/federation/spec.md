@@ -67,10 +67,10 @@ This specification defines how resolvers interpret resolution requests.
 [directory mapping format](../bindings/mapping.md) is shared by Git and File.
 Native bindings do not require an HTTP facade.
 
-Synchronization, replication, and write-through are outside this specification's
-scope. Global entity identifiers, arbitrary merge precedence, and discovery
-of dependencies embedded inside domain documents are also outside its
-scope. OCI publication is a separate producer operation.
+This specification does not cover synchronization, replication, write-through,
+global entity identifiers, arbitrary merge precedence, or discovery of
+dependencies inside domain documents. OCI publication is a separate producer
+operation.
 
 ## Notations and Terminology
 
@@ -140,9 +140,9 @@ composition policy do not necessarily contain. Callers with a known source
 endpoint can bypass catalog discovery, as described under
 [Read Operations](#read-operations).
 
-The resolution-owner signal distinguishes this uncombined view from a view
-whose producer has already performed composition. It does not define a
-service that returns a remote execution plan for the client.
+The resolution-owner signal tells clients whether the producer has already
+combined views. It does not define a service that returns a remote execution
+plan for the client.
 
 ### API Server Resolution
 
@@ -182,7 +182,7 @@ the default `consumer` behavior.
 
 Core single-document exports and multiple-document views remain available.
 The [directory mapping](../bindings/mapping.md) and
-[OCI](../bindings/oci.md) bindings additionally define storage formats with
+[OCI](../bindings/oci.md) bindings also define storage formats with
 explicit content and integrity references. Their
 [snapshot completeness](#snapshots-and-completeness) rules identify which
 content has been captured. A live resolver MAY consume these stored
@@ -326,9 +326,9 @@ implementation-specific. An implementation can permit per-call choices or
 overrides subject to its access and source-selection policy. Naming a
 source does not authorize the caller to access it.
 
-The catalog and this policy serve different purposes. A catalog describes
-known Registries and how to access them. Listing an entry does not include it
-in a particular composed view, assign it precedence, or authorize access.
+A catalog describes known Registries and how to access them. Listing an
+entry does not include it in a particular composed view, assign it
+precedence, or authorize access.
 For example, a shared catalog can list suppliers for several applications
 while one application's view selects only its approved suppliers. Either the
 catalog or the policy can change independently. The `priority` inside a
@@ -336,11 +336,10 @@ catalog entry orders that entry's access advertisements, not different source
 Registries. See [Discovery and Binding Selection](#discovery-and-binding-selection).
 
 When source order is complete, precedence determines which origin supplies
-a Resource path that appears in several sources. These copies are not
-ambiguous. An unordered set of potentially competing origins cannot
-determine that result and MUST produce `ambiguous` when disambiguation is
-needed. A selector can still match several distinct visible Resources
-after shadowing; source precedence does not choose between those
+a Resource path that appears in several sources. If potentially competing
+origins are unordered and the resolver needs to choose between them, it
+MUST return `ambiguous`. A selector can still match several distinct visible
+Resources after shadowing; source precedence does not choose between those
 Resources. See
 [Select After Applying Shadows](#example-select-after-applying-shadows).
 
@@ -366,11 +365,11 @@ of shadowing is the Resource, including all of its Versions:
    Core default Version, and obtain the requested representation. All Meta,
    Version, and document reads for this Resource MUST use that selected
    origin and revision. Do not merge Version sets across origins.
-6. A source Resource result of `not_found` permits trying the next configured
-   source entry. Exhausting the list yields `not_found`. The resolver MUST
-   report other failures, including authorization denial, unsupported
-   binding or version, malformed data, and integrity failure, rather than treat
-   them as absence.
+6. If the source returns `not_found` for the Resource, the resolver can try
+   the next configured source entry. Exhausting the list yields `not_found`.
+   The resolver MUST report other failures, including authorization denial,
+   unsupported binding or version, malformed data, and integrity failure,
+   rather than treat them as absence.
 
 The resolver tries the same XID in the next configured source Registry only
 when the Resource is absent. If the resolver cannot retrieve the selected
@@ -506,15 +505,14 @@ Now remove the local `item` Resource and repeat the collection request.
 Source A's `item` becomes visible with default Version `v2`. Both `item` and
 `other` now match `stage=production`, so the resolver returns `ambiguous`.
 Source order selects the origin of an individual Resource. It does not let
-the resolver discard a second visible Resource to manufacture a unique
-label match.
+the resolver discard a second visible Resource to report a unique label
+match.
 
 ## Discovery and Binding Selection
 
+The composition policy determines source order and local shadow precedence.
 After selecting a source Registry, the resolver chooses an access method
-from that catalog entry's advertisements. Advertisement selection does not
-rank source Registries; the composition policy above determines source
-order and local shadow precedence.
+from that catalog entry's advertisements.
 
 A resolver MUST select a catalog-description Version before interpreting its
 advertisements. In the absence of an explicit description Version, it MUST
@@ -582,7 +580,7 @@ an origin before this access-method decision.
 
 ## Read Operations
 
-These are reads within one selected source context. When the request
+Each operation reads from one selected source context. When the request
 addresses a combined Registry view, its
 [resolution owner](#signaling-who-performs-resolution) determines who applies
 [local and source selection](#local-resources-and-ordered-sources).
@@ -838,8 +836,8 @@ the logical operation that retrieves an alias's target document under Core.
 A resolver MUST report an unsupported view or alias-Version document view,
 and MUST NOT silently convert it to a different view.
 
-A binding offering API-view results MUST define actually retrievable
-Core-conforming `self` and navigation URLs. An implementation-defined URI
+A binding offering API-view results MUST define Core-conforming `self` and
+navigation URLs that clients can retrieve. An implementation-defined URI
 with no retrieval contract is insufficient. An OPTIONAL HTTP facade MUST
 conform separately to [Core HTTP](../../core/http.md). Neither `oci://`
 locators nor UA NodeIds become Core XIDs.
@@ -860,8 +858,8 @@ of a snapshot that contains them.
 
 A consumer can cache individual responses under the selected binding's
 rules, but those responses do not establish one consistent captured state.
-The following snapshot requirements apply when a producer declares a
-captured scope and completeness class.
+These requirements apply when a producer declares a snapshot's scope and
+completeness class.
 
 This specification does not prescribe a capture trigger or refresh schedule.
 A caller can request a capture, or a server or publisher can manage captures
@@ -921,8 +919,8 @@ simultaneously. To reproduce a combined view, a reader needs the source pins,
 interpreted model, and exact composition policy, or a separately materialized
 complete snapshot. Resource precedence follows
 [Local Resources and Ordered Sources](#local-resources-and-ordered-sources).
-It does not select compatible domain Versions. It also does not fill a winning
-Resource's missing Version from a lower-priority source.
+It neither selects compatible domain Versions nor fills a winning Resource's
+missing Version from a lower-priority source.
 
 Publication IDs, Git commits, and OCI digests are distinct. A claim that two
 bindings expose the same publication requires a checked association between
@@ -1003,8 +1001,8 @@ A snapshot producer MUST identify its format, scope, and completeness class
 and produce a complete internal graph. An OPTIONAL
 API facade requires separate protocol-binding conformance.
 
-The executable examples check the specified behavior offline, rather than
-implementing production resolution. The
+The executable examples check the specified behavior offline; they do not
+implement production resolution. The
 [shared selection tests](tools/test_spec_examples.py) distinguish
 identity, selection, and reference cases. Their reduced logical vectors are
 not complete serialized Core API responses. Omitted server-generated metadata

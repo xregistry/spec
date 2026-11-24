@@ -101,9 +101,8 @@ an array after filtering. The unknown extension can only participate if a
 consumer independently implements it. The sample does not define it.
 
 Version `1` has explicit HTTP priority `20`, OCI priority `10` and a matching
-`xregurl`. The frozen catalog contract gives the appended implicit HTTP
-candidate priority `0`, so that candidate wins unless the caller overrides the
-selection.
+`xregurl`. The catalog rules give the appended implicit HTTP candidate
+priority `0`, so that candidate wins unless the caller overrides the selection.
 Removing it because an explicit HTTP advertisement exists would change the
 result.
 
@@ -211,8 +210,7 @@ Consumers remain responsible for preserving source identity.
 The shared [selection vectors](../../../federation/tools/test_spec_examples.py)
 exercise source ownership, default-Version selection and labels. They are
 operation vectors, not additional full Registry-of-Registries documents.
-Snapshot copying and transport implementations are outside this catalog's
-helper surface.
+The helpers do not copy snapshots or implement transports.
 
 ## Validation Boundaries
 

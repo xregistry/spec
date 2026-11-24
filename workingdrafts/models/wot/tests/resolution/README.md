@@ -3,11 +3,11 @@
 <!-- words: allowprerelease contentdigest minversion prereleases py pytest submodel typelinks versionorigin workingdrafts wotid -->
 <!-- words: standalone -->
 
-The checker exercises version assignment and reference resolution against the
-reference implementation using 33 representative cases from
-[vectors.json](vectors.json). The file is the canonical source for their stable
-case IDs and literal expected outcomes, so independent implementations can
-mirror each case without deriving its expected result from this checker.
+The checker runs the reference implementation on 33 representative version
+assignment and reference resolution cases from [vectors.json](vectors.json).
+The file is the canonical source for the stable case IDs and literal expected
+outcomes, so independent implementations can mirror the cases without deriving
+expected results from the checker.
 [Section 1.3](../../spec.md#13-versioning) defines version assignment;
 [Section 5.4](../../spec.md#54-versioned-reference-resolution) defines resolution.
 The cases illustrate those rules; they do not exhaustively test the helper.

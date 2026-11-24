@@ -34,7 +34,7 @@ flowchart TD
     P --> D["Domain closure and compatibility, for example WoT"]
 ```
 
-For a particular operation, use these entry points:
+Use the entry point for your task:
 
 - **Discover and read:** [catalog selection](models/registry/spec.md#6-discovery-and-selection),
   then [federation reads](federation/spec.md#read-operations) and the chosen
@@ -123,8 +123,9 @@ python -B -m workingdrafts.federation.tools.generate_examples git --example walk
 python -B -m workingdrafts.federation.tools.generate_examples oci --example offline --output D:\temp\xregistry-oci --reference offline --page-size 2
 ```
 
-On Linux, use an absolute output directory outside the checkout. For example,
-the same commands can use new directories under `$HOME/xregistry-examples`:
+On Linux, use an absolute output directory outside the checkout. For
+example, the same commands can write to new directories under
+`$HOME/xregistry-examples`:
 
 ```sh
 python -B -m workingdrafts.federation.tools.generate_examples file --example walkthrough --output "$HOME/xregistry-examples/file"
@@ -182,8 +183,9 @@ Protocol observations and expected errors live in the
 [UA tests](bindings/tools/test_opcua_examples.py) and
 [shared selection tests](federation/tools/test_spec_examples.py).
 They use synthetic exchanges, not deployed traffic. The
-[generator tests](federation/tools/test_generate_examples.py) check generated
-representative outputs across bindings, not every example/binding pair.
+[generator tests](federation/tools/test_generate_examples.py) check
+representative generated outputs across bindings, not every
+example/binding pair.
 The [WoT cases](models/wot/tests/resolution/README.md) run through pytest too.
 Run the offline suites from the repository root:
 
@@ -229,8 +231,8 @@ live references.
 
 ## OpenUSD Artifact Registry
 
-The OpenUSD draft is a domain model rather than a federation binding. The draft
-defines how an xRegistry stores and describes artifacts in an
+The OpenUSD draft is a domain model, not a federation binding. It defines
+how an xRegistry stores and describes artifacts in an
 [OpenUSD](https://openusd.org) scene. These artifacts include:
 
 - Layers

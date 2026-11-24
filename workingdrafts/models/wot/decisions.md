@@ -26,8 +26,8 @@ Version of the same Resource without changing its `wotid` or
 `thingdescriptionid`. A Consumer retrieves the correction through the
 Resource's `self` URL or names the earlier Version to retrieve the old text.
 
-**Consequence.** Each revision leaves `wotid`, `thingdescriptionid`, and
-`thingmodelid` unchanged. Each revision adds a Version to the same Resource.
+**Consequence.** Each revision adds a Version to the same Resource without
+changing `wotid`, `thingdescriptionid`, or `thingmodelid`.
 
 **Scope.** This rule constrains revisions of an existing identifier. An
 author publishing a second, incompatible Thing assigns it a distinct,
@@ -122,9 +122,8 @@ without changing its identity.
 `standardsbody` over one marked `Community`. Two documents from the same
 `publisher` remain distinct because `wotid` alone determines identity.
 
-**Consequence.** Updating one of these attributes is an ordinary update of a
-Version attribute, governed by the Core rules for updating a Version. This
-specification grants it no exemption from them.
+**Consequence.** Updates to these attributes follow the usual Core rules for
+Version attributes.
 
 See [Section 4.6](spec.md#46-provenance-and-selection-metadata).
 
@@ -162,13 +161,13 @@ See [Section 5.1.1](spec.md#511-breaking-changes-and-successor-identifiers).
 `version.model`. A TD `versionid` equals `version.instance`. Both receive a
 server-set `versionorigin`. A reference from one Thing Description to another
 can set `td:minVersion` as a floor. The resolver keeps the selected version
-below the next major. The resolver honours a sticky default only when it
+below the next major. It honours a sticky default only when it
 satisfies the applicable floor and range, and returns an exact selection with
 its origin.
 
 **Why.** Floors let a dependency require a minimum compatible version. Pins
-let a caller reproduce the exact Version selected earlier. The choices below
-define how the resolver handles both:
+let a caller reproduce the exact Version selected earlier. The resolver
+handles both as follows:
 
 | Choice | Rationale |
 |---|---|

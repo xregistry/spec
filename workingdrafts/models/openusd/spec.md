@@ -70,8 +70,8 @@ render a USD stage.
 
 ## 1. Overview
 
-An OpenUSD Artifact Registry provides a repository for managing the artifacts
-that make up an [OpenUSD][OpenUSD] scene:
+An OpenUSD Artifact Registry is a repository for the artifacts that make up an
+[OpenUSD][OpenUSD] scene:
 
 - Layers (`.usda`, `.usdc`, `.usd`),
 - Packages (`.usdz`),
@@ -212,8 +212,8 @@ unsupported or disabled.
 
 In the pseudo JSON format snippets `?` means the preceding attribute is
 OPTIONAL, `*` means the preceding attribute MAY appear zero or more times,
-and `+` means the preceding attribute MUST appear at least once. The presence
-of the `#` character means the remaining portion of the line is a comment.
+and `+` means the preceding attribute MUST appear at least once. Text after
+`#` on a line is a comment.
 Whitespace characters in the JSON snippets are used for readability and are
 not normative.
 
@@ -283,8 +283,8 @@ plugin name from a scene can address the Group directly.
 
 ## 3. OpenUSD Registry Model
 
-The authoritative xRegistry extension model of the OpenUSD Artifact Registry
-resides in the [model.json](model.json) file.
+The [model.json](model.json) file contains the authoritative xRegistry
+extension model for the OpenUSD Artifact Registry.
 
 The JSON serialization of an OpenUSD Artifact Registry adheres to this form:
 
@@ -555,8 +555,7 @@ the plugin name verbatim, which is non-empty by construction.
 
 A Schema Plugin Group SHOULD contain exactly two `usdasset` Resources: one
 whose `assetkind` is `SchemaPlugin` and one whose `assetkind` is
-`GeneratedSchema`. A Consumer requires both to register the schema. A
-Group offering only one document cannot be used to register the schema.
+`GeneratedSchema`. A Consumer needs both documents to register the schema.
 
 ### 4.4. Schema Plugin Resources
 
@@ -636,7 +635,7 @@ or a MaterialX document.
 - Format identifier: `Opaque/1.0`
 - Document: any artifact whose internal structure this specification does not
   describe — textures, volume caches, geometry caches, sidecar manifests.
-- `contenttype` carries the meaningful type discrimination for such artifacts,
+- `contenttype` distinguishes the types of these artifacts,
   and an implementation MUST NOT attempt format validation on them.
 
 ## 5. Relationships and Cross-References
@@ -668,10 +667,10 @@ sibling-scoped assignment:
 
 #### 5.1.1. The Symbolic Identifier Construction
 
-A symbolic candidate is built from a source string as follows. The result is a
-dot-separated token in the alphabet `A-Z a-z 0-9 _ . -`, a strict subset of what
-xRegistry permits, so that it is simultaneously safe in a URL, on a command line,
-and as a file name in the [file-system representation][xRegistry primer].
+A symbolic candidate is a dot-separated token derived from a source string.
+Its alphabet, `A-Z a-z 0-9 _ . -`, is a strict subset of the characters
+xRegistry permits. The token is safe to use in a URL, on a command line, and
+as a file name in the [file-system representation][xRegistry primer].
 
 1. Split the source into an *authority* and a *path*. For an absolute URI with
    an authority component the authority is the host together with its port when
@@ -914,7 +913,7 @@ resolver in its chain, and MAY stop as soon as an artifact resolves.
 
 ### 5.4. Asset Resolution
 
-The Registry serves as an addressable asset resolver backend under Sections
+The Registry is an addressable asset resolver backend under Sections
 [5.1](#51-asset-identifiers-and-xids) through [5.3](#53-federation).
 
 A USD asset resolver plugin with a container context resolves an authored

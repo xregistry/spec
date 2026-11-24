@@ -60,8 +60,8 @@ The [validation vectors](tests/validation-vectors.json) are executable examples
 for these rules. They cover the codec identifiers explicitly used as model
 defaults, an unknown codec identifier, case-sensitive codec recognition,
 media-kind mismatch, and each protocol's declared `streamformat` rule. They do
-not define a codec vocabulary or compatibility matrix. Run the following
-command from the repository root to check the validation vectors.
+not define a codec vocabulary. To check the vectors, run the following command
+from the repository root.
 
 ```powershell
 python -B -m pytest workingdrafts\models\media-endpoints\tests -q

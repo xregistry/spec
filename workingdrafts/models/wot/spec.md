@@ -213,9 +213,8 @@ uses a TD caret range. An unfloored TD source can cross major versions.
 The projection envelope's own `version.model` and `version.instance` do
 not set a source floor.
 
-The following illustrative JSON fragments show the authored version and the
-Version attributes assigned by the registry. Ellipses mark omitted members.
-They are not JSON tokens.
+These JSON fragments show the authored version and the Version attributes the
+registry assigns. Ellipses mark omitted members; they are not JSON tokens.
 
 ```json
 {
@@ -422,14 +421,14 @@ contains.
 
 ## 3. WoT Registry Model
 
-The authoritative xRegistry extension models of the WoT Registry reside in
+The authoritative xRegistry extension models for the WoT Registry are
 [model.json](model.json) for SemVer and
 [model-incremental.json](model-incremental.json) for incremental.
-Their `modelversion` is `0.1` while this remains a
-working draft. It versions the WoT model independently of the xRegistry Core
-specification version in a Registry's `specversion`.
+Their `modelversion` is `0.1` while this remains a working draft. It identifies
+the WoT model version independently of the xRegistry Core specification
+version in a Registry's `specversion`.
 
-The following form shows the SemVer serialization. An incremental Registry
+This notation shows the SemVer serialization. An incremental Registry
 uses the same collections and additionally exposes the OPTIONAL Version
 attribute `compatibilityline` (Section 5.5.2).
 
@@ -647,8 +646,7 @@ including `version.instance`, are not rewritten.
 
 The `format` attribute of a `thingdescription` Resource Version MUST be
 `"JSON-LD/1.1"`. [model.json](model.json) declares the `format` enumeration
-as `strict`, so a registry rejects any other value rather than merely
-discouraging it.
+as `strict`, so a registry rejects any other value.
 
 The `contenttype` of a `thingdescription` document MUST be
 `application/td+json` as specified in
@@ -736,9 +734,9 @@ Thing Models' `wotid`s SHOULD be listed in `derivedfrom`.
 Both Thing Descriptions and Thing Models are serialized as JSON-LD 1.1
 documents, so both use the
 [core specification's `format`](../../../core/spec.md#format-attribute) identifier
-`JSON-LD/1.1`. The distinction between the two document classes is carried by
-the Resource type (`thingdescriptions` versus `thingmodels`) and by the
-`contenttype` attribute, not by `format`.
+`JSON-LD/1.1`. The Resource type (`thingdescriptions` versus `thingmodels`) and
+the `contenttype` attribute distinguish the two document classes; `format`
+does not.
 
 #### 4.5.1. WoT Thing Description
 
@@ -816,10 +814,9 @@ provenance attributes agree, nor as different documents because they differ:
 identity is `wotid` alone
 ([Section 5.1](#51-wot-identifiers-and-registry-ids)).
 
-They are Version attributes, carried on each Version alongside the document
-they describe, as `format` and `wotid` are. This specification defines no
-special update semantics for them. They are written and updated exactly as any
-other Version attribute is, under the xRegistry Core rules.
+Each Version carries these attributes alongside the document they describe,
+just as it carries `format` and `wotid`. The xRegistry Core rules for writing
+and updating Version attributes apply.
 
 ## 5. Identity and Resolution
 
@@ -980,21 +977,20 @@ MUST NOT rely on `derivedfrom` alone.
 
 ### 5.3. Lookup
 
-A Consumer holding a WoT identifier — typically from a `tm:extends` link, a
-`tm:ref`, another `links[].href`, or a message attribute — can resolve it to a
-stored document in either of two ways.
+A Consumer can resolve a WoT identifier to a stored document in two ways. The
+identifier typically comes from a `tm:extends` link, a `tm:ref`, another
+`links[].href`, or a message attribute.
 
-**By path.** Where the Consumer already knows the Resource's Group and id —
-because it was given them, or because it follows a stored `self` URL — it
-addresses the Resource directly:
+**By path.** If the Consumer already has the Resource's Group and id, or
+follows a stored `self` URL, it addresses the Resource directly:
 
 ```
 /thingmodelgroups/<thingmodelgroupid>/thingmodels/<thingmodelid>
 ```
 
-**By `wotid`.** Otherwise — the usual case, because WoT documents reference
-one another by authored identifier rather than by registry path — it queries on
-the `wotid` attribute:
+**By `wotid`.** Otherwise, the Consumer queries the `wotid` attribute. This is
+the usual case because WoT documents reference one another by authored
+identifier rather than by registry path:
 
 ```
 GET /thingmodels?filter=wotid=urn:fabrikam:lamp:v1
@@ -1535,8 +1531,8 @@ that already carried an `href` in the WoT identifier space keeps it, and the
 link is recorded in `derivedfrom` instead.
 
 The `href` in such a link is an absolute URI. A registry-relative path would
-not survive a copy of the document to another registry, which is the outcome
-[Section 5.2](#52-preserving-customer-documents) exists to prevent.
+not survive a copy of the document to another registry. See
+[Section 5.2](#52-preserving-customer-documents).
 
 For example:
 
@@ -1636,20 +1632,19 @@ construct. They MUST remain fully supported.
 
 ## 7. Security
 
-Like the [xRegistry Core][xRegistry Core] specification, this specification
-does not explicitly address authentication or authorization levels of users,
-nor how to securely protect the APIs.
+Like [xRegistry Core][xRegistry Core], this specification does not specify how
+to authenticate users, what access levels to grant them, or how to secure the
+APIs.
 
 Implementations are expected to use authentication and authorization
 suited to the application domain and deployment environment. These
 mechanisms MAY include OAuth 2.0, OpenID Connect, API keys, or other options
 suited to the use case.
 
-For authorization, `thingdescriptiongroup` and `thingmodelgroup` provide
-natural boundaries. Users can receive access to specific Groups and the
-Things or Thing Models they contain. Access can also be restricted to
-specific Versions of `thingdescription` and `thingmodel` Resources. This
-supports fine-grained access control.
+A deployment can use `thingdescriptiongroup` and `thingmodelgroup` as
+authorization boundaries, granting users access to specific Groups and the
+Things or Thing Models they contain. It can also restrict access to specific
+Versions of `thingdescription` and `thingmodel` Resources.
 
 Operators of a WoT Registry SHOULD be aware that Thing Descriptions can
 expose detailed information about deployed devices, including network

@@ -157,7 +157,7 @@ the OPC UA Parts.
 
 ## 1. Scope
 
-This draft describes an informative source for the xRegistry OPC UA binding.
+This draft is an informative description of the xRegistry OPC UA binding.
 OPC 30460-1 governs the OPC UA mapping; xRegistry Core and Events remain
 normative for xRegistry requirements and event definitions. This draft also
 documents federation and publication behavior beyond that binding, without
@@ -581,8 +581,8 @@ parent. The preferred client sequence is:
 
 A server MUST apply xRegistry Core's entity-level atomicity rule. A native
 `WriteDocument` or `ApplyChanges` validates the complete resulting entity
-before committing it. A sequence of separate create, Property Write and
-file Calls is a sequence of interactions, not one atomic replacement.
+before committing it. Separate create operations, Property Writes and file
+Calls are individual interactions, not one atomic replacement.
 If an implementation cannot provide the requested atomic entity operation,
 it MUST reject it rather than advertise a weaker equivalent. Atomicity
 across separate entities follows xRegistry Core and the declared batch contract.
@@ -687,7 +687,7 @@ An xRegistry `epoch` is an unsigned integer in the range 0 through
 4,294,967,295. Before a mutation increments one or more `Epoch` or `MetaEpoch`
 values, the Server MUST check every affected counter. If any counter is at
 the maximum, the operation MUST fail with `Bad_OutOfRange`, make no state
-change and emit no event. This check is atomic across all affected entities;
+change and emit no event. This check is atomic across all affected entities.
 A counter MUST NOT wrap, reset or saturate.
 
 For a Resource document read, clients obtain accompanying metadata from the
@@ -1209,13 +1209,11 @@ collection key without a `GroupId` read for every candidate.
 
 ### 5.7. Creating and updating groups
 
-Groups are `GroupType` entries in the selected Group collection. For an
-unambiguous single-collection operation, the base creation sequence follows.
-For each Group key, the preferred one-shot operation is
+Groups are `GroupType` entries in the selected Group collection. For each
+Group key in an unambiguous single-collection operation, the preferred call is
 `GetOrCreateGroup(GroupId)` on `RegistryType`. It returns an existing Group
-with `Created = false` or
-creates one with `Created = true`. When an existing Group MUST cause
-failure, the client uses strict `CreateGroup(GroupId)`.
+with `Created = false` or creates one with `Created = true`. When an existing
+Group MUST cause failure, the client uses strict `CreateGroup(GroupId)`.
 
 The base Methods carry no collection-name argument. A multi-collection
 domain that supports creation MUST define an unambiguous
@@ -1227,8 +1225,8 @@ The client then writes Group Properties and updates the Group's `Labels`
 container. Partial updates write only named attributes. Full representations
 reset or remove omitted mutable attributes under xRegistry rules.
 
-Reading back only the groups processed, not the entire group collection,
-produces the response representation.
+To produce the response representation, the client reads back only the Groups
+it processed.
 
 If a group does not exist and the operation permits creation, the server creates
 it with `GetOrCreateGroup` or strict `CreateGroup` on the registry root. The
@@ -1628,7 +1626,7 @@ To list Versions, the client resolves the logical Resource's
 `ResourceVersionsType` component named `Versions` and browses its exact
 `ResourceType` children. Version collections are unordered maps keyed by
 `VersionId`; each exact Version's qualified BrowseName supplies its identifier
-the serialized key. Browse order is server-defined. Version order comes from
+as the serialized key. Browse order is server-defined. Version order comes from
 attributes such as `ancestorid`, `createdat` and `defaultversionid`, not
 container position.
 
@@ -1681,8 +1679,8 @@ A client reads a Version document with `Open`, `Read`, and `Close` on the exact
 qualified BrowseName has the selected version identifier as its Name
 component. The exact Version has no `VersionId` Property.
 
-A client reads Version metadata by Reading that exact Version's Properties. Its
-`Xid` MUST be the logical Resource `Xid` plus `/versions/<VID>`.
+For Version metadata, the client uses Read on that exact Version's Properties.
+Its `Xid` MUST be the logical Resource `Xid` plus `/versions/<VID>`.
 
 ### 5.20. Replacing a version document
 
@@ -1845,9 +1843,9 @@ binding's pagination tokens and OPC UA continuation points internally.
 ## 7. Value encoding
 
 Native operations exchange typed OPC UA Values and StatusCodes, rather than
-requiring transport headers and JSON envelopes. JSON carries xRegistry JSON
-document content: `Capabilities`, `Model`, possible model-source or export
-payloads, and Resource documents with a JSON domain media type.
+requiring transport headers and JSON envelopes. The binding uses JSON for
+xRegistry document content: `Capabilities`, `Model`, possible model-source
+or export payloads, and Resource documents with a JSON domain media type.
 
 Strings MUST be encoded as OPC UA `String`, timestamps as `DateTime`, integer
 epochs as `UInt32`, and labels as `String` Property Variables under `Labels` or
@@ -1986,13 +1984,13 @@ demonstrate metadata-only catalog entries, three Versions with `v1` selected
 despite later Versions, exact JSON/binary/empty bytes, local aliases and
 document-local navigation.
 
-Import creates or updates the same subtree in the reverse direction. The
-importer creates Group folders, atomically creates each new logical
-Resource with its first exact Version, and creates later exact Versions
-under `Versions`. It writes document bytes and mapped Properties and
-updates exact Version `Labels` and logical Resource `MetaLabels`.
+Import creates or updates the same subtree. The importer creates Group
+folders, atomically creates each new logical Resource with its first
+exact Version, and creates later exact Versions under `Versions`. It writes
+document bytes and mapped Properties and updates exact Version `Labels` and
+logical Resource `MetaLabels`.
 
-The server auto-bootstraps `Xid`, Version `Epoch` /`CreatedAt` /`ModifiedAt`,
+The server initializes `Xid`, Version `Epoch` /`CreatedAt` /`ModifiedAt`,
 and Resource Meta `MetaEpoch` /`MetaCreatedAt` /`MetaModifiedAt` where those
 values are not explicitly supplied or are server-managed.
 
@@ -2416,8 +2414,8 @@ or endpoint. Unresolved Session-local namespace or server indexes are
 insufficient. A non-OPC-UA provider MUST use the stable `OriginUri` form;
 it MUST NOT manufacture an application/root pair from a URL.
 The resolver MUST validate the claim against its configured or verified
-provider binding before selecting a locator. The claim does not establish
-its own trust. URI comparison is exact, with no case folding, trimming,
+provider binding before selecting a locator. The claim alone does not
+establish trust. URI comparison is exact, with no case folding, trimming,
 percent decoding or other URI normalization.
 
 An `ExpandedNodeId` identifies a Node, not an endpoint. As defined in
@@ -2967,11 +2965,11 @@ print(result["trace"])
 ['Open', 'Read', 'Read', 'Read', 'Close']
 ```
 
-The first two Reads return 8 and 9 bytes. The third returns empty EOF.
-The document is `{"type":"string"}` without a final newline. This transcript
-subset requires explicit EOF and successful Close, whereas the general
-[FileTransfer algorithm](#5131-filetransfer-read-lifecycle) also permits
-a reliable Size to establish completion.
+The first two Reads return 8 and 9 bytes; the third returns an empty
+ByteString at EOF. The document is `{"type":"string"}` without a final
+newline. This transcript subset requires explicit EOF and successful Close;
+the general [FileTransfer algorithm](#5131-filetransfer-read-lifecycle) also
+permits a reliable Size to establish completion.
 
 The result `consistency: "observed"` means that supplied before/after
 values matched; `"unverified"` means that no such check was supplied.
@@ -2994,10 +2992,9 @@ no OPC UA or xRegistry document-size limits.
 
 ## Annex A — Correspondence to the xRegistry HTTP binding (informative)
 
-This informative annex maps operation concepts between the peer OPC UA and
-xRegistry HTTP bindings. It is intended for readers familiar with the HTTP
-binding. The OPC UA API is not derived from the HTTP methods or paths in the
-table.
+This informative annex maps OPC UA operation concepts to their counterparts
+in the peer xRegistry HTTP binding. It assumes familiarity with that binding.
+The OPC UA API is not derived from the HTTP methods or paths in the table.
 
 The creation, delegation and Version-file rows describe document-backed
 Resources. Metadata-only domains use §5.10's metadata view, sole-Version

@@ -7,7 +7,7 @@
 The [WoT Registry specification][Spec], [SemVer model][Model], and
 [incremental model](model-incremental.json) define this draft's
 document storage, identity and resolution rules. The
-[decision record][Decisions] explains the design decisions. The informative
+[decision record][Decisions] explains the rationale. The informative
 [versioning design][Versioning] and [samples][Samples] provide supporting detail.
 
 The [publication companion][Publication] defines dependency binding and set

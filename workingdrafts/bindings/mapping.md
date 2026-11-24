@@ -108,11 +108,11 @@ relative to the selected root, regardless of which file holds the Version
 record. The descriptor's `size` and `sha256` describe the file's exact
 bytes. Neither `widget.json` nor `image.dat` needs to move or change.
 
-A publisher can store any record or index in a separate metadata file, either
-beside the described files or in another directory. A publisher need not use
-inline storage. Unreferenced files, such as `source/main.py` and the README,
-neither become Resources automatically nor participate in the Registry's
-declared content closure.
+A publisher can store any record or index in a separate metadata file
+beside the described files or in another directory.
+Unreferenced files, such as `source/main.py` and the README, neither become
+Resources automatically nor participate in the Registry's declared content
+closure.
 
 The [example](#worked-example-map-one-existing-file) shows
 every file needed to map one existing document and the resulting reads.
@@ -534,8 +534,8 @@ An index maps a full, case-sensitive [XID](../../core/spec.md#xid-attribute)
 to a storage path or an inline object. A storage path is not
 derived from the entity ID. The mapping therefore supports all Core-valid
 [IDs](../../core/spec.md#singularid-id-attribute), including IDs that are not
-portable filesystem names. The same local ID
-in different typed collections remains distinct.
+portable filesystem names. Entities with the same local ID in different
+typed collections remain distinct.
 
 Core requires case-insensitive uniqueness within a parent and case-sensitive
 lookup. Two IDs differing only in case within one collection are therefore
@@ -597,7 +597,7 @@ and their reason attributes.
 For a Resource model with `hasdocument: true`, it MUST NOT contain inlined
 `<RESOURCE>` or `<RESOURCE>base64` document content.
 
-The omitted fields do not authorize removal of other Core or extension data.
+These omissions do not extend to other Core or extension data.
 On a metadata-only Resource, an ordinary model-admitted attribute remains
 metadata even when its name has one of these spellings.
 
@@ -686,7 +686,7 @@ An alias MUST NOT own a Version index, including a fabricated empty index.
 
 The Registry's `entity.modelsource` MUST preserve the captured source,
 including `ximportresources` provenance. `entity.model`, when supplied, MUST
-be the actual full Core model, not a compact source relabeled as a full model.
+be the full Core model, not a compact source relabeled as a full model.
 It MUST agree with the source, its resolved includes and the captured data.
 
 If the source contains
@@ -834,8 +834,8 @@ attributes onto the Resource. No response in this format invents an API
 A standalone ordinary Meta result includes its selected default Version
 metadata in an envelope sibling, `related.defaultversion`. Its
 `defaultversionurl` MUST be `#/related/defaultversion`, and that Version's
-`self` MUST locate the same object. This explicit navigation closure avoids
-an absolute URL to an undefined native API or a dangling local pointer.
+`self` MUST locate the same object. This gives the local pointer a target
+without requiring an absolute URL to an undefined native API.
 An alias Meta has no such sibling and no default-Version attributes.
 
 Core [`xref`](../../core/spec.md#cross-referencing-resources) remains
@@ -950,8 +950,8 @@ its access policy and use only credentials authorized for that destination.
 A conforming producer emits schema-valid records and indexes that satisfy
 all semantic, byte and closure rules. A conforming consumer implements the
 common read semantics and the selected binding's safety rules. The
-offline-complete class additionally requires local declared document
-content. Neither role requires a server or an API-view facade.
+offline-complete class also requires declared document content to be local.
+Neither role requires a server or an API-view facade.
 
 ## Executable Example
 
@@ -999,7 +999,7 @@ The [shared instructions](../README.md#generating-and-reading-examples) list
 prerequisites, the other named examples and equivalent Linux paths. The
 [mapping walkthrough tests](tools/test_mapping_examples.py) show
 how metadata can be added around existing project files without moving or
-changing them. The new generator itself writes only to an empty destination.
+changing them. The generator writes only to an empty destination.
 
 `read_record` exposes a storage fragment, not a Core response. `metadata`
 and `collection` return the materialized envelopes defined in the Reads and

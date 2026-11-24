@@ -25,10 +25,10 @@ The [specification](../../models/wot/spec.md) retains SemVer rules. The
 
 ### Decision and problem
 
-The proposed decision is to retain native SemVer behavior and add a separate
-incremental profile. An operator selects the profile when provisioning an
-endpoint and its model; the registry does not infer it from a document's
-version string. Both profiles use the existing TD and TM collection names.
+The proposal retains native SemVer behavior and adds a separate incremental
+profile. An operator selects the profile when provisioning an endpoint and
+its model; the registry does not infer it from a document's version string.
+Both profiles use the existing TD and TM collection names.
 Supporting both therefore requires a separate endpoint and model instance for
 each profile, although the endpoints can share a physical server.
 
@@ -235,7 +235,7 @@ representative corpus remains unchanged.
 The normative
 [WoT closure section](../../models/wot/spec.md#544-publication-closure)
 records the remaining mapping decisions. The dependency inventory and
-occurrence rules below remain informative. The normative section now defines
+occurrence rules below remain informative. The normative section defines
 occurrence identity, canonical operators, and the selected experimental
 Projection Plans mapping. Schema-reference classification and document-URL
 identity still need rules; a checked exact target does not supply them.
@@ -360,9 +360,8 @@ W3C-derived descriptor alone does not provide it.
 The schema restricts operator strings to the normative closure labels;
 the source vocabulary and captured contexts determine which label applies.
 An unknown operator cannot satisfy closure validation. The producer follows
-the WoT
-draft's reference rules, so an interaction endpoint, documentation link, or
-arbitrary application link is not a dependency solely because it has a URL.
+the WoT draft's reference rules. A URL alone does not make an interaction
+endpoint, documentation link, or arbitrary application link a dependency.
 
 The Producer and Consumer determine candidate targets from the captured
 Registry model, view, and document associations before validating bindings.
@@ -611,7 +610,7 @@ workflows here. The
 generic xRegistry proposal defines how publishers create and open publications
 through selected Registry bindings or offline contexts. WoT proposes a
 dependency-binding schema and rules for accepting compatibility claims.
-This specification-first work changes neither .NET runtime nor the OPC UA model.
+This design changes neither .NET runtime nor the OPC UA model.
 
 ### Decision
 
@@ -1119,8 +1118,8 @@ upload bytes and line A. D3 assigns `"1"` and origin `generated`. Core
 establishes its initial ancestor and default state. The publisher records the
 returned source identity, revision, and digest.
 
-Failure before commit leaves no Version. A timeout with unknown commit state
-uses P14, not a blind assumption that the Resource is still empty.
+Failure before commit leaves no Version. After a timeout with unknown commit
+state, follow P14 rather than assuming the Resource is still empty.
 
 #### P04. Keep a missing or free-form authored version
 
@@ -1244,7 +1243,8 @@ provide this guarantee.
 An upload times out before the publisher receives its assigned revision.
 Use an existing request-status facility first, if available. Otherwise,
 inspect Version history for the submitted digest, line, and metadata.
-Do not inspect only the highest revision: another writer might have followed it.
+Do not inspect only the highest revision: another writer might have
+published a later revision.
 
 D8 distinguishes matching content from request identity. The absence of a
 match is inconclusive while the original request might still commit.
@@ -1902,11 +1902,11 @@ Open implementation proof gates are:
    [D9](#d9-implementation-responsibilities) mapping, with NodeIds
    appended on the `1.1-draft` track.
 
-This specification-first work adds the [generic publication proposal][pub-proposal].
-It also adds the [WoT closure design and schema][pub-closure]. The
-[summary][wot-summary] remains the overview. Incremental runtime and profile
-checks, WoT closure integration, and generated OPC UA changes still require
-implementation. Generic synthetic examples do not close these gates.
+The design includes the [generic publication proposal][pub-proposal] and the
+[WoT closure design and schema][pub-closure].
+The [summary][wot-summary] remains the overview. Incremental runtime and
+profile checks, WoT closure integration, and generated OPC UA changes still
+require implementation. Generic synthetic examples do not close these gates.
 
 ### Specification and implementation impact
 

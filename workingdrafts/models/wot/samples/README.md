@@ -45,10 +45,11 @@ shape only.
 [cloudevents.json](cloudevents.json) contains two standalone CloudEvents as
 sample data, not a transport batch. They refer to the lamp TD's resolved view
 using the [proposed WoT profile](../spec.md#531-cloudevents-wot-source-resolution).
-The absolute first `source` and relative second `source` illustrate that the
-profile does not prescribe a URI scheme. Their `subject` values label the Thing
-for filtering, not document selection. Each event's `describedby` selects one
-of these Descriptor Versions; other Core metadata is omitted:
+The first event's `source` is absolute and the second event's `source` is
+relative. The profile does not prescribe a URI scheme. Their `subject` values
+label the Thing for filtering, not document selection. Each event's
+`describedby` selects one of these Descriptor Versions; the examples omit
+other Core metadata:
 
 ```json
 [

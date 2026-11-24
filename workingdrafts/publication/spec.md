@@ -53,7 +53,7 @@ of a channel's `head`. A reader follows `head` once, checks every byte it
 reads against the manifest, and keeps using that manifest after the channel
 moves.
 
-Three responsibilities take part:
+Publishing and reading involve three roles:
 
 - The **publisher**, such as a release job, prepares content, stores the
   manifest and asks for the channel update.
@@ -429,8 +429,8 @@ The running example's complete [manifest](samples/manifest.json) is:
 }
 ```
 
-These 1143 bytes have the digest that the channel's `head` carries. The
-`registry` descriptor selects the 790-byte Registry JSON Version document.
+The channel's `head` carries the digest of these 1143 bytes. The `registry`
+descriptor selects the 790-byte Registry JSON Version document.
 The one `documents` entry associates Version `7` of `intro` with its source
 and its 36 bytes. This manifest records no preparation history, so it has no
 `parent`.
@@ -586,12 +586,12 @@ identity MUST NOT be reused after deletion. An authority MUST retain that
 non-reuse history or use a distinct Resource identity. This avoids an old
 epoch accidentally authorizing a write to a recreated channel.
 
-After a timeout, the publisher cannot determine from the timeout alone whether
-its head update took effect. The publisher reads back the head and epoch and
-reconciles the observed state before retrying with fresh state. A matching
-head can satisfy the publication objective without proving which request set
-it; a different head can reflect an intervening authorized update. Anonymous
-document publication retains its own API's retry semantics.
+A timeout does not tell the publisher whether its head update took effect.
+The publisher reads back the head and epoch and reconciles the observed state
+before retrying with fresh state. A matching head can satisfy the publication
+objective without proving which request set it; a different head can reflect
+an intervening authorized update. Anonymous document publication retains its
+own API's retry semantics.
 
 ### Opening a Channel
 
@@ -900,9 +900,8 @@ silently substitute bindings.
 Federation MAY discover publication roots through existing HTTP
 advertisements, or serve checked packages through its other bindings. No new
 advertisement parameter is added. Existing bindings retain their own format
-and version rules. A publication reader can use the manifest and Registry
-descriptors directly without pretending to implement a native package
-binding.
+and version rules. A publication reader need not implement a native package
+binding to use the manifest and Registry descriptors directly.
 
 When several sources form a view, each selected immutable source context,
 the interpreted view model, and the exact composition policy MUST be captured

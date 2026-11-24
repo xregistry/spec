@@ -18,9 +18,9 @@ draft; their identifiers are not published schema identifiers.
 | Avro | [document-schema.avsc](document-schema.avsc) |
 | HTTP OpenAPI | [openapi.json](openapi.json) |
 
-The OpenAPI description is for serving the catalog over HTTP. It is not
-an HTTP wrapper around native Open Container Initiative (OCI), Git, File or
-OPC Unified Architecture (OPC UA) resolution.
+The OpenAPI description covers the catalog's HTTP API. It is not an HTTP
+wrapper around native Open Container Initiative (OCI), Git, File or OPC
+Unified Architecture (OPC UA) resolution.
 
 ## Reproduction
 

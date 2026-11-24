@@ -61,9 +61,8 @@ The suite checks:
 - Stale head writes and forks
 - Rollback epochs and non-reused deleted channel identities
 
-Negative graph cases recompute digests after altering the graph. The checks
-therefore need to detect invalid graph structure even when byte integrity
-checks pass.
+Negative graph cases alter the graph and recompute its digests to check
+that invalid graphs are rejected even when byte integrity checks pass.
 
 The helper accepts only this example's self-contained interpreted model and
 explicitly rejects aliases. It is not a full Core graph or domain-closure

@@ -58,12 +58,12 @@ nor redefine CRUD operations.
 In the tables, `B` is the selected Registry root URL, `G` is
 `/<GROUPS>/<GID>`, `R` is `G/<RESOURCES>/<RID>`, and `V` is
 `R/versions/<VID>`. Collection names come from the selected model.
-`B + path` means append below the Registry base path, with one separating
-slash. It does not mean resolve a leading-slash URI against the host.
+`B + path` means appending the path below the Registry base path with one
+separating slash, not resolving a leading-slash URI against the host.
 
 ## Motivation and Example
 
-An existing xRegistry HTTP service can serve as a federation source through
+An existing xRegistry HTTP service can be a federation source through
 its current API. A consumer-side resolver can select the service through its
 catalog entry, or a federating API server can read the service on behalf of
 its HTTP clients.
@@ -430,8 +430,8 @@ a public mirror, or a weaker authentication mode. Redirect loops and
 bounded traversal exhaustion produce `limit_exceeded`. Trust rejection
 produces `policy_denied`.
 
-Redirect caching follows HTTP cache rules. A temporary redirect is not
-categorically uncacheable: applicable cache controls determine reuse.
+Redirect caching follows HTTP cache rules. Applicable cache controls
+determine whether a temporary redirect can be reused.
 Cached redirects do not waive target-policy checks. Shared caching of
 authenticated responses remains subject to RFC 9111 section 3.5.
 
@@ -548,8 +548,8 @@ hub or establish runtime interoperability. The shared
 [generator](../README.md#generating-and-reading-examples) can export that
 Registry through File, Git or OCI without starting an HTTP service.
 
-The examples cover read-only capabilities but omit older-release and many
-error permutations. These are synthetic inputs, not captured public-endpoint
+The examples cover read-only capabilities but omit older releases and many
+error cases. These are synthetic inputs, not captured public-endpoint
 behavior. A saved model-file hash is not an observed HTTP ETag.
 
 ### Concrete Read Sequences

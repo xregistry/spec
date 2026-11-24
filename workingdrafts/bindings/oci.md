@@ -77,7 +77,7 @@ A consumer follows that graph to retrieve one Version without downloading
 every payload.
 
 For example, `oci://registry.example.org/team/catalog` with
-`reference: "release-1"` selects a Registry snapshot. The resolver resolves
+`reference: "release-1"` selects a Registry snapshot. The resolver looks up
 that tag once, pins the root digest and walks the typed path for
 `/dirs/main/files/sample/versions/v1`. Metadata comes from the Version
 manifest's config. The document bytes come from its separate layer.
@@ -235,9 +235,9 @@ descriptor retains its owning entity's XID.
 
 Internal descriptors MUST use SHA-256 and the exact byte length, including
 JSON whitespace and any final newline. They MUST NOT use `urls`, `data`,
-or `platform`. Blobs MUST actually be available in the same repository
-or layout, even for tiny placeholders. An OPTIONAL descriptor
-`artifactType` MUST agree with the referenced index or manifest.
+or `platform`. Blobs MUST be available in the same repository or layout,
+even for tiny placeholders. An OPTIONAL descriptor `artifactType` MUST
+agree with the referenced index or manifest.
 Consumers MUST verify both size and digest before interpreting content.
 
 Descriptor roles have these exact meanings:
@@ -306,7 +306,7 @@ A Registry or Group index MUST contain, in order, exactly one `metadata`
 descriptor and one `collections` descriptor. A Resource index MUST
 contain, in order, `metadata`, `meta`, and `collections`. Thus entity
 indexes remain constant-sized even when the model defines many child
-collection types. All their metadata is detached into configs.
+collection types. Configs store all metadata for these entities.
 
 A directory has kind `collections`. Its leaf entries use role
 `collection` and are keyed by full collection paths. Registry directories
@@ -517,7 +517,7 @@ Schema alone does not establish them.
 
 ### 5.2. Model preservation
 
-The Registry config additionally MUST contain `snapshot` with value
+The Registry config MUST also contain `snapshot` with value
 `linked` or `offline-complete`, and `modelresolved`. Its `entity` MUST
 include `specversion`, `registryid`, `model`, `modelsource` and
 `capabilities`.
@@ -551,8 +551,8 @@ Includes are resolved at capture time using Core precedence, JSON Pointer,
 cycle detection and the original containing document's URI base.
 An original include URI is provenance, not a consumption-time instruction.
 
-Different independently defined Resource types are not equivalent merely
-because their expanded schemas are structurally equal. Use the retained
+Two independently defined Resource types are not equivalent merely because
+their expanded schemas are structurally equal. Use the retained
 [`ximportresources` graph](../../core/model.md#reuse-of-resource-definitions)
 when checking Core `xref` type identity.
 
@@ -797,7 +797,7 @@ placeholders for the complete digests obtained from descriptors, not literal
 request values. The initial tag is not read again during this operation.
 Other Versions' document layers are not needed.
 
-For the same selected Version, the result boundary is:
+For the same selected Version, the operations retrieve different data:
 
 | Operation | Retrieved content |
 | --- | --- |
@@ -970,8 +970,8 @@ The explicit `v2` document command returns:
 }
 ```
 
-For this graph, its trace contains two layout entry-point reads, 16
-manifest-route reads and five blob-route reads. Only one is a domain
+The trace for this graph records two layout entry-point reads, 16
+manifest-route reads and five blob-route reads. Only one reads a domain
 document blob: the selected 18-byte `v2`. Default `v1` and the other
 payloads are not fetched. These 23 file reads are not a claim about the
 request count of a live client.
@@ -1076,7 +1076,7 @@ oras cp --from-oci-layout D:\temp\xregistry-oci-publish:offline registry.example
 
 This is also the direct publication command for a previously generated
 layout. The copier uploads descendants before exposing the root tag.
-Successful generation alone is not successful publication.
+Generating the layout alone does not publish it.
 
 ### Verify a Copy
 
