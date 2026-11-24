@@ -1,3 +1,4 @@
+* text=auto
 *.sh text eol=lf
 **/schemas/document-schema* text eol=lf
 **/schemas/openapi.json text eol=lf
