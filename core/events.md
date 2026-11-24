@@ -1,6 +1,6 @@
 # xRegistry Events
 
-<!-- words: eventreceiver xreginstance-->
+<!-- words: eventreceiver xregtxid txid -->
 
 ## Abstract
 
@@ -17,7 +17,7 @@ This specification defines the events that an xRegistry server MAY generate.
 
 ## Overview
 
-As updates are made to entities within an xRegistry instance, events SHOULD
+As updates are made to entities within an xRegistry server, events SHOULD
 be generated to notify interested parties of those changes. The events defined
 by this specification are defined as CloudEvents and implementations MUST
 generate events that are compliant with the
@@ -36,7 +36,7 @@ serialized in JSON:
   "registry": "https://example.com",
   "xid": "/dirs/d1",
   "time": "2025-09-01T12:01:02Z",
-  "instance": "B9282-129301",
+  "txid": "B9282-129301",
   "epoch": 5,
   "changed": [ "epoch", "modifiedat", "name" ]
 }
@@ -53,7 +53,7 @@ ce-source: https://example.com
 ce-subject: /dirs/d1
 ce-id: A234-1234-1234
 ce-time: 2025-09-01T12:01:02Z
-ce-xreginstance: B9282-129301
+ce-xregtxid: B9282-129301
 Content-Type: application/json; charset=utf-8
 Content-Length: ...
 
@@ -62,7 +62,7 @@ Content-Length: ...
   "registry": "https://example.com",
   "xid": "/dirs/d1",
   "time": "2025-09-01T12:01:02Z",
-  "instance": "B9282-129301",
+  "txid": "B9282-129301",
   "epoch": 5,
   "changed": [ "epoch", "modifiedat", "name" ]
 }
@@ -78,14 +78,14 @@ and when serialized as a "structured" CloudEvent, it would look like:
   "subject": "/dirs/d1",
   "id": "A234-1234-1234",
   "time": "2025-09-01T12:01:02Z",
-  "xreginstance": "B9282-129301",
+  "xregtxid": "B9282-129301",
 
   "data": {
     "action": "io.xregistry.group.updated",
     "registry": "https://example.com",
     "xid": "/dirs/d1",
     "time": "2025-09-01T12:01:02Z",
-    "instance": "B9282-129301",
+    "txid": "B9282-129301",
     "epoch": 5,
     "changed": [ "epoch", "modifiedat", "name" ]
   }
@@ -113,13 +113,13 @@ to be replaced by the "name" of the item being discussed.
 
 ## Event Definition
 
-Notification of changes to the entities within an xRegistry instance SHOULD be
+Notification of changes to the entities within an xRegistry server SHOULD be
 exposed as events. These changes could be the result of an end-user interaction
 with the Registry, or due to some other (possibly internal) processing of
 the Registry data.
 
 A single interaction with the Registry MAY result in multiple events; however,
-within the scope of one interaction (see [`instance`](#instance)), the
+within the scope of one interaction (see [`txid`](#txid)), the
 following constraints apply:
 - At most one `created`, `updated` or `deleted` event MUST be generated
   per entity.
@@ -214,7 +214,7 @@ Example:
 
 This OPTIONAL, but RECOMMENDED, attribute is the time when the interaction
 occurred. This value MUST be the same for all events generated within the same
-[instance](#instance) and MUST match the xRegistry timestamp (value and
+[txid](#txid) and MUST match the xRegistry timestamp (value and
 xRegistry specification defined timestamp format) used for the interaction -
 this will typically be the `modifiedat` value assigned to the entities being
 processed.
@@ -228,26 +228,26 @@ original event's processing.
 Example:
 - `"time": "2025-09-01T12:01:02Z"`
 
-### `instance`
+### `txid`
 
-This OPTIONAL, but RECOMMENDED, attribute is the [xRegistry Interaction
-Instance value](spec.md#xregistry-interaction-instances). A value that uniquely
+This OPTIONAL, but RECOMMENDED, attribute is the [xRegistry Transaction
+ID](spec.md#xregistry-transaction-id) value. A value that uniquely
 identifies the interaction in which one or more events occurred.
 
 Example:
-- `"instance": "B9282-129301"`
+- `"txid": "B9282-129301"`
 
 This value, if defined, MUST appear as a CloudEvents extension attribute
-named `xreginstance`. For example:
+named `xregtxid`. For example:
 
 ```yaml
-ce-xreginstance: B9282-129301
+ce-xregtxid: B9282-129301
 ```
 
 as an HTTP header in CloudEvents binary mode, or:
 
 ```yaml
-"xreginstance": "B9282-129301"
+"xregtxid": "B9282-129301"
 ```
 
 as a JSON attribute in CloudEvents structured mode.
@@ -322,7 +322,7 @@ The complete payload of the event MUST be serialized as:
   "registry": "<URL>",
   "xid": "<XID>",
   "time": "<TIMESTAMP>", ?
-  "instance": "<STRING>", ?
+  "txid": "<STRING>", ?
   "epoch": UINTEGER, ?
   "meta.epoch": UINTEGER, ?
   "changed": [ "<STRING>", * ] ?
@@ -846,7 +846,7 @@ HTTP/1.1 201 Created
 Location: https://example.com/dirs/d1
 Content-Type: application/json
 Date: Wed, 02 Jul 2025 12:00:01 GMT
-xRegistry-Instance: B9282-129301
+xRegistry-txid: B9282-129301
 
 {
   "dirid": "d1",
@@ -871,14 +871,14 @@ Events Generated:
   "subject": "/",
   "id": "A234-1234-1234",
   "time": "2025-07-02T12:00:01Z",
-  "xreginstance": "B9282-129301",
+  "xregtxid": "B9282-129301",
 
   "data": {
     "action": "io.xregistry.registry.updated",
     "registry": "https://example.com",
     "xid": "/",
     "time": "2025-07-02T12:00:01Z",
-    "instance": "B9282-129301",
+    "txid": "B9282-129301",
     "epoch": 2,
     "changed": [ "dirs", "dirscount", "epoch", "modifiedat" ]
   }
@@ -893,13 +893,13 @@ Events Generated:
   "subject": "/dirs/d1",
   "id": "A432-4321-4321",
   "time": "2025-07-02T12:00:01Z",
-  "xreginstance": "B9282-129301",
+  "xregtxid": "B9282-129301",
   "data": {
     "action": "io.xregistry.group.created",
     "registry": "https://example.com",
     "xid": "/dirs/d1",
     "time": "2025-07-02T12:00:01Z",
-    "instance": "B9282-129301",
+    "txid": "B9282-129301",
     "epoch": 1
   }
 }

@@ -15,9 +15,11 @@ package main
 import (
 	"bytes"
 	"crypto/tls"
+	"errors"
 	"flag"
 	"fmt"
 	"io/fs"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -529,7 +531,7 @@ func uriAvailabilityIssues(uri string, settings Settings) []Issue {
 	}
 
 	client := &http.Client{
-		Timeout: time.Duration(settings.HTTPTimeoutSeconds) * time.Second,
+		Timeout: 5 * time.Second,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // mirrors ssl=False in verify.py
 		},
@@ -549,6 +551,10 @@ func uriAvailabilityIssues(uri string, settings Settings) []Issue {
 
 		resp, err := client.Do(req)
 		if err != nil {
+			var ne net.Error
+			if errors.As(err, &ne) && ne.Timeout() {
+				break // timed out: fall through to the "Could not access" issue
+			}
 			continue
 		}
 		status := resp.StatusCode
@@ -558,7 +564,7 @@ func uriAvailabilityIssues(uri string, settings Settings) []Issue {
 		}
 		return nil
 	}
-	return []Issue{Issue(fmt.Sprintf("Could Not access %s", pyRepr(uri)))}
+	return []Issue{Issue(fmt.Sprintf("Could not access %s", pyRepr(uri)))}
 }
 
 func uriIssues(uri, path string, settings Settings) []Issue {
@@ -1155,7 +1161,7 @@ func testApp() {
 	}
 
 	want := []TaggedIssue{
-		{"fake-docs/link-verification.md", "Could Not access 'http://non-existing-website.sadkjaskldjalksjd'"},
+		{"fake-docs/link-verification.md", "Could not access 'http://non-existing-website.sadkjaskldjalksjd'"},
 		{"fake-docs/link-verification.md", "'https://google.com/non-existing-page' was not found"},
 		{"fake-docs/link-verification.md", "fake-docs/README.md does not contain '#non-existing' segment"},
 		{"fake-docs/link-verification.md", "fake-docs/link-verification.md does not contain '#non-existing' segment"},

@@ -26,8 +26,8 @@
       "type": "string",
       "format": "date-time"
     },
-    "instance": {
-      "description": "xRegistry interaction instance value",
+    "txid": {
+      "description": "xRegistry transaction ID value",
       "type": "string",
       "minLength": 1
     },
