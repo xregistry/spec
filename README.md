@@ -66,7 +66,8 @@ Avro (`document-schema.avsc`), and OpenAPI (`openapi.json`) in the
 `schemas/` subdirectory of each domain spec
 ([endpoint](endpoint/schemas/), [message](message/schemas/),
 [schema](schema/schemas/)). The core model has its own JSON Schema at
-[core/model.schema.json](core/model.schema.json).
+[core/model.schema.json](core/model.schema.json), and the event payload
+has one at [core/events.json](core/events.json).
 
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)

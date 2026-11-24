@@ -1,5 +1,7 @@
 # xRegistry Events
 
+<!-- words: eventreceiver xregtxid txid -->
+
 ## Abstract
 
 This specification defines the events that an xRegistry server MAY generate.
@@ -11,23 +13,63 @@ This specification defines the events that an xRegistry server MAY generate.
   - [Notational Conventions](#notational-conventions)
 - [Event Definition](#event-definition)
 - [Entity Events](#entity-events)
+- [Cross-Referenced Resource Events](#cross-referenced-resource-events)
 - [Sample xRegistry Interactions](#sample-xregistry-interactions)
 
 ## Overview
 
-As updates are made to entities within an xRegistry instance, events SHOULD
-be generated to notify interested parties of those changes. This specification
-defines the metadata associated with each event as
-[CloudEvent](https://cloudevents.io) context attributes. Whether CloudEvents
-are used in the generation/serialization of the events is OPTIONAL, but it is
-RECOMMENDED.
+As updates are made to entities within an xRegistry server, events SHOULD
+be generated to notify interested parties of those changes. The events defined
+by this specification are defined as CloudEvents and implementations MUST
+generate events that are compliant with the
+[CloudEvents specification](https://cloudevents.io).
 
 This specification does not mandate the mechanisms by which events are sent
 to consumers, nor does it mandate how consumers register interest in receiving
 events.
 
-Below is a sample event serialized as a "structured" JSON CloudEvent due to a
-Group's `name` being modified:
+Below is a sample event payload (the CloudEvents `data` context attribute)
+serialized in JSON:
+
+```yaml
+{
+  "action": "io.xregistry.group.updated",
+  "registry": "https://example.com",
+  "xid": "/dirs/d1",
+  "time": "2025-09-01T12:01:02Z",
+  "txid": "B9282-129301",
+  "epoch": 5,
+  "changed": [ "epoch", "modifiedat", "name" ]
+}
+```
+
+When serialized as a "binary" CloudEvent, over HTTP, it would look like:
+
+```yaml
+POST /eventReceiver HTTP/1.1
+Host: ...
+ce-specversion: 1.0
+ce-type: io.xregistry.group.updated
+ce-source: https://example.com
+ce-subject: /dirs/d1
+ce-id: A234-1234-1234
+ce-time: 2025-09-01T12:01:02Z
+ce-xregtxid: B9282-129301
+Content-Type: application/json; charset=utf-8
+Content-Length: ...
+
+{
+  "action": "io.xregistry.group.updated",
+  "registry": "https://example.com",
+  "xid": "/dirs/d1",
+  "time": "2025-09-01T12:01:02Z",
+  "txid": "B9282-129301",
+  "epoch": 5,
+  "changed": [ "epoch", "modifiedat", "name" ]
+}
+```
+
+and when serialized as a "structured" CloudEvent, it would look like:
 
 ```yaml
 {
@@ -37,8 +79,14 @@ Group's `name` being modified:
   "subject": "/dirs/d1",
   "id": "A234-1234-1234",
   "time": "2025-09-01T12:01:02Z",
-  "xregcorrelationid": "B9282-129301",
+  "xregtxid": "B9282-129301",
+
   "data": {
+    "action": "io.xregistry.group.updated",
+    "registry": "https://example.com",
+    "xid": "/dirs/d1",
+    "time": "2025-09-01T12:01:02Z",
+    "txid": "B9282-129301",
     "epoch": 5,
     "changed": [ "epoch", "modifiedat", "name" ]
   }
@@ -66,35 +114,47 @@ to be replaced by the "name" of the item being discussed.
 
 ## Event Definition
 
-Notification of changes to the entities within an xRegistry instance SHOULD be
+Notification of changes to the entities within an xRegistry server SHOULD be
 exposed as events. These changes could be the result of an end-user interaction
 with the Registry, or due to some other (possibly internal) processing of
 the Registry data.
 
 A single interaction with the Registry MAY result in multiple events; however,
-within the scope of one interaction (see
-[`xregcorrelationid`](#xregcorrelationid-extension-context-attribute)), the
+within the scope of one interaction (see [`txid`](#txid)), the
 following constraints apply:
-- Only one `created`, `updated` or `deleted` event MUST be generated per
-  `subject`.
+- At most one `created`, `updated` or `deleted` event MUST be generated
+  per entity.
 - If the interaction involved more than one of those actions, then the single
   event generated MUST be chosen in the following order of precedence:
   `deleted`, `created`, `updated`.
-- Only one event with the same `type` and `subject` combination MUST be
-  generated.
+- Only one event with the same `action` and `xid` combination MUST be generated.
 
-The following sections specify the metadata defined for xRegistry events.
-Implementations MAY define additional metadata.
+The following sections specify the payload attributes defined for xRegistry
+events. Implementations MAY define additional attributes.
 
-### CloudEvent [`type`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#type) Core Context Attribute
+Notes about the use of CloudEvents:
+- Not all CloudEvents context attributes are fully described in this
+  specification. Implementations MUST adhere to the
+  [CloudEvents](https://cloudevents.io) specification.
+- For CloudEvents context attributes that are not explicitly defined (such as
+  `id`), unless otherwise stated, implementations are free to choose an
+  appropriate value.
+- Some xRegistry event attributes will appear to be duplicated in the
+  CloudEvents context attributes. This is to allow for middleware to examine
+  these fields without the need to examine the event payload - one of the
+  main benefits of CloudEvents.
 
-The type of action taken on the entity. The value MUST be of the form:
+### `action`
+
+This REQUIRED attribute's value MUST be a string indicating the action taken
+on the entity in question.
+
+The value MUST be of the form:
     `io.xregistry.<ENTITY>.<ACTION>`
 
 where:
-- `<ENTITY>` is the type of xRegistry entity
-  ([`subject`](#cloudevent-subject-core-context-attribute)) that was acted
-  upon. It MUST be one of:
+- `<ENTITY>` is the type of xRegistry entity that was acted upon. It MUST be
+  one of:
   - `registry`
   - `model`
   - `modelsource`
@@ -112,103 +172,121 @@ where:
   Not all `<ACTION>` values are applicable to all entities. See the
   [Entity Events](#entity-events) section for more information.
 
-This context attribute MUST be present in each event.
+This value MUST also appear as the CloudEvents
+[`type`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#type)
+content attribute.
 
-### CloudEvent [`source`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#source-1) Core Context Attribute
+Example:
+- `"action": "io.xregistry.resource.updated"`
 
-The xRegistry in which the entity exists. The value MUST be an absolute URL
-to the root of the xRegistry instance.
+### `registry`
 
-This context attribute MUST be present in each event.
+This REQUIRED attribute MUST be an absolute URL to the root of the xRegistry
+in which the entity exists.
 
-### CloudEvent [`subject`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#subject) Core Context Attribute
+This value MUST also appear as the CloudEvents
+[`source`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#source-1)
+context attribute.
 
-The `xid` of the entity acted upon. While this attribute is OPTIONAL in the
-CloudEvents specification, it is REQUIRED to be present in an xRegistry event.
+Example:
+- `"registry": "https://registry.example.com"`
 
-Note: constructing a URL by appending the `subject` value to the `source`
-value MUST result in an absolute URL to the entity (assuming any trailing `/`
-on `source` is removed since XIDs always start with `/`).
+### `xid`
 
-This context attribute MUST be present in each event.
+This REQUIRED attribute MUST be the path to the data/entity. In most cases
+this will be an entity's XID, but if the data does not have an XID associated
+with it (e.g. `/modelsource`), then it is the relative path from the root
+of the registry to that data. This value MUST start with a leading `/`.
 
-### CloudEvent [`time`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#time) Core Context Attribute
+This value MUST also appear as the CloudEvents
+[`subject`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#subject)
+context attribute. While `subject` is OPTIONAL in the CloudEvents specification,
+it is REQUIRED to be present in an xRegistry event.
 
-The time when the interaction occurred. This value MUST be the same for
-all events generated within the same interaction.
+Note: constructing a URL by appending the `xid`/`subject` value to the
+`registry`/`source` value MUST result in an absolute URL to the entity
+(assuming any trailing `/` on `registry` is removed since XIDs always start
+with `/`).
 
-Its value MUST be an [RFC3339](https://tools.ietf.org/html/rfc3339) timestamp
-normalized to UTC. Use of a `time-zone` notation is RECOMMENDED. The value
-used SHOULD match the current date/time used by the Registry during the
-processing of the interaction. Typically, this will be the `modifiedat` value
-assigned to the entities being processed.
+Example:
+- `"xid": "/dirs/d1/files/f1"`
 
-This context attribute is NOT REQUIRED to be present in the event, but is
-RECOMMENDED.
+### `time`
 
-### `xregcorrelationid` Extension Context Attribute
+This OPTIONAL, but RECOMMENDED, attribute is the time when the interaction
+occurred. This value MUST be the same for all events generated within the same
+[txid](#txid) and MUST match the xRegistry timestamp (value and
+xRegistry specification defined timestamp format) used for the interaction -
+this will typically be the `modifiedat` value assigned to the entities being
+processed.
 
-A value that uniquely identifies the interaction in which one or more events
-occurred. This value has the following constraints:
-- MUST be a non-empty string.
-- MUST be case-insensitively unique within the scope of the Registry instance,
-  for the lifetime of the Registry.
-- All events generated from the same interaction MUST have the same
-  `xregcorrelationid` value. Conceptually, this can be thought of as the
-  "transaction ID" of the interaction.
+The CloudEvents
+[`time`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#time)
+context attribute is OPTIONAL but RECOMMENDED. Its value MAY differ from the
+payload's `time` attribute if the CloudEvents processor is separate from the
+original event's processing.
 
-When an interaction has a request-response message exchange pattern, and
-`xregcorrelationid` values are included in resulting events, then the response
-message for the interaction MUST include this value. In the case of an HTTP
-interaction, the following HTTP header MUST be present in the response flow:
+Example:
+- `"time": "2025-09-01T12:01:02Z"`
+
+### `txid`
+
+This OPTIONAL, but RECOMMENDED, attribute is the [xRegistry Transaction
+ID](spec.md#xregistry-transaction-id) value. A value that uniquely
+identifies the interaction in which one or more events occurred.
+
+Example:
+- `"txid": "B9282-129301"`
+
+This value, if defined, MUST appear as a CloudEvents extension attribute
+named `xregtxid`. For example:
 
 ```yaml
-xRegistry-xregcorrelationid: <STRING>
+ce-xregtxid: B9282-129301
 ```
 
-This allows for clients to identify which events were generated as a result of
-each request-response operation.
-
-This context attribute is NOT REQUIRED to be present in the event, but is
-RECOMMENDED.
-
-### CloudEvent [`data`](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#event-data)
-
-When present, and serialized in JSON, the `data` MUST be of the form:
+as an HTTP header in CloudEvents binary mode, or:
 
 ```yaml
-{
-  "epoch": UINTEGER, ?
-  "meta.epoch": UINTEGER, ?
-  "changed": [ "<STRING>", * ] ?
-}
+"xregtxid": "B9282-129301"
 ```
 
-where:
-- The `epoch` attribute MUST be included in `created` and `updated` events
-  for Registries, Groups, Resources and Versions; and it MUST be the `subject`
-  entity's `epoch` value as seen at the end of the interaction.
+as a JSON attribute in CloudEvents structured mode.
 
-  - MUST NOT be included in `deleted` events.
+### `epoch`
 
-- The `meta.epoch` attribute MUST be included in Resource `created` and
-  `updated` events and it MUST be the `subject` Resource's `meta.epoch` value
-  as seen at the end of the interaction.
+This attribute is the entity's `epoch` value as seen at the end of the
+interaction. This MUST be included in `created` and `updated` events for
+Registries, Groups, Resources and Versions. It MUST NOT be present in
+`deleted` events. For all other entities or events, this attribute MUST NOT
+appear.
 
-  - MUST only be included for Resource related events.
+Example:
+- `"epoch": 12`
 
-  - MUST NOT be included in Resource `deleted` events.
+### `meta.epoch`
 
-  - Note that Resource `created` and `updated` events will include both
-    `epoch` and `meta.epoch` attributes even if one of them didn't change for
-    the interaction.
+When a Resource (not a Version or a Resource's "meta" sub-object) is the
+entity in question, this attribute's value MUST be the Resource's `meta.epoch`
+value as seen at the end of the interaction.
 
-- The `changed` attribute MAY be included to indicate which attributes of the
-  `subject` entity were modified. When present, has the following
-  constraints:
+It MUST appear for `created` and `updated` Resource events. It MUST NOT
+be included for Resource `deleted` events.
+
+Note that Resource `created` and `updated` events will include both `epoch`
+and `meta.epoch` attributes even if one of them didn't change for the
+interaction.
+
+Example:
+- `"meta.epoch": 5`
+
+### `changed`
+
+This OPTIONAL attribute MAY be included to indicate which attributes
+of the entity were modified. When present, has the following constraints:
 
   - MUST be a list of the top-level attribute names (not values) that were
-    added, modified, or deleted for the `subject` entity.
+    added, modified, or deleted for the entity.
 
   - This attribute MUST NOT appear on the `created`, `deleted`, or `deprecated`
     events.
@@ -232,11 +310,27 @@ where:
     `updated` event be generated. This means the attribute names of all
     impacted attributes MUST be merged into one `changed` list.
 
-Implementations MAY define their own metadata to be included in the `data` of
-a CloudEvent.
+Example:
+- `"changed": [ "epoch", "modifiedat", "name" ]`
 
-This metadata (`data`) is NOT REQUIRED to be present in the event, but is
-RECOMMENDED.
+## Event Serialization
+
+The complete payload of the event MUST be serialized as:
+
+```yaml
+{
+  "action": "<STRING>",
+  "registry": "<URL>",
+  "xid": "<XID>",
+  "time": "<TIMESTAMP>", ?
+  "txid": "<STRING>", ?
+  "epoch": UINTEGER, ?
+  "meta.epoch": UINTEGER, ?
+  "changed": [ "<STRING>", * ] ?
+}
+```
+
+A JSON Schema for this payload is available in [events.json](events.json).
 
 ## Entity Events
 
@@ -471,7 +565,40 @@ events.
     `changed`, if present, MUST include `meta.epoch`, `meta.modifiedat`,
     `versions` and `versionscount` attribute names.
 
+## Cross-Referenced Resource Events
+
+Resources that use the `meta.xref` feature (i.e. are "source" Resources that
+"target" another Resource via the `meta.xref` attribute), MUST appear (to
+clients) to follow the same rules as non-cross-references Resources. This
+means:
+
+- When a Resource is converted from a normal Resource into a cross-reference
+  Resource:
+  - A `version.created` event MUST be generated for any `versionid` that
+    exists in the target Resource but not in the source Resource.
+  - A `version.deleted` event MUST be generated for any `versionid` that is in
+  the original source Resource but not in the target Resource.
+  - A `version.updated` MUST be generated for any `versionid` that is present
+    in both.
+  - If the target Resource is deprecated then a `resource.deprecated` event
+    MUST be generated, even if the original source Resource was already
+    deprecated.
+  - A Resource updated event MUST be generated for the source Resource where,
+    if present, the `changed` attribute would include `meta.xref`.
+- When a Resource is converted from a cross-reference Resource into a
+  normal Resource then similar logic applies. The appropriate source Resource
+  events MUST be generated based on what a client would observe.
+- Actions taken on a target Resource MUST result in similar events being
+  generated for all source Resources that reference that target Resource.
+  This include Version creation/deletion/modifications as well as
+  Resource/Meta modifications.
+
 ## Sample xRegistry Interactions
+
+This section shows some xRegistry interactions and the related event data that
+is generated. For brevity, the text focuses just on the most important
+attributes, excluding the ones that are not very interesting (e.g. `time`)
+from an educational perspective.
 
 In these examples, unless otherwise stated, assume that the Registry has
 the following model definition:
@@ -498,7 +625,7 @@ the following model definition:
   - Body: `{ "name": "foo" }`
 - Events:
   - `io.xregistry.registry.updated`
-    - `subject`: `/`
+    - `xid`: `/`
     - `epoch`: Registry's `epoch` value
     - `changed`: `epoch`, `modifiedat`, `name`
 
@@ -510,18 +637,18 @@ the following model definition:
   - Body: `{}`
 - Events:
   - `io.xregistry.registry.updated`
-    - `subject`: `/`
+    - `xid`: `/`
     - `epoch`: Registry's `epoch` value
     - `changed`: `epoch`, `modifiedat`, `dirs`, `dirscount`
   - `io.xregistry.group.created`
-    - `subject`: `/dirs/d1`
+    - `xid`: `/dirs/d1`
     - `epoch`: Group's `epoch` value
   - `io.xregistry.resource.created`
-    - `subject`: `/dirs/d1/files/f1`
+    - `xid`: `/dirs/d1/files/f1`
     - `epoch`: Resource's `epoch` value
     - `meta.epoch`: Resource's `meta.epoch` value
   - `io.xregistry.version.created`
-    - `subject`: `/dirs/d1/files/f1/versions/v1`
+    - `xid`: `/dirs/d1/files/f1/versions/v1`
     - `epoch`: Version's `epoch` value
 
 ### Update a Resource attribute (a default Version attribute)
@@ -532,12 +659,12 @@ the following model definition:
   - Body: `{ "name": "foo" }`
 - Events:
   - `io.xregistry.resource.updated`
-    - `subject`: `/dirs/d1/files/f1`
-    - `epoch`: Resource's `epoch` value (technically, default `v1`'s `epoch`)
-    - `meta.epoch`: Resource's `meta.epoch` value
+    - `xid`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (`v1`'s `epoch`)
+    - `meta.epoch`: Resource's `meta.epoch` value (unchanged)
     - `changed`: `epoch`, `modifiedat`, `name`
   - `io.xregistry.version.updated`
-    - `subject`: `/dirs/d1/files/f1/versions/v1`
+    - `xid`: `/dirs/d1/files/f1/versions/v1`
     - `epoch`: Version's `epoch` value
     - `changed`: `epoch`, `modifiedat`, `name`
 
@@ -548,8 +675,8 @@ the following model definition:
   - Body: `{ "compatibility": "backward" }`
 - Events:
   - `io.xregistry.resource.updated`
-    - `subject`: `/dirs/d1/files/f1`
-    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `xid`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (the default Version's - unchanged)
     - `meta.epoch`: Resource's `meta.epoch` value
     - `changed`: `meta.epoch`, `meta.modifiedat`, `meta.compatibility`
 
@@ -560,13 +687,13 @@ the following model definition:
   - Body: `{ "compatibility": "backward", "deprecated": {...} }`
 - Events:
   - `io.xregistry.resource.updated`
-    - `subject`: `/dirs/d1/files/f1`
-    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `xid`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (the default Version's - unchanged)
     - `meta.epoch`: Resource's `meta.epoch` value
     - `changed`: `meta.epoch`, `meta.modifiedat`, `meta.compatibility`,
       `meta.deprecated`
   - `io.xregistry.resource.deprecated`
-    - `subject`: `/dirs/d1/files/f1`
+    - `xid`: `/dirs/d1/files/f1`
 
 ### Import an entire Registry
 
@@ -577,26 +704,26 @@ the following model definition:
     Resources, Versions
 - Events:
   - `io.xregistry.registry.updated`
-    - `subject`: `/`
+    - `xid`: `/`
     - `epoch`: Registry's `epoch` value
     - `changed`: `epoch`, `modifiedat`, `model`, `modelsource`, `capabilities`,
       `<GROUPS>`, `<GROUPS>count`, `<OTHER-REGISTRY-ENTITY-ATTRIBUTES>`
   - `io.xregistry.model.updated`
-    - `subject`: `/model`
+    - `xid`: `/model`
   - `io.xregistry.modelsource.updated`
-    - `subject`: `/modelsource`
+    - `xid`: `/modelsource`
   - `io.xregistry.capabilities.updated`
-    - `subject`: `/capabilities`
+    - `xid`: `/capabilities`
   - `io.xregistry.group.created` for each new Group
-    - `subject`: `/dirs/d1`
+    - `xid`: `/dirs/d1`
     - `epoch`: Group's `epoch` value
   - `io.xregistry.resource.created` for each new Resource
-    - `subject`: `/dirs/d1/files/f1`
-    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `xid`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (the default Version's)
     - `meta.epoch`: Resource's `meta.epoch` value
   - `io.xregistry.version.created` for each new Version
+    - `xid`: `/dirs/d1/files/f1/versions/v1`
     - `epoch`: Version's `epoch` value
-    - `subject`: `/dirs/d1/files/f1/versions/v1`
 
 ### Create a new Version - non-sticky
 
@@ -606,17 +733,17 @@ the following model definition:
   - Body: `{}`
 - Events:
   - `io.xregistry.resource.updated`
-    - `subject`: `/dirs/d1/files/f1`
-    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `xid`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (the default Version's)
     - `meta.epoch`: Resource's `meta.epoch` value
     - `changed`: `meta.defaultversionid`, `meta.epoch`, `meta.modifiedat`,
       `versions`, `versionscount`,
       `<ALL-OLD-AND-NEW-DEFAULT-VERSION-ATTRIBUTES>`,
   - `io.xregistry.version.created`
+    - `xid`: `/dirs/d1/files/f1/versions/v2`
     - `epoch`: Version's `epoch` value
-    - `subject`: `/dirs/d1/files/f1/versions/v2`
 
-### Create a new Version - sticky
+### Create a new Version directly - sticky
 
 - Current default Version (v1) is "sticky"
 - Interaction:
@@ -624,13 +751,13 @@ the following model definition:
   - Body: `{}`
 - Events:
   - `io.xregistry.resource.updated`
-    - `subject`: `/dirs/d1/files/f1`
-    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `xid`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (the default Version's)
     - `meta.epoch`: Resource's `meta.epoch` value
     - `changed`: `meta.epoch`, `meta.modifiedat`, `versions`, `versionscount`
   - `io.xregistry.version.created`
+    - `xid`: `/dirs/d1/files/f1/versions/v2`
     - `epoch`: Version's `epoch` value
-    - `subject`: `/dirs/d1/files/f1/versions/v2`
 
 ### Change `defaultversionid` pointer
 
@@ -640,8 +767,8 @@ the following model definition:
   - Body: `{ "defaultversionid": "v2" }`
 - Events:
   - `io.xregistry.resource.updated`
-    - `subject`: `/dirs/d1/files/f1`
-    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `xid`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (the default Version's)
     - `meta.epoch`: Resource's `meta.epoch` value
     - `changed`: `meta.defaultversionid`, `meta.epoch`, `meta.modifiedat`,
        `<ALL-OLD-AND-NEW-DEFAULT-VERSION-ATTRIBUTES>`
@@ -656,12 +783,12 @@ the following model definition:
   - Body: `{ "name": "foo" }`
 - Events:
   - `io.xregistry.resource.updated`
-    - `subject`: `/dirs/d1/files/f1`
-    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `xid`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (the default Version's)
     - `meta.epoch`: Resource's `meta.epoch` value
     - `changed`: `epoch`, `modifiedat`, `name`
   - `io.xregistry.version.updated`
-    - `subject`: `/dirs/d1/files/f1/versions/v1`
+    - `xid`: `/dirs/d1/files/f1/versions/v1`
     - `epoch`: Version's `epoch` value
     - `changed`: `epoch`, `modifiedat`, `name`
 
@@ -673,11 +800,11 @@ the following model definition:
   - Body: `{ "name": "foo" }`
 - Events:
   - `io.xregistry.version.updated`
-    - `subject`: `/dirs/d1/files/f1/versions/v2`
+    - `xid`: `/dirs/d1/files/f1/versions/v2`
     - `epoch`: Version's `epoch` value
     - `changed`: `epoch`, `modifiedat`, `name`
 
-### Create a new Version - not sticky
+### Create a new Version directly - not sticky
 
 - Current default Version (v1) is not "sticky"
 - Interaction:
@@ -685,14 +812,14 @@ the following model definition:
   - Body: `{}`
 - Events:
   - `io.xregistry.resource.updated`
-    - `subject`: `/dirs/d1/files/f1`
-    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `xid`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (the default Version's)
     - `meta.epoch`: Resource's `meta.epoch` value
     - `changed`: `meta.defaultversionid`, `meta.epoch`, `meta.modifiedat`,
        `versions`, `versionscount`,
        `<ALL-OLD-AND-NEW-DEFAULT-VERSION-ATTRIBUTES>`,
   - `io.xregistry.version.created`
-    - `subject`: `/dirs/d1/files/f1/versions/v2`
+    - `xid`: `/dirs/d1/files/f1/versions/v2`
     - `epoch`: Version's `epoch` value
 
 ### Create a new Version - sticky
@@ -703,12 +830,12 @@ the following model definition:
   - Body: `{}`
 - Events:
   - `io.xregistry.resource.updated`
-    - `subject`: `/dirs/d1/files/f1`
-    - `epoch`: Resource's `epoch` value (technically, the default Version's)
+    - `xid`: `/dirs/d1/files/f1`
+    - `epoch`: Resource's `epoch` value (the default Version's)
     - `meta.epoch`: Resource's `meta.epoch` value
     - `changed`: `meta.epoch`, `meta.modifiedat`, `versions`, `versionscount`
   - `io.xregistry.version.created`
-    - `subject`: `/dirs/d1/files/f1/versions/v2`
+    - `xid`: `/dirs/d1/files/f1/versions/v2`
     - `epoch`: Version's `epoch` value
 
 ### Delete a Group
@@ -717,17 +844,20 @@ the following model definition:
   - `DELETE /dirs/d1`
 - Events:
   - `io.xregistry.registry.updated`
-    - `subject`: `/`
+    - `xid`: `/`
     - `epoch`: Registry's `epoch` value
     - `changed`: `dirs`, `dirscount`, `epoch`, `modifiedat`
   - `io.xregistry.group.deleted`
-    - `subject`: `/dirs/d1`
+    - `xid`: `/dirs/d1`
   - `io.xregistry.resource.deleted` for each deleted Resource
-    - `subject`: `/dirs/d1/files/f1`
+    - `xid`: `/dirs/d1/files/f1`
   - `io.xregistry.version.deleted` for each deleted Version
-    - `subject`: `/dirs/d1/files/f1/versions/v1`
+    - `xid`: `/dirs/d1/files/f1/versions/v1`
 
 ### Creating a Group with a complete client HTTP message exchange
+
+This will show the complete HTTP message exchange and full xRegistry events
+generated.
 
 Client Request:
 ```yaml
@@ -745,7 +875,7 @@ HTTP/1.1 201 Created
 Location: https://example.com/dirs/d1
 Content-Type: application/json
 Date: Wed, 02 Jul 2025 12:00:01 GMT
-xRegistry-xregcorrelationid: B9282-129301
+xRegistry-txid: B9282-129301
 
 {
   "dirid": "d1",
@@ -770,8 +900,14 @@ Events Generated:
   "subject": "/",
   "id": "A234-1234-1234",
   "time": "2025-07-02T12:00:01Z",
-  "xregcorrelationid": "B9282-129301",
+  "xregtxid": "B9282-129301",
+
   "data": {
+    "action": "io.xregistry.registry.updated",
+    "registry": "https://example.com",
+    "xid": "/",
+    "time": "2025-07-02T12:00:01Z",
+    "txid": "B9282-129301",
     "epoch": 2,
     "changed": [ "dirs", "dirscount", "epoch", "modifiedat" ]
   }
@@ -786,8 +922,13 @@ Events Generated:
   "subject": "/dirs/d1",
   "id": "A432-4321-4321",
   "time": "2025-07-02T12:00:01Z",
-  "xregcorrelationid": "B9282-129301",
+  "xregtxid": "B9282-129301",
   "data": {
+    "action": "io.xregistry.group.created",
+    "registry": "https://example.com",
+    "xid": "/dirs/d1",
+    "time": "2025-07-02T12:00:01Z",
+    "txid": "B9282-129301",
     "epoch": 1
   }
 }
