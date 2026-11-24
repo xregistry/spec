@@ -47,8 +47,9 @@ requiring an xRegistry server to interpret requests.
 
 For example, `file:///D:/registry-snapshots/first` with
 `layout: "document-tree"` selects that directory's `registry.json`.
-A request for `/documents/main/assets/item/versions/v1` follows its
-record/index references and reads the selected bytes. Alternatively,
+A `document` request for `/documents/main/assets/item/versions/v1` follows
+the record and index references and reads the selected document bytes.
+An `entity` request for the same XID reads metadata. Alternatively,
 `layout: "oci-layout"` and `reference: "release-1"` select one snapshot
 from an OCI layout at the same kind of local location.
 
@@ -86,9 +87,10 @@ python -B -m workingdrafts.bindings.tools.mapping_examples document D:\temp\xreg
 
 The selected File root is `file:///D:/temp/xregistry-file-portable`, with
 `layout: "document-tree"` and no extra `xregistry` directory. The generator
-reports the root hash, but the output directory remains mutable.
-A selective read checks only the bytes it references; the `validate`
-command checks the complete declared graph. For local OCI output, use the
+reports the root hash, but the output directory remains mutable. The hash
+identifies the root bytes; it does not establish an immutable filesystem pin.
+A selective read checks only the bytes it references; the `validate` command
+checks the complete declared graph. For local OCI output, use the
 [OCI generation and reading commands](oci.md#generate-and-read-a-layout)
 with `layout: "oci-layout"` and the chosen reference.
 
@@ -143,27 +145,34 @@ The first example selects an absolute Windows drive path; the second selects
 an absolute POSIX path. If a host cannot interpret the selected native path,
 it MUST report `unsupported_operation` rather than reinterpret the path as
 a different filesystem root.
-Windows drive-relative paths and older `C|` spellings are not accepted.
+For a Windows root, the initial path component is an absolute drive
+designator, as in `/D:/registry-snapshots/first`; it is not an internal
+mapping path. Windows drive-relative paths and older `C|` spellings are not
+accepted. It is not permissible to add a drive designator to an internal
+root-relative `href`.
 
 URI parsing MUST:
 
-- Validate escapes before decoding.
-- Decode UTF-8 exactly once.
-- Reject NUL/control characters, backslashes, encoded separators and
-  encoded dot/parent segments.
+- Validate escapes and reject encoded separators before decoding.
+- Decode UTF-8 exactly once and reject NUL/control characters, backslashes,
+  and dot/parent segments, including those introduced by an escape.
 
 After decoding, URI parsing MUST reject:
 
 - `.` and `..`.
 - Empty interior components.
-- Drive or device prefixes.
+- Nested drive designators or device prefixes. The initial drive designator
+  in an absolute Windows root is not a nested designator.
 - Alternate data streams.
 - Trailing spaces and dots.
 - Windows-reserved component names.
 
-These rejections apply where applicable. A single terminal slash is
-permitted for a directory URI.
+The restrictions on alternate data streams, trailing spaces or dots, and
+Windows-reserved component names apply when interpreting the root as a
+Windows path. A single terminal slash is permitted for a directory URI.
 Decoding a second time MUST NOT turn a literal percent sequence into traversal.
+Malformed URI escapes or a path that does not decode as UTF-8 make the
+advertisement `invalid_package`.
 
 The selected directory's spelling locates the snapshot; it does not restrict
 Core IDs. Directory mappings keep entity IDs separate from existing native
@@ -210,8 +219,8 @@ The OCI binding's rules apply unchanged to:
 - Size/digest verification.
 - Complete containment closure.
 
-This binding uses the OCI root-selection algorithm unchanged. A layout
-index is not a Distribution endpoint.
+This binding uses OCI's image-layout selection, not its remote Distribution
+operations. The layout index is a local entry point, not a server endpoint.
 
 The selected OCI root identifies one Registry; other roots in the directory
 are separate snapshots. Local layout access does not imply network blob
@@ -227,7 +236,11 @@ Equal XIDs in different directories remain scoped
 to different Registry contexts.
 
 External domain-document links remain explicit. Retrieving one requires
-separate caller authorization, URI-base handling, and integrity checking.
+separate caller authorization and the selected format's locator and
+integrity checks. A relative external locator in the
+[directory mapping](mapping.md#documents) uses the descriptor's absolute
+`base`; the [OCI layout](oci.md#53-version-documents-and-placeholders)
+stores an absolute external locator.
 Relative links MUST NOT silently become paths outside the selected root.
 
 Linked snapshots permit external-only domain documents. Offline-complete
@@ -249,8 +262,8 @@ mount-point reparse records, or other path redirections. Consumers MUST NOT
 read device files, pipes, sockets, and alternate data streams as snapshot
 content.
 Case folding, short-name aliases, and reserved OS names MUST NOT select a
-different internal object. Git/File storage portability does not permit
-case-insensitive Core XID lookup.
+different internal object. This check concerns the selected storage path,
+not the spelling of a Core ID, which is looked up case-sensitively.
 
 Before interpreting bytes, consumers MUST establish that the actual opened
 objects are contained within the selected root. When a hostile process can
@@ -272,24 +285,33 @@ snapshot.
 
 Consumers MUST detect changes during open/read operations,
 short reads and changes to already captured selection state. An observed
-change MUST produce `inconsistent_snapshot`. A stable descriptor mismatch
-is `integrity_error`.
+change or a short read MUST produce `inconsistent_snapshot`. A stable
+descriptor mismatch is `integrity_error`.
 
-If the environment cannot guarantee a coherent read, the consumer MUST
-either capture a private stable snapshot or explicitly report the lack of
-an immutable filesystem pin. Consistent file timestamps alone are
-insufficient: the consumer MUST NOT use them to advertise an atomic capture
-of a live upstream Registry.
+The resolver MUST establish that all bytes used by the operation are
+coherent with the selected root. If it can establish coherence without an
+immutable filesystem snapshot guarantee, it MAY return the result and MUST
+report it as live with no immutable filesystem pin.
+
+If the resolver cannot establish coherence, it MUST capture a private stable
+snapshot that establishes coherence or return a failure. It MUST NOT return
+incomplete or unverifiable bytes as a successful read.
+
+Coherence for one operation does not establish an immutable filesystem
+snapshot or an atomic capture of the upstream Registry. The consumer MUST
+NOT use consistent file timestamps alone to advertise such an atomic
+capture.
 
 For example, after capturing a root and its referenced descriptor:
 
 | Observed read | Outcome |
 | --- | --- |
+| All bytes used by the operation are coherent with the captured root, but the filesystem provides no immutable snapshot guarantee | The resolver can return a live result with no immutable filesystem pin. |
+| Coherence cannot be established, and no more specific failure applies | Capture a private stable snapshot that establishes coherence or return a failure. |
 | A stable file has bytes different from the descriptor's size or digest | `integrity_error`. |
-| The file changes or truncates during the observed read | `inconsistent_snapshot`. |
+| The file changes during the read or the resolver observes a short read | `inconsistent_snapshot`. |
 
-Neither outcome selects a newer root. A private stable snapshot is needed
-where the environment cannot provide coherent reads.
+The resolver MUST NOT select a newer root in response to these outcomes.
 
 A producer SHOULD construct a complete snapshot separately and then make
 it available atomically using platform-appropriate synchronization. Updating
@@ -297,7 +319,8 @@ files in place while readers traverse them does not establish completeness.
 Retaining immutable old files can let readers with an older pinned root
 complete without mixing revisions.
 
-Origin MUST identify the file URI, layout, and selected root hash/digest,
+The [origin context](../federation/spec.md#read-operations) MUST identify
+the file URI, layout, and selected root hash or digest,
 plus whether an immutable filesystem snapshot guarantee is present.
 It MUST NOT replace entity XIDs, Resource Version IDs, or Core navigation.
 
@@ -307,20 +330,23 @@ It MUST NOT replace entity XIDs, Resource Version IDs, or Core navigation.
 | --- | --- |
 | Selected directory or initial document-tree root absent | `not_found`. |
 | Internally referenced file/blob absent | `invalid_package`. |
-| Byte length or digest mismatch | `integrity_error`. |
-| Observed concurrent mutation or truncated read | `inconsistent_snapshot`. |
+| A stable read does not match the descriptor's byte length or digest | `integrity_error`. |
+| Observed concurrent mutation or short read | `inconsistent_snapshot`. |
 | Unauthorized root, traversal, symlink or reparse point | `policy_denied`. |
 | Unsupported layout operation or platform path form | `unsupported_operation`. |
 | Unsupported Core or package version | `unsupported_version`. |
 | Exhausted path, count or byte limit | `limit_exceeded`. |
 
-OCI root selection, entity absence and ambiguity use the OCI and common
-definitions. Other I/O failures produce `unavailable` unless a more specific
+OCI layout root selection follows the [OCI binding](oci.md#22-image-layout-selection).
+Entity absence and selector ambiguity follow the
+[common federation outcomes](../federation/spec.md#errors).
+Other I/O failures produce `unavailable` unless a more specific
 outcome applies. A failure does not authorize switching layouts, retrying
 another profile or reporting a successful empty collection.
 
-A producer MUST provide a complete snapshot in one explicitly declared
-layout. A consumer MUST implement that layout's metadata/document semantics
+A producer MUST provide a complete internal graph in one explicitly
+declared layout. This applies to both linked and offline-complete snapshots.
+A consumer MUST implement that layout's metadata/document semantics
 and all applicable containment and consistency rules. A consumer MUST
 identify which layouts it implements. Support for one does not imply the
 other. An offline-complete claim also requires the selected layout's

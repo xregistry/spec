@@ -39,8 +39,8 @@ This binding implements the read contract of
 [federation](../federation/spec.md#read-operations), using
 [Core](../../core/spec.md) and [Model](../../core/model.md) Version 1.0-rc4.
 Write-through, synchronization, checkout, builds, and repository execution
-are outside its scope. Publishing a Package is a separate operation from
-consuming a federation.
+are outside its scope. Publishing a mapped tree is separate from selecting
+and reading it through this binding.
 
 ## Motivation and Example
 
@@ -129,10 +129,13 @@ MUST be explicit, bounded, and complete for the requested operation.
 
 The resolver MUST resolve `revision` once. Lightweight tags and branches
 select their referenced object. The resolver MUST peel annotated tags to a
-commit. An object that cannot resolve to a commit is invalid selection input.
+commit. A reachable object that is neither a commit nor an annotated tag
+that resolves to a commit is `invalid_package`, not a missing ref.
 
 The resolver MUST record the resulting complete commit OID and retain that
-pin for the entire operation, including model, label, and document reads.
+pin for the entire operation, including model, label and document reads
+made as part of it. To select the same state in another operation, supply
+the pinned commit ID rather than relying on the original ref.
 If the original ref moves, that movement MUST NOT change the pin or trigger
 a second resolution.
 Consumers MUST NOT substitute a currently reachable or newer commit when
@@ -162,7 +165,7 @@ Consumers MUST read `registry.json`, external records and indexes, and
 documents as blob payloads. An inline record or index is read as part of its
 containing file's blob.
 Consumers MUST NOT use checkout bytes, text conversion, clean/smudge filters
-or attributes. They MUST NOT use LFS downloads, hooks, external diff
+or Git attributes to obtain the bytes. They MUST NOT use LFS downloads, hooks, external diff
 commands, build steps or repository code.
 Blob modes `100644` and `100755` both denote data; executable permission does
 not authorize execution. Consumers MUST verify Git object type and identity,
@@ -170,7 +173,9 @@ as well as the format's descriptor size and SHA-256.
 
 A Git OID hashes the typed Git object representation, rather than the raw
 document bytes. It is distinct from a document SHA-256 and a Core `versionid`.
-The result origin MUST distinguish the repository endpoint, selected root
+For each read result, the separate
+[origin context](../federation/spec.md#read-operations) MUST distinguish
+the repository endpoint, selected root
 path, requested revision and resolved commit. These values neither become
 `self` nor modify the selected entity XID.
 
@@ -212,13 +217,14 @@ When encountered on the selected root or traversed internal graph:
 | --- | --- |
 | Mode `120000`, a symbolic link | `policy_denied`. Do not follow or treat its target string as metadata. |
 | Mode `160000`, a submodule gitlink | `unsupported_operation`. No submodule initialization or fetch. |
-| Git LFS pointer blob | `unsupported_operation`. No smudge or network content substitution. |
-| Missing pinned tree/blob | `inconsistent_snapshot`. No implicit lazy fetch or ref re-resolution. |
+| Git LFS signature in a blob (see below) | `unsupported_operation`. No smudge or network content substitution. |
+| A tree entry exists but its pinned object is unavailable | `inconsistent_snapshot`. No implicit lazy fetch or ref re-resolution. |
 | Wrong tree/blob type or malformed tree entry | `invalid_package`. |
 
 In this binding, a blob starting with the Git LFS v1 signature line
-`version https://git-lfs.github.com/spec/v1` is an unsupported LFS path,
-including a CRLF-terminated signature. If a domain document needs those
+`version https://git-lfs.github.com/spec/v1` is an unsupported LFS path.
+The signature can end at EOF or be followed by LF or CRLF.
+If a domain document needs those
 literal bytes, its producer needs a different binding. `.gitattributes`
 does not override this rule.
 
@@ -249,8 +255,9 @@ Readers using Git subprocesses MUST pass validated arguments directly without
 shell evaluation, and MUST isolate unsafe configuration/environment settings.
 
 The resolver MUST apply explicit resource limits to acquisition, tag peeling,
-tree traversal and object reads. It MUST NOT report an exhausted limit or
-incomplete acquisition as a successful empty result, or use either condition
+tree traversal and object reads. Exhausting a configured bound produces
+[`limit_exceeded`](../federation/spec.md#errors). The resolver MUST NOT
+report an exhausted limit or incomplete acquisition as a successful empty result, or use either condition
 to justify fallback to another profile.
 
 A Git content identity verifies content, not the publisher's identity.

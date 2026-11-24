@@ -12,7 +12,8 @@
 
 ## Abstract
 
-This working draft defines version 1 of an OCI snapshot format and a native,
+This working draft defines version 1 of an Open Container Initiative (OCI)
+snapshot format and a native,
 read-only federation binding for xRegistry. It supplements
 [Core](../../core/spec.md), the [model language](../../core/model.md) and
 the [shared federation contract](../federation/spec.md). The format is an
@@ -22,7 +23,9 @@ One OCI image index identifies the selected complete Registry snapshot.
 Nested standard image indexes describe its Registry, Group, Resource and
 collection containment. Image manifests reference portable metadata configs
 and independently addressable Version document blobs. Ordinary OCI
-descriptor edges reach all REQUIRED content.
+descriptor edges reach all REQUIRED content. A descriptor names a child
+object by its media type, digest, and byte length. It is not the child
+object itself.
 
 ## Table of Contents
 
@@ -128,8 +131,9 @@ An advertisement uses the shared `federationprofiles` entry shape:
 }
 ```
 
-`endpoint` MUST contain an OCI host, an OPTIONAL port, and a nonempty
-repository name. The repository MUST obey the Distribution repository
+`endpoint` MUST have the form `oci://host/repository`, with an OPTIONAL
+port on the host. This is an advertisement locator, not an HTTP API URL.
+The repository name MUST be nonempty and obey the Distribution repository
 grammar. The endpoint MUST NOT contain credentials, a tag, an `@digest`,
 a query, or a fragment.
 
@@ -152,7 +156,8 @@ Distribution API paths; Section 2.2 defines selection from a local OCI
 layout.
 
 The resolver MUST request the selected reference at
-`/v2/<repository>/manifests/<reference>`. The returned object MUST be a
+`/v2/<repository>/manifests/<reference>` using the `Accept` rules in
+[Section 6](#6-native-read-operations). The returned object MUST be a
 Registry index as defined in Section 4, not a flat inventory, Version manifest,
 layout index, or collection index.
 
@@ -181,22 +186,26 @@ snapshot itself. It MAY list several roots and unrelated OCI artifacts.
 Every index, including this entry point, MUST satisfy the bounds in
 Section 4. The entry point need not list every blob stored in the layout.
 
-A snapshot entry descriptor MUST use the standard index media type and
+To advertise a snapshot root for tag or unqualified selection, a layout
+entry descriptor MUST use the standard index media type and
 `artifactType: application/vnd.xregistry.registry.v1+json`. Its OPTIONAL
 `org.opencontainers.image.ref.name` annotation supplies its tag. This
 annotation MUST NOT be used as Version identity or on internal edges.
 Profile-specific edge annotations are not REQUIRED on layout entries.
 
 A tag selects exactly one matching entry. Multiple entries with that tag
-are `ambiguous`, even if they name the same digest. A digest can select a
-stored Registry index directly, including one not tagged in `index.json`.
+are `ambiguous`, even if they name the same digest. A selected tag entry
+MUST identify a Registry index under the preceding rules. A digest can
+select a stored Registry index directly, including one not advertised in
+`index.json`.
 
 If an interactive tool offers unqualified selection, it MUST select only
 when exactly one distinct eligible Registry root digest is advertised.
 Zero is `not_found`, and more than one is `ambiguous`. Advertisements
 themselves always have an explicit reference.
 
-After selection, the resolver MUST verify the root and retain its digest.
+After selection, the resolver MUST verify the root's bytes and Registry
+index kind and retain its digest. This check is not a full closure audit.
 It MUST NOT merge different roots. Extra blobs and other roots are outside
 the selected root's closure. These rules also govern the File binding's
 `layout: oci-layout` mode.
@@ -219,7 +228,8 @@ use here does not claim IANA registration.
 | Opaque document blob | `application/vnd.xregistry.document.v1` | Not applicable |
 | Unused layer placeholder | `application/vnd.oci.empty.v1+json` | Not applicable |
 
-All indexes and manifests MUST set `schemaVersion: 2`, the indicated
+All indexes and manifests in the selected Registry graph MUST set
+`schemaVersion: 2`, the indicated
 `mediaType`, and the indicated `artifactType`. Their annotations MUST
 include `io.xregistry.oci.version: "1"`, `io.xregistry.oci.kind`, and
 `io.xregistry.oci.xid`. The kind is `registry`, `group`, `resource`,
@@ -256,8 +266,8 @@ Descriptor roles have these exact meanings:
 
 `root` is reserved for fixture-tool output and MAY annotate a layout
 entry. It is not an internal containment role. A descriptor's role, media
-type, XID, and target kind MUST agree. Unknown REQUIRED roles are not
-silently ignored.
+type, XID, and target kind MUST agree. An unknown internal role is an
+invalid role, not an edge that a reader can elect to skip.
 
 Only the seven annotation suffixes `version`, `kind`, `xid`, `role`,
 `mode`, `lower`, and `upper` are defined in `io.xregistry.oci.`.
@@ -268,7 +278,9 @@ containment, model, labels, or other authoritative entity metadata. Configs
 store the full metadata; stringified JSON annotation values do not replace
 them. Annotation keys and string values also follow OCI's annotation rules.
 
-`subject` MUST NOT be used in the REQUIRED snapshot graph. OPTIONAL
+OCI's `subject` descriptor associates an artifact with another object;
+it does not express a containment edge. `subject` MUST NOT be used in the
+REQUIRED snapshot graph. OPTIONAL
 provenance and signatures can be separate artifacts associated with the
 root through `subject` and referrers. They are not prerequisites for
 enumerating or reading the snapshot and are not automatically copied
@@ -276,7 +288,9 @@ with ordinary containment.
 
 ## 4. Containment and Range Shards
 
-The complete logical structure is:
+The following structure shows one path to an embedded Version document.
+The surrounding rules also cover empty collections, aliases that store no
+Version subtree, and manifests with a placeholder instead of document bytes.
 
 ```text
 Registry index
@@ -343,9 +357,10 @@ routing levels support arbitrarily large finite collections. A consumer
 MAY impose separately reported depth, total-byte or object-count policy
 limits.
 
-Routing keys are complete, validated Core XIDs or collection paths. The
-comparison is case-sensitive and lexicographic over UTF-8 bytes, without
-URI decoding, Unicode normalization or locale collation. In the referenced
+Routing keys are complete Core XIDs or collection paths in the canonical
+encoding below. Once encoded, compare them case-sensitively and
+lexicographically over UTF-8 bytes, without further decoding, Unicode
+normalization, or locale collation. In the referenced
 Core version, the ID grammar makes these keys ASCII. Consequently, `A`
 precedes `a` and `v10` precedes `v2`. Labels do not determine routing keys.
 
@@ -372,9 +387,10 @@ selected config's serialization. URI-equivalent selectors then follow the
 same one-interval-per-level lookup.
 
 Portable config `entity.xid` and Meta `xref` MAY retain another valid,
-URI-equivalent spelling. Their decoded, case-sensitive identity MUST agree
-with their canonical descriptor identity. Their original bytes still determine
-the config digest. Producers MUST NOT rewrite those bytes during a read.
+URI-equivalent spelling. The decoded `entity.xid` MUST agree with the
+config's canonical descriptor identity. A Meta's `xref` identifies the
+target Resource, not the Meta's own descriptor. Original config bytes
+determine its digest and MUST NOT be rewritten during a read.
 
 JSON map keys and document-local pointers use decoded IDs. Producers MUST
 reject duplicate decoded sibling identities, including Core's case-insensitive sibling
@@ -566,10 +582,10 @@ A Version config MUST have a `document` object containing `mode`:
 | `external` | One `empty` layer. Core `<RESOURCE>url` names uncaptured content |
 | `metadata-only` | One `empty` layer. Resource model has `hasdocument: false` |
 
-An external URL MUST be absolute and credential-free. A consumer MUST
-resolve a relative domain-document locator against its original retrieval
-base before capture, never against an OCI repository, XID, or config
-blob path.
+An external URL MUST be absolute and credential-free. When capturing an
+external document locator, the producer MUST resolve a relative locator
+against its original retrieval base, never against an OCI repository,
+XID, or config blob path.
 
 A captured copy of an externally stored document uses `embedded`. Its
 original locator MAY be retained as `document.origin`,
@@ -650,13 +666,15 @@ The baseline view inlines the requested metadata subtree, including Meta
 and Version metadata, recreates collection counts and navigation fields,
 and excludes domain-document bytes.
 
-`self` and navigation URLs MUST be valid `#`-prefixed JSON Pointers into that
-returned document. `#` denotes the empty pointer to the document root.
+In the baseline view, `self` and navigation URLs MUST be valid `#`-prefixed
+[JSON Pointers][rfc6901] into the returned document. `#` denotes the empty
+pointer to the document root.
 Transport endpoint and snapshot pin are separate result context.
 
-For standalone Meta retrieval, the returned metadata document contains
-the owning Resource and its Version metadata, and identifies `/meta` as
-the selected JSON Pointer. This supplies a real in-document target for
+For standalone Meta retrieval, the owning Resource is the root of the
+returned metadata document, and `/meta` selects the Meta entity.
+An ordinary Resource includes its Version metadata; an alias does not.
+For an ordinary Resource, this supplies a real in-document target for
 `defaultversionurl` without inventing an OCI API URL.
 
 For collection retrieval the document is the Core ID-keyed collection map.
@@ -682,8 +700,9 @@ resolve the source Resource's default, or an explicit Version's bytes,
 through one local `xref` hop.
 
 A resolver supporting this operation MUST verify same-Registry and same
-Resource model type. It MUST NOT chase a second hop. It MUST retain source
-target identity separately from the resolved Version XID. A dangling or
+Resource model type. It MUST NOT chase a second hop. It MUST retain the
+original requested XID separately from the resolved target Version XID.
+A dangling or
 alias target has no retrievable document.
 Absolute remote `xref` values or wrong Resource model types are invalid.
 
@@ -700,14 +719,14 @@ OCI Distribution. Their names do not define additional HTTP routes.
 | Requested data | Resolution |
 | --- | --- |
 | Registry metadata | Root `metadata` config, then its metadata subtree |
-| `model`, target `/` | Full `model`, original `modelsource`, and resolved source in a separate `resolvedmodelsource` result field |
+| `model`, target `/` | Full `model`, original `modelsource`, and stored `modelresolved` returned as `resolvedmodelsource` |
 | `capabilities`, target `/` | Registry config capabilities |
 | Group or Resource metadata | Typed directory/collection path, then metadata leaves |
 | Meta | Resource `meta` leaf, assembled with its Resource context |
 | Collection enumeration | All leaves of that typed collection |
 | Explicit Version metadata | One Version manifest and its config |
 | Default document | Resource Meta's `defaultversionid`, then that Version |
-| Explicit Version document | That Version's config and `document` layer |
+| Explicit Version document | The exact Version; its document mode determines the result below |
 
 Indexes and manifests use
 `GET /v2/<repository>/manifests/<digest>`. Config, document and placeholder
@@ -715,9 +734,10 @@ blobs use `GET /v2/<repository>/blobs/<digest>`. Clients MUST NOT use the
 blob endpoint for an index merely because a local layout stores all
 objects below `blobs`. Nor is the document layer's XID a Distribution URL.
 
-Manifest requests MUST advertise both standard index and image-manifest
-media types in `Accept`. The response's media type, ignoring HTTP
-parameters, MUST agree with the descriptor and JSON `mediaType`.
+Requests to `/manifests/`, including root selection, MUST advertise both
+standard index and image-manifest media types in `Accept`. The response's
+media type, ignoring HTTP parameters, MUST agree with the JSON `mediaType`
+and with the selecting descriptor when one is available.
 `HEAD` MAY be used for existence checks but does not replace byte
 verification. Unsupported REQUIRED artifact kinds or format versions
 are reported explicitly rather than mistaken for empty collections.
@@ -742,7 +762,7 @@ that projection. A Group or Version uses its own labels.
 
 The resolver MUST examine every necessary shard before asserting uniqueness.
 Zero matches are `not_found`. Multiple matches are `ambiguous`, including a
-match on a later page. OPTIONAL acceleration MUST NOT alter this result
+match in another shard. OPTIONAL acceleration MUST NOT alter this result
 or hide missing content. Version documents need not be fetched to select
 by label.
 
@@ -757,8 +777,9 @@ instead of returning the placeholder as document content.
 
 ### Example: Retrieve One Version
 
-For `/dirs/main/files/sample/versions/v1`, the resolver follows only the
-indexes on that typed path. This sequence summarizes the native Distribution
+For an embedded document at `/dirs/main/files/sample/versions/v1`, the
+resolver follows only the indexes on that typed path. This sequence
+summarizes the native Distribution
 requests. The resolver verifies each descriptor before interpreting its
 referenced bytes. Reading metadata alone stops before the document-layer
 request.
@@ -778,7 +799,7 @@ sequenceDiagram
         C->>C: Verify bytes and select the matching path or range
     end
     C->>O: Read Resource Meta if needed for Version selection
-    O-->>C: Default Version and Resource metadata
+    O-->>C: Resource Meta attributes, including defaultversionid
     C->>O: GET /v2/team/catalog/manifests/version-digest
     O-->>C: Version manifest with config and document descriptors
     C->>O: GET /v2/team/catalog/blobs/config-digest
@@ -857,10 +878,11 @@ by the Federation specification:
 | A document read through a local alias has no accessible one-hop target | `not_found` |
 | A document is requested from a metadata-only Resource | `unsupported_operation` |
 | More than one selected root or label match | `ambiguous` |
-| Unknown profile or format version | `unsupported_binding` or `unsupported_version` |
+| Unsupported advertised binding | `unsupported_binding` |
+| Unsupported format version | `unsupported_version` |
 | Unsupported operation, view or parameter | `unsupported_operation` |
 | Bad digest or byte size | `integrity_error` |
-| A referenced index, manifest, config or embedded document blob is missing | `invalid_package` |
+| An index, manifest, config, embedded document or placeholder in the containment graph is missing | `invalid_package` |
 | Invalid roles, ranges, model or identity | `invalid_package` |
 | Incoherent capture or immutable state replaced during access | `inconsistent_snapshot` |
 | Exceeded format or configured traversal limits | `limit_exceeded` |
@@ -879,8 +901,9 @@ well formed.
 Use authenticated HTTPS and repository-scoped credentials under caller
 policy. OCI metadata MUST NOT contain credentials. Redirect destinations,
 external document URLs, and filesystem roots require independent policy
-checks. A layout reader MUST NOT forward Authorization headers
-indiscriminately.
+checks. Opening a local layout does not authorize an external request.
+When making a separately authorized HTTP request, use only credentials
+scoped to its destination.
 
 A layout reader MUST prevent path traversal and symlink or reparse-point
 escape. A blob name is derived from a validated digest, never from an ID.
@@ -925,7 +948,11 @@ builds do not establish interoperability with a remote service.
 ### Generate and Read a Layout
 
 These commands generate offline and linked layouts, validate each layout, and
-look up a document, metadata, or label-selected collection. Run them from the
+look up a document, metadata, or a member selected by label within a
+collection. The final lookup supplies an empty label value, not an
+omitted argument. The `offline` fixture matches `/dirs/main`, and the CLI
+returns that XID as `target` and the selected Group as `value`, not a
+collection map. Run the commands from the
 repository root with the Python dependencies listed in the
 [shared instructions](../README.md#generating-and-reading-examples).
 Each output directory is new or empty and outside the checkout:
@@ -937,7 +964,7 @@ python -B -m workingdrafts.bindings.tools.oci_examples validate D:\temp\xregistr
 python -B -m workingdrafts.bindings.tools.oci_examples validate D:\temp\xregistry-oci-linked --reference linked
 python -B -m workingdrafts.bindings.tools.oci_examples lookup D:\temp\xregistry-oci-offline /dirs/main/files/sample/versions/v2 --reference offline --operation document --trace D:\temp\xregistry-v2-trace.json
 python -B -m workingdrafts.bindings.tools.oci_examples lookup D:\temp\xregistry-oci-offline /dirs/main/files/sample/meta --reference offline
-python -B -m workingdrafts.bindings.tools.oci_examples lookup D:\temp\xregistry-oci-offline /dirs --reference offline --operation collection --label empty --value ""
+python -B -m workingdrafts.bindings.tools.oci_examples lookup D:\temp\xregistry-oci-offline /dirs --reference offline --operation collection --label empty --value=
 ```
 
 The default options are `--reference snapshot` and `--page-size 256`.
@@ -1121,8 +1148,11 @@ REQUIRED descendants. Merely parsing JSON or quoting tool help is not
 interoperability evidence. Offline layout copying does not establish a
 Distribution round trip, and a round trip against one configured service
 does not establish support in every registry or client. The integration
-test requires a configured test registry and ORAS. It runs separately
-from the offline suite:
+test requires ORAS 1.3.0 and `XREGISTRY_TEST_REGISTRY` set to an isolated
+test registry/repository. Without that setting, pytest skips the round-trip
+test. The [verification workflow](../../.github/workflows/verify.yaml)
+shows the dedicated test invocation. The following selection also runs
+the offline cases:
 
 ```powershell
 python -B -m pytest workingdrafts\bindings\tools\test_oci_examples.py workingdrafts\federation\tools\test_generate_examples.py -q

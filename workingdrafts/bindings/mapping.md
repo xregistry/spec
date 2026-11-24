@@ -111,8 +111,8 @@ bytes. Neither `widget.json` nor `image.dat` needs to move or change.
 A publisher can store any record or index in a separate metadata file
 beside the described files or in another directory.
 Unreferenced files, such as `source/main.py` and the README, neither become
-Resources automatically nor participate in the Registry's declared content
-closure.
+Resources automatically nor participate in the Registry's
+[declared content closure](#completeness-and-integrity).
 
 The [example](#worked-example-map-one-existing-file) shows
 every file needed to map one existing document and the resulting reads.
@@ -133,10 +133,10 @@ This example maps one existing file to Resource
 The selected root is the `project` directory. No file outside that
 directory is read.
 
-To save the following JSON block, use UTF-8, two-space indentation, LF line
-endings and one final newline. The size and digest values describe those
-exact bytes. After changing the document, recalculate its size and digest
-in the Version's document descriptor inside `registry.json`.
+Save the example's files in UTF-8 with LF line endings and one final
+newline. Preserve the whitespace shown in each saved JSON block: the size
+and digest values describe those exact bytes. If you change the document,
+recalculate its size and digest in the Version descriptor.
 
 To generate this project instead, select `walkthrough` from the
 [shared examples](../README.md#generating-and-reading-examples):
@@ -149,8 +149,10 @@ The generator writes the unchanged document, an inline `registry.json` and
 a `.gitattributes` file that disables text conversion for the document.
 Unlike the `registry.json` listing, the generated Registry root also contains
 the full captured Core model from the shared source. The `registry.json` listing
-omits `model` and retains only `modelsource`, so its size and digest differ
-from the generated root. The [walkthrough tests](tools/test_mapping_examples.py)
+omits the full `model` and retains the compact `modelsource`. A reader
+that loads the listing applies [the model rules](#model-and-capabilities)
+to that source. The listing's size and digest differ from the generated
+root. The [walkthrough tests](tools/test_mapping_examples.py)
 check that removing the model reproduces the listed bytes exactly.
 
 ### 1. Keep the Existing Document
@@ -192,8 +194,9 @@ flowchart TD
 Figure 1 (informative): reference edges in the two-file example. Each solid
 edge inside `registry.json` is an inline reference. The edge to
 `source/specs/widget.json` is the Version's document descriptor, which
-carries `href`, `size` and `sha256`. The dashed edge selects a Version and
-is not a reference. Unreferenced project files are outside this graph. The
+carries `href`, `size` and `sha256`. The dashed edge shows selection by
+`defaultversionid`, not an inline reference or storage descriptor.
+Unreferenced project files are outside this graph. The
 [read rules](#reads-and-core-document-view) assemble metadata from these
 records without treating storage paths or nesting as entity navigation.
 
@@ -382,9 +385,9 @@ unchanged file.
 ### 3. Read Metadata or Document Bytes
 
 The abstract operation `entity` with target
-`/documents/main/assets/widget/versions/v1` returns the following native
-metadata envelope. Its local pointer selects the entity in this response,
-not a file on disk:
+`/documents/main/assets/widget/versions/v1` assembles the following
+document-view metadata envelope from storage. The pointer selects the
+entity in this response, not a file on disk:
 
 ```json
 {
@@ -416,8 +419,9 @@ bytes because its Meta selects `v1`. These are read-operation concepts,
 not additional HTTP routes. A server exposing this mapping uses its
 consumer-facing binding to deliver the corresponding response.
 
-The declared Registry in this example consists entirely of `registry.json`
-and the document; other project files are unaffected. If `widget.json`
+The [offline-complete](#completeness-and-integrity) graph in this example
+consists of `registry.json` and the declared document. Other project files
+are outside the graph. If `widget.json`
 changes without a corresponding mapping update, its size or digest no
 longer matches the descriptor and the reader reports `integrity_error`.
 
@@ -482,9 +486,10 @@ the Version record still inline. It is 992 bytes with SHA-256
 The changed `registry.json` is 4302 bytes with SHA-256
 `002d2a3bd4abbe0e2822e829925346bc4380a4c7380848a9bc2494c74026bfea`.
 The separate index does not change the returned metadata or document bytes.
-A reader opens `registry-metadata/versions.json` only when a request reaches
-the Version collection. The split form stores every record and index in a
-separate file and is equally valid. For this example it produces eight
+During a selective read, a reader opens `registry-metadata/versions.json`
+when the request needs that collection. A full-graph audit can open the
+file independently. In the split form, each record and index has its own
+file. For this example it produces eight
 metadata files, including `registry.json`.
 
 <!-- mapping-walkthrough:end -->
@@ -509,7 +514,7 @@ no `href` and allocates no file. A local Version document's `href` selects
 a regular file within the root, independently of its extension or domain
 format.
 
-Paths MUST be nonempty, normalized root-relative strings with `/` separators.
+Paths MUST be nonempty, root-relative strings with `/` separators.
 They MUST NOT be absolute, contain empty components, `.` or `..` components,
 backslashes, NUL/control characters, or surrogate code points. A consumer
 MUST NOT apply URI decoding. It MUST reject percent encodings that could be
@@ -521,8 +526,10 @@ period, or use Windows device names such as `CON` and `NUL`.
 Other Unicode names and spaces within components are permitted. Platform
 path-length and access limits produce explicit errors.
 
-Only external references allocate paths. An inline object occupies no path
-of its own. Metadata files describing different records or indexes MUST have
+Other than the fixed `registry.json` root, only external metadata references
+allocate record or index paths. Inline objects occupy no path of their own;
+local Version document descriptors allocate document paths. Metadata files
+describing different records or indexes MUST have
 distinct paths. Paths whose spellings differ only by case MUST NOT
 designate different mapping objects, because such mappings are ambiguous on
 case-insensitive filesystems. Several Versions MAY reference the same local
@@ -566,7 +573,9 @@ mark, duplicate keys or non-JSON numbers. An inline record or index is part of
 its containing file and follows that file's JSON rules. Each record and index
 has `format: "xregistry-document-tree"` and `formatversion: "1"`, including
 an inline one.
-An unknown version MUST produce `unsupported_version`.
+An unknown `formatversion` MUST produce `unsupported_version`. An inline
+object whose format or version differs from its container is a structural
+mismatch and produces `invalid_package`.
 
 An entity record contains `kind` and `entity`. The `entity` object stores a
 fragment of Core metadata, including the full `xid` and explicit model-named
@@ -580,7 +589,7 @@ when assembling a Core response, as described in
 | `group` | `<GROUP>id`, `epoch`, `createdat`, `modifiedat`. |
 | `resource` | `<RESOURCE>id`. No inherited default-Version attributes. |
 | `meta`, ordinary | `<RESOURCE>id`, `epoch`, `createdat`, `modifiedat`, `readonly`, `defaultversionid`, `defaultversionsticky`. |
-| `meta`, alias | Only `<RESOURCE>id`, `xid`, `xref`. |
+| `meta`, alias | `<RESOURCE>id` and `xref`; no other metadata besides `xid`. |
 | `version` | `<RESOURCE>id`, `versionid`, `epoch`, `createdat`, `modifiedat`, `ancestorid`, `isdefault`. |
 
 All identifiers MUST agree with the full typed XID and model singular names.
@@ -598,8 +607,8 @@ For a Resource model with `hasdocument: true`, it MUST NOT contain inlined
 `<RESOURCE>` or `<RESOURCE>base64` document content.
 
 These omissions do not extend to other Core or extension data.
-On a metadata-only Resource, an ordinary model-admitted attribute remains
-metadata even when its name has one of these spellings.
+On a metadata-only Resource, a model-admitted attribute named `<RESOURCE>`
+or `<RESOURCE>base64` remains ordinary metadata, not domain document content.
 
 Registry and Group records have a `collections` array containing exactly one
 reference for every modeled child collection, even an empty one.
@@ -633,18 +642,22 @@ forms, or an external reference that lacks `href`, `size` or `sha256`, is
 `invalid_package`. The external form names a file inside the selected root.
 It is unrelated to the `external` document descriptor kind.
 
-The reference's kind and XID MUST equal the referenced object's kind and XID.
+The reference's `kind` MUST equal the target object's `kind`. The reference's
+`xid` MUST equal the target's `entity.xid` for a record, or its top-level
+`xid` for a collection index.
 This metadata determines the object's role independently of its directory
 name, file extension or nesting position. Both `size` and `sha256` are
-REQUIRED in an external reference, including for zero-byte content.
+REQUIRED in an external reference. An empty file is not a metadata record
+or index.
 
 An inline target is a complete record or index document. It MUST have the
 same `format` and `formatversion` as the object that contains it. A mismatch
 is `invalid_package`. Inline references nest: an inline record or index can
 itself contain inline or external references. The root of this nesting is
 always the Registry record in `registry.json`, which is never an inline
-object. A complete Registry can therefore be stored in `registry.json`
-alone. Neither form can point outside the selected root. A metadata or
+object. All mapping metadata can therefore be stored in `registry.json`
+alone; local Version documents still have their own files. Neither form
+can point outside the selected root. A metadata or
 collection reference has no URI form.
 
 A collection index has:
@@ -696,10 +709,11 @@ also contain `resolvedmodelsource`. That object is the compact source after
 those includes were evaluated at capture time, but before implicit Core
 definitions and `ximportresources` expansion.
 
-This object MUST be self-contained and preserve
+The resolved source MUST be self-contained and preserve
 [Resource type sharing](../../core/model.md#reuse-of-resource-definitions).
-`modelbase` MUST record the absolute base of the
-original source. Consumers MUST NOT re-fetch mutable includes during a read.
+When the source contains an include, the Registry record's `modelbase`
+MUST record the original source's absolute base URI. Consumers MUST NOT
+re-fetch mutable includes during a read.
 
 The producer MUST establish equivalence between the captured source, resolved
 source and full model, when present. The original include directives remain
@@ -724,10 +738,12 @@ upstream declarations of write or filtering capabilities that the selected
 binding cannot implement.
 It MUST include Core's `available` map. The bindings are read-only.
 
-It also carries the [resolution-owner signal](../federation/spec.md#signaling-who-performs-resolution).
-A stored combined view declares `federation.resolution: "producer"`, so a
-consumer does not repeat its catalog resolution. Absence retains consumer
-resolution. This signal is independent of linked/offline completeness.
+`entity.capabilities` also carries the
+[resolution-owner signal](../federation/spec.md#signaling-who-performs-resolution).
+A stored combined view declares `federation.resolution: "producer"` there,
+so a consumer does not repeat its catalog resolution. Omission or explicit
+`"consumer"` retains consumer resolution. This signal is independent of
+linked/offline completeness.
 
 Captured source information MAY appear in the Registry record's `source`
 object with an absolute, credential-free `uri` and OPTIONAL `revision`.
@@ -779,7 +795,8 @@ model-admitted metadata named `<RESOURCE>`, `<RESOURCE>base64` or
 `<RESOURCE>url` as metadata. Consumers MUST NOT decode or dereference it as
 document content.
 
-A document request for such a Resource MUST produce `unsupported_operation`.
+A document request for such a Resource or one of its Versions MUST produce
+`unsupported_operation`.
 A present zero-byte document is a different case.
 
 ## Reads and Core Document View
@@ -801,15 +818,16 @@ collection or use that subset to claim a unique match. The inline nesting
 depth within one file and the cumulative number of decoded metadata objects
 are such limits, in addition to file count and byte limits.
 
-The reader materializes results in the following envelope, keeping storage
-and transport context separate from Core metadata. The envelope does not
-define a new wire API:
+The following table describes abstract results, not a common wire envelope.
+The `entity` and `collection` rows define document-view metadata envelopes;
+the other rows describe the result data. The reader keeps storage and
+transport context separate from Core metadata:
 
 | Operation | Envelope and materialization |
 | --- | --- |
 | `entity` | `kind` and `entity`. Recursively inline descendant metadata, never domain bytes. |
 | `collection` | `kind: "collection"`, `xid`, `complete: true`, and `entities`, a Core collection map. |
-| `model` | Original `modelsource`, available `resolvedmodelsource`, and available full `model`. |
+| `model` | Original `modelsource`, available `resolvedmodelsource`, available full `model`, and `modelbase` when present. |
 | `capabilities` | The captured snapshot access capabilities. |
 | `document` | Exact bytes, or an explicit external descriptor subject to caller policy. |
 
@@ -819,15 +837,18 @@ has `self: "#/entity"`. Collection members begin at `#/entities/<ID>`.
 JSON Pointer tokens MUST escape `~` as `~0` and `/` as `~1`. URI-fragment
 encoding also applies. XIDs are not rewritten.
 
-Navigation MUST use a `#` JSON Pointer if and only if the referenced entity
-or collection is included in the output. A pointer into another record file
-is not document-local navigation.
+Navigation MUST use a `#` JSON Pointer when the referenced entity or
+collection is included in the output. An omitted target cannot be named by
+a local pointer. A pointer into another record file is not document-local
+navigation.
 
 Registry and Group results inline all child metadata. Ordinary Resource
 results inline `meta` and all Version metadata. `metaurl`, `versionsurl`,
 and the Meta's `defaultversionurl` MUST point at those actual objects.
-Collection URLs and counts, when included, MUST describe the materialized
-maps, including empty maps. A producer MUST NOT also copy Default-Version
+Follow Core's [collection rules in document view](../../core/spec.md#collections-in-document-view)
+for the presence of collection URLs and counts. When present, they MUST
+describe the materialized maps, including empty maps. A reader MUST NOT
+also copy default-Version
 attributes onto the Resource. No response in this format invents an API
 `self`.
 
@@ -863,13 +884,14 @@ additional stored records:
 | --- | --- |
 | `entity` on the Resource or its Meta | Minimal source identity. The Resource's Meta retains `xref`, not target metadata. |
 | `collection` on its `versions` | `unsupported_operation`, retaining Core [`cannot_doc_xref`](../../core/spec.md#cannot_doc_xref). |
-| `document` on the logical Resource | The one-hop target's selected bytes, when available. |
+| `document` on the logical Resource, if one-hop document reads are supported | The one-hop target's selected bytes, when available. |
 | `document` when the target is absent or itself an alias | `not_found`. The source metadata still exists. |
 
 Resource label selection uses effective default-Version metadata, applying
 one-hop alias semantics where applicable. It does not inspect only the reduced
-storage Resource object. Selection MUST use the common literal comparator and
-complete collection, and return `not_found` or `ambiguous` as appropriate.
+storage Resource object. Selection MUST use the [federation label comparator](../federation/spec.md#selectors)
+over the complete collection, and return `not_found` or `ambiguous` as
+appropriate.
 The selected metadata result still obeys document-view alias suppression.
 
 ## Completeness and Integrity
@@ -904,8 +926,9 @@ A full-graph validator is OPTIONAL and checks every referenced object.
 A selective read validates only its visited path and MUST NOT claim an
 independent audit of unvisited graph closure.
 
-Consumers MUST verify length and SHA-256 before parsing or returning each
-internally referenced file. An inline object has no separate size or digest.
+Consumers MUST verify the length and SHA-256 of every internally referenced
+file they open before parsing or returning its bytes. An inline object has
+no separate size or digest.
 The bytes of its containing file cover it. Root bytes are captured once per
 operation.
 Their SHA-256 identifies that root serialization, not universal semantic
@@ -918,8 +941,11 @@ replaying a prior snapshot. Shared content reuse does not relax closure.
 
 Missing indexed objects, invalid kinds, invalid model types, and inconsistent
 defaults are `invalid_package`. A requested absent XID is `not_found`.
-Descriptor mismatch is `integrity_error`. Observed mutation during a File
-read or loss of already selected Git objects is `inconsistent_snapshot`.
+Mismatch with a descriptor's byte size or digest is `integrity_error`.
+For File reads, apply the
+[File binding's consistency rules](file.md#containment-and-concurrent-changes):
+a stable descriptor mismatch differs from a mismatch during observed
+mutation. Loss of already selected Git objects is `inconsistent_snapshot`.
 Consumers MUST NOT return empty collections or retry another profile to hide
 these failures.
 
@@ -950,7 +976,8 @@ its access policy and use only credentials authorized for that destination.
 A conforming producer emits schema-valid records and indexes that satisfy
 all semantic, byte and closure rules. A conforming consumer implements the
 common read semantics and the selected binding's safety rules. The
-offline-complete class also requires declared document content to be local.
+offline-complete class also requires every declared domain document to be
+local. A metadata-only Version still uses `document.kind: "none"`.
 Neither role requires a server or an API-view facade.
 
 ## Executable Example
@@ -1010,12 +1037,14 @@ distinguish full validation from selective retrieval. CLI JSON metadata
 includes this trace outside `entity`, without moving the pointer root.
 
 `DocumentTree(store, max_inline_depth=8, max_objects=65536)` bounds each
-reader. The depth limit applies within each containing file. The object
+reader. The depth limit counts inline reference edges from the top-level
+object in each containing file. The object
 limit counts every decoded record and index, cumulatively across files.
 `reader.objects` reports that count. Exceeding either limit raises
 `limit_exceeded`. The reader then returns no partial result. The store
-separately bounds file count and bytes. Reading a metadata file checks every
-inline object it contains before any of them is used.
+separately bounds file count and bytes. When the example reader opens a
+metadata file, it checks every inline object in that file before using
+any of them. This is not a full-graph walk of other referenced files.
 
 `encode_tree` selects the stored form:
 

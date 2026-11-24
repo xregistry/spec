@@ -49,7 +49,7 @@ violates their requirements.
 
 ### Publication and identity
 
-The publisher uploads unchanged bytes and declares a compatibility line.
+The publisher uploads unchanged bytes and can declare a compatibility line.
 An editable document can carry root `uav:compatibilityLine`; otherwise,
 authorized metadata supplies `compatibilityline`. Publication rejects
 conflicting declarations. The line is an absolute URI, not another registry
@@ -60,7 +60,7 @@ revision `"42"` and `versionorigin: generated`. A canonical authored integer
 can supply the ID only when it exceeds the allocation watermark. Publication
 then sets `versionorigin` to `authored`. Neither path rewrites the document.
 
-The publication owner commits the high-water mark together with the content,
+The WoT publishing adapter commits the high-water mark together with the content,
 line, and applicable Core state. Deleting history or restarting does not reset
 that mark. An adapter without durable allocation state rejects publication
 rather than approximating the counter. Exhaustion also fails; publication
@@ -90,8 +90,10 @@ The proposal places the extensions in the existing namespace
 }
 ```
 
-This excerpt assumes the appropriate composition and extension contexts.
-Existing operators identify the target kind, and the same versioning members
+This link fragment omits the enclosing TD and its contexts. See the
+[deployment vocabulary](#d5-deployable-vocabulary-and-wot-standardization)
+and the [TD composition proposal][TD composition] for its notation.
+The composition operator identifies the target kind. The same versioning members
 apply to TM targets. A line alone is sufficient; a floor is added only when a
 feature requirement needs it. For an incremental target, the resolver derives
 no floor from the referring document's model or instance version or root line.
@@ -186,8 +188,10 @@ rollback changes routing, not history or revision IDs.
 
 The [core-vocabulary proposal][WoT proposal] is hosted on the author's fork;
 it does not establish W3C adoption. Deployments can use `uav` before that
-process finishes. During migration, readers retain floor forms from earlier
-drafts but reject references carrying both old and new floors. Readers are
+process finishes. During migration, readers retain the draft SemVer terms
+`tm:minVersion` and `td:minVersion` for their applicable target kinds.
+They reject an occurrence carrying both a legacy floor and `uav:minVersion`.
+Readers are
 upgraded before old forms are removed. Duplicating composition links is not
 an alias workaround.
 
@@ -201,15 +205,17 @@ and migration checks.
 - The provider supplies trusted candidate metadata.
 - The generic publication adapter preserves checked context and binding
   equivalence.
-- The OPC UA generator preserves append-only NodeIds.
+- For deployments using the proposed OPC UA mapping, verify that the
+  generator retains existing NodeIds and appends new assignments.
 
 The generic publication proposal includes schemas and synthetic examples.
 Schema validation checks only the closure descriptor's shape; neither the
 schema nor the examples demonstrate deployed closure enforcement. This
 document implements no incremental-profile enforcement, regenerates no
-OPC UA outputs and changes neither .NET runtime.
+OPC UA outputs and changes no runtime implementation.
 
 [WoT proposal]: https://github.com/marcschier/wot-thing-description/pull/1
+[TD composition]: https://github.com/marcschier/wot-thing-description/blob/f66f89ab59196be3d19b088692f9ce7c22e7785e/proposals/td-composition/spec.md
 [D7]: #d7-selection-defaults-and-exact-pins
 
 ## WoT Channels, Snapshots and Dependency Bindings
@@ -237,8 +243,13 @@ The normative
 records the remaining mapping decisions. The dependency inventory and
 occurrence rules below remain informative. The normative section defines
 occurrence identity, canonical operators, and the selected experimental
-Projection Plans mapping. Schema-reference classification and document-URL
-identity still need rules; a checked exact target does not supply them.
+Projection Plans mapping. A projection plan describes a view assembled
+from affordances in its declared source documents. The closure section
+also defines Schema classification for an ordinary `tm:ref` with a
+unique captured identity. Open cases include which captured state
+selects a SemVer revision at a Resource URL and how a SemVer floor
+applies to an exact Version URL. A checked target alone does not settle
+those cases.
 
 The generic proposal defines a reusable model, a manifest schema, conditional
 head semantics, a binding-aware open context, and an offline byte bundle.
@@ -282,6 +293,10 @@ whether the caller accepts the target.
 
 Two reference occurrences can bind the same logical target ID to different
 exact Versions:
+
+The channel Meta's `epoch` is the expected-state token for a conditional
+head update. The two bindings below point to different exact Versions
+even though they use the same authored target identifier.
 
 ```mermaid
 flowchart LR
@@ -346,9 +361,11 @@ For a source-manifest entry, `operator` records the full experimental
 `pointer` identifies that entry in the ordered array, and `href` preserves its
 authored value. The compact prefix is not a canonical closure operator.
 
-Captured Registry metadata determines target kind before the Consumer reads
-closure bindings. It can therefore classify a schema-context `tm:ref` as a
-Schema Resource reference without letting a binding choose its own scope.
+Under the [closure rules](../../models/wot/spec.md#544-publication-closure),
+the Consumer determines target kind independently of the closure binding.
+A unique captured identity match to a Schema Resource classifies an
+ordinary `tm:ref` as a Schema reference; a binding cannot supply the
+missing match or choose its own scope.
 Schema Resource documents remain outside this WoT closure profile; a consumer
 that requires their content and dependencies needs another profile.
 
@@ -365,8 +382,10 @@ endpoint, documentation link, or arbitrary application link a dependency.
 
 The Producer and Consumer determine candidate targets from the captured
 Registry model, view, and document associations before validating bindings.
-They match the Group and Resource identity, Resource kind, applicable
-`wotid`, original document URI base, and document-view URI. `originRegistry`
+Mapping inputs include Group and Resource identity, Resource kind, applicable
+`wotid`, the original document URI base, and document-view URI. They are
+not one universal comparison key; use the rules for the occurrence's
+operator. `originRegistry`
 is provenance, not a document URI identity. The operator's rules determine
 whether a Resource or exact Version is selected. A unique match determines
 the Resource kind and whether the occurrence is in scope; a missing or
@@ -397,7 +416,8 @@ Entries, sources, and targets need to exist in the generic document
 associations. Bindings need to be unique and cover the complete reachable
 closure from the entries, excluding unreachable or invented edges.
 
-During traversal, the resolver records each visited Version-reference pair.
+During traversal, the resolver tracks the reachable reference occurrences
+identified by the source Version and pointer.
 The composition operator's existing rules determine whether a cycle is valid.
 The resolver bounds traversal even when a cycle exists.
 
@@ -435,7 +455,8 @@ binding.
 The existing raw exact-pin retrieval path still bypasses live floor or default
 selection. It is not compatibility-validated snapshot composition.
 
-For example, entry E in snapshot S12 binds a line-A dependency to revision 42.
+In an example separate from Figure A-1, entry E in snapshot S12 binds a
+line-A dependency to revision 42.
 After the author publishes revision 43/B, opening S12 still reads 42/A.
 The publisher can advance `preview` to S13 with 43/B. A caller requiring A
 rejects that head. The resolver does not search earlier snapshots for an A
@@ -482,7 +503,8 @@ head. Publication does not redefine those requirements.
 
 #### N05. Fork development
 
-The publisher creates `preview` pointing to S12. Both channels initially
+The publisher starts from a channel currently selecting S12 and creates
+`preview` pointing to the same snapshot. Both channels initially
 share the same manifest and bytes. Later head changes are independent.
 Deleting a channel never authorizes reuse of its old Resource identity.
 
@@ -562,7 +584,7 @@ context material and a dependency added to an unrelated entry.
 Neither the generic proposal's tests nor the 33 representative SemVer vectors
 establish those WoT semantics. A mapping for OPC UA needs the same context
 and closure semantics, including append-only generated NodeIds. This design
-pass does not change the `1.1-draft` model or either .NET runtime.
+pass does not change the `1.1-draft` model or any runtime implementation.
 
 The [shape example](../../models/wot/samples/publication-closure.json) illustrates one binding,
 not an independently complete snapshot. Schema checks cover its shape,
@@ -598,8 +620,8 @@ and the
 [33 representative resolution vectors](../../models/wot/tests/resolution/README.md)
 test it. These vectors do not demonstrate the proposed incremental behavior.
 
-The [two-page overview](#wot-versioning-design-overview) states the decision.
-The [mechanisms](#design-mechanisms) define the proposed contract. The
+The [overview](#wot-versioning-design-overview) states the decision.
+The [mechanisms](#design-mechanisms) explain the proposed behavior. The
 [workflow catalog](#publisher-workflows) traces operations, failures, and
 reversal. The [evidence index](#workflow-evidence-index) separates current
 checks from proposed implementation work.
@@ -610,7 +632,7 @@ workflows here. The
 generic xRegistry proposal defines how publishers create and open publications
 through selected Registry bindings or offline contexts. WoT proposes a
 dependency-binding schema and rules for accepting compatibility claims.
-This design changes neither .NET runtime nor the OPC UA model.
+This design changes neither runtime code nor the OPC UA model.
 
 ### Decision
 
@@ -643,8 +665,8 @@ a separate proposal track, not a prerequisite for operating this design.
 
 A TM can state `version.model`, and a TD can state `version.instance`.
 Neither tells a registry how to assign revision IDs or which revision a
-reference selects. Requiring SemVer in every document excludes those
-whose authors use integers, free-form labels or no version.
+reference selects. Authors who supply integers, free-form labels or no
+version cannot use those values as authored SemVer Version IDs.
 
 The current generated fallback, `0.0.0-N`, permits storage without changing
 document bytes, but its IDs are prereleases and cannot serve as floors. It is
@@ -666,7 +688,7 @@ and `incremental`, declared read-only with a fixed default in each model.
 Absence means legacy SemVer; an unknown profile causes version-aware
 resolution to fail. Integer-looking content does not identify a profile.
 
-The design retains `../model.json` as the SemVer model and proposes a separate
+The design retains the [SemVer model](../../models/wot/model.json) and uses a separate
 [`model-incremental.json`](../../models/wot/model-incremental.json).
 Providers and offline catalogs carry
 equivalent profile information for their candidate sets.
@@ -916,7 +938,7 @@ ranked under the known profile. Both fail without an unpinned fallback.
 ```mermaid
 flowchart TD
     A["Identify target kind, authorized origin and Resource"] --> B{"Caller pin?"}
-    B -- "versionid or digest" --> P["Retrieve pinned Version or matching bytes"]
+    B -- "versionid or digest" --> P["Exact Version ID or highest digest match under the known profile"]
     P --> PV["Verify identity and recorded expectations; no fallback"]
     PV --> Z["Return target, versionid, digest and origin"]
     B -- "none" --> R{"Target profile"}
@@ -935,8 +957,10 @@ flowchart TD
 
 **Figure D7-1.** Informative live-selection and raw-pin flow. Snapshot-bound
 composition selects the binding from its immutable manifest. The
-[WoT snapshot acceptance rules][Publication acceptance] specify how to check
-the binding against the authored requirement and caller policy. Generic
+[WoT Registry closure section](../../models/wot/spec.md#544-publication-closure)
+defines checks and records open mapping cases. The
+[acceptance design][Publication acceptance] illustrates the caller and
+selection roles. Generic
 [Domain Closure and Compatibility][Publication closure] rules also apply.
 Composition does not replace the binding with a live highest-version result
 or another channel head.
@@ -998,8 +1022,9 @@ digest, line, and publication metadata. Matching content can satisfy an
 availability objective without proving which request created it. Under
 concurrency, checking only the highest revision is insufficient. The absence
 of a match also does not prove failure while a request might still commit.
-The outcome remains unknown until reconciled, unless the publisher
-deliberately retries while accepting possible duplication.
+The original outcome remains unknown until reconciled. The publisher can
+deliberately retry while accepting possible duplication, but that retry
+does not determine the original outcome.
 
 Hard deletion can invalidate pins. It cannot reset the high-water mark.
 Resource recreation retains a counter tombstone or establishes a distinct
@@ -1032,11 +1057,13 @@ the [Domain Closure and Compatibility][Publication closure] requirements.
 A channel head changes a publication set. It does not allocate document
 revisions or decide compatibility.
 
-The implementation extends existing .NET snapshots and APIs with profile and
-line context and reuses the SemVer implementation. Actual publication owners
-need review because a pure helper test cannot demonstrate durable allocation.
+An implementation can extend its selection records and APIs with profile
+and line context while reusing existing SemVer logic. Confirm the
+publication owner and its persistence boundary in each implementation;
+a pure helper test cannot demonstrate durable allocation.
 
-For OPC UA, OPC 10100 Connectivity maps these concepts as follows:
+For OPC UA, the proposed OPC 10100 Connectivity mapping illustrates these
+concepts as follows. These are design proposals, not adopted requirements:
 
 - `WoTRegistryType.VersionProfile`, a read-only `WoTVersionProfileEnum`
   (`SemVer` or `Incremental`), declares the local registry profile. Absence
@@ -1050,23 +1077,27 @@ For OPC UA, OPC 10100 Connectivity maps these concepts as follows:
   profile-interpreted, and adds OPTIONAL `RequiredCompatibilityLine`.
   Projection-source floors and lines use the same fields. The source entry's
   `uav:sourceDigest` remains in the projection-plan bytes; compare it with the
-  `ContentDigest` in the target record with the same `EdgeIndex`. The digest,
-  any supplied floor, and line MUST all hold for that exact Version.
+  `ContentDigest` in the target record for the same dependency edge.
+  This proposal uses `EdgeIndex` for that correlation; it does not
+  define here how the mapping assigns that index. The illustrated check
+  accepts the exact Version only if it satisfies the digest, line, and
+  any supplied floor.
 - `WoTResolvedDependencyTargetDataType` records the target's `VersionProfile` and
   effective `CompatibilityLine` with the exact pin.
 - OPTIONAL `WoTRefreshOptionsDataType.PublicationContext` has type
   `WoTPublicationContextDataType`, with `Uri` and an OPTIONAL
   `ManifestDigest`. Without a digest, `Uri` names a channel. Each Refresh
   opens that channel once. The selected digest is reported in
-  `WoTRefreshSummaryDataType.ManifestDigest`. With a digest, it identifies
-  an exact snapshot. Every recognized dependency uses its captured binding
+  `WoTRefreshSummaryDataType.ManifestDigest`. With a digest, the requested
+  context pins the exact manifest. This design does not define the URI
+  mapping for that form. Every recognized dependency uses its captured binding
   without falling back through a provider, alias, or older snapshot. Missing
   or unsupported closure data, bindings, or content results in
   `closure-incomplete`. A manifest-digest mismatch has the same result.
   Without a publication context, Refresh performs live selection.
 
 NodeIds are appended on the `1.1-draft` track. The model, types, tables,
-ledgers, and CTT cases are regenerated together.
+ledgers, and conformance test cases are regenerated together.
 
 Provider acquisition, held-target fast paths, caches, snapshots, conversion,
 refresh, and materialization need to apply the resolver's constraints.
@@ -1141,8 +1172,9 @@ A supplied registry ID has to be `"42"` too.
 
 Publishing authored `"40"` is rejected as a new revision, not inserted into
 history. Explicit recreation of an existing ID follows P15. Use controlled
-initial import for historical data, or let the registry allocate numbers
-when the external author's numbering does not fit this sequence.
+initial import into a separate validated endpoint for historical data.
+Omitting the supplied Registry ID does not let a lower canonical authored
+integer bypass the watermark.
 
 #### P06. Publish a compatible update
 
@@ -1184,8 +1216,9 @@ D4 exposes its absent line with the immediate diagnostic that it is not
 eligible for automatic compatibility-line selection. Raw retrieval and
 exact pins remain available.
 
-Storage succeeds, but compatible publication does not: a consumer requiring
-A receives `unsatisfied`. Making the content eligible requires a new
+Storage succeeds, but this Version is not eligible for line A. A consumer
+requiring A receives `unsatisfied` if it finds no eligible Version in A.
+Making the content eligible requires a new
 revision with A rather than attaching A retroactively to 42.
 
 #### P10. Detect declaration disagreement
@@ -1407,9 +1440,10 @@ an unconstrained success.
 #### C13. Capture dependency records
 
 After resolving a parent and its dependencies, retain each target, revision,
-exact digest, origin, and applicable profile and line expectations. D7 uses the
-existing snapshot mechanism where available. Otherwise, the API exposes the
-records to its caller.
+exact digest, origin, and applicable profile and line expectations. A
+deployment can store these records using its existing activation mechanism
+or return them to the caller. The records alone are not a Publication
+snapshot; that claim requires a manifest and the applicable closure checks.
 
 Registry pins are not inserted into authored reference strings, and selected
 versions do not replace floors. Without the dependency records, a future read
@@ -1440,11 +1474,11 @@ to silently relabel that record.
 #### C16. Refresh and review a newer dependency
 
 Start from the pinned 42/A record. Perform a new unpinned A resolution and
-obtain 44/A. The caller compares, validates, and activates the new snapshot
+obtain 44/A. The caller compares, validates, and activates the new selection
 through its existing deployment process.
 
 D7 separates refresh from replay. If resolution or validation fails, retain
-the old usable snapshot and do not report successful activation. The resolver
+the old usable selection record and do not report successful activation. The resolver
 defines no deployment transaction and does not decide when a consumer accepts
 an update.
 
@@ -1483,9 +1517,10 @@ operation fails. Offline use requires no new signature or lockfile format.
 #### C20. Resolve through a cache or held provider target
 
 A cache or held-target fast path receives either a line-A requirement with
-floor 44 or a full pin. D9 requires it to validate source, profile, line,
-floor, and digest
-expectations just as the acquisition path would.
+floor 44 or a full pin. On the first path, it validates source, profile,
+line and floor as the acquisition path would. On the exact replay path,
+it checks the pinned identity, bytes and recorded expectations without
+running live floor or default selection.
 
 A constrained result is not keyed only by `wotid`, and materialization does
 not bypass validation. A cache mismatch triggers supported revalidation or
@@ -1509,7 +1544,7 @@ its new-major successor. Perform new unpinned resolution, validate the
 changed dependency, and capture a new record before activation.
 
 D4 and D7 make compatibility-boundary crossing explicit. Rollback uses the
-prior complete snapshot if its content remains available. Never rewrite an
+prior complete dependency selection if its content remains available. Never rewrite an
 old record to make it appear to have selected the replacement.
 
 ### Administrator and provider workflows
@@ -1586,14 +1621,14 @@ Keep a multi-line Resource non-sticky for ordinary automatic resolution.
 Different consumer deployments retain their own reviewed pins, such as
 42/A for production and 44/A for a trial.
 
-D7 and the caller's snapshot facility allow rollouts without changing the
+D7 and the caller's retained selection records allow rollouts without changing the
 Resource's global default each time. The registry does not orchestrate
 deployment, and a trial update does not move another consumer's pin.
 
 #### A08. Roll back activation
 
 After a reviewed refresh to 44/A, the deployment tool restores its prior
-42/A snapshot using its existing activation mechanism. D7 validates the old
+42/A selection record using its existing activation mechanism. D7 validates the old
 records and bytes on replay.
 
 If 42 is no longer retained, rollback fails explicitly. Publication of another
@@ -1696,7 +1731,7 @@ Before importing a Resource with several roots, inventory:
 - Every Version
 - Its authored ID and version
 - Its digest and ancestor
-- Its default and origin
+- Whether it is the Resource's default, and its origin
 - Relevant compatibility evidence
 
 An authorized publisher assigns intended lines.
@@ -1755,7 +1790,7 @@ resolution, and stored documents are not silently rewritten.
 #### S01. Deploy without waiting for W3C adoption
 
 Publish the `uav` vocabulary, context, and schema updates through the OPC draft
-process and implement their specified behavior in both resolvers.
+process and implement the behavior in each resolver that supports it.
 Use the established namespace in xRegistry and provider examples.
 
 D5 permits independent implementation while the core vocabulary proposal is
@@ -1810,7 +1845,7 @@ Evidence labels:
   They exercise normalized assignment and selection. They do not test HTTP
   publication, compatibility checks, real digests, or migration.
 - `N-P`: planned publication/adapter integration evidence.
-- `N-R`: planned reference/context/resolver evidence in both implementations.
+- `N-R`: planned reference/context/resolver evidence in supporting implementations.
 - `N-A`: planned Core/storage/provider integration evidence.
 - `N-M`: planned migration fixtures with source and destination state.
 - `N-S`: planned vocabulary/schema/normalizer evidence.
@@ -1820,11 +1855,11 @@ Evidence labels:
 For E0, the existing examples include:
 
 - [Authored assignment][vector-036]
-- [Type-link floors][vector-043]
+- [Sticky default below the effective type-link floor][vector-043]
 - [Pin precedence][vector-049]
 - [TD major bounds][vector-050]
 
-Their current contract is in [../spec.md](../../models/wot/spec.md). They
+Their current contract is in the [WoT Registry specification](../../models/wot/spec.md). They
 contain neither incremental profiles nor deployment-vocabulary parsing.
 
 | Workflow IDs | Mechanisms | Evidence status |
@@ -1855,8 +1890,9 @@ The planned migration fixture records roots, mappings, counters, defaults,
 bytes, and failure outcomes explicitly. The current normalized resolver
 schema does not represent this fixture. Durable allocation needs evidence
 under concurrent writes, deletion, restart, rollback, and Resource recreation.
-Independent counter-state assertions derive state from storage history
-rather than comparing two outputs from one emitter.
+Independent counter-state assertions use durable allocation history,
+including deleted IDs, rather than surviving Versions or two outputs
+from one emitter.
 
 The workflows use these mechanism definitions:
 
@@ -1897,22 +1933,23 @@ Open implementation proof gates are:
 2. Locate actual .NET publication owners and persistent state boundaries.
    Reject unsupported writes instead of claiming helper-only support.
 3. Verify JSON-LD context, Turtle, schemas, reference parsing, and early
-   diagnostics agree across registries and both implementations.
+   diagnostics agree across registries and supporting implementations.
 4. Verify that the generated OPC UA model matches the
    [D9](#d9-implementation-responsibilities) mapping, with NodeIds
    appended on the `1.1-draft` track.
 
 The design includes the [generic publication proposal][pub-proposal] and the
 [WoT closure design and schema][pub-closure].
-The [summary][wot-summary] remains the overview. Incremental runtime and
-profile checks, WoT closure integration, and generated OPC UA changes still
+The [summary][wot-summary] remains the overview. Incremental runtime
+support and tests, WoT closure integration, and generated OPC UA changes still
 require implementation. Generic synthetic examples do not close these gates.
 
 ### Specification and implementation impact
 
-The xRegistry WoT draft needs the incremental profile, publication rules,
-line metadata, resolver contract, samples, and separate migration fixtures.
-Core itself does not change.
+The xRegistry WoT draft describes the incremental profile, line metadata,
+and resolver rules. Open closure mappings, runnable migration fixtures,
+and provider and adapter evidence remain separate work. Core itself does
+not change.
 
 The [generic publication proposal][pub-proposal] owns channels, manifests,
 and observable open context. Its federation rules reuse the existing
@@ -1922,11 +1959,10 @@ or interpreting a Group as a channel.
 
 The W3C proposal explains the deployment extension and proposed core
 standardization path. Its acceptance is not an execution gate for xRegistry,
-OPC UA, or either implementation.
+OPC UA, or a supporting implementation.
 
 The OPC Binding supplies `uav` vocabulary, context, and schema definitions,
-while Connectivity supplies profile, line, and dependency mappings. The two
-.NET implementations normalize terms, branch on profile, and enforce the same
+while Connectivity supplies profile, line, and dependency mappings. Supporting implementations normalize terms, branch on profile, and enforce the same
 selection rules using byte-identical shared fixtures. Their adapter,
 provider, and materialization paths need to enforce the same constraints.
 
@@ -1955,12 +1991,7 @@ from origin-scoped resolution records and explicitly maps independent copies.
 [Core ancestorid]: ../../../core/spec.md#ancestorid-attribute
 [Core defaults]: ../../../core/spec.md#default-version-of-a-resource
 [Core sticky]: ../../../core/spec.md#defaultversionsticky-attribute
-[WoT proposal]: https://github.com/marcschier/wot-thing-description/pull/1
 [Publication acceptance]: #selection-and-acceptance
-[Publication manifest]: ../spec.md#manifest-and-integrity
-[Publication channel]: ../spec.md#publishing-and-opening-a-channel
-[Publication export]: ../spec.md#export-federation-and-binding-equivalence
-[Publication closure]: ../spec.md#domain-closure-and-compatibility
 [workflow-c01]: #c01-follow-the-newest-revision-in-a-line
 [workflow-c02]: #c02-require-a-features-minimum-revision
 [workflow-c14]: #c14-replay-an-exact-revision

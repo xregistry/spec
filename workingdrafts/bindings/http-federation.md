@@ -85,8 +85,10 @@ authorization boundaries.
 
 ## Advertisement and Bootstrap
 
-An HTTP advertisement has `name: "http"`, an absolute HTTP(S) Registry-root
-`endpoint`, and no parameters in this version. Its endpoint MUST NOT have
+An HTTP advertisement has `binding: "http"` as defined by the
+[Registry domain](../models/registry/spec.md#511-binding), an absolute
+HTTP(S) Registry-root `endpoint`, and no parameters in this version.
+Its endpoint MUST NOT have
 embedded credentials, a query or a fragment. Unknown parameters on the
 selected advertisement MUST produce `unsupported_operation`.
 
@@ -226,7 +228,9 @@ resolver SHOULD record the selected default Version ID and use its explicit
 Version URLs for subsequent requests.
 
 When claiming a consistent capture, the resolver MUST detect changes to the
-selection. A live Version can change without its Version ID changing.
+selection. A live Version can change without its Version ID changing. See
+[Live Capture and Errors](#live-capture-and-errors) for the distinction
+between revalidating individual responses and claiming a consistent view.
 
 The following partial exchange uses the non-root base from the advertisement.
 Model, Core version and enabled-capability discovery precede these reads.
@@ -248,7 +252,8 @@ sequenceDiagram
     H-->>R: Exact domain bytes, even when the document is JSON
     opt Consistent-capture recheck
         R->>H: Recheck selection and dependent representations
-        H-->>R: Changed default or representation invalidates capture
+        H-->>R: Current metadata or HTTP revalidation response
+        R->>R: Report inconsistent_snapshot if the selection or representation changed
     end
 ```
 
@@ -360,8 +365,9 @@ Neither filtering nor inlining is a prerequisite for HTTP federation.
 
 An endpoint that advertises `pagination: false` normally supplies its
 complete collection in one response. If a next link is nevertheless
-returned, the resolver MUST NOT claim completeness until it has handled
-that link or reported the conflicting behavior. A collection `count` alone
+returned, the resolver handles it under the pagination and locator-policy
+rules or reports the conflict. Reporting a conflict does not establish
+completeness. A collection `count` alone
 is not a replacement for the members or next links.
 
 ## HTTP Validators and Partial Content
@@ -477,7 +483,7 @@ A capture MUST record the following separately from Core IDs:
 - Selected Version IDs.
 - Retrieval scope.
 - Available validators.
-- The absence of an immutable pin.
+- The immutable pin, or its absence for live access.
 
 It MUST distinguish a live, best-effort observation from a
 producer-guaranteed snapshot.
@@ -488,7 +494,8 @@ is `unsupported_operation`. If an attempted capture is inconsistent or
 incomplete, the outcome is `inconsistent_snapshot`.
 
 For a multi-request capture, the resolver SHOULD recheck the default
-selection and the representations on which the capture depends.
+selection and the representations on which the capture depends. This
+recheck alone does not establish a Registry-wide consistency guarantee.
 
 If a default or representation changes, membership conflicts, or a page/byte
 sequence is interrupted, the resolver MUST report `inconsistent_snapshot`
@@ -595,8 +602,8 @@ bridge 1 2
 ```
 
 The two requests obtain one complete collection page. The
-`later-page-ambiguity` case instead shows how a subsequent page can invalidate
-an earlier unique match. An initial match does not remove the need for
+`later-page-ambiguity` case shows how a subsequent page can establish that
+the initial match is not unique. An initial match does not remove the need for
 complete selection.
 
 The `document-revalidation` case preserves cached document bytes across this

@@ -7,8 +7,9 @@ domain is not part of a released xRegistry specification.
 
 The [specification](spec.md) defines a catalog whose entries are versioned,
 metadata-only descriptions of Registries. The [authoritative model](model.json)
-preserves the hub's `categories` / `registries` hierarchy. Both `weburl` and
-`xregurl` are OPTIONAL. Labels, `registrytypes` and `federationprofiles` are
+uses the `categories` / `registries` hierarchy. The human-facing website
+(`weburl`) and the described Registry's HTTP API root (`xregurl`) are
+OPTIONAL. Labels, `registrytypes` and `federationprofiles` are
 also OPTIONAL. A website-only entry is valid catalog data; it does not provide
 a federation endpoint.
 
@@ -20,11 +21,14 @@ with reproducible generation commands and current generator limitations.
 [Shared federation](../../federation/spec.md) defines read-only resolution
 after catalog selection.
 [Base and resolvable conformance](spec.md#10-conformance) are separate claims.
-An advertisement establishes neither reachability nor trust.
+The base catalog can store entries without access methods. A resolvable
+entry requires an advertisement usable by the Consumer under its binding
+support and policy. Advertising access does not establish reachability
+or trust.
 
 The [tools directory](tools) contains this model's conformance tests.
-Run them from the repository root:
+Run them from the repository root in PowerShell:
 
-```console
+```powershell
 python -B -m pytest workingdrafts\models\registry\tools -q
 ```

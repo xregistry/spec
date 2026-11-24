@@ -5,10 +5,11 @@
 <!-- words: opcua versiondocuments -->
 
 Use these examples to check the domain-independent
-[publication contract](../spec.md) without network IO. The authored
+[publication contract](../spec.md) without network I/O. The authored
 [Registry export](registry.json) and [document](intro.txt) are synthetic.
-Generated `manifest.json`, `channel.json` and `open.json` bind their exact
-bytes. The `opcua-` examples select native UA access instead of HTTP. All
+The generated manifest binds their exact bytes. `channel.json` selects that
+manifest, and `open.json` records the selected manifest and captured Registry
+descriptors. The `opcua-` examples select native UA access instead of HTTP. All
 endpoints use reserved example domains.
 
 In a deployed publication, the publisher stores captured Registry JSON and
@@ -33,11 +34,15 @@ The compact Registry input uses Core document view with a complete
 containment/default graph for this example and no external model includes.
 It is not an API response containing all server-generated metadata. The
 original document bytes are stored separately from the captured metadata.
-The manifest associates them with an exact view Version. A Registry JSON
-Version document is not a request to export changing live metadata.
+In the manifest, `viewVersion` identifies the Version in the captured view.
+The `content.reference` identifies the exact stored Version through which
+the reader obtains the bytes. A Registry JSON Version document is not a
+request to export changing live metadata.
 
-After changing an authored input, regenerate its descriptors and the
-corresponding JSON examples in the specification:
+After changing an authored input, run the builder from the repository root.
+It regenerates the HTTP and UA manifest, channel and open-record files,
+updates `publication-package.json`, and replaces the corresponding HTTP
+JSON examples in the specification:
 
 ```console
 python workingdrafts/publication/tools/build_samples.py
@@ -52,11 +57,13 @@ python -B -m pytest workingdrafts/publication/tools -q
 The suite checks:
 
 - Raw size and digest
-- Schema shape and context equality
+- Schema shape and agreement between the open record and the checked
+  manifest's scope, completeness, and Registry descriptor
 - Document associations
 - Case-insensitive Resource collisions
 - Missing defaults and unsupported mandatory extensions
-- Exact Version dispatch, selected UA roots and unsupported bindings
+- Exact Version dispatch, preservation of the UA Registry-root selector,
+  and rejection of unsupported bindings
 - Rejection of URL-only descriptors and mutable Git/OCI selectors
 - Stale head writes and forks
 - Rollback epochs and non-reused deleted channel identities
@@ -81,12 +88,16 @@ byte-bundle replay, not a network binding, Git or OCI native projection.
 
 ## Promotion, Rollback and an Already-Open Reader
 
-Run the following Python walkthrough from the repository root using the same
-dependencies as the checks above. It creates a second manifest with
+Run the following Python walkthrough from the repository root with Python
+3.10 or later and the `jsonschema` dependency in
+[the repository requirements](../../../tools/requirements.txt).
+It creates a second manifest with
 preparation history while reusing the first manifest's document Version and
 bytes. The in-memory helper starts epochs at one and increments by one. The
 [publication contract](../spec.md#publishing-and-opening-a-channel)
-requires increasing epochs, not that particular increment.
+requires increasing epochs, not that particular increment. The `reader`
+variable below retains a copy of the selected head descriptor, not a full
+open record.
 
 ```python
 from copy import deepcopy
@@ -152,11 +163,12 @@ offline package: offline-complete
 missing bytes: unavailable
 ```
 
-The output shows that the reader still verifies the second manifest after
-the channel returns to the first. Neither promotion nor rollback creates a
-document revision. Removing a captured Version document from the supplied
-store causes an explicit failure; the helper does not contact another
-Registry to repair the offline read.
+The walkthrough checks the retained second manifest after the channel
+returns to the first. Neither promotion nor rollback creates a document
+revision. `offline package` is a separate check of the original checked-in
+bundle; the second manifest exists only in memory. The final check removes
+content from a copy of the in-memory store and shows that reading the
+second snapshot fails explicitly, without substituting other bytes.
 
 The [bundle map](publication-package.json) maps Version references to local
 files. Under the

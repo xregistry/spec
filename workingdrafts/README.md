@@ -15,8 +15,8 @@ of released specifications.
 The federation drafts define read-only resolution across independently
 administered Registries.
 
-Start with the Registry domain specification for catalog entries, then read
-the federation specification for hosting and source selection. The binding
+Start with the [Registry domain](models/registry/spec.md) for catalog entries,
+then read [Federation](federation/spec.md) for hosting and source selection. The binding
 comparison below helps select an access method; each binding's reference
 sections define its implementation rules.
 
@@ -46,7 +46,7 @@ Use the entry point for your task:
 
 | Specification | Scope |
 | --- | --- |
-| [Registry of Registries](models/registry/spec.md) | Hub-compatible catalog model, advertisements and relationships. |
+| [Registry of Registries](models/registry/spec.md) | Catalog model with the xRegistry Hub's category and registry hierarchy, advertisements and relationships. |
 | [Federation](federation/spec.md) | Registry contexts, selection, references, representations and conformance. |
 | [Directory mapping](bindings/mapping.md) | Map existing directory contents to a Registry through Git or File. |
 | [OCI](bindings/oci.md) | Bounded descriptor graphs, publication and native snapshot resolution. |
@@ -62,7 +62,7 @@ Use the entry point for your task:
 | HTTP | An existing xRegistry HTTP endpoint. No new storage format is needed. | Reads usually observe live state. Per-response validators do not provide a Registry-wide snapshot. | Core HTTP requests, pagination and authentication. |
 | OCI | An OCI artifact service, or a local layout. Package the Registry as the specified descriptor graph. | Resolve a tag once and retain the root digest. Descendant digests identify the selected bytes. | An artifact client supporting nested indexes, the format's roles and digest checks. A container runtime alone is insufficient. |
 | Git | A repository containing a directory mapping. Remote acquisition uses HTTPS. | Resolve a ref or annotated tag once and retain the commit. Read Git objects rather than checkout files. | Git object access and the directory mapping reader. |
-| File | No xRegistry service. Use local storage or an OS-mounted file share containing a directory mapping or OCI layout. | Root hashes and descriptors detect inconsistent content. A mutable directory is not automatically an immutable snapshot. | Filesystem access, containment checks and the reader for the chosen format. |
+| File | No xRegistry service. Use local storage or an OS-mounted file share containing a directory mapping or OCI layout. | Verify bytes against the selected root and its descriptors. A mutable directory has no implicit immutable pin. | Filesystem access, containment checks and the reader for the chosen format. |
 | OPC UA | An OPC UA server exposing the Registry nodes and document access described by the binding. | Reads usually observe live state. Session handles and per-node timestamps are not snapshot identifiers. | OPC UA Services, Registry-root selection and namespace remapping. Check the binding's explicit domain-mapping and companion-draft dependencies. |
 
 The binding used to access a source Registry need not be the binding exposed
@@ -133,12 +133,16 @@ python -B -m workingdrafts.federation.tools.generate_examples git --example walk
 python -B -m workingdrafts.federation.tools.generate_examples oci --example offline --output "$HOME/xregistry-examples/oci" --reference offline --page-size 2
 ```
 
-Each command reports its generated root and binding-specific pin as JSON.
+Each command reports its generated root and a `pin` field as JSON. For File
+this is the captured root record's SHA-256, not a guarantee of filesystem
+immutability. Git returns a commit ID and OCI returns the root digest.
 Git output is a bare repository containing the mapping under `xregistry`,
 with a deterministic commit at `refs/heads/main` and an annotated
 `refs/tags/snapshot`. No remote is configured, and no Git push occurs.
 OCI defaults to `--reference snapshot` and `--page-size 256`. The smaller
-page size above produces the sharded `offline` graph and its fixed digest.
+page size above controls the builder's index layout and produces the
+sharded `offline` fixture, not a page limit for reads. Compare the reported
+pin with the [OCI example's expected digest](bindings/oci.md#example-inventory-and-pins).
 
 By default, File and Git output store each record and index in a separate
 file. Add `--inline` to embed them all in `registry.json`. The `walkthrough`
@@ -156,10 +160,10 @@ python -B -m workingdrafts.bindings.tools.oci_examples lookup D:\temp\xregistry-
 On Linux, substitute the corresponding absolute output paths in these
 reader commands. The readers distinguish metadata from document operations,
 and a Git commit or OCI root digest does not replace a Core Version ID.
-The [File](bindings/file.md#motivation-and-example),
-[Git](bindings/git.md#conformance) and
-[OCI](bindings/oci.md#9-conformance-and-executable-examples) sections
-describe validation and selective reads.
+See the [File commands](bindings/file.md#motivation-and-example),
+[Git commands](bindings/git.md#conformance), and
+[OCI commands](bindings/oci.md#generate-and-read-a-layout) for full
+validation and selective read examples.
 
 OCI publication is opt-in. Adding
 `--push registry.example.org/team/catalog:example` to OCI generation copies
@@ -170,9 +174,14 @@ Neither a Dockerfile nor a container-image tar wrapper is involved.
 
 The generator's source envelope contains `exampleformat: 1` and an `examples`
 map. Each example contains neutral `records` with `kind` and `entity`, a
-`snapshot` class, available `resolvedmodelsource`, and `documents` keyed by
-full Version XID. Each document supplies exactly one of `text`, `base64`,
-`url` or `none: true`, with `origin` and `base` where applicable. Text is
+`snapshot` class (`linked` or `offline-complete`), a `resolvedmodelsource`
+when supplied, and `documents`
+keyed by full Version XID. Each `documents` entry declares exactly one of
+`text` for text bytes, `base64` for encoded bytes, `url` for an external
+locator, or `none: true` for a metadata-only Version. Only a captured `text`
+or `base64` document can include `origin` or `base`; both are absolute URIs
+when supplied. See the [input checks](federation/tools/federation_examples.py).
+Text is
 encoded as UTF-8 without adding a newline; Base64 preserves exact binary
 and empty bytes. This notation is input to the example generator, not a
 Core response, mapping extension or normative interchange format.
@@ -207,8 +216,9 @@ For an example in which a channel moves while a reader stays pinned, see the
 
 [Channels and snapshots](publication/spec.md) let a publisher move a channel
 to a new captured state while existing readers retain their selected state.
-A channel's conditional head selects an immutable manifest over the Registry
-state defined by federation. Selecting a channel does not establish domain
+A channel's `head` selects an immutable manifest for the captured Registry
+view. A publisher can replace the head only through a conditional update.
+Selecting a channel does not establish domain
 compatibility. Neither a channel nor a snapshot is represented by a Group.
 
 The extension includes a reusable [model](publication/model.json),
@@ -217,8 +227,9 @@ The extension includes a reusable [model](publication/model.json),
 conditional writes and retention; federation remains read-only. The
 manifest, captured Registry JSON and domain bytes are xRegistry Version
 documents selected through a binding-aware reference. Native UA reads do not
-need an HTTP facade. The caller-visible open context retains the selection;
-HTTP projections advertise it without changing ordinary HTTP advertisements.
+need an HTTP facade. The caller-visible open record retains the selection.
+A snapshot-specific HTTP root links to that record without adding a field
+or parameter to ordinary HTTP catalog advertisements.
 Cross-binding equivalence requires a checked mapping; equal Registry IDs
 alone do not establish it.
 
@@ -247,16 +258,17 @@ how an xRegistry stores and describes artifacts in an
 | [OpenUSD Artifact Registry](models/openusd/spec.md) | Asset containers, artifact Resources, identifiers and the dependency closure. |
 | [Model artifacts](models/openusd/README.md) | The authoritative model and its identifier tests. |
 
-A stage opens against one root layer and uses composition arcs to obtain
-other artifacts. This transitive set is the dependency closure. If a
+A stage is the composed scene. It opens against one root layer and follows
+references to other layers and artifacts. This transitive set is the
+dependency closure. If a
 Consumer lacks a member, it cannot compose the scene correctly. The draft
 defines how to describe the closure, verify its members through per-Version
 digests, and apply Core versioning and federation across Registries.
 
-An existing USD asset resolver can retrieve an artifact by URL without
-xRegistry awareness because the Registry is an xRegistry document store.
-The draft is also the wire-format peer of an externally defined OPC UA
-projection of the same model. The two use the same collection names,
+An existing USD asset resolver that supports a Version's document URL can
+retrieve the artifact without xRegistry-specific lookup. A resolver plugin
+can also look up authored names in the selected container. An externally
+defined OPC UA projection represents the same model. The two use the same collection names,
 attribute names and identifier rules, but the draft does not depend on
 the projection.
 

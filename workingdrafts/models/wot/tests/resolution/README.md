@@ -52,9 +52,9 @@ Each case has these fields:
 | Field | Meaning |
 |---|---|
 | `description` | Explains what the case tests. |
-| `registry` | Resource snapshots keyed by `wotid`, each with a default selection and its Versions. |
-| `reference` | Resolution request with a `kind`, target `wotid`, and OPTIONAL `minVersion`, `floorTerm` and `local`. |
-| `document` | OPTIONAL Thing Description (TD) context for Thing Model (TM) `rel:type` links, with `version.model` and `typeLinks`. For a local reference, the containing revision's `versionid` and its `version.model` or `version.instance`. |
+| `registry` | Array of Resource snapshots (at most one per `wotid`), each with a default selection and its Versions. |
+| `reference` | Resolution request with a `kind`, `target` (a `wotid`), and OPTIONAL `minVersion`, `floorTerm` and `local`. |
+| `document` | OPTIONAL context of the TD containing a `rel: "type"` link to a TM, with `version.model` and `typeLinks`. For a local reference, the containing revision's `versionid` and its `version.model` or `version.instance`. |
 | `publish` | Publication request with `target` and OPTIONAL `versionid`, `targetKind`, `version.model`, and `version.instance`. |
 | `pin` | Caller pin: exactly one of `{ "digest": "sha256:..." }` or `{ "versionid": "1.0.0" }`. |
 | `allowPrerelease` | OPTIONAL caller flag that allows prerelease selection. By default, its value is `false`. |
@@ -65,10 +65,12 @@ The `reference.kind` field identifies the operator:
 - `extends`, `submodel`, `ref`, and `type` identify TM or type-link operators.
 - `td-extends`, `td-subthing`, and `td-ref` identify TD-to-TD operators.
 
-`minVersion` holds the normalized floor. When present, `floorTerm` records
-whether the input used `tm:minVersion` or `td:minVersion`, so the checker can
-reject a term attached to the wrong target kind. If the caller omits both
-properties, the checker uses the term expected for `kind`.
+`minVersion` holds the normalized explicit floor. A `floorTerm` without
+`minVersion` fails as `invalid-floor`. The checker also rejects a floor
+term for the other target kind: it expects `tm:minVersion` for TM targets
+and `td:minVersion` for TD targets. With `minVersion` alone, it uses the one
+expected for `kind`. Omitting both supplies no explicit floor; a type
+link can still get an implicit floor from `version.model`.
 
 Publication uses `version.instance` when `publish.targetKind` is `"td"`.
 Otherwise the request targets a TM and uses `version.model`.
@@ -98,6 +100,7 @@ The checker applies these floor rules:
   `version.model` when both are present.
 - With several type links and `version.model`, every link needs an
   explicit floor. Otherwise, the checker returns `ambiguous-floor`.
+  Each link uses the greater of its floor and `version.model`.
 - Without `version.model`, the checker uses each type link's own floor, if
   present.
 
@@ -108,8 +111,11 @@ URI-reference resolves against the containing document's base URI to that
 document before its fragment is applied. Its target is the containing
 revision named by `document.versionid`. The checker compares the floor with
 that revision's `version.model` or `version.instance`, applying the TD major
-cap to `td-ref`. A missing authored version, or one below the floor or cap,
-returns `unsatisfied`. The checker never selects another stored Version, and
+cap to `td-ref`. With a floor, a missing authored version, one below the
+floor, or a TD revision at or above the prohibited major returns
+`unsatisfied`. Malformed authored version syntax produces `invalid-version`.
+See [Floors and Pins](../../spec.md#541-floors-and-pins).
+The checker never selects another stored Version, and
 local references take no pin. The document context MUST include the
 containing `versionid`.
 
@@ -128,12 +134,14 @@ checks it before comparing the portable fields. In production output,
 Consumers MUST retain the actual Registry origin.
 
 A successful publication returns `versionid`, `versionorigin` and
-`defaultversionid`. Each request targets an existing Resource snapshot; a
-snapshot with no Versions represents creation. The cases assign TM or TD
+`defaultversionid`. Each request targets a supplied Resource snapshot.
+An empty `versions` array represents assignment of that Resource's first
+Version, not a Core HTTP create request. The cases assign TM or TD
 Version ids and select Core's post-publication default, not the resolver's
 prerelease-filtered choice. They do not test document compatibility validation
-or Core HTTP envelopes. The input schema accepts syntactically invalid values
-so the cases can check the corresponding domain errors.
+or Core HTTP envelopes. The input schema accepts some domain-invalid strings
+in otherwise valid fixture JSON, such as an authored SemVer with build
+metadata, so cases can check the domain errors.
 
 An error expectation uses `{ "error": "<name>" }`. The name is one of:
 
@@ -145,14 +153,17 @@ An error expectation uses `{ "error": "<name>" }`. The name is one of:
 - `version-mismatch`
 - `invalid-version`
 
-When a caller supplies a pin, the resolver ignores:
+For a non-local reference, a caller pin overrides normal selection as
+specified by the [resolver algorithm](../../spec.md#542-resolver-algorithm).
+The resolver ignores:
 
 - Floors
 - Sticky selection
 - The TD major cap
 - Prerelease filtering
 
-Otherwise, a sticky default is authoritative and MUST be in range.
+For an unpinned non-local reference, a sticky default is authoritative
+and MUST be in range.
 Without a sticky default, the highest eligible SemVer wins. Generated
 `0.0.0-N` ids are prereleases and are never valid floors.
 
@@ -165,7 +176,7 @@ Without a sticky default, the highest eligible SemVer wins. Generated
 | `001-floor-met` | Select the highest eligible release. |
 | `002-floor-unmet` | Fail rather than downgrade below the floor. |
 | `008-sticky-above-floor` | Honor a sticky default despite a newer eligible release. |
-| `009-prerelease-excluded` | Exclude prereleases without a floor or caller opt-in. |
+| `009-prerelease-excluded` | Exclude prereleases when the reference has no floor and the caller did not opt in. |
 | `017-deprecated-successor` | Do not follow a deprecated Resource's successor. |
 | `020-generated-floor-rejected` | Reject a generated id as a floor. |
 | `024-not-found` | Fail when the target Resource is absent. |
@@ -187,7 +198,7 @@ Without a sticky default, the highest eligible SemVer wins. Generated
 | --- | --- |
 | `013-implicit-type-floor` | A single type link inherits the TD's model floor. |
 | `015-multiple-types-partly-specified` | An omitted floor on another link causes ambiguity. |
-| `043-single-type-greater-floor-sticky` | A sticky choice MUST meet the greater implicit floor. |
+| `043-single-type-greater-floor-sticky` | Reject a sticky choice below the greater of the explicit and implicit floors. |
 | `046-multiple-types-greater-model-floor` | The model floor raises every explicit link floor. |
 
 ### TD ranges
@@ -226,7 +237,9 @@ Without a sticky default, the highest eligible SemVer wins. Generated
 Keep inputs and expected outcomes explicit when editing the collection.
 Expected results MUST come from the specification, not from the resolver
 being checked. Run the standalone checker and pytest after a change.
-Files use UTF-8, LF and a final newline, with two-space JSON indentation.
+Keep `schema.json` and `vectors.json` in UTF-8 with LF, a final newline,
+and two-space indentation. These are repository formatting conventions,
+not checker assertions.
 
 These examples test resolver behavior, not source formatting. They omit many
 error permutations, additional SemVer ordering cases and TD-generated
