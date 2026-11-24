@@ -2,7 +2,7 @@
 
 ## WoT Versioning: Design Overview
 
-<!-- words: minversion prereleases subthing ua uav versionorigin -->
+<!-- words: affordances minversion prereleases subthing ua uav versionorigin -->
 <!-- words: compatibilityline lockfile marcschier opcfoundation unversioned -->
 <!-- words: workflow workflows -->
 <!-- words: href namespace nodeids opc workaround iri -->

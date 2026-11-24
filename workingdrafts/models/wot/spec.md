@@ -1755,9 +1755,9 @@ The document-preservation and selection rules introduce the following risks:
 [Core defaultversionsticky]: ../../../core/spec.md#defaultversionsticky-attribute
 [Core defaults]: ../../../core/spec.md#default-version-of-a-resource
 [WoT-TD-1.1]: https://www.w3.org/TR/wot-thing-description11/
-[WoT-TM-1.1]: https://www.w3.org/TR/wot-thing-description11/#thing-model
-[WoT-TD media]: https://www.w3.org/TR/wot-thing-description11/#media-type-section
-[WoT-TM media]: https://www.w3.org/TR/wot-thing-description11/#media-type-section-tm
+[WoT-TM-1.1]: https://www.w3.org/TR/wot-thing-description11#thing-model
+[WoT-TD media]: https://www.w3.org/TR/wot-thing-description11#media-type-section
+[WoT-TM media]: https://www.w3.org/TR/wot-thing-description11#media-type-section-tm
 [JSON-LD]: https://www.w3.org/TR/json-ld11/
 [SemVer]: https://semver.org/spec/v2.0.0.html
 [CE WoT profile]: https://github.com/cloudevents/spec/blob/278dcbde5f51b65e62863c5d0d144c7f366fec74/cloudevents/extensions/wot.md

@@ -2,7 +2,7 @@
 
 <!-- words: opc opcua OpenUSD pytest readme ua workingdrafts -->
 <!-- words: namespace validators -->
-<!-- words: usd MaterialX plugins federatable -->
+<!-- words: usd MaterialX plugin plugins federatable -->
 <!-- words: exampleformat jsonschema ORAS powershell py reparse -->
 <!-- words: dockerfile resolvedmodelsource symlink walkthrough -->
 

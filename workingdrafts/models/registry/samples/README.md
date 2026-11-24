@@ -3,7 +3,7 @@
 <!-- words: federationprofiles registrytypes weburl xregurl -->
 <!-- words: namespace nsu opc opcua readme ua website -->
 <!-- words: compatibilityvalidated formatvalidated -->
-<!-- words: federationerror py -->
+<!-- words: federationerror publicschemas py -->
 
 These examples show the [authoritative domain model](../model.json) as full
 Core 1.0-rc4 document views. Each document inlines all of its Categories,

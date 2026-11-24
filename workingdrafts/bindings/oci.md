@@ -8,7 +8,7 @@
 <!-- words: resolvedmodelsource -->
 <!-- words: registryconfig registrymetadata sequencediagram versionconfig -->
 <!-- words: gitattributes powershell pytest workingdrafts stdin -->
-<!-- words: dockerfile emptygroups prebuilt tarball -->
+<!-- words: dockerfile emptygroups prebuilt tarball workflow workflows -->
 
 ## Abstract
 

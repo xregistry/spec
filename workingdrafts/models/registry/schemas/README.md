@@ -3,7 +3,7 @@
 <!-- words: avsc openapi -->
 <!-- words: opc powershell py registryofregistriesdocument ua workingdrafts -->
 <!-- words: federationprofiles oneof schemaparseexception uri -->
-<!-- words: website -->
+<!-- words: altnames genericrecord website -->
 
 The [repository generator](../../../../tools/schema-generator.py) derives these
 schema and API descriptions from the [authoritative model](../model.json).

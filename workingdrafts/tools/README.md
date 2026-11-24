@@ -3,7 +3,7 @@
 <!-- words: avsc jsonschema metaattributes openapi powershell py pytest workingdrafts -->
 <!-- words: rootlayer versionorigin wotid -->
 <!-- words: makeschema OpenUSD plugin -->
-<!-- words: federationprofiles -->
+<!-- words: federationprofiles gitattributes -->
 
 Use the [schema generator](../../tools/schema-generator.py) to produce JSON
 Schema, JSON Structure, Avro and OpenAPI descriptions of working-draft

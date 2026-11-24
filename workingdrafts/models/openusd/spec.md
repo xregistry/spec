@@ -15,7 +15,7 @@
 <!-- words: compatibilityvalidatedreason fabrikam contoso pumps robotics -->
 <!-- words: plant turbine addressspace assetcontainergroups disambiguator -->
 <!-- words: federatable interoperate opc schemaplugin schemaplugingroups ua -->
-<!-- words: userinfo -->
+<!-- words: subpaths unversioned userinfo -->
 
 ## Abstract
 

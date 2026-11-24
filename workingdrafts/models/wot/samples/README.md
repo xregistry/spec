@@ -1,7 +1,7 @@
 # WoT Registry Samples
 
 <!-- words: WoT thingdescriptiongroups thingmodelgroups fabrikam wotid derivedfrom byom contoso standardsbody maturity affordance minversion versionorigin -->
-<!-- words: factoryfloor inletpressure -->
+<!-- words: factoryfloor inletpressure py -->
 <!-- words: cloudevents descriptorid describedby thingdescription thingdescriptions affordances standalone affordanceselector -->
 
 [registry.json](registry.json) illustrates document identity, compatible

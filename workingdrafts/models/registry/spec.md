@@ -7,7 +7,7 @@
 <!-- words: registrygroups registryurl ssh ua uabinary uasc uatcp unversioned -->
 <!-- words: website websites -->
 <!-- words: compatibilityvalidated formatvalidated -->
-<!-- words: registriesurl walkthrough -->
+<!-- words: registriesurl validators walkthrough -->
 
 ## Abstract
 

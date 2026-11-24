@@ -11,7 +11,7 @@
 <!-- words: protocolbuffers qname qnames sdl smithyast smithyidl smithymodel -->
 <!-- words: strictvalidation unversioned updateuserprofile userid -->
 <!-- words: userprofile userprofileservice validatecompatibility -->
-<!-- words: validateformat wsdl xmlsoap -->
+<!-- words: compatibilitiescapability formatscapability validateformat wsdl xmlsoap -->
 
 ## Abstract
 

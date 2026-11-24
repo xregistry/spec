@@ -65,6 +65,7 @@
 <!-- words: signandencrypt snapshotid snapshotlimits targetepoch targetxid -->
 <!-- words: typedaccess unauthored xrefs resourcecollectiontype -->
 <!-- words: browsable filetypes hascomponent -->
+<!-- words: referencetypes -->
 
 ## Abstract
 

@@ -7,11 +7,13 @@
 
 This specification defines a message and event catalog extension to the
 xRegistry document format and API [specification](../core/spec.md). The
-message definitions registry service (or "message catalog") lets users
-declare message and event metadata (headers, properties, and attributes),
-link those declarations to schemas, and group them for association with
-endpoints. This metadata specifies which messages or events senders can
-send or receivers can expect on a channel, and how to distinguish them.
+message definitions registry service (or "message catalog") allows for
+declaring the metadata (headers, properties, attributes) of messages and/or
+events and their relationships to schemas, and for grouping those declarations
+such that they can be associated with endpoints. With the help of this
+metadata, users can provide constraints for messaging channels, declaring
+precisely which messages or events are permitted to be sent or can be expected
+to be received, and how these messages can be distinguished.
 
 ## Table of Contents
 
@@ -72,15 +74,16 @@ send or receivers can expect on a channel, and how to distinguish them.
 The goal of this message metadata model, in conjunction with the [endpoint
 model](../endpoint/spec.md), is to provide metadata structure to asynchronous
 topics, streams and queues in a way that is similar to how table and column
-definitions provide structure to databases. Database schemas structure stored
-data. Endpoint definitions use referenced or embedded message definitions,
-whose referenced or embedded schemas structure the data to be transmitted.
+definitions provide structure to databases. Database schemas structure data
+that you have. Endpoint definitions with their referenced, or embedded message
+definitions, with referenced, or embedded, schema definitions structure data
+that will be transmitted.
 
 Continuing that analogy, the endpoint scope corresponds to the database, the
 message groups are schema scopes, and the message definitions correspond to
 tables. The schema associated with a message definition determines the column
-layout of the table. This correspondence is useful because event streams are
-often stored in databases for long-term archival and analysis.
+layout of the table. As event streams often end up landing in databases for
+long-term archival and analysis, this structural alignment is very helpful.
 
 Managing the description of the payloads of those messages and events is not in
 scope, but delegated to the [schema registry extension](../schema/spec.md) for
@@ -165,8 +168,8 @@ Where attributes (or properties or headers; depending on protocol nomenclature)
 can be defined in the `envelopemetadata` and `protocoloptions`, the general
 pattern used in this model is that the attribute can have a name, a
 description, a type and a value. Setting a value makes that value constant for
-all instances of that message, which is useful for discriminators like AMQP's
-subject property or CloudEvents' type attribute.
+all instances of that message, which is useful for discriminators like AMQP’s
+subject property or CloudEvents’ type attribute.
 
 The `uritemplate` type permits the values to have embedded placeholders (Level
 1 URI templates), which turns the values into templates for publishers where
@@ -183,10 +186,10 @@ attribute in the `envelopemetadata` of a CloudEvent, with a `uritemplate` type
 and a `value` definition `/vehicles/{vin}/systems/{system}/sensor/{sensor}`.
 
 If the application environment from which the message is published provides values
-for the `vin`, `system`, and `sensor` context attributes, the application can
-insert them into the URI template when publishing the message. When a received
-message has a matching URI, the application can extract those values as
-context attributes.
+for the `vin`, `system`, and `sensor` context attributes, those values can be
+easily inserted into the URI template when the message is published. Reversely,
+if a message is received with a URI that matches the template, the values can
+be extracted and made available as context attributes.
 
 A further use of such context attributes is the mapping of protocol-native
 messages to CloudEvents. An application evaluating message definitions that
@@ -225,16 +228,18 @@ part of this specification.
 
 ### Reusing Message Definitions
 
-Multiple event-driven applications can reuse the same definitions. They can
-also add protocol-specific constraints to a CloudEvents declaration. For
-example, routing a set of CloudEvents over MQTT might require a topic path
-pattern for the event type.
+In complex event-driven enterprise applications it might be desirable to reuse
+common definitions across different applications. There might also be a need
+to route the same set of CloudEvents through a specific protocol route, like
+MQTT, where it would be useful to provide protocol-specific hints in addition
+to the CloudEvents declaration like requiring a specific topic path pattern
+for the event type.
 
 The `basemessage` attribute, a URI-typed reference to another message
 definition, enables such reuse scenarios. Any message definition MAY refer to
-another message definition as its base, which copies the base message's
-definitions into the referring message. The mechanism is transitive, which
-means that `basemessage` relationships MUST be resolved
+another message definition as its base, which effects a copy of the base
+message’s definitions into the message that defines it. The mechanism is
+transitive, which means that `basemessage` relationships MUST be resolved
 recursively as long as they do not result in circular references.
 
 All aspects of the collected base message are "shadowed" by the definitions of
@@ -267,14 +272,18 @@ flowchart TB
 
 ### Message Definition Matching
 
-A receiver can use a Message Registry to match and validate incoming messages.
-This specification does not prescribe a matching algorithm. For example, a
-receiver can compare an incoming message's headers or schema to the Message
-definitions in the Registry.
+One popular use of a Message Registry is to be a catalog of Message definitions
+that are used to validate incoming messages. In these scenarios, the receiver
+of a message might need to "match" it to the corresponding Message definition
+that the message is meant to adhere to. This specification does not mandate how
+this "matching" is done. For example, matching headers or schema of the
+incoming message to the Message definitions in the Registry is one option.
 
-When a Registry contains many Message definitions with multiple Versions,
-finding an exact match can be difficult or slow, or can yield different
-results. The following recommendations make matching easier:
+A Registry with many Message definitions, each potentially having
+multiple Versions, results in a 2-dimensional collection of Message
+definitions to match against, which could make finding the exact Message
+definition complex, non-deterministic or very slow. To help with these
+situations, this specification provides the following guidance:
 
 - Use of CloudEvents is RECOMMENDED as it will provide well-defined
   metadata that will appear in each Message to help differentiate Message
@@ -398,7 +407,8 @@ protocol-specific metadata.
 The formal xRegistry extension model of the Message Definitions Registry
 resides in the [model.json](model.json) file.
 
-A Message Registry is serialized as JSON in this form:
+For easy reference, the JSON serialization of a Message Registry adheres to
+this form:
 
 ```yaml
 {
@@ -561,7 +571,7 @@ to the xRegistry-defined core
 The Resource plural name (`<RESOURCES>`) is `messages`, and the Resource
 singular name (`<RESOURCE>`) is `message`.
 
-Unlike schemas, message definitions do not contain a
+Different from schemas, message definitions do not contain a
 version history. If the metadata of two messages differs, they are considered
 different messages.
 
@@ -569,8 +579,8 @@ When [CloudEvents](https://cloudevents.io) is used for a particular
 message, it is RECOMMENDED that the message's `messageid` attribute be the
 same as the [CloudEvents `type`
 attribute](https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#type).
-This lets users look up Message definitions by the CloudEvents `type` of
-their related events.
+Doing so makes for easier management of the meta-model by correlating
+the look-up value (id) of messages with their related events.
 
 The following extensions are defined for the `message` Resource in addition to
 the core xRegistry Resource
@@ -607,7 +617,7 @@ the core xRegistry Resource
   appropriately rather than it being a complete replacement of the entire
   complex type.
 
-  If the referenced message cannot be found, whether due to a dangling
+  If the referenced message can not be found, whether due to a dangling
   reference, an unreachable external registry, or insufficient permissions,
   an error MUST NOT be generated. Dangling references are permitted.
 
@@ -696,8 +706,9 @@ Illustrating example:
 #### `envelopeoptions`
 
 - Type: Map
-- Description: Configuration for the Message's envelope format. See
-  [Metadata Envelopes](#metadata-envelopes).
+- Description: Configuration details of the Message with respect to the
+  envelope format used to format the messages. See
+  [Metadata Envelopes](#metadata-envelopes) for more details.
 - Constraints:
   - OPTIONAL.
 
@@ -809,9 +820,9 @@ Illustrating example:
 This section defines the metadata envelopes and message protocols that are
 directly supported by this specification.
 
-Metadata envelopes use protocol-neutral definitions such as CloudEvents.
-Message protocols use the message model of a specific protocol, such as
-AMQP, MQTT, or Kafka.
+Metadata envelopes lean on a protocol-neutral metadata definition like
+CloudEvents. Message protocols lean on a message model definition of a specific
+protocol like AMQP, MQTT or Kafka.
 
 A message can use either a metadata `envelope`, a message `protocol`, or both.
 
@@ -832,8 +843,8 @@ defined by the message `protocol` rules apply.
 
 #### Property Definitions
 
-A message definition uses the following attributes to describe a header,
-property, or attribute:
+The following attributes are used to define the properties associated with
+the headers, properties or attributes defined for a message:
 
 ##### `description`
 
@@ -1057,12 +1068,13 @@ properties explicitly, but they MUST conform with the rules above.
 
 ##### HTTP protocol
 
-The "HTTP" protocol defines messages sent over an HTTP connection. It uses the
+The "HTTP" protocol is used to define messages that are sent over an HTTP
+connection. The protocol is based on the
 [HTTP Message Format][HTTP Message Format] and is common across all versions of
 HTTP.
 
-The [`protocoloptions`](#protocoloptions) object MAY contain the following
-properties:
+The [`protocoloptions`](#protocoloptions) object MAY contain several
+properties as defined below:
 
 | Property  | Type          | Description                 |
 | --------- | ------------- | --------------------------- |
@@ -1096,7 +1108,7 @@ the value of the placeholder is assumed to be identical.
 
 The following example defines a message that is sent over HTTP:
 
-```json
+```yaml
 {
   "protocol": "HTTP",
   "protocoloptions": {
@@ -1106,9 +1118,12 @@ The following example defines a message that is sent over HTTP:
         "value": "application/json"
       }
     ],
-    "query": {
-      "foo": "bar"
-    },
+    "query": [
+      {
+        "name": "foo",
+        "value": "bar"
+      }
+    ],
     "path": "/foo/{bar}",
     "method": "POST"
   },
@@ -1354,7 +1369,9 @@ The following properties are defined:
 The `key` and `key_binary` properties are mutually exclusive and MUST NOT be
 present at the same time.
 
-Applications can use `partition` to address and route messages within a topic.
+The `partition` property is included because there are cases where applications
+use partitions explicitly for addressing and routing messages within the scope
+of a topic.
 
 The values of all `string`- and `uritemplate`-typed properties
 and headers MAY contain placeholders using the [RFC6570][RFC6570] Level 1 URI
