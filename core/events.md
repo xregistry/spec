@@ -13,6 +13,7 @@ This specification defines the events that an xRegistry server MAY generate.
   - [Notational Conventions](#notational-conventions)
 - [Event Definition](#event-definition)
 - [Entity Events](#entity-events)
+- [Cross-Referenced Resource Events](#cross-referenced-resource-events)
 - [Sample xRegistry Interactions](#sample-xregistry-interactions)
 
 ## Overview
@@ -563,6 +564,34 @@ events.
   - An `io.xregistry.resource.updated` event MUST also be generated where
     `changed`, if present, MUST include `meta.epoch`, `meta.modifiedat`,
     `versions` and `versionscount` attribute names.
+
+## Cross-Referenced Resource Events
+
+Resources that use the `meta.xref` feature (i.e. are "source" Resources that
+"target" another Resource via the `meta.xref` attribute), MUST appear (to
+clients) to follow the same rules as non-cross-references Resources. This
+means:
+
+- When a Resource is converted from a normal Resource into a cross-reference
+  Resource:
+  - A `version.created` event MUST be generated for any `versionid` that
+    exists in the target Resource but not in the source Resource.
+  - A `version.deleted` event MUST be generated for any `versionid` that is in
+  the original source Resource but not in the target Resource.
+  - A `version.updated` MUST be generated for any `versionid` that is present
+    in both.
+  - If the target Resource is deprecated then a `resource.deprecated` event
+    MUST be generated, even if the original source Resource was already
+    deprecated.
+  - A Resource updated event MUST be generated for the source Resource where,
+    if present, the `changed` attribute would include `meta.xref`.
+- When a Resource is converted from a cross-reference Resource into a
+  normal Resource then similar logic applies. The appropriate source Resource
+  events MUST be generated based on what a client would observe.
+- Actions taken on a target Resource MUST result in similar events being
+  generated for all source Resources that reference that target Resource.
+  This include Version creation/deletion/modifications as well as
+  Resource/Meta modifications.
 
 ## Sample xRegistry Interactions
 
