@@ -1107,7 +1107,7 @@ used by the resolver. They do not define new document or Registry fields:
   `versionorigin`, compatibility line when applicable, and byte digest.
   The authored version and the stored id can differ.
 - **Requirement:** what one reference asks for: its operator or source
-  media type, target and optional fragment, effective minimum version
+  media type, target and any fragment, effective minimum version
   (floor), explicit line if applicable, and any declared projection source
   byte digest.
 - **Request:** how the caller wants to resolve the target: live selection,
@@ -1127,10 +1127,10 @@ permitted floor term is `uav:minVersion`.
 
 | Authored occurrence | Target kind | SemVer requirement | Incremental requirement for live selection or snapshot composition |
 |---|---|---|---|
-| `tm:extends` or `tm:submodel` link, or object containing an ordinary `tm:ref` | TM | Optional `tm:minVersion` or `uav:minVersion`; no major cap. | Explicit line; optional numeric floor. |
-| TD link with `rel: "type"` | TM | Optional `tm:minVersion` or `uav:minVersion`, combined with the TD's `version.model` as specified below; no major cap. | Explicit line; optional numeric floor. `version.model` supplies no implicit floor. |
-| `td:extends` or `td:subthing` link, or object containing an ordinary `td:ref` | TD | Optional `td:minVersion` or `uav:minVersion`; the TD major cap applies only if there is a floor. | Explicit line; optional numeric floor. |
-| Experimental projection source-manifest entry (Section 5.4.4) | TD or TM, from the entry's expected media type | Optional kind-correct `tm:minVersion` or `td:minVersion`, or `uav:minVersion`; the major cap applies only to a TD source with a floor. | Explicit line; optional numeric floor. |
+| `tm:extends` or `tm:submodel` link, or object containing an ordinary `tm:ref` | TM | OPTIONAL `tm:minVersion` or `uav:minVersion`; no major cap. | Explicit line; OPTIONAL numeric floor. |
+| TD link with `rel: "type"` | TM | OPTIONAL `tm:minVersion` or `uav:minVersion`, combined with the TD's `version.model` as specified below; no major cap. | Explicit line; OPTIONAL numeric floor. `version.model` supplies no implicit floor. |
+| `td:extends` or `td:subthing` link, or object containing an ordinary `td:ref` | TD | OPTIONAL `td:minVersion` or `uav:minVersion`; the TD major cap applies only if there is a floor. | Explicit line; OPTIONAL numeric floor. |
+| Experimental projection source-manifest entry (Section 5.4.4) | TD or TM, from the entry's expected media type | OPTIONAL kind-correct `tm:minVersion` or `td:minVersion`, or `uav:minVersion`; the major cap applies only to a TD source with a floor. | Explicit line; OPTIONAL numeric floor. |
 
 Consumers MUST recognize floor and line members by expanded IRI under the
 active JSON-LD context, including any term-scoped context. The `uav` terms
@@ -1194,7 +1194,7 @@ deriving requirements. If it does not exist, return `not-found`. A deprecated
 Resource remains eligible; the resolver MUST NOT follow its
 `deprecated.alternative` as a substitute. Compare Versions only within the
 selected authoritative sequence. Live candidates MUST be Versions of a
-conforming Resource of the required target kind.
+conforming Resource of the expected target kind.
 
 | Request | How it selects a Version | What the resolver MUST check |
 |---|---|---|
@@ -1255,7 +1255,7 @@ can satisfy the requirement without replacing it with `2.4.0`.
 | `version-mismatch` | A supplied publication `versionid` disagrees with the authored or generated assignment. |
 | `invalid-version` | A floor, local authored version, or publication version violates the applicable version rules. |
 | `inconsistent-publication` | The root line and authorized Version metadata disagree, or trusted publication data claims conflicting bytes or fixed metadata for the same source revision. |
-| `closure-incomplete` | The manifest digest does not match, or required closure data, a binding, or bound content is absent or unsupported. |
+| `closure-incomplete` | The manifest digest does not match, or necessary closure data, a binding, or bound content is absent or unsupported. |
 
 These names identify domain outcomes, not replacements for Core's protocol
 error envelopes or its [`versionid`][Core versionid]
