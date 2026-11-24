@@ -1045,8 +1045,11 @@ A federation selector needs every necessary Browse page, not just a
 client-selected page. A client MUST call `BrowseNext` until no continuation
 point remains before claiming no match or a unique match. On early
 termination it MUST release outstanding continuation points when the Session
-is usable. A failed or expired continuation point MUST NOT yield a complete
-collection.
+is usable. An expired or invalid Browse continuation point MUST fail the
+current federation read as `inconsistent_snapshot`. The caller MAY start a
+separately identified read. The resolver MUST NOT restart automatically or
+combine pages from the failed read with pages from a new read. See
+[§11.1](#111-federation-resolver-outcomes) for the native diagnostic.
 
 ## 5. Registry operations
 
@@ -1620,7 +1623,7 @@ Event outcomes apply only to event-capable implementations.
 
 | Interaction | Committed result |
 | --- | --- |
-| Changed `MetaLabels.AddAttribute` with matching `MetaEpoch` | `MetaEpoch` increases. Exact Version `Epoch` is unchanged. The Resource updated event carries both final epochs. |
+| Changed `MetaLabels.AddAttribute` with matching `MetaEpoch` and a usable default Version | `MetaEpoch` increases. Exact Version `Epoch` is unchanged. The Resource updated event carries both final epochs. |
 | The same call with a stale nonzero expected epoch | Fails with `Bad_InvalidState`, with no state change or event. |
 | Open, write bytes, write the original bytes back, Close | The staged bytes equal the bytes at Open, but the successful Close still commits the write intent, increments the exact Version `Epoch` once and emits its update event. |
 | Successful Close after Write or EraseExisting on the currently selected default Version | Exact Version `Epoch` increases once. `VersionUpdatedEventType` occurs, with `ResourceUpdatedEventType` also occurring because the Version is the default. No created events repeat. Resource `MetaEpoch` is unchanged unless Meta also changes. |
@@ -2073,7 +2076,9 @@ EventTypes. It MUST NOT encapsulate a CloudEvent or another protocol payload
 in the event body. OPC 30460-1 defines the concrete EventTypes and fields
 ([source and access boundary](#2-normative-references)).
 The table maps each canonical xRegistry event `type` to its concrete leaf
-EventType:
+EventType. The Resource `created` and `updated` rows show the fields for a
+document-backed Resource with a usable default Version. See
+[§9.2](#92-event-field-mapping) for the limits of the public field mapping.
 
 | Canonical xRegistry type | OPC UA EventType | Additional fields |
 |---|---|---|
@@ -2147,8 +2152,8 @@ The common event fields map as follows:
 | `source` | `SourceUrl` | REQUIRED absolute xRegistry source URL copied from the registry's `EventSourceUrl` |
 | `subject` | `Subject` | The subject entity's xRegistry `xid` |
 | `time` | `Time` | `BaseEventType.Time`, shared by every event from one logical interaction |
-| `epoch` | `Epoch` | Subject entity's final `epoch` value |
-| `meta.epoch` | `MetaEpoch` | Subject resource's final `meta.epoch` value |
+| `epoch` | `Epoch` | Subject entity's final `epoch` value; see the Resource cases below |
+| `meta.epoch` | `MetaEpoch` | Subject Resource's final `meta.epoch` value; see the Resource cases below |
 | `changed` | `Changed` | One-dimensional OPC UA `String` array |
 | `xregcorrelationid` | `CorrelationId` | OPTIONAL interaction identifier, subject to the response rule in §9.2 |
 
@@ -2159,32 +2164,40 @@ is selected as follows:
 - Registry, model, modelsource and capabilities events use the registry root.
   `Subject` distinguishes `/`, `/model`, `/modelsource` and `/capabilities`.
 - A group event uses the corresponding `GroupType` node.
-- A resource event uses the corresponding logical `ResourceType` node.
+- A Resource event uses the corresponding logical Resource node.
 - A version event uses the corresponding exact Version `ResourceType` node.
-- A Resource-created event and its REQUIRED first-Version-created event use the
-  same `Time` but distinct `SourceNode`, `SourceName` and `Subject` values.
+- When the first-Version-created rule applies, the Resource-created event
+  and the REQUIRED first-Version-created event use the same `Time` but
+  distinct `SourceNode`, `SourceName` and `Subject` values.
 
 For a deleted event, `SourceNode` and `SourceName` identify the entity as it
 was immediately before commit. The node no longer exists at delivery.
 After commit, the server routes the event through the nearest surviving
 notifier without changing these source fields.
 
-On `created` and `updated` events for Registries, Groups, Resources and
-Versions, `Epoch` MUST be present and MUST contain the subject's value at
-the end of the interaction. It MUST be absent from `deleted`, `deprecated`
-and `undeprecated` events, and from `model.updated`, `modelsource.updated`
-and `capabilities.updated`.
+On `created` and `updated` events for Registries, Groups and exact Versions,
+`Epoch` MUST be present and MUST contain the subject's value at the end of
+the interaction. It MUST be absent from `deleted`, `deprecated` and
+`undeprecated` events, and from `model.updated`, `modelsource.updated` and
+`capabilities.updated`.
 
-A logical Resource delegates normal Version Properties. On a Resource
-event, `Epoch` is therefore the selected default Version's `Epoch`,
-including the new default's value after a default-Version switch.
+On `resource.created` and `resource.updated`, a document-backed Resource
+with a usable default Version MUST report the final `Epoch` of that Version
+and its distinct Resource Meta `MetaEpoch`, even when only one changed.
+After a default-Version switch, `Epoch` comes from the new default.
+`MetaEpoch` MUST be absent from all other event types. Adding or removing a
+Version changes `MetaEpoch`; modifying an existing Version does not, unless
+the interaction also changes Resource Meta.
 
-On `resource.created` and `resource.updated`, `MetaEpoch` MUST be present
-and MUST contain the distinct Resource Meta `MetaEpoch` at the end of the
-interaction. It MUST be absent from all other events. A Resource `created`
-or `updated` event contains both `Epoch` and `MetaEpoch`, even when only one
-changed. Adding or removing a Version changes `MetaEpoch`; modifying an
-existing Version does not, unless the interaction also changes Resource Meta.
+For a metadata-only Resource, where the companion model defines the event
+`Epoch`, it MUST come from the sole Version. If a document-backed Resource
+has no usable default at the end of the interaction, the server MUST NOT
+fabricate an `Epoch` or substitute `MetaEpoch` for it. The exact native event
+representation for these cases is outside this public description and
+depends on the companion model. This document does not assert that a native
+representation is available for either case. The first-Version-created
+rules in [§9.4](#94-interaction-and-emission-rules) remain applicable where
+defined.
 
 Only concrete `updated` EventTypes define `Changed`. If present, it MUST
 contain canonical xRegistry attribute names, not OPC UA BrowseNames or
@@ -2666,9 +2679,9 @@ Native write support is a separate capability. `head` is a structured Meta
 extension, not a string label, so `MetaLabels.AddAttribute` cannot replace it.
 An adapter can use a supported native `ApplyChanges` targeting the Meta
 entity, or a documented domain operation, only if it atomically replaces
-the complete head against the expected `MetaEpoch` and enforces publication
-validation, scope, immutability and retention. Ordinary native-write support
-alone does not establish those publication guarantees.
+the complete head against the expected `MetaEpoch` and meets the adapter's
+[head update rules](../publication/spec.md#head-update-rules). Ordinary
+native-write support alone does not establish those publication guarantees.
 A successful multi-Property Write or a client-side
 read/write sequence does not prove atomic head replacement. An adapter
 without that guarantee MUST NOT advertise writable publication support.
@@ -2816,9 +2829,10 @@ or Method result.
 For an unknown bad or uncertain status, the resolver MUST report failure
 with the original diagnostic. It MUST NOT treat that status as Good.
 A normal dangling local `xref` retains Core serialization; it does not
-mean the source Resource is missing. An explicitly requested early stop or
-an expired continuation point cannot prove that a label selector has no
-match.
+mean the source Resource is missing. An explicitly requested early stop
+cannot prove that a label selector has no match. For an expired or invalid
+Browse continuation point, fail the current read and apply the release
+rules in [§4.7](#47-supported-operations-discovery-and-pagination).
 
 ## 12. Conformance
 

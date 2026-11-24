@@ -24,9 +24,10 @@ An HTTP binding uses Core document operations. An OPC UA binding reads the
 Version's native file object using FileType. Publication does not require an
 HTTP facade or a separate content download service.
 
-A reader opens a channel once and retains the selected manifest while the
-publisher advances or rolls back the channel. Compatibility is checked
-separately. Neither a channel nor a snapshot asserts compatibility.
+A reader opens a channel once and retains the selected manifest identity while
+the publisher advances or rolls back the channel. Pinning does not extend
+retention. Compatibility is checked separately. Neither a channel nor a
+snapshot asserts compatibility.
 
 ## Overview
 
@@ -52,7 +53,7 @@ stores everything a reader needs as immutable Version documents and records
 their digests in a manifest. Releasing the state is one conditional update
 of a channel's `head`. A reader follows `head` once, checks every byte it
 reads against the manifest, and keeps using that manifest after the channel
-moves.
+moves, subject to the [retention rules](#workflows-and-lifecycle).
 
 Publishing and reading involve three roles:
 
@@ -155,12 +156,14 @@ adapter enforces the behavior that a Core model cannot express.
 
 ### Responsibilities and Prepared Content
 
-The publisher prepares the content and arranges for readers to retrieve it.
-It can be an authorized application or a release job. The publication adapter
-enforces snapshot immutability and conditional channel updates. The Registry
-serves the captured bytes through its supported bindings. The publisher and
-adapter can be part of the same deployment; they are responsibilities, not
-a requirement for separate processes or hosts.
+The publisher prepares the content, validates its Core graph and applicable
+domain requirements, and arranges for readers to retrieve it. It can be an
+authorized application or a release job. The publication adapter checks
+the manifest and scope, and enforces snapshot immutability, retention, and
+conditional channel updates. The Registry serves the captured bytes through
+its supported bindings. The publisher and adapter can be part of the same
+deployment; they are responsibilities, not a requirement for separate
+processes or hosts.
 
 Before selecting a snapshot through a channel, the publisher prepares:
 
@@ -214,8 +217,8 @@ The executable samples implement none of these backing stores or upload
 operations. They associate exact Version references with local bytes in
 memory. Their `manifest.json` and `registry.json` names illustrate one
 snapshot. Publishing another snapshot does not authorize replacing bytes
-needed by retained snapshots or already-open readers; the retention rules in
-[Workflows and Lifecycle](#workflows-and-lifecycle) still apply.
+reachable from current heads or retained snapshots. An already-open read is
+subject to the same [retention rules](#workflows-and-lifecycle).
 
 ### Resource Types
 
@@ -586,16 +589,19 @@ so no transaction across document uploads is needed.
 
 ### Head Update Rules
 
-The following rules govern step 4:
+The following rules govern step 4. The checks before exposing a head also
+apply to a channel's initial head:
 
 - `scope` MUST equal the new manifest's scope.
 - An implementation MUST NOT use the channel's Core default Version as a
   second authority for publication selection.
 - Before making the new head visible, the adapter MUST perform the
-  [manifest checks](#opening-a-channel), including its descriptor and
-  scope, and enforce the immutability and retention rules for the content
-  it selects. The publisher validates the Core graph and applicable domain
-  requirements when preparing the snapshot.
+  checks on the manifest itself described under
+  [Opening a Channel](#opening-a-channel), including its descriptor and
+  scope. The adapter MUST enforce the
+  [immutability and retention rules](#workflows-and-lifecycle) for the content
+  selected by that head. The adapter is not REQUIRED to repeat the
+  publisher's validation of the Core graph or applicable domain requirements.
 - A stale epoch MUST preserve the old head and return Core's
   [`mismatched_epoch`](../../core/spec.md#mismatched_epoch).
 - Unconditional channel-head updates MUST be rejected by the adapter.
@@ -937,21 +943,22 @@ different local files.
 
 ### Binding Equivalence
 
-A publication consumer MUST verify that any alternate Registry API or package
-represents the model, metadata, and byte associations fixed by the manifest.
-An unchecked assertion that two endpoints share a Registry ID is insufficient.
-Binding-specific Git commits, OCI digests, and Snapshot IDs remain distinct.
-A binding without a checked mapping to the manifest MUST NOT claim that ID.
+Before using an alternate Registry API or package for the same publication, a
+consumer MUST verify an explicit access mapping to the same unchanged
+manifest. The mapping MUST establish that the alternate binding preserves
+the model, metadata, and associations from exact Version references to
+document bytes fixed by the manifest. Neither an equal Registry ID nor an
+unchecked assertion of equivalence establishes the mapping. Binding-specific
+Git commits, OCI digests, and Snapshot IDs remain distinct. A binding without
+such a checked mapping MUST NOT claim that Snapshot ID.
 
 Binding access fields inside a manifest contribute to its exact-byte identity.
 Changing HTTP references to UA references creates another manifest and
-Snapshot ID, even if the captured graph and document bytes agree. To expose
-one unchanged manifest through another binding, a caller needs an explicit
-access mapping with checked equivalence to the original exact Version
-references. This extension does not define an alternate-endpoint discovery
-protocol. An access mapping does not rewrite the manifest or its recorded
-Version references. Readers MUST NOT infer such a mapping from equal
-Registry IDs or silently substitute bindings.
+Snapshot ID, even if the captured graph and document bytes agree. An access
+mapping does not rewrite the manifest or its recorded Version references.
+This extension defines neither an alternate-endpoint discovery protocol nor
+a common wire format for equivalence evidence. Readers MUST NOT silently
+substitute bindings.
 
 ### Federated Sources
 
@@ -1040,22 +1047,26 @@ The rules above combine into the following workflows:
 - **Reconciliation.** Produce another complete snapshot after explicit
   conflict resolution. No automatic JSON merge is specified.
 - **Rollback.** Conditionally point the channel back to S12 and advance its
-  epoch. Existing operations stay on their previously selected snapshots.
+  epoch. Existing operations keep their previously selected snapshot
+  identities.
 - **Replay.** Open an exact manifest descriptor without consulting a channel.
   Missing or corrupt content fails and never refreshes automatically.
 - **Export and offline use.** Retain the checked manifest, Registry graph and
   necessary bytes. Missing domain closure prevents a claim to satisfy the
   requested domain closure profile.
-- **Retention and deletion.** Retain objects reachable from current heads and
-  retained snapshots. Emergency revocation or deletion can make pins
-  unavailable and MUST be reported explicitly. Pinning fixes the selected
-  snapshot's identity; it does not define a retention lease or guarantee
-  indefinite availability.
 
-Snapshot metadata and manifest bytes MUST NOT be overwritten under their
-existing identity. Domain revisions used by a retained snapshot MUST be
-captured immutably or served from retained checked bytes. A Core Version
-ID alone does not ensure immutable content.
+The adapter MUST protect the bytes reachable from current channel heads and
+retained snapshots against overwrite and ordinary deletion. Snapshot
+metadata and manifest bytes MUST NOT be overwritten under their existing
+identity. Domain revisions used by a retained snapshot MUST be captured
+immutably or served from retained checked bytes. A Core Version ID alone
+does not ensure immutable content.
+
+A pin fixes the snapshot's identity, not its lifetime. It grants no
+retention lease, including to a read already in progress. If the bytes a
+read needs are no longer available because normal retention ended or
+because of an emergency revocation, the read MUST fail explicitly. The
+reader MUST NOT follow a newer channel head or substitute another snapshot.
 
 Access authorization and retention are deployment policy. Integrity does not
 grant access or authenticate a publisher. Readers MUST apply Federation's

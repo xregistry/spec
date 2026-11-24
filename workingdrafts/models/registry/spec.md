@@ -769,7 +769,7 @@ flowchart TB
   end
   subgraph Selection["Advertisement selection"]
     direction LR
-    Caller["Caller choice and policy"] --> Eligible["Filter by choice and policy;<br/>rank by priority, then array order"]
+    Caller["Caller choice, binding support and policy"] --> Eligible["Rank eligible candidates by priority,<br/>then array order"]
   end
   Ads --> Eligible
   subgraph Target["Target Registry scope"]
@@ -822,13 +822,16 @@ Selection MUST use the following procedure:
    endpoint, priority `0`, and empty parameters, ordered after the explicit
    advertisements. Its selection defaults MUST NOT be inherited from a
    different explicit candidate.
-4. Apply the caller's explicit advertisement choice, including a selected
-   `binding` value or original array position, and the caller's access
-   policy. The Producer's priority MUST NOT override that choice.
-5. Exclude `binding` values the Consumer does not support. If selection fails
-   because no advertisement matches the caller's choice or no matching
-   advertisement has a supported `binding` value, report
-   `unsupported_binding`. If policy denies access, report `policy_denied`.
+4. Apply the caller's choice, if any, such as a `binding` value or a specific
+   advertisement by original array position. If the caller explicitly
+   selects a specific advertisement and policy denies it, report
+   `policy_denied`.
+5. From the matching advertisements (all advertisements if the caller did
+   not narrow the choice), exclude `binding` values the Consumer does not
+   support. If none remain, report `unsupported_binding`. Apply access
+   policy to the supported candidates. If all are denied, report
+   `policy_denied`; otherwise continue with the permitted candidates.
+   The Consumer MUST NOT contact a denied target.
 6. Order eligible candidates by ascending priority, treating an absent
    value as `0`. Preserve original array order for equal priorities,
    including the appended implicit candidate.
@@ -852,10 +855,11 @@ Priority neither replaces an explicit choice nor bypasses access policy.
 | Caller choice and policy leave multiple eligible candidates | Lower priority is preferred. Original array order breaks ties. |
 | Caller choice leaves one eligible candidate | That candidate is selected, regardless of a different candidate's lower priority. |
 | No caller choice | Priority and then original array order select among eligible candidates. |
-| Policy rejects the selected choice | Report `policy_denied`. Priority does not override policy. |
+| Caller explicitly selects a denied advertisement, or policy denies all otherwise supported matching candidates | Report `policy_denied`. |
+| No supported candidate matches the choice, or none is supported when there is no choice | Report `unsupported_binding`, unless the caller explicitly selected a denied advertisement. |
 
-The checked [multiple-profiles walkthrough][multi-profile example]
-demonstrates these results with the catalog fixtures.
+The [multiple-profiles walkthrough][multi-profile example] applies these
+rules to the catalog fixtures.
 
 After selection, target XIDs and reads use the selected
 [federation Registry context][Federation identity] and
@@ -877,11 +881,11 @@ identify different logical Registries, the Consumer MUST report that
 inconsistency as a resolution failure rather than merge them. This check
 does not require contacting unselected endpoints.
 
-An integrity error, policy rejection, unsupported version, ambiguous
-selection, or inconsistent snapshot MUST NOT trigger silent fallback to a
-different candidate. A caller MAY initiate a new operation with an explicit
-alternative after inspecting the failure. This specification does not
-authorize automatic retries through weaker trust or integrity mechanisms.
+Once a candidate has been selected, the Consumer MUST NOT fall back to
+another candidate after a failure. A caller MAY initiate a new operation
+with an explicit alternative after inspecting the failure. This specification
+does not authorize automatic retries through weaker trust or integrity
+mechanisms.
 
 ## 7. Descriptive Relationships
 
@@ -968,9 +972,10 @@ generates `unknown_attribute`. This domain does not add Core error codes.
 
 Resolution uses the [shared federation error vocabulary][Errors]. An offline
 resolver reports `invalid_package` for malformed or contradictory catalog
-input, `unsupported_binding` when no supported binding is available, and
-`unsupported_operation` for unknown parameters in a selected built-in profile.
-An unreadable selected endpoint is not a successful empty Registry.
+input and `unsupported_operation` for unknown parameters in a selected
+built-in profile. The [advertisement-selection procedure](#62-advertisement-selection)
+distinguishes `unsupported_binding` from `policy_denied`. An unreadable
+selected endpoint is not a successful empty Registry.
 
 Normal dangling Core `xref` serialization is not a new federation error.
 A dangling descriptive relationship also does not invalidate its source

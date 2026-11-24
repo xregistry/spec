@@ -559,6 +559,70 @@ def test_oci_tag_moves_but_existing_reader_keeps_immutable_pin(tmp_path):
     assert fresh["snapshot"] == second["digest"]
 
 
+@pytest.mark.parametrize(
+    "descriptor_overrides",
+    [
+        {"artifactType": "application/vnd.example.unrelated.v1+json"},
+        {"mediaType": MANIFEST},
+    ],
+    ids=["unrelated-artifact", "non-index"],
+)
+def test_oci_tag_counts_only_eligible_registry_entries(tmp_path, descriptor_overrides):
+    root = oci.build_layout(tmp_path, *oci.sample_records())
+    index = tmp_path / "index.json"
+    head = json.loads(index.read_bytes())
+    media_type = descriptor_overrides.get("mediaType", INDEX)
+    artifact_type = descriptor_overrides.get("artifactType", root["artifactType"])
+    node = {"schemaVersion": 2, "mediaType": media_type, "artifactType": artifact_type}
+    if media_type == INDEX:
+        node["manifests"] = []
+    else:
+        node["config"] = _write_blob(tmp_path, b"{}", EMPTY)
+        node["layers"] = []
+    unrelated = _write_blob(tmp_path, _json_bytes(node), media_type)
+    unrelated.update(artifactType=artifact_type, annotations=root["annotations"])
+
+    head["manifests"] = [unrelated, root]
+    index.write_bytes(_json_bytes(head))
+    reader = oci.FixtureLayout(tmp_path, "snapshot")
+    assert reader.root_digest == root["digest"]
+    assert unrelated["digest"] not in {item["digest"] for item in reader.inventory}
+
+    head["manifests"] = [unrelated]
+    index.write_bytes(_json_bytes(head))
+    with pytest.raises(FederationError) as error:
+        oci.FixtureLayout(tmp_path, "snapshot")
+    assert error.value.code == "not_found"
+
+
+def test_oci_tag_duplicate_eligible_entries_are_ambiguous_at_same_digest(tmp_path):
+    root = oci.build_layout(tmp_path, *oci.sample_records())
+    index = tmp_path / "index.json"
+    head = json.loads(index.read_bytes())
+    head["manifests"] = [root, root]
+    index.write_bytes(_json_bytes(head))
+
+    with pytest.raises(FederationError) as error:
+        oci.FixtureLayout(tmp_path, "snapshot")
+    assert error.value.code == "ambiguous"
+    assert oci.FixtureLayout(tmp_path).root_digest == root["digest"]
+
+
+def test_oci_tag_does_not_fall_back_when_selected_entry_fails_integrity(tmp_path):
+    records, documents = oci.sample_records()
+    root = oci.build_layout(tmp_path, records, documents)
+    documents["/dirs/main/files/sample/versions/v1"] = b"alternate\n"
+    alternate = oci.build_layout(tmp_path, records, documents, reference="alternate")
+    index = tmp_path / "index.json"
+    head = json.loads(index.read_bytes())
+    head["manifests"] = [{**root, "size": root["size"] + 1}, alternate]
+    index.write_bytes(_json_bytes(head))
+
+    with pytest.raises(FederationError) as error:
+        oci.FixtureLayout(tmp_path, "snapshot")
+    assert error.value.code == "integrity_error"
+
+
 def test_oci_label_ambiguity_on_later_shard_is_not_first_match_success(tmp_path):
     records = _group_records(["a", "b", "c", "d", "e"])
     for record in records:

@@ -837,6 +837,13 @@ def build_layout(
     return copy.deepcopy(descriptor)
 
 
+def _is_registry_root_entry(descriptor: dict) -> bool:
+    return (
+        descriptor["mediaType"] == INDEX_MEDIA_TYPE
+        and descriptor.get("artifactType") == ARTIFACT_TYPES["registry"]
+    )
+
+
 class FixtureLayout:
     """A pinned, offline graph reader with an observable, verified fetch cache."""
 
@@ -894,22 +901,18 @@ class FixtureLayout:
         elif reference is not None:
             candidates = [
                 d for d in head["manifests"]
-                if d.get("annotations", {}).get("org.opencontainers.image.ref.name") == reference
+                if _is_registry_root_entry(d)
+                and d.get("annotations", {}).get("org.opencontainers.image.ref.name") == reference
             ]
             if not candidates:
-                _fail("not_found", "Layout tag not found")
+                _fail("not_found", "No eligible Registry entry has the selected tag")
             if len(candidates) != 1:
-                _fail("ambiguous", "More than one entry has the selected tag")
+                _fail("ambiguous", "More than one eligible Registry entry has the selected tag")
             descriptor = candidates[0]
-            if descriptor.get("artifactType") != ARTIFACT_TYPES["registry"]:
-                _fail("invalid_package", "Selected tag entry lacks the Registry artifactType")
         else:
             candidates = {}
             for entry in head["manifests"]:
-                if (
-                    entry.get("artifactType") != ARTIFACT_TYPES["registry"]
-                    or entry["mediaType"] != INDEX_MEDIA_TYPE
-                ):
+                if not _is_registry_root_entry(entry):
                     continue
                 previous = candidates.get(entry["digest"])
                 if previous is not None and previous["size"] != entry["size"]:

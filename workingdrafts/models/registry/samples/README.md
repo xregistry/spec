@@ -110,6 +110,15 @@ Indexes are zero-based, and refer to the original serialized array, not
 an array after filtering. The unknown extension can only participate if a
 consumer independently implements it. The sample does not define it.
 
+For the same consumer, if policy denies OCI but permits Git and the caller
+has not made a choice, Git at index `2` is selected. If the caller explicitly
+selects index `1` under that policy, the result is `policy_denied`. A choice
+of `oci` also yields `policy_denied` if policy denies every matching
+supported candidate. A choice of the unknown extension yields
+`unsupported_binding` if the consumer does not support it and has not
+explicitly selected a denied advertisement. These policy cases illustrate
+the selection rules; the offline helper does not evaluate access policy.
+
 Version `1` has explicit HTTP priority `20`, OCI priority `10` and a matching
 `xregurl`. The catalog rules give the appended implicit HTTP candidate
 priority `0`, so that candidate wins unless the caller overrides the selection.
@@ -184,9 +193,9 @@ of its `versions` collection or a specific Version MUST produce Core
 explicit in the [domain document-view rules](../spec.md#33-document-view).
 
 Test whether selection reports incomplete pagination rather than claiming
-uniqueness, reports `unsupported_binding` when no binding is supported,
-does not contact an endpoint denied by policy, and does not retry another
-binding after the failures listed under
+uniqueness, distinguishes `unsupported_binding` from `policy_denied`,
+never contacts an endpoint denied by policy, and does not retry another
+binding after the selected advertisement fails. See
 [Consistency and Failure](../spec.md#63-consistency-and-failure).
 Catalog-schema validation alone cannot establish these operational properties.
 

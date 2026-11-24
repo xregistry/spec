@@ -207,7 +207,10 @@ and [descriptor-graph rules](oci.md#4-containment-and-range-shards).
 
 The directory contains OCI `oci-layout`, `index.json`
 and `blobs`. `index.json` can advertise multiple Registry snapshot roots.
-`reference` selects and pins exactly one eligible root under that binding.
+A tag selects only among eligible entries advertised in `index.json`.
+A digest can select a stored Registry index directly, even if `index.json`
+does not advertise it. The resolver verifies the selected root and retains
+its digest under the OCI binding's image-layout selection rules.
 
 The OCI binding's rules apply unchanged to:
 
@@ -283,10 +286,15 @@ A directory that is read-only to the resolver can still change through
 another writer. Read-only access therefore does not establish an atomic
 snapshot.
 
-Consumers MUST detect changes during open/read operations,
-short reads and changes to already captured selection state. An observed
-change or a short read MUST produce `inconsistent_snapshot`. A stable
-descriptor mismatch is `integrity_error`.
+Consumers MUST detect incomplete logical reads and changes during open/read
+operations or to already captured selection state. A nonempty
+operating-system read that returns fewer bytes than requested is progress.
+The consumer MUST continue as needed to complete the logical read. Reaching
+normal end of file on a stable file completes the read, even if the file is
+shorter than the descriptor declares. An interrupted or otherwise
+incomplete logical read, or an observed change, MUST produce
+`inconsistent_snapshot`. If a read yields complete, stable bytes, a
+mismatch with the descriptor's size or digest MUST produce `integrity_error`.
 
 The resolver MUST establish that all bytes used by the operation are
 coherent with the selected root. If it can establish coherence without an
@@ -308,8 +316,9 @@ For example, after capturing a root and its referenced descriptor:
 | --- | --- |
 | All bytes used by the operation are coherent with the captured root, but the filesystem provides no immutable snapshot guarantee | The resolver can return a live result with no immutable filesystem pin. |
 | Coherence cannot be established, and no more specific failure applies | Capture a private stable snapshot that establishes coherence or return a failure. |
-| A stable file has bytes different from the descriptor's size or digest | `integrity_error`. |
-| The file changes during the read or the resolver observes a short read | `inconsistent_snapshot`. |
+| The read reaches normal end of file after 80 bytes from a stable file, but the descriptor declares 100 bytes | `integrity_error`. |
+| A complete, stable file differs from the descriptor's size or digest | `integrity_error`. |
+| The file changes during the read or the logical read is incomplete | `inconsistent_snapshot`. |
 
 The resolver MUST NOT select a newer root in response to these outcomes.
 
@@ -330,8 +339,8 @@ It MUST NOT replace entity XIDs, Resource Version IDs, or Core navigation.
 | --- | --- |
 | Selected directory or initial document-tree root absent | `not_found`. |
 | Internally referenced file/blob absent | `invalid_package`. |
-| A stable read does not match the descriptor's byte length or digest | `integrity_error`. |
-| Observed concurrent mutation or short read | `inconsistent_snapshot`. |
+| Complete, stable bytes do not match the descriptor's byte length or digest | `integrity_error`. |
+| Observed concurrent mutation or an incomplete logical read | `inconsistent_snapshot`. |
 | Unauthorized root, traversal, symlink or reparse point | `policy_denied`. |
 | Unsupported layout operation or platform path form | `unsupported_operation`. |
 | Unsupported Core or package version | `unsupported_version`. |

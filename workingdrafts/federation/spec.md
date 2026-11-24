@@ -310,6 +310,14 @@ A server or publisher creating a producer-resolved view applies these same
 composition rules to its inputs. The signal describes responsibility to
 that view's consumers, not how the producer implements its own resolution.
 
+When reading a selected source, the resolver reads only the source's exposed
+view. It MUST NOT automatically traverse that source's own catalog to
+complete or retry the read, regardless of the source's resolution-owner
+signal. A source MAY expose a view its producer has composed, including
+from sources that themselves expose composed views. The caller can still
+include directly configured sources in its own composition policy or
+request a separate read of a configured source.
+
 The resolver starts with an operation and a typed target in the consumer's
 Registry view. An exact Resource or Version request identifies its target
 by XID. A collection request without a selector enumerates members. A
@@ -320,10 +328,12 @@ source Registry separately from selecting a binding for that source.
 ### Local Resources and Ordered Sources
 
 The federating Registry MUST use an explicit composition policy identifying
-the eligible catalog entries, their order, and the Resource paths they can
-supply. That ordered list is configuration, not JSON object-map order or
-Category enumeration order. This specification does not define a catalog
-attribute for that list. A caller MAY select one source explicitly for a
+the eligible sources and the Group and Resource paths they can supply. For
+each Group or Resource path, the policy MUST put the eligible sources in a
+total order: for any two eligible sources, one precedes the other. The policy
+defines that order; JSON object-map order, Category enumeration order, and
+discovery order do not. This specification does not define a catalog
+attribute for the policy. A caller MAY select one source explicitly for a
 [single-source read](#read-operations) instead of reading the composed view.
 Overrides within a composed view remain subject to its composition policy.
 
@@ -343,12 +353,11 @@ catalog or the policy can change independently. The `priority` inside a
 catalog entry orders that entry's access advertisements, not different source
 Registries. See [Discovery and Binding Selection](#discovery-and-binding-selection).
 
-When source order is complete, precedence determines which origin supplies
-a Resource path that appears in several sources. If potentially competing
-origins are unordered and the resolver needs to choose between them, it
-MUST return `ambiguous`. A selector can still match several distinct visible
-Resources after shadowing; source precedence does not choose between those
-Resources. See
+For a Resource path that appears in several sources, precedence selects the
+first source that supplies it if there is no local Resource at that path.
+After shadowing, a selector can still match several distinct visible
+Resources. The resolver reports `ambiguous` rather than choosing between
+them by source precedence. See
 [Select After Applying Shadows](#example-select-after-applying-shadows).
 
 For Resource metadata, Meta, Version metadata, and document reads, the unit
@@ -357,10 +366,11 @@ of shadowing is the Resource, including all of its Versions:
 1. Check the requested Resource path in the local Registry view. A present
    local Resource wins, including a local alias. A resolver MUST NOT fill its
    missing Version or unavailable document from another Registry.
-2. If the Resource is absent locally, visit the eligible source entries in
-   their configured order. For each entry, select a catalog-description
-   Version and then one binding using
+2. If the Resource is absent locally, visit the eligible sources in their
+   configured order. For a catalog-based source, select a
+   catalog-description Version and then one binding using
    [Discovery and Binding Selection](#discovery-and-binding-selection).
+   For a directly configured source, use its configured access context.
 3. Resolve the same typed Resource XID in the selected source context. A
    policy that projects a different source path MUST define that mapping
    explicitly. The source's model and data MUST be compatible with the
@@ -375,9 +385,9 @@ of shadowing is the Resource, including all of its Versions:
    MUST use that origin and retain the revision pin if one was selected.
    Do not merge Version sets across origins.
 6. If `not_found` establishes that the Resource is absent in the selected
-   source context, proceed to the next eligible source entry. The composed
-   view reports the Resource absent only after exhausting the eligible
-   entries. A `not_found` from a different stage, such as a failure to
+   source context, proceed to the next eligible source. The composed view
+   reports the Resource absent only after exhausting the eligible sources.
+   A `not_found` from a different stage, such as a failure to
    establish the selected Registry root, does not establish that the
    Resource is absent.
    The resolver MUST report other failures, including authorization denial,
@@ -424,11 +434,20 @@ sequenceDiagram
 
 ### Collections and Selection
 
-A federating server exposing a combined Group or Resource collection MUST
+For a Group path, the resolver MUST use the local Group's metadata if
+present. Otherwise it MUST use metadata from the first eligible source in
+the total order that supplies the Group. The choice of Group metadata does
+not shadow the whole Group: the resolver MUST combine its child collections
+from the local view and eligible sources, applying Resource precedence at
+each Resource path. If a selector tests Group metadata, it uses the metadata
+selected for that Group.
+
+A resolver exposing a combined Group or Resource collection MUST
 enumerate all eligible source collections needed for that view and apply the
-same Resource-level precedence before returning members. A shadowed source
-Resource contributes no additional Versions or alternate label values.
-Configured source type mappings MUST account for the collection's model.
+Group and Resource precedence rules before returning members. A shadowed
+source Resource contributes no additional Versions or alternate label
+values. Configured source type mappings MUST account for the collection's
+model.
 
 If the caller supplies a label selector, the resolver evaluates it against
 the visible collection.
@@ -517,7 +536,10 @@ new HTTP response envelope:
 The live HTTP source in this example has no immutable revision pin.
 In producer resolution the server supplies this context through its documented
 origin-reporting mechanism, described under [Read Operations](#read-operations).
-It cannot be inferred from the consumer-facing `self` URL alone.
+In an unfiltered collection result for this example, `item` has local origin
+and `other` has source B origin, even if the `main` Group takes its metadata
+from the local view. The consumer-facing `self` URLs alone do not identify
+these origins.
 
 Now remove the local `item` Resource and repeat the collection request.
 Source A's `item` becomes visible with default Version `v2`. Both `item` and
@@ -560,18 +582,13 @@ built-in advertisement with an unknown parameter MUST produce
 different Registry or revision. An unknown `binding` value remains valid catalog
 metadata, but MUST NOT be executed as a known profile.
 
-An absent `priority` means zero. Lower unsigned integer values are preferred.
-An absent `parameters` means an empty object. Selection MUST proceed as follows:
-
-1. Validate consistency between the selected catalog-description Version's
-   `xregurl` and its explicit HTTP advertisements, as specified by the
-   [Registry domain](../models/registry/spec.md#62-advertisement-selection).
-   If `xregurl` is present, append its implicit HTTP advertisement.
-2. Apply the caller's explicit profile choice and access policy.
-3. Remove advertisements with unsupported `binding` values from consideration.
-4. Order remaining advertisements by ascending priority, preserving array
-   order for ties.
-5. Choose the first remaining advertisement and validate its parameters.
+Resolvers MUST apply the
+[Registry domain's advertisement-selection procedure](../models/registry/spec.md#62-advertisement-selection).
+Apply the caller's choice, binding support, and access policy before ranking
+eligible advertisements by ascending priority, preserving array order for
+ties. An absent `priority` means zero; absent `parameters` means an empty
+object. Validate binding parameters for the selected advertisement before
+establishing the target Registry context.
 
 A present `xregurl` contributes an implicit HTTP advertisement of priority
 zero, after explicit advertisements for tie-breaking. This applies even if
@@ -580,16 +597,21 @@ explicit HTTP advertisements exist, at least one endpoint MUST equal
 `xregurl` exactly. This exact comparison is a consistency rule, not a
 definition of URI identity.
 
-If no candidate remains, the outcome is `unsupported_binding`. If the caller
-rejects access, the outcome is `policy_denied`. After an integrity error,
-version mismatch, policy rejection, ambiguous selection, or inconsistent
-snapshot, a resolver MUST NOT silently fail over from the attempted binding.
-The caller MAY inspect the failure and initiate another operation with an
-explicitly different advertisement. In either case, the resolver selects
-one advertisement for each source entry it reads; a Resource miss can
-advance source-entry traversal, not select a second advertisement for the
-same entry. A catalog entry's advertisements describe the same logical
-Registry, but need not expose the same instantaneous state.
+An explicitly selected advertisement denied by policy, or denial of all
+otherwise supported candidates matching the caller's choice, produces
+`policy_denied`. If no supported candidate matches the caller's choice
+(or no supported candidate exists when there is no choice), the outcome is
+`unsupported_binding`, except for an explicit denied selection as above.
+Resolvers MUST NOT contact denied targets. If the caller did not select a
+specific denied advertisement and a matching, supported candidate is
+permitted, selection can proceed among the permitted candidates.
+
+Once an advertisement has been selected, the resolver MUST NOT fall back to
+another advertisement after a failure. The caller MAY inspect the failure
+and initiate another operation with an explicitly different advertisement.
+A Resource miss can advance source-entry traversal, not select a second
+advertisement for the same entry. A catalog entry's advertisements describe
+the same logical Registry, but need not expose the same instantaneous state.
 Credentials and trust are established independently.
 
 The Registry domain's
@@ -635,7 +657,8 @@ For each single-source binding read a resolver MUST:
    and binding versions before interpreting entities.
 3. Obtain or derive the binding's declared capabilities without inventing
    support for filters, writes, atomic snapshots, or inline representations.
-   Honor the enabled resolution-owner signal before traversing its catalog.
+   Read the exposed view without traversing the selected source's own catalog
+   as part of this operation.
 4. Resolve the typed target and any selector in that Registry context.
 5. Apply Core Resource, default-Version,
    [Meta](../../core/spec.md#meta-entity), and
@@ -655,6 +678,12 @@ access, it MUST also identify the chosen advertisement and catalog-description
 Version. A standalone endpoint or local data has no selected catalog
 advertisement unless the resolver obtained it through the catalog. Origin
 information MUST be returned separately from Core identity attributes.
+
+A composed collection result MUST provide this origin information for each
+returned member, including a member returned by a selector. A Group
+member's metadata uses the origin chosen for that Group, not the origins
+of its children. The member's exposed XID remains in the composed Registry
+context; its origin identifies the member in the selected source context.
 
 A library can return origin information alongside the value. A
 producer-resolved service MUST document how an authorized consumer obtains
@@ -757,9 +786,11 @@ Reading its bytes does not change the identity of the describing Version.
 A projected Registry MAY expose locally modeled Resources representing
 external content. Any `xref` it exposes MUST satisfy Core within that
 Registry. A projection MUST NOT treat Resources as identical solely because
-their XIDs collide. Configured precedence can explicitly select an origin.
-If competing origins remain unresolved, report `ambiguous`, not an
-undocumented choice. A domain can
+their XIDs collide. When projecting source Registries into a federated view,
+use the [composition policy](#local-resources-and-ordered-sources) to select
+an origin for a Resource path. For other projections, report `ambiguous`
+if competing origins remain unresolved rather than choosing one implicitly.
+A domain can
 define a shared logical-identity policy without altering XID scope.
 
 Catalog relationships are descriptions, not instructions to walk a graph,
@@ -965,10 +996,12 @@ It neither selects compatible domain Versions nor fills a winning Resource's
 missing Version from a lower-priority source.
 
 Publication IDs, Git commits, and OCI digests are distinct. A claim that two
-bindings expose the same publication requires a checked association between
-the manifest and each binding's model, metadata, and document bytes. Equal
-Registry IDs, endpoint names, or XIDs alone do not establish that association.
-Bindings without such an association report their own pins, not an invented
+bindings expose the same publication requires an explicit, checked mapping
+to the same unchanged manifest, captured model and metadata, and exact
+Version-to-byte associations. Equal Registry IDs, endpoint names, XIDs or an
+unchecked assertion do not establish that mapping. See
+[Binding Equivalence](../publication/spec.md#binding-equivalence).
+Bindings without such a mapping report their own pins, not an invented
 publication ID. Channel writes, promotion, and retention are publication
 operations, outside this read-only federation contract.
 

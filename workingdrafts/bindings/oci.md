@@ -193,9 +193,12 @@ entry descriptor MUST use the standard index media type and
 annotation MUST NOT be used as Version identity or on internal edges.
 Profile-specific edge annotations are not REQUIRED on layout entries.
 
-A tag selects exactly one matching entry. Multiple entries with that tag
-are `ambiguous`, even if they name the same digest. A selected tag entry
-MUST identify a Registry index under the preceding rules. A digest can
+A tag selects among only the entries with that tag, the standard index
+media type, and the Registry `artifactType` specified above. No eligible
+entry produces `not_found`. More than one eligible entry produces
+`ambiguous`, even if the entries name the same digest. The resolver MUST
+select the sole eligible entry and MUST NOT try another entry if that
+entry fails byte verification or Registry index kind checks. A digest can
 select a stored Registry index directly, including one not advertised in
 `index.json`.
 
@@ -877,7 +880,7 @@ by the Federation specification:
 | The requested root, entity key or Version does not exist | `not_found` |
 | A document read through a local alias has no accessible one-hop target | `not_found` |
 | A document is requested from a metadata-only Resource | `unsupported_operation` |
-| More than one selected root or label match | `ambiguous` |
+| More than one eligible tag entry, unqualified root digest, or label match | `ambiguous` |
 | Unsupported advertised binding | `unsupported_binding` |
 | Unsupported format version | `unsupported_version` |
 | Unsupported operation, view or parameter | `unsupported_operation` |
@@ -982,6 +985,9 @@ The [reader helper](tools/oci_examples.py) performs no network I/O.
 its operation needs. `--trace PATH` records actual file reads even on
 failure, distinguishing manifest routes from blob routes. These are local
 observations, not simulated successful Distribution requests.
+
+The helper applies the [layout selection rules](#22-image-layout-selection)
+to mixed layouts, counting only eligible Registry entries for a tag.
 
 The explicit `v2` document command returns:
 
