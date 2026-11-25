@@ -13,16 +13,18 @@ of released specifications.
 ## Federation Specification Family
 
 The federation drafts define read-only resolution across independently
-administered Registries.
+administered Registries and optional deployment to configured destinations.
 
-Start with the [Registry domain](models/registry/spec.md) for catalog entries,
-then read [Federation](federation/spec.md) for hosting and source selection. The binding
-comparison below helps select an access method; each binding's reference
-sections define its implementation rules.
+The [Registry domain](models/registry/spec.md) defines catalog entries. The
+[Federation design guide](federation/design/design.md) explains how the
+pieces work together, and the [Federation specification](federation/spec.md)
+defines the contract. The binding comparison lists the available access
+methods.
 
 The arrows below indicate specification dependencies, not network requests.
 Core supplies the entities and interpretation rules. The other drafts add
-catalog discovery, access methods or publication context.
+catalog discovery, access methods, downstream deployment, or publication
+context.
 
 ```mermaid
 flowchart TD
@@ -30,15 +32,18 @@ flowchart TD
     C --> F["Federation: source context and selection"]
     R --> F
     F --> B["HTTP / OCI / Git / File / OPC UA / MQTT bindings"]
+    F --> W["Deployment: HTTPS / OPC UA / MQTT"]
     F --> P["Publication extension: channels and snapshots"]
     P --> D["Domain closure and compatibility, for example WoT"]
 ```
 
-Use the entry point for your task:
-
 - **Discover and read:** [catalog selection](models/registry/spec.md#6-discovery-and-selection),
   then [federation reads](federation/spec.md#read-operations) and the chosen
   binding below.
+- **Deploy downstream:** [deployment and synchronization](federation/spec.md#downstream-deployment),
+  then the [deployment bindings](bindings/deployment.md) for wire mappings.
+  The [deployment design](federation/design/design.md#downstream-deployment)
+  explains policy and recovery.
 - **Publish and promote:** [channel updates](publication/spec.md#publishing-and-opening-a-channel),
   then the [publication examples](publication/samples/README.md).
 - **Capture and replay:** [snapshot completeness](federation/spec.md#snapshots-and-completeness),
@@ -47,7 +52,8 @@ Use the entry point for your task:
 | Specification | Scope |
 | --- | --- |
 | [Registry of Registries](models/registry/spec.md) | Catalog model with the xRegistry Hub's category and registry hierarchy, advertisements and relationships. |
-| [Federation](federation/spec.md) | Registry contexts, selection, references, representations and conformance. |
+| [Federation](federation/spec.md) | Registry contexts, selection, references, representations, and downstream deployment. |
+| [Deployment bindings](bindings/deployment.md) | Staged, guarded deployment over HTTPS, native OPC UA, or MQTT. |
 | [Directory mapping](bindings/mapping.md) | Map existing directory contents to a Registry through Git or File. |
 | [OCI](bindings/oci.md) | Bounded descriptor graphs, publication and native snapshot resolution. |
 | [HTTP federation](bindings/http-federation.md) | Federation using the existing xRegistry HTTP API. |
@@ -183,10 +189,10 @@ keyed by full Version XID. Each `documents` entry declares exactly one of
 locator, or `none: true` for a metadata-only Version. Only a captured `text`
 or `base64` document can include `origin` or `base`; both are absolute URIs
 when supplied. See the [input checks](federation/tools/federation_examples.py).
-Text is
-encoded as UTF-8 without adding a newline; Base64 preserves exact binary
-and empty bytes. This notation is input to the example generator, not a
-Core response, mapping extension or normative interchange format.
+The generator encodes text as UTF-8 without adding a newline. Base64
+preserves binary and empty content byte for byte. This notation is input
+to the example generator, not a Core response, mapping extension or
+normative interchange format.
 `--input PATH` selects another source document using the same notation.
 
 Protocol observations and expected errors live in the
@@ -220,13 +226,14 @@ For an example in which a channel moves while a reader stays pinned, see the
 to a new captured state while existing readers retain their selected state.
 A channel's `head` selects an immutable manifest for the captured Registry
 view. A publisher can replace the head only through a conditional update.
-Selecting a channel does not establish domain
-compatibility. Neither a channel nor a snapshot is represented by a Group.
+Selecting a channel does not establish domain compatibility. A Group
+represents neither a channel nor a snapshot.
 
 The extension includes a reusable [model](publication/model.json),
 [schemas](publication/schemas/publication.json) and
 [executable examples](publication/samples/README.md). Publication defines
-conditional writes and retention; federation remains read-only. The
+conditional channel writes and retention. Federation resolution remains
+read-only, and deployment does not move a Publication channel. The
 manifest, captured Registry JSON and domain bytes are xRegistry Version
 documents selected through a binding-aware reference. Native UA reads do not
 need an HTTP facade. The caller-visible open record retains the selection.
@@ -262,10 +269,10 @@ how an xRegistry stores and describes artifacts in an
 
 A stage is the composed scene. It opens against one root layer and follows
 references to other layers and artifacts. This transitive set is the
-dependency closure. If a
-Consumer lacks a member, it cannot compose the scene correctly. The draft
-defines how to describe the closure, verify its members through per-Version
-digests, and apply Core versioning and federation across Registries.
+dependency closure. A Consumer that lacks a member cannot compose the
+scene correctly. The draft defines how to describe the closure, verify its
+members through per-Version digests, and apply Core versioning and
+federation across Registries.
 
 An existing USD asset resolver that supports a Version's document URL can
 retrieve the artifact without xRegistry-specific lookup. A resolver plugin

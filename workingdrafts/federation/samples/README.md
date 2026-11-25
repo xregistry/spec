@@ -11,5 +11,12 @@ representations from that source. The
 synthetic protocol exchanges and expected outcomes. The generator does not
 start servers for those bindings.
 
+The [deployment binding examples](../../bindings/deployment.md) show one
+chunk append over HTTPS, OPC UA, and MQTT. The
+[offline deployment cases](../tools/test_deployment_examples.py) also cover
+conditional creation and replacement, lost responses, and a pinned
+Publication source. They use a reduced in-memory receiver, not a live
+deployment service.
+
 See the [federation specification](../spec.md) and the
 [example generation instructions](../../README.md#generating-and-reading-examples).

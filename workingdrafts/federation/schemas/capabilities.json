@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://xregistry.io/workingdrafts/federation/schemas/capabilities.json",
-  "title": "Federation resolution capability",
-  "description": "Supplemental constraints on Core capabilities. An absent federation capability means consumer resolution.",
+  "title": "Federation capabilities",
+  "description": "Supplemental Core capabilities for resolution and optional deployment. An absent federation capability means consumer resolution.",
   "type": "object",
   "properties": {
     "federation": {
@@ -13,6 +13,19 @@
           "type": "string",
           "enum": ["consumer", "producer"],
           "description": "Which side performs federation resolution for the selected Registry view."
+        }
+      },
+      "additionalProperties": false
+    },
+    "federationdeployment": {
+      "type": "object",
+      "required": ["profiles"],
+      "properties": {
+        "profiles": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["https-deploy/1", "opcua-deploy/1", "xreg-deploy/1"]}
         }
       },
       "additionalProperties": false
