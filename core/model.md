@@ -337,6 +337,7 @@ The following describes the attributes of the Registry model:
   inconsistency is found then an error
   ([mismatched_version_attribute](spec.md#mismatched_version_attribute)) MUST
   be generated.
+- For string attributes, values MUST be compared in a case-insensitive manner.
 - This aspect MUST only be `true` for attribute definitions that:
   - Are within a [Resource type's versioned
     attributes](#groupsstringresourcesstringattributes) section.
