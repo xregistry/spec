@@ -729,6 +729,8 @@ the following model definition:
 
 ### Creating a Group with a complete client HTTP message exchange
 
+Assume Group `d1` does not exist and the Registry's `epoch` is 1.
+
 Client Request:
 ```yaml
 PUT /dirs/d1 HTTP/1.1
