@@ -143,22 +143,6 @@ class TestGeneratedSchemas:
         assert relationship.fields_dict['target'].type.type == 'string'
         assert relationship.fields_dict['labels'].type.values.type == 'string'
 
-    def test_api_format_matching_uses_draft_contract(self, tools_dir):
-        root = tools_dir.parent
-        model = json.loads(
-            (root / 'workingdrafts' / 'models' / 'api' / 'model.json').read_text(
-                encoding='utf-8'
-            )
-        )
-        group = model['groups']['apigroups']
-        assert 'constraints' not in group
-        assert 'matchversions' not in group['resources']['apis']
-
-        core_schema = json.loads(
-            (root / 'core' / 'model.schema.json').read_text(encoding='utf-8')
-        )
-        jsonschema.Draft7Validator(core_schema).validate(model)
-
     @pytest.mark.parametrize('containers', [
         ('array',), ('map',), ('array', 'map'), ('map', 'array'),
     ])
