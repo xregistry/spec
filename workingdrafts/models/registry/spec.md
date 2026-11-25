@@ -759,7 +759,9 @@ query, or fragment. `parameters.requesttopic` is REQUIRED and MUST be a
 concrete MQTT Topic Name. The broker and request topic select the view;
 they do not identify an entity within it. No other parameters are defined.
 See the binding's [advertisement rules](../../bindings/mqtt.md#advertisement)
-for validation and port selection.
+for validation and port selection. The binding also defines a native
+xRegistry API for clients that address the Registry directly; catalog
+discovery does not grant authorization to write to it.
 
 ## 6. Discovery and Selection
 

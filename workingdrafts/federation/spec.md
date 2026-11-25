@@ -643,14 +643,18 @@ define behavior, not URLs, HTTP verbs, or a transport-level request envelope:
 | `capabilities` | `/` | Enabled capabilities of the selected Registry view through the binding, not merely offered capabilities. |
 | `collection` | Typed collection path | Collection members, with explicit completeness or continuation information. |
 | `entity` | Registry, Group, Resource, Meta, or Version XID | xRegistry metadata, not raw domain content. |
-| `document` | Resource or Version XID | Domain bytes, or an external-document locator where permitted by the binding. Otherwise, an explicit failure. |
+| `document` | Resource or Version XID | Domain bytes, an external-document locator where permitted by the binding, or Core metadata for a metadata-only target where the binding specifies it. Otherwise, an explicit failure. |
 
-A Resource document request selects its Core
+For a document-bearing Resource, a `document` request selects its Core
 [default Version](../../core/spec.md#default-version-of-a-resource). An explicit
 Version request selects exactly that Version, case-sensitively. Neither
 operation selects the greatest Version string, latest OCI tag, newest Git
 commit or most recently modified file. Metadata-only Resources have no domain
-document. Requesting one MUST produce `unsupported_operation`.
+document. A `document` read of a metadata-only Resource or Version MUST
+produce `unsupported_operation` unless the selected binding specifies
+returning Core metadata for that target, as the
+[MQTT binding](../bindings/mqtt.md#read-requests) does. This exception does
+not permit returning metadata when a domain document is missing or unreadable.
 
 For each single-source binding read a resolver MUST:
 

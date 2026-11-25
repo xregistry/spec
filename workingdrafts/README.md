@@ -54,7 +54,7 @@ Use the entry point for your task:
 | [Git](bindings/git.md) | Commit-pinned document-tree access. |
 | [File](bindings/file.md) | Local document-tree and OCI-layout access. |
 | [OPC UA](bindings/opcua.md) | Native OPC UA API and federation integration. |
-| [MQTT 5.0 RPC](bindings/mqtt.md) | Read-only Federation operations in single-packet MQTT request and reply publications. |
+| [MQTT 5.0 RPC](bindings/mqtt.md) | Native xRegistry API and Federation reads over single-packet MQTT request and reply publications. |
 
 ### Choosing a Binding
 

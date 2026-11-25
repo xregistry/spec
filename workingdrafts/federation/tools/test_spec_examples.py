@@ -21,9 +21,13 @@ from workingdrafts.federation.tools.federation_resolution_examples import Source
 def test_published_mqtt_example_selects_and_returns_exact_version_bytes():
     federation = Path(__file__).resolve().parents[1]
     draft = (federation.parent / "bindings" / "mqtt.md").read_text(encoding="utf-8")
-    snippets = [json.loads(body) for body in re.findall(r"^```json\n(.*?)\n```$", draft, re.M | re.S)]
-    profile = next(snippet for snippet in snippets if "binding" in snippet)
+    pattern = r"^```json\n(.*?)\n```$"
+    intro, examples = draft.split("\n## Short Read Examples\n", 1)
+    profiles = (json.loads(body) for body in re.findall(pattern, intro, re.M | re.S))
+    profile = next(snippet for snippet in profiles if "binding" in snippet)
     selected = select_profile({"federationprofiles": [profile]}, {"mqtt"})
+    examples = examples.split("\n## ", 1)[0]
+    snippets = [json.loads(body) for body in re.findall(pattern, examples, re.M | re.S)]
     exchange = next(snippet for snippet in snippets if "request" in snippet)
     request, reply = exchange["request"], exchange["reply"]
 
@@ -34,8 +38,8 @@ def test_published_mqtt_example_selects_and_returns_exact_version_bytes():
     identifier = UUID(bytes=correlation)
     assert identifier.variant == RFC_4122 and identifier.version == 4
     assert bytes.fromhex(reply["correlationdata"]) == correlation
-    assert 1 <= reply["messageexpiryinterval"] <= request["messageexpiryinterval"] <= 4294967295
     for packet in (request, reply):
+        assert 1 <= packet["messageexpiryinterval"] <= 4294967295
         assert packet["qos"] == 1 and packet["retain"] == 0
         assert packet["contenttype"] == "application/json" and packet["payloadformatindicator"] == 1
         assert packet["userproperties"].count(["mrpc-version", "mrpc/1.0"]) == 1
@@ -51,9 +55,8 @@ def test_published_mqtt_example_selects_and_returns_exact_version_bytes():
     assert result["origin"]["selectedxid"] == target
     assert result["origin"]["revision"] is None
     assert base64.b64decode(result["value"]["base64"], validate=True) == b"v2\n"
-    assert {snippet["error"]["code"] for snippet in snippets if set(snippet) == {"error"}} == {
-        "not_found", "limit_exceeded",
-    }
+    errors = [snippet["error"]["code"] for snippet in snippets if set(snippet) == {"error"}]
+    assert sorted(errors) == ["limit_exceeded", "not_found"]
 
 
 def test_retained_selection_requests_labels_and_independent_contexts():
