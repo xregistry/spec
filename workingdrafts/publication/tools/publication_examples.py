@@ -14,6 +14,7 @@ from workingdrafts.federation.tools.federation_examples import (
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = json.loads((ROOT / "schemas" / "publication.json").read_text(encoding="utf-8"))
+COMPOSITION_EXTENSION = "urn:xregistry:publication:composition:1"
 
 
 class PublicationError(ValueError):
@@ -63,6 +64,14 @@ def reference_key(reference):
     """Compare selected access and decoded XIDs without rewriting stored bytes."""
     validate("reference", reference)
     return _access_key(reference["registry"]), _xid_key(reference["version"])
+
+
+def _descriptor_key(descriptor):
+    return reference_key(descriptor["reference"]), descriptor["size"], descriptor["digest"]
+
+
+def _source_keys(sources):
+    return [(_access_key(item["registry"]), _descriptor_key(item["snapshot"])) for item in sources]
 
 
 class VersionDocuments:
@@ -116,8 +125,7 @@ def _view_key(xid):
     return _xid_key(xid)
 
 
-def check_snapshot(pin, read_document, supported_extensions=()):
-    """Check integrity and simple containment for the supported example graph."""
+def _checked_manifest(pin, read_document):
     raw = checked_bytes(pin, read_document)
     parts = _xid_key(pin["reference"]["version"])
     if (parts[2] != "snapshots" or parts[3] != pin["digest"][7:]
@@ -125,6 +133,11 @@ def check_snapshot(pin, read_document, supported_extensions=()):
         raise PublicationError("invalid_package", "Manifest Version or Snapshot ID mismatch")
     manifest = _json(raw)
     validate("manifest", manifest)
+    return manifest
+
+
+def _check_snapshot(pin, read_document, supported_extensions):
+    manifest = _checked_manifest(pin, read_document)
     extensions = manifest.get("extensions", {})
     for name in manifest.get("requiredExtensions", []):
         if name not in extensions or name not in supported_extensions:
@@ -158,31 +171,62 @@ def check_snapshot(pin, read_document, supported_extensions=()):
         checked_bytes(item["content"], read_document)
     if manifest["completeness"] == "offline-complete" and seen != expected:
         raise PublicationError("invalid_package", "missing document association")
-    for descriptor in extensions.values():
-        checked_bytes(descriptor, read_document)
+    composition = None
+    for name, descriptor in extensions.items():
+        raw = checked_bytes(descriptor, read_document)
+        if name == COMPOSITION_EXTENSION:
+            composition = raw
+    return manifest, composition
+
+
+def check_snapshot(pin, read_document, supported_extensions=()):
+    """Check integrity and simple containment for the supported example graph."""
+    manifest, _ = _check_snapshot(pin, read_document, supported_extensions)
     return manifest
 
 
-def open_context(context, read_document, supported_extensions=()):
+def _open_context(context, read_document, supported_extensions):
     validate("open", context)
     if "channel" in context:
         reference = context["channel"]["reference"]
         _access_key(reference["registry"])
         _xid_key(reference["resource"])
-    for source in context.get("sources", []):
-        _access_key(source["registry"])
-        reference_key(source["snapshot"]["reference"])
-    manifest = check_snapshot(context["snapshot"], read_document, supported_extensions)
+    manifest, composition = _check_snapshot(context["snapshot"], read_document, supported_extensions)
+    if "sources" in context and composition is None:
+        raise PublicationError("invalid_package", "Repeated sources lack a composition record")
     for name in ("scope", "completeness"):
         if context[name] != manifest[name]:
             raise PublicationError("inconsistent_snapshot", name)
     selected = context["registry"]
     captured = manifest["registry"]
-    if (reference_key(selected["reference"]) != reference_key(captured["reference"])
-            or selected["digest"] != captured["digest"]
-            or selected["size"] != captured["size"]):
+    if _descriptor_key(selected) != _descriptor_key(captured):
         raise PublicationError("inconsistent_snapshot", "registry")
+    return manifest, composition
+
+
+def open_context(context, read_document, supported_extensions=()):
+    manifest, _ = _open_context(context, read_document, supported_extensions)
     return manifest
+
+
+def check_composition(context, read_document, supported_extensions=()):
+    """Verify reconstruction inputs without running a composition policy."""
+    _, raw = _open_context(context, read_document, supported_extensions)
+    if raw is None:
+        raise PublicationError("unsupported_operation", "No composition record")
+    try:
+        record = _json(raw)
+        validate("composition", record)
+    except (UnicodeDecodeError, json.JSONDecodeError, jsonschema.ValidationError) as error:
+        raise PublicationError("invalid_package", "Invalid composition record") from error
+    sources = _source_keys(record["sources"])
+    if "sources" in context and _source_keys(context["sources"]) != sources:
+        raise PublicationError("inconsistent_snapshot", "sources")
+    for name in ("policy", "model"):
+        checked_bytes(record[name], read_document)
+    for source in record["sources"]:
+        _checked_manifest(source["snapshot"], read_document)
+    return record
 
 
 def open_package(directory, *, max_bytes=16 * 1024 * 1024, max_objects=100000):

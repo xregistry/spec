@@ -458,11 +458,10 @@ second shard:
 ]
 ```
 
-This illustrates the annotation values. A boundary MAY fall between existing
-entity IDs. Gaps in the set of entity IDs are ordinary. Gaps or overlaps in
-routing intervals are invalid. A producer can choose each split boundary
-as the first key in the right-hand shard. Split choice is not globally
-canonical.
+A boundary MAY fall between existing entity IDs. Gaps in the set of entity IDs
+are ordinary. Gaps or overlaps in routing intervals are invalid. A producer
+can choose each split boundary as the first key in the right-hand shard.
+Split choice is not globally canonical.
 
 A lookup follows exactly one containing interval at each level and then
 selects the exact key in a leaf. If a well-formed leaf lacks the key, the
@@ -472,10 +471,9 @@ and overlapping entries instead produce `invalid_package`.
 A full validator MUST verify the complete partition and closure, rather than
 only one successful lookup path. A selective reader validates the path it
 consumes and cannot establish that unvisited shards are well formed or
-that their objects exist and are consistent. A complete conformance or
-absence claim covering all serialized representations requires full
-validation. A selective `not_found` result covers only the canonical routed
-lookup.
+that their objects exist and are consistent. Reporting conformance or absence
+across all serialized representations requires full validation. A selective
+`not_found` result covers only the canonical routed lookup.
 
 ## 5. Metadata and Documents
 
@@ -905,8 +903,8 @@ Use authenticated HTTPS and repository-scoped credentials under caller
 policy. OCI metadata MUST NOT contain credentials. Redirect destinations,
 external document URLs, and filesystem roots require independent policy
 checks. Opening a local layout does not authorize an external request.
-When making a separately authorized HTTP request, use only credentials
-scoped to its destination.
+A layout reader making a separately authorized HTTP request MUST use only
+credentials scoped to its destination.
 
 A layout reader MUST prevent path traversal and symlink or reparse-point
 escape. A blob name is derived from a validated digest, never from an ID.

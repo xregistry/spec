@@ -24,7 +24,7 @@ behavior and wire formats; this guide illustrates them.
 ## One Registry view, two directions
 
 Federation lets a consumer read across independently managed Registries
-without copying all their data. Optional downstream deployment lets an
+without copying all their data. Opt-in downstream deployment lets an
 authorized sender copy selected Versions to a destination that explicitly
 accepts writes. A federated read doesn't write anything. A deployment
 doesn't grant access to sources or change the read policy.
@@ -202,6 +202,12 @@ both exact reads and collections. The preference only breaks a tie. If
 looking up the approved copy times out or access is denied, the resolver
 reports the failure instead of assuming that copy is absent.
 
+Case-only IDs behave differently from exact-path ties. If two suppliers
+project `Pump` and `pump` into the same collection, neither shadows the
+other. Unless the policy renames or excludes one, reads of either member
+and collection reads covering both return `ambiguous`. Lookups do not
+become case-insensitive, and unrelated reads still work.
+
 For an [exact Group metadata read](../spec.md#collections-and-selection),
 the resolver uses local metadata if the Group is present. For example,
 engineering has no local `/documents/field` Group, and its policy tries
@@ -240,8 +246,8 @@ presents the supplier's `reference` in the engineering view, the
 consumer-facing XID and navigation refer to engineering. The result's
 origin separately identifies the supplier context, selected XID, and
 revision pin or its absence. A catalog-based result also records the
-selected advertisement and catalog-description Version. A standalone
-endpoint doesn't invent catalog origin information.
+selected advertisement and catalog-description Version. If the producer
+selects the supplier without a catalog, the origin has neither field.
 
 The following references solve different problems:
 
@@ -311,7 +317,7 @@ sequenceDiagram
 If a document referenced by A is unavailable, the reader reports the
 failure. Reading B instead would hide the failure and mix released
 states. A manifest records byte identity, not compatibility. For example,
-a domain profile may verify which model Version a document depends on.
+a domain profile can verify which model Version a document depends on.
 Neither the channel name nor snapshot integrity establishes that relation.
 A Git commit, OCI digest, or exact Version ID doesn't establish
 the Publication identity of a view. An alternate binding exposes the
@@ -387,7 +393,7 @@ entry point selects one Registry even when the host serves several. The sender
 doesn't follow redirects, switch entry points, or send deployment credentials
 to a source Registry.
 
-The optional `federationdeployment` Core capability identifies which
+When present, the `federationdeployment` Core capability identifies which
 deployment profile the receiver supports in the selected binding context.
 It's separate from `federation.resolution`, contains no endpoint or
 credentials, and need not be visible to read-only clients. The
@@ -430,7 +436,7 @@ defines the exact fields and encodings.
 | Operation | Input | Successful result |
 | --- | --- | --- |
 | `limits` | None. The configured entry point selects the Registry. | Profile version, maximum document and chunk sizes, maximum control message size, maximum token age, and stage lifetime and quota limits. |
-| `inspectTarget` | Exact destination Version XID and optional names of Version fields to compare. | Missing Resource, missing Version on a managed Resource, or existing managed Version; allowed mode, observed-state marker, token and expiration, and writable Version fields; for an existing Version, its current document descriptor and requested readable fields with their presence. |
+| `inspectTarget` | Exact destination Version XID and, if supplied, names of Version fields to compare. | Missing Resource, missing Version on a managed Resource, or existing managed Version; allowed mode, observed-state marker, token and expiration, and writable Version fields; for an existing Version, its current document descriptor and requested readable fields with their presence. |
 | `begin` | Target XID, mode (`create` or `replace`), and document descriptor. | Stage ID, next offset, effective chunk limit, and expiration time. |
 | `inspectStage` | Target XID and optionally the stage ID. | Active stage ID, mode, document descriptor, next offset, effective chunk limit, and expiration time. No document bytes. |
 | `append` | Stage ID, offset, and a nonempty chunk of bytes. | Next offset after accepting the chunk. |
@@ -463,10 +469,11 @@ document bytes, encoded as `sha256:` followed by 64 lowercase hexadecimal
 digits. `contenttype` is the media type for those bytes, or `null` if
 unspecified. A 0-byte document has a descriptor and the digest of the empty
 byte sequence. It isn't a metadata-only Version. The sender doesn't send a
-chunk for either case. The descriptor must match the type's `hasdocument`
-setting at `begin` and again at `commit`. A `null` descriptor doesn't preserve
-or clear a document on a document-bearing Version. A `null` `contenttype`
-clears the media type if the model permits it. The descriptor supplies the
+chunk for either case. The receiver checks the descriptor against the type's
+`hasdocument` setting at `begin` and again at `commit`. A `null` descriptor
+doesn't preserve or clear a document on a document-bearing Version.
+A `null` `contenttype` clears the media type if the model permits it. The
+descriptor supplies the
 media type, so the metadata object doesn't supply it again. The receiver
 doesn't accept content locators or dereference values supplied in the write.
 
@@ -569,7 +576,7 @@ The sender supplies only writable Version fields that the receiver
 explicitly allows. These can include domain fields that a metadata-only
 type needs. On replacement, omitted fields stay unchanged. Core and model
 validation govern the supplied fields, including whether a value can clear
-a field. On creation, the destination's required fields and defaults apply.
+a field. On creation, the destination's field requirements and defaults apply.
 The receiver rejects the operation if meeting these requirements would
 change content outside the allowed scope.
 
@@ -676,9 +683,9 @@ allowed write modes, writable Version fields, and limits. It can allow
 creation without replacement. An `inspectTarget` result reflects what
 the grant and current target state permit. The sender's policy narrows
 those permissions. A sender setting or operator decision can't bypass
-the receiver's grant, ownership, or precondition checks. Every selected
-metadata field must be readable for comparison and writable under the
-grant. If either condition fails, the item is blocked before upload.
+the receiver's grant, ownership, or precondition checks. If any selected metadata
+field is unreadable for comparison or unwritable under the grant, the sender
+blocks the item before upload.
 
 The default policy creates new targets and replaces existing managed
 Versions only when they still match the sender's baseline and the grant
@@ -954,4 +961,4 @@ replacement, local drift from transport failure, and both `abort`
 outcomes after an indeterminate create. A read or deployment example
 doesn't replace tests of an implementation's authorization, storage,
 or transport. For example, a test of a mocked MQTT exchange doesn't show
-that a live broker applies the required topic restrictions.
+that a live broker enforces the profile's topic restrictions.

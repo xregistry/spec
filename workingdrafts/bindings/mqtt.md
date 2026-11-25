@@ -369,12 +369,17 @@ fields `type`, `title`, `detail`, `subject`, `args`, `instance`, and
 `source`, and extension fields permitted by
 [Core error processing][core-errors].
 
-A conforming `200` reply with an `error` reports a failed xRegistry
-operation. A non-`200` reply, invalid envelope, invalid `200` payload,
-or absent reply does not establish an xRegistry outcome, such as a
-Federation `not_found`. For a mutation, without a valid xRegistry
-outcome the client cannot determine from the exchange whether the
-change took effect.
+A conforming `200` reply with an `error` reports failure for the
+delivery the Registry processed. It does not report the outcome of
+other deliveries of the same logical request. For example, a conditional
+write can commit on one delivery and return `mismatched_epoch` on a
+duplicate. The error does not contradict a success reply for the first
+delivery. If that reply was lost, the error alone does not establish
+whether the write took effect.
+
+A non-`200` reply, invalid envelope, invalid `200` payload, or absent
+reply does not establish an xRegistry outcome, such as a Federation
+`not_found`.
 
 ## Short Read Results
 
@@ -580,9 +585,9 @@ prescribe a storage or transaction mechanism.
 Establishing fit does not guarantee delivery after commit. Delivery
 loss and a failure to construct a conforming reply discovered after
 commit are distinct: the latter violates the pre-commit requirement.
-The Registry MUST NOT report a mutation whose changes remain committed
-as a confirmed xRegistry failure. Without a valid reply, the client
-cannot determine whether the mutation took effect.
+The Registry MUST NOT report failure for a delivery whose mutation
+remains committed. Without a valid reply, the client cannot determine
+from the exchange whether the mutation took effect.
 
 After any unsuccessful read, the resolver MUST NOT try another
 advertisement for the same catalog entry in that read. This includes a
@@ -832,9 +837,8 @@ the reply. Do not infer the model from the reply members. The
 [short-read model proof rule](#short-read-requests) does not apply to
 this native read; the other reply and Core validation rules still apply.
 
-For example, the following shows the placement of the document and
-metadata in a `200` reply payload for the native Version document
-operation above. Other Core metadata attributes are omitted.
+This `200` reply payload for the native Version document operation above
+omits other Core metadata attributes:
 
 ```json
 {

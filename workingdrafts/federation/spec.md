@@ -393,6 +393,17 @@ ineligible. Only the winning Resource contributes Versions, labels, and
 origin. If a local Resource or an earlier source already supplies the
 path, a collision in a later source does not affect that path's result.
 
+After applying explicit mappings or exclusions and ordinary precedence at
+exact paths, the resolver MUST enforce Core's case-insensitive sibling ID
+uniqueness in the composed view. If distinct projected Group or Resource IDs
+in the same collection differ only in case, the resolver MUST report
+`ambiguous` for a read of either path or its descendants, or for a collection
+read or selector that covers the colliding siblings. A selector MUST NOT
+remove the collision by filtering before this check. Precedence at one exact
+path does not shadow a differently spelled path. Lookups remain
+case-sensitive; the resolver MUST NOT match an unexposed spelling or fail
+an unrelated read because of the collision.
+
 After shadowing, a selector can still match several distinct visible
 Resources. The resolver reports `ambiguous` rather than choosing between
 them by source precedence. See
@@ -1319,7 +1330,7 @@ require an unauthorized change. For metadata, the receiver MUST:
   a second time in the metadata object. A Version using an external
   document or proxy URL is not replaceable through deployment.
 - Preserve omitted metadata fields on replace. On create, apply the
-  destination model's required fields and defaults. Interpret supplied
+  destination model's field requirements and defaults. Interpret supplied
   values, including `null`, under Core and the model.
 - Let Core determine default selection, epochs, timestamps, and ancestry.
   A new Version can become the Core default. A replacement of the
@@ -1367,8 +1378,10 @@ on explicit invocation. A local scheduler or Core event consumer can
 invoke it; neither events nor transport acknowledgments grant permission
 or establish convergence. The receiver does not reconcile multiple
 sources or downstream edits. The sender MUST reject multiple mappings to
-one target, including collisions under Core ID uniqueness. It MUST
-compare only fields that the grant permits it to read and write.
+one target, including collisions under Core ID uniqueness. If the grant
+or model does not permit the sender both to read and to write every
+selected metadata field, the sender MUST report the item as blocked
+without uploading or reporting convergence.
 
 For that workflow the sender MUST inspect the target again after upload
 and apply its policy with a current token before requesting commit.

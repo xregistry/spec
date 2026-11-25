@@ -81,8 +81,8 @@ The following records are successful results:
   Otherwise it MUST NOT include them. For `version_present`, `fields`
   MUST contain the readable subset of the requested fields. Each member
   of `fields` is `{"present": false}` if that field is absent, or contains
-  `present: true` and `value` if present. A field omitted from the result
-  is not readable, not evidence that the field is absent. The
+  `present: true` and `value` if present. An omitted field is not readable.
+  Its omission does not show that the field is absent. The
   `version_present` result MUST include `descriptor` unless the
   receiver cannot compare the current document fingerprint; in that case
   it MUST omit `descriptor` and include `comparisonUnavailable: true`.
@@ -105,7 +105,8 @@ An operation error includes `code`, one of the
 [Federation deployment error codes][errors], and MAY include `message`
 and `coreError`, both strings. `coreError` is the underlying Core error
 name, when safe to disclose. An `offset_mismatch` error MUST also include
-`nextOffset`. It MUST NOT include it for an unauthorized caller.
+`nextOffset`. The error MUST NOT include that member for an unauthorized
+caller.
 
 The following table maps operation errors to binding statuses. MQTT
 returns the shared code directly. A request exceeding a transport limit
@@ -274,11 +275,11 @@ The UTF-8 JSON request contains exactly `profile` with value
 `"xreg-deploy/1"`, `operation`, and `arguments`. The reply contains the
 same `profile` and exactly one of `result` or `error`. `result` is the
 success record and `error` is the error data. An `append` carries `data`
-as [RFC4648][base64] standard Base64 with required padding and no
-whitespace. The decoder MUST reject noncanonical encodings. Applicable
-control, chunk, and maximum packet sizes MUST account for JSON, PUBLISH
-overhead, and Base64 expansion. A document can span `append` requests,
-but an individual control message cannot span packets.
+as [RFC4648][base64] standard Base64. The encoding MUST include applicable
+padding and MUST NOT contain whitespace. The decoder MUST reject noncanonical
+encodings. Applicable control, chunk, and maximum packet sizes MUST account
+for JSON, PUBLISH overhead, and Base64 expansion. A document can span
+`append` requests, but an individual control message cannot span packets.
 
 This request and its reply carry the same append as the HTTPS and UA
 examples. The payloads omit PUBLISH properties for brevity.

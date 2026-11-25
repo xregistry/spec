@@ -84,8 +84,8 @@ Neither draft status constitutes OPC Foundation publication or endorsement.
 The public text describes the mapping and federation behavior. Implementing
 the exact companion node model and Method signatures also requires access
 to the unpublished RC2 companion draft and its NodeSet.
-The [conformance claims](#12-conformance) in this document apply to this
-working draft, not to an adopted OPC Foundation specification.
+An implementation's [conformance claims](#12-conformance) under this document
+apply to this working draft, not to an adopted OPC Foundation specification.
 Section 10 defines federation behavior without overriding xRegistry Core or
 the OPC UA Parts.
 
@@ -199,8 +199,8 @@ TranslateBrowsePathsToNodeIds and the FileTransfer Methods inherited by
 `ResourceType`. To delete an entity, a client calls the xRegistry
 `Delete(ExpectedEpoch)` Method on the entity's `GroupType`, `ResourceType`,
 or `MetadataResourceType` node. [Section 4.3](#43-entity-processing-rules)
-identifies the counter checked for each role. Section 10.6 identifies the model surfaces used
-by this binding.
+identifies the counter checked for each role. Section 10.6 lists the companion
+model features used by this binding.
 
 > Annex A provides an informative correspondence with sibling protocol
 > bindings. Section 10 defines federation, including references to Registries
@@ -243,8 +243,8 @@ For native reads, start with
 [Resource ownership](#510-resource-metadata-and-resource-documents) and the
 [file lifecycle](#5131-filetransfer-read-lifecycle).
 [Federation](#10-federation) adds remote selection and trust.
-[Mutation](#451-concurrency-and-locking) and [events](#9-events) are separate
-capability paths.
+[Mutation](#451-concurrency-and-locking) and [events](#9-events) have separate
+capabilities. Support for native reads establishes neither.
 
 ## 2. Normative references
 
@@ -391,15 +391,16 @@ All operations that create, modify or delete registry content or metadata
 MUST use a SecureChannel with `MessageSecurityMode` `SignAndEncrypt`.
 This includes get-or-create Calls, file write Opens, Writes and committing
 Closes, label and native-document mutations, deletion and domain Methods
-that change registry state. Roles and Permissions apply independently.
+that change registry state.
 Registry reads SHOULD use a secured channel. A deployment policy MAY permit
 read-only Browse, Read and FileType `Open`, `Read` and `Close` operations over
 `MessageSecurityMode` `None`. A client using such an endpoint MUST NOT infer
 authenticity, integrity or confidentiality for returned metadata or document
-bytes. Roles and Permissions apply independently and MAY impose stricter
-authorization. Event subscriptions follow the same deployment policy as
-registry reads. Permission to perform a local read over `None` does not
-satisfy the authenticated federation checks in
+bytes. Roles and Permissions apply independently of channel security to reads
+and writes. They MAY impose stricter authorization on reads. Event
+subscriptions follow the same deployment policy as registry reads. Permission
+to perform a local read over `None` does not satisfy the authenticated
+federation checks in
 [Section 10.4](#104-trust-and-live-consistency).
 
 The selected root is the API authority for the operation sequence; native
@@ -989,7 +990,7 @@ attribute path in the selected representation, including a collision with a
 mapping in the §4.6 table, the client's read MUST fail as ambiguous. It
 MUST NOT select a Property by Browse order or another tie-breaker.
 
-Resource Meta is an xRegistry entity in its own right, not a Version
+Resource Meta is a distinct xRegistry entity, not a Version
 attribute or a nested implementation object. On the logical Resource, the
 `Meta` prefix distinguishes its OPC UA BrowseNames from delegated Version
 Properties. Dotted names such as `meta.epoch` apply only when xRegistry
@@ -1613,8 +1614,8 @@ value. `MetaDeprecated` maps the OPTIONAL Core `deprecated` object using
 these field types and presence; it MUST NOT encode the object as a String or
 as an `AttributesType` label.
 
-Deleting the meta view is not supported. The server MUST reject attempts to
-delete the meta view with `Bad_NotSupported` or `Bad_InvalidArgument`.
+The server MUST reject attempts to delete the meta view with
+`Bad_NotSupported` or `Bad_InvalidArgument`.
 Individual mutable meta attributes, including entries in `MetaLabels`, MAY be
 reset through update processing if the domain model supports them.
 
@@ -1638,7 +1639,7 @@ Resource, the client preferably calls `GetOrCreateResource` on the parent
 Group. Strict `CreateResource` rejects an existing exact
 `(ResourceId, VersionId)` pair; it does not reject every existing logical
 Resource, because a new Version can be added to one.
-It then opens the logical Resource or returned exact Version for writing,
+The client then opens the logical Resource or returned exact Version for writing,
 uses Write plus EraseExisting to stage a complete replacement, writes the
 complete new byte stream and closes the handle. It writes or validates exact
 Version metadata Properties. Complete replacement MUST truncate any previous
@@ -2044,7 +2045,8 @@ materialize its bytes, but it MUST NOT become `meta.xref`.
 The baseline export makes multiple calls without an atomic snapshot.
 Default selection, membership, Properties or document bytes can change
 between calls. If traversal is incomplete or an inconsistency is detected,
-the exporter MUST NOT report the export as complete and consistent.
+the exporter MUST invalidate any assertion that the export is complete and
+consistent.
 Sections 10.4 and 11.1 define the resolver outcome.
 
 [Offline exports and read sequences](#121-offline-read-and-reference-examples)
@@ -2321,11 +2323,11 @@ interaction changes more than one of these attributes, one Registry updated
 event carries their applicable `Changed` names when that field is present.
 
 A child-collection change MUST also generate the parent's applicable
-`updated` event. When `Changed` is present, it MUST contain the names specified by
-xRegistry Events: the Registry for a Group change, the Group for a Resource
-change, and the Resource for a Version change. If the same interaction
-creates or deletes the parent, its `created` or `deleted` event MUST take
-precedence over `updated`. Thus, creating
+`updated` event. The parent is the Registry for a Group change, the Group for
+a Resource change, and the Resource for a Version change. When `Changed` is
+present, it MUST contain the names that xRegistry Events specifies for that
+parent. If the same interaction creates or deletes the parent, its `created`
+or `deleted` event MUST take precedence over `updated`. Thus, creating
 the first Version with a Resource MUST NOT add a Resource updated event, and
 deleting a Resource MUST NOT add a Resource updated event for its deleted
 Versions.
@@ -2482,8 +2484,8 @@ Version extensions, not fabricated files.
 
 ### 10.2. Structured reference resolution
 
-For a logical proxy or mirror claiming `XREG-Federation`, the resolver first
-reads the logical Resource's read-only `OriginRegistry`. Its
+When a server claims `XREG-Federation` for a logical proxy or mirror, the
+resolver first reads the logical Resource's read-only `OriginRegistry`. Its
 `RegistryOriginDataType` has three scalar fields in order: `OriginUri`
 (`UriString`), `ServerUri` (`UriString`) and `RegistryNodeId`
 (`ExpandedNodeId`). Exactly one form MUST be authoritative:
@@ -2497,10 +2499,10 @@ The root MUST identify a `RegistryType` Object or subtype, not a Resource
 or endpoint. Unresolved Session-local namespace or server indexes are
 insufficient. A non-OPC-UA provider MUST use the stable `OriginUri` form;
 it MUST NOT manufacture an application/root pair from a URL.
-The resolver MUST validate the claim against its configured or verified
-provider binding before selecting a locator. The claim alone does not
-establish trust. URI comparison is exact, with no case folding, trimming,
-percent decoding or other URI normalization.
+The resolver MUST validate the asserted origin against its configured or
+verified provider binding before selecting a locator. The assertion alone
+does not establish trust. URI comparison is exact, with no case folding,
+trimming, percent decoding or other URI normalization.
 
 An `ExpandedNodeId` identifies a Node, not an endpoint. As defined in
 [Part 4 section 7.16][ua-expanded], it contains `serverIndex`,
@@ -2736,8 +2738,8 @@ defines the model mappings used here:
 | Native documents | `XREG-NativeDocuments`, `XREG-NativeWrite` and `XREG-NativeSnapshots` separately govern typed reads, writes and bounded snapshots; none replaces FileType access. |
 | Events and epochs | xRegistry `deprecated` events map to the OPC UA state-transition EventTypes under §9.1; UInt32 counter exhaustion fails atomically with `Bad_OutOfRange`. |
 
-The xRegistry drafts cited here are unadopted. OPC 30460-1's conformance-unit
-requirements govern the members REQUIRED for each claim; this draft adds
+The xRegistry drafts cited here are unadopted. OPC 30460-1 defines the
+members REQUIRED for each conformance unit a server claims. This draft adds
 operation and transport requirements without making `Name` mandatory or
 turning a metadata-only Resource into a fabricated document. Native-document
 and snapshot capabilities remain OPTIONAL unless their respective
@@ -2881,11 +2883,12 @@ OPC 30460-1's REQUIRED fields depend on the claimed conformance unit:
 | `XREG-GroupFederation` | Group-owned origin/reference/locator state and verified collection-qualified Group targets under §10.3. |
 
 `Name`, `Description`, `Documentation` and `Labels` remain OPTIONAL in
-these units. `XREG-Identity` does not make `Name` mandatory. A metadata-only
-catalog Resource MUST NOT claim `XREG-Resource` without its document-backed
-contract. If it claims `XREG-MetadataResource`, it MUST meet that unit's
-requirements. A binding-conformance claim does not weaken the requirements
-of any companion unit it claims.
+these units. `XREG-Identity` does not make `Name` mandatory. For a metadata-only
+catalog Resource, a server MUST NOT claim `XREG-Resource` unless the Resource
+meets that unit's document-backed contract. If a server claims
+`XREG-MetadataResource` for the Resource, the Resource MUST meet that unit's
+requirements. A server's conformance claim for this binding does not weaken
+the requirements of any companion unit the server claims.
 
 `XREG-Registry` MUST expose the readable effective `Model` FileType defined
 by OPC 30460-1. `XREG-Capabilities` requires the canonical `CapabilitiesSnapshot`

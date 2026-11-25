@@ -192,8 +192,8 @@ of its `versions` collection or a specific Version MUST produce Core
 `cannot_doc_xref`, not transitive traversal. These requirements are
 explicit in the [domain document-view rules](../spec.md#33-document-view).
 
-Test whether selection reports incomplete pagination rather than claiming
-uniqueness, distinguishes `unsupported_binding` from `policy_denied`,
+Test whether selection reports incomplete pagination instead of a unique
+match, distinguishes `unsupported_binding` from `policy_denied`,
 never contacts an endpoint denied by policy, and does not retry another
 binding after the selected advertisement fails. See
 [Consistency and Failure](../spec.md#63-consistency-and-failure).

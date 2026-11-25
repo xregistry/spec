@@ -900,8 +900,8 @@ the applicable resolver or USDZ package rules interpret it.
 
 ### 5.2. The Dependency Closure
 
-An Asset Container Group's membership is determined by composition, not by
-convention. A Group SHOULD contain the unique `RootLayer` Resource together
+Composition determines an Asset Container Group's membership.
+A Group SHOULD contain the unique `RootLayer` Resource together
 with every artifact transitively reachable from it. This includes every
 sublayer, referenced layer, payload, texture, MaterialX document, and volume.
 A complete Group describes the artifacts needed for composition; a Consumer
@@ -954,7 +954,7 @@ Consequently:
 
 - An `assetidentifier` MUST be stable across federated registries. A federating
   registry MUST NOT rewrite the identifiers of artifacts it delegates, because
-  a   rewritten identifier no longer matches the normalized reference.
+  a rewritten identifier no longer matches the normalized reference.
 - A `dependson` entry is satisfied by a matching Resource in the same Group
   that describes the delegated artifact. The closure rule in
   [Section 5.2](#52-the-dependency-closure) does not require that Resource to

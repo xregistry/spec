@@ -825,8 +825,8 @@ the resolver MUST report failure. Local file access and private network access
 MUST be denied unless explicitly authorized.
 Credentials MUST NOT be forwarded automatically across origins. XML parsers
 MUST disable external-entity expansion. YAML parsers MUST NOT construct native
-objects from document tags. These are requirements of this working-draft
-extension, not additional claims about the cited description languages.
+objects from document tags. These rules apply to implementations of the
+extension; they do not amend the cited description languages.
 
 Registry authentication and authorization are separate from the API's security
 requirements. API documents SHOULD describe security schemes without embedding

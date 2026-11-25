@@ -155,11 +155,11 @@ case-sensitive Git tree-name comparison. Every component MUST be a tree.
 The selected tree MUST contain the format root `registry.json`.
 Every format `href` is resolved inside that same selected tree.
 
-A producer can turn an existing repository tree into a Registry by committing
-`registry.json` and any metadata files it references. Existing content keeps
-its paths. The mapping defines the Group, Resource and Version hierarchy
-independently of the physical directory layout. Files outside that mapping's
-references do not participate in the Registry's closure.
+A producer can add a Registry mapping to an existing repository tree by
+committing `registry.json` and any metadata files it references. Existing
+content keeps its paths. The mapping defines the Group, Resource and Version
+hierarchy independently of the physical directory layout. Files outside that
+mapping's references do not participate in the Registry's closure.
 
 Consumers MUST read `registry.json`, external records and indexes, and
 documents as blob payloads. An inline record or index is read as part of its

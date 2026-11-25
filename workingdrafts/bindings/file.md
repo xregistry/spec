@@ -358,8 +358,8 @@ declared layout. This applies to both linked and offline-complete snapshots.
 A consumer MUST implement that layout's metadata/document semantics
 and all applicable containment and consistency rules. A consumer MUST
 identify which layouts it implements. Support for one does not imply the
-other. An offline-complete claim also requires the selected layout's
-offline content closure.
+other. An offline-complete snapshot also has to satisfy the selected
+layout's offline content closure rules.
 
 The [document helper](tools/mapping_examples.py) implements only
 `document-tree`. `file_root(profile, boundary)` parses and checks a local

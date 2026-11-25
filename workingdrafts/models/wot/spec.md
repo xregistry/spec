@@ -164,10 +164,11 @@ document, identity and retrieval rules.
 Each Version of a `thingdescription` or `thingmodel` Resource holds a complete
 WoT document, stored without rewriting its bytes. A Resource's `wotid` and
 Registry Resource id are stable across compatible revisions. `wotid` is
-declared with [`matchversions`][xRegistry matchversions]. A registry MUST
-reject a Version that supplies a different `wotid`. In the SemVer profile,
-a Thing Model's major version MUST be part of its `wotid`, and a breaking
-Thing Model change MUST use a new `wotid` and a new Resource
+declared with [`matchversions`][xRegistry matchversions]. In both profiles,
+a registry MUST compare `wotid` across Versions exactly, including case,
+and reject a Version that supplies a different value. In the SemVer
+profile, a Thing Model's major version MUST be part of its `wotid`, and a
+breaking Thing Model change MUST use a new `wotid` and a new Resource
 ([Section 5.1.1](#511-breaking-changes-and-successor-identifiers)).
 
 Thing Model Resources and Thing Description Resources MUST use Core
@@ -377,8 +378,6 @@ not normative.
 
 ### 2.2. Terminology
 
-This specification defines the following terms:
-
 #### 2.2.1. Thing Description
 
 The Thing Description is the WoT-TD 1.1 JSON-LD document. A
@@ -387,10 +386,11 @@ instance, each holding one such document. Addressing the Resource without
 naming a Version serves its [default Version][xRegistry version-ids].
 
 The TD's `version.instance` carries its revision, including breaking major
-revisions. A major revision remains under the same `id`, `wotid`, and Resource.
+revisions. A major revision keeps the same `wotid` and Resource, and the same
+`id` if the document supplies one.
 If a Resource declares the [`compatibility`][xRegistry compatibility] attribute,
 all its Versions MUST adhere to that policy. A TD that identifies a different
-Thing MUST use that Thing's `id` and a corresponding Resource. See
+Thing MUST use a distinct `wotid` and a corresponding Resource. See
 [Section 1.3](#13-versioning).
 
 #### 2.2.2. Thing Model
@@ -405,15 +405,15 @@ Thing instance.
 
 #### 2.2.3. WoT Identifier
 
-A WoT identifier is the URI a WoT document carries in its `id` member, as
-defined by [WoT-TD 1.1][WoT-TD-1.1], for example `urn:fabrikam:lamp:42`. Other
-WoT documents and tools use it to identify what the document describes,
-independently of its storage location.
+A WoT document can carry its identifier as a URI in the `id` member, as
+defined by [WoT-TD 1.1][WoT-TD-1.1], for example `urn:fabrikam:lamp:42`.
+Other WoT documents and tools use it to identify what the document
+describes, independently of its storage location.
 
 A WoT identifier is held in the `wotid` attribute. It is distinct from the
 xRegistry `thingdescriptionid`/`thingmodelid`, which identifies the Resource
 within a Registry. The two MAY hold the same string when the authored identifier
-satisfies xRegistry's id grammar. Most do not: a URL such as
+satisfies xRegistry's id grammar. For example, a URL such as
 `https://fabrikam.example/things/lamp-42` is not a legal xRegistry id. The
 model therefore keeps them as separate attributes rather than reusing the
 Resource id.
@@ -714,10 +714,9 @@ Every `thingmodel` Resource MUST reside inside a Thing Model Group.
 
 ### 4.4. Thing Model Resources
 
-A Thing Model Resource groups one or more `versions`, each holding a concrete
-WoT-TM 1.1 JSON-LD document. Within Thing Model Groups, its Resource Type
-name is `thingmodel` and its collection name is `thingmodels`. Each
-`thingmodel` represents the logical grouping.
+Each `thingmodel` Resource groups one or more `versions`, each holding a
+concrete WoT-TM 1.1 JSON-LD document. Within Thing Model Groups, its Resource
+Type name is `thingmodel` and its collection name is `thingmodels`.
 
 The `format` attribute of a `thingmodel` Resource Version MUST be
 `"JSON-LD/1.1"`, enforced by the same `strict` enumeration used for
@@ -844,15 +843,16 @@ xRegistry gives every entity an id — a `thingdescriptionid` or
 path those ids form within the registry. Each entity id is constrained to
 [RFC 3986][RFC3986] `unreserved` characters plus `:` and `@`, starting with a
 letter, a digit, or `_`, at most 128 characters long, and unique
-case-insensitively within its parent. A WoT identifier is the value of a TD's
-or TM's `id` member: a URI, most often a URN such as `urn:fabrikam:lamp:42`,
-but equally a URL such as `https://fabrikam.example/things/lamp-42`.
+case-insensitively within its parent. A WoT identifier is a URI, such as
+`urn:fabrikam:lamp:42` or `https://fabrikam.example/things/lamp-42`. It comes
+from the TD or TM's `id` when present. Otherwise, the Producer supplies
+`wotid` at write time as described below.
 
 These identifiers serve a similar purpose but follow different grammars.
 `https://fabrikam.example/things/lamp-42` is not a valid entity id or `xid`
-component. The Thing author supplies the WoT identifier; the Registry assigns
-the `xid`. Where an authored identifier satisfies the id grammar, a client MAY
-use it as the Resource id. A Registry cannot rely on that choice.
+component. The Registry's `xid` is separate from the WoT identifier. Where
+an authored identifier satisfies the id grammar, a client MAY use it as
+the Resource id. A Registry cannot rely on that choice.
 
 This specification therefore does not equate them, and does not define a
 mapping between them:
@@ -895,8 +895,8 @@ When a document is revised compatibly, its `wotid` and Resource id MUST
 remain unchanged, and a new Version is created under the same Resource. A
 SemVer Thing Model breaking revision uses a distinct major-version `wotid` as
 specified in [Section 5.1.1](#511-breaking-changes-and-successor-identifiers).
-A Thing Description major revision remains under its existing `id` and
-`wotid`. A new TD identifier names a different concrete Thing.
+A Thing Description major revision keeps its `wotid` and its `id`, if
+present. A new TD identifier names a different concrete Thing.
 
 A `wotid` is REQUIRED, and the rule for populating it depends on the document:
 
@@ -928,8 +928,9 @@ follow Section 5.5.2.
 A breaking Thing Model change MUST use a new major-version `wotid` and a
 distinct Resource. The predecessor's `wotid` MUST NOT be modified. A major
 Thing Description revision remains a Version of the same concrete Thing under
-the same `id`, `wotid`, and Resource. A distinct TD `id` and `wotid` identify
-a different concrete Thing, not a breaking revision of the existing one.
+the same `wotid` and Resource. If the document carries an `id`, it matches
+that `wotid`. A different `wotid` identifies a different concrete Thing,
+not a breaking revision of the existing one.
 
 The predecessor Resource MUST be marked with Core's
 [`deprecated`][xRegistry deprecated] attribute, whose `alternative` MUST be
@@ -1519,9 +1520,9 @@ only against verified original sequence identity and numbering.
 
 #### 5.5.2. Compatibility Line
 
-A compatibility line is an absolute URI compared exactly. A later
-Version in a line claims that it can substitute for every earlier
-Version of that Resource in the same line under the publisher's
+A compatibility line is an absolute URI compared exactly. A publisher that
+assigns a later Version to a line asserts that the Version can substitute for
+every earlier Version of that Resource in the same line under the publisher's
 documented public interface. Neither shared ancestry nor a larger ID
 proves compatibility. The SemVer rule requiring a TM major in `wotid`
 does not apply. A breaking update to the same logical document can

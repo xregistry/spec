@@ -80,6 +80,10 @@ an immutable storage implementation.
 Before claiming conformance, obtain adapter integration evidence for native
 binding mapping, HTTP context links and durable server writes.
 
+The composition cases check the manifest's reconstruction record, its source
+pins, policy and model, and any source list repeated in the open record.
+They verify those inputs without replaying the composition policy.
+
 For local replay, `publication-package.json` contains `reference`/`path`
 entries for the HTTP and UA examples. The offline reader checks resolved
 containment, duplicate equivalent references and byte/object limits. It

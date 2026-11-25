@@ -13,7 +13,7 @@ of released specifications.
 ## Federation Specification Family
 
 The federation drafts define read-only resolution across independently
-administered Registries and optional deployment to configured destinations.
+administered Registries and opt-in deployment to configured destinations.
 
 The [Registry domain](models/registry/spec.md) defines catalog entries. The
 [Federation design guide](federation/design/design.md) explains how clients
@@ -53,7 +53,7 @@ flowchart TD
 | --- | --- |
 | [Registry of Registries](models/registry/spec.md) | Catalog model with the xRegistry Hub's category and registry hierarchy, advertisements and relationships. |
 | [Federation](federation/spec.md) | Registry contexts, selection, references, representations, and downstream deployment. |
-| [Deployment bindings](bindings/deployment.md) | Staged, guarded deployment over HTTPS, native OPC UA, or MQTT. |
+| [Deployment bindings](bindings/deployment.md) | Staged uploads and conditional Version writes over HTTPS, native OPC UA, or MQTT. |
 | [Directory mapping](bindings/mapping.md) | Map existing directory contents to a Registry through Git or File. |
 | [OCI](bindings/oci.md) | Bounded descriptor graphs, publication and native snapshot resolution. |
 | [HTTP federation](bindings/http-federation.md) | Federation using the existing xRegistry HTTP API. |
@@ -98,7 +98,7 @@ Publication and domain models have separate sample directories.
 
 | Example | Content |
 | --- | --- |
-| `walkthrough` | One `widget` Resource and its exact 18-byte document, using the project paths taught by the [mapping walkthrough](bindings/mapping.md#worked-example-map-one-existing-file). |
+| `walkthrough` | One `widget` Resource and its exact 18-byte document, using the project paths in the [mapping walkthrough](bindings/mapping.md#worked-example-map-one-existing-file). |
 | `portable` | Typed collections, explicit defaults, local aliases, a metadata-only catalog, binary content and an empty document. |
 | `offline` | Complete `dirs` / `files` Registry with imported types, aliases and locally captured documents. |
 | `linked` | A separate Registry context whose non-default `v2` document remains an external URL. |
@@ -195,12 +195,12 @@ to the example generator, not a Core response, mapping extension or
 normative interchange format.
 `--input PATH` selects another source document using the same notation.
 
-Protocol observations and expected errors live in the
-[HTTP tests](bindings/tools/test_http_examples.py),
+The [HTTP tests](bindings/tools/test_http_examples.py),
 [UA tests](bindings/tools/test_opcua_examples.py) and
-[shared selection tests](federation/tools/test_spec_examples.py).
-They use synthetic exchanges, not deployed traffic. The
-[generator tests](federation/tools/test_generate_examples.py) check
+[shared selection tests](federation/tools/test_spec_examples.py)
+check protocol behavior and expected errors using synthetic exchanges,
+not deployed traffic.
+The [generator tests](federation/tools/test_generate_examples.py) check
 representative generated outputs across bindings, not every
 example/binding pair.
 The [WoT cases](models/wot/tests/resolution/README.md) run through pytest too.

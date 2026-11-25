@@ -9,8 +9,10 @@ This unreleased working draft describes an xRegistry for Web of Things
 defines storage, identity, and resolution. A Registry uses the
 [SemVer model][Model] for Semantic Versioning or the
 [incremental model](model-incremental.json) for increasing integer Versions.
-The [decision record][Decisions] explains the rationale. The informative
-[versioning design][Versioning] and [samples][Samples] provide supporting detail.
+The [decision record][Decisions] gives the rationale. The informative
+[versioning design][Versioning] describes Version assignment and reference
+resolution. The [samples][Samples] show how the Registry records WoT document
+identity.
 
 The informative [publication design][Publication] explains dependency
 binding and publication of related documents. The

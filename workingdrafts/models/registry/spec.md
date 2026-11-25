@@ -1075,7 +1075,7 @@ write-through to a target Registry.
 
 The [sample directory](samples/README.md) contains complete Core document
 views with inlined Categories, Resources, Meta entities, and Versions.
-It includes unchanged base vocabulary, multiple access methods, distinct
+The examples show the base catalog, multiple access methods, distinct
 description Versions, and descriptive relationships.
 
 The [schema directory](schemas/README.md) contains descriptions derived

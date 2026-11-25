@@ -773,7 +773,8 @@ A relative URI MUST have an explicit absolute `base` on this descriptor.
 Neither the containing file, catalog URL, Git repository URL nor `source.uri`
 is an implicit base.
 
-Known integrity is recorded in OPTIONAL paired `size` and `sha256` fields.
+The OPTIONAL `size` and `sha256` fields record the external document's byte
+count and digest as a pair.
 If those fields are present and a consumer retrieves the content, it MUST
 check both. An external locator does not create a metadata alias.
 
@@ -877,7 +878,7 @@ requests use exactly the requested Version ID. A snapshot revision, index
 position or highest Version string MUST NOT override the Core default.
 
 The `portable` example in the [shared source](../federation/samples/examples.json)
-exercises the following alias boundary. These are operation outcomes, not
+shows what each operation returns for an alias. These results are not
 additional stored records:
 
 | Request to an alias | Result |
@@ -1089,8 +1090,8 @@ The filesystem example detects ordinary concurrent modification and rejects
 static symlinks and reparse points. It does not protect against a hostile
 process changing paths during lookup. That environment requires OS
 handle-relative, no-follow traversal or a private immutable snapshot, as
-described by the File binding. The example therefore does not claim
-production resolver conformance.
+described by the File binding. The example does not demonstrate conformance
+for a production resolver.
 
 ## References
 

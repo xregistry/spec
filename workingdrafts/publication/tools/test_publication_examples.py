@@ -11,8 +11,9 @@ import jsonschema
 import pytest
 
 from workingdrafts.publication.tools.publication_examples import (
-    Channels, PublicationError, SCHEMA, VersionDocuments, checked_bytes,
-    check_snapshot, open_context, open_package, reference_key, validate,
+    COMPOSITION_EXTENSION, Channels, PublicationError, SCHEMA, VersionDocuments,
+    check_composition, checked_bytes, check_snapshot, open_context, open_package,
+    reference_key, validate,
 )
 
 
@@ -46,6 +47,121 @@ def test_checked_authored_bytes_and_context(publication):
     result = open_context(context, objects.read)
     assert result["documents"][0]["viewVersion"] == "/sets/manual/documents/intro/versions/7"
     validate("channel", json.loads((SAMPLES / "channel.json").read_text(encoding="utf-8")))
+
+
+@pytest.fixture
+def composed_publication(publication):
+    context, objects = publication
+    source_pin = context["snapshot"]
+    manifest = json.loads(objects.read(source_pin["reference"]))
+    other_source = replace(objects, source_pin, {**manifest, "scope": "urn:example:supplier"})
+
+    def store(name, value):
+        template = deepcopy(context["registry"])
+        template["reference"]["version"] = f"/publications/team/objects/{name}/versions/content"
+        return replace(objects, template, value)
+
+    record = {
+        "format": "xregistry-publication-composition/1",
+        "sources": [
+            {"registry": {"binding": "http", "endpoint": "https://first.example.test"},
+             "snapshot": source_pin},
+            {"registry": {"binding": "http", "endpoint": "https://second.example.test"},
+             "snapshot": other_source},
+        ],
+        "policy": store("policy", {"prefer": "first"}),
+        "model": store("view-model", {"groups": {}}),
+    }
+    manifest["extensions"] = {COMPOSITION_EXTENSION: store("composition", record)}
+    context["snapshot"] = replace(objects, source_pin, manifest)
+    return context, objects, record, manifest
+
+
+@pytest.mark.parametrize("repeat", [False, True])
+def test_reconstruction_uses_manifest_bound_sources(composed_publication, repeat):
+    context, objects, record, manifest = composed_publication
+    reads = []
+    if repeat:
+        context["sources"] = deepcopy(record["sources"])
+        context["sources"][0]["registry"]["parameters"] = {}
+        context["sources"][0]["snapshot"]["reference"]["version"] = (
+            context["sources"][0]["snapshot"]["reference"]["version"]
+            .replace("/versions/manifest", "/versions/%6Danifest")
+        )
+
+    def read(reference):
+        reads.append(reference)
+        return objects.read(reference)
+
+    assert check_composition(context, read) == record
+    assert reads.count(manifest["extensions"][COMPOSITION_EXTENSION]["reference"]) == 1
+    assert reads[-4:] == [
+        record["policy"]["reference"], record["model"]["reference"],
+        record["sources"][0]["snapshot"]["reference"], record["sources"][1]["snapshot"]["reference"],
+    ]
+
+
+@pytest.mark.parametrize("change", ["registry", "reference", "digest", "size", "order", "omission"])
+def test_reconstruction_rejects_mismatched_open_sources(composed_publication, change):
+    context, objects, record, _ = composed_publication
+    sources = deepcopy(record["sources"])
+    context["sources"] = sources
+    pin = sources[0]["snapshot"]
+    if change == "registry":
+        sources[0]["registry"]["endpoint"] = "https://other.example.test"
+    elif change == "reference":
+        pin["reference"]["registry"]["endpoint"] = "https://other.example.test"
+    elif change == "digest":
+        pin["digest"] = "sha256:" + "0" * 64
+    elif change == "size":
+        pin["size"] += 1
+    elif change == "order":
+        sources.reverse()
+    else:
+        sources.pop()
+    with pytest.raises(PublicationError, match="sources") as error:
+        check_composition(context, objects.read)
+    assert error.value.code == "inconsistent_snapshot"
+
+
+@pytest.mark.parametrize("document", ["composition", "policy", "model", "source"])
+def test_reconstruction_checks_exact_composition_input_bytes(composed_publication, document):
+    context, objects, record, manifest = composed_publication
+    pin = {
+        "composition": manifest["extensions"][COMPOSITION_EXTENSION],
+        "policy": record["policy"], "model": record["model"],
+        "source": record["sources"][0]["snapshot"],
+    }[document]
+    reference = pin["reference"]
+    objects.put(reference, objects.read(reference) + b" ")
+    with pytest.raises(PublicationError) as error:
+        check_composition(context, objects.read)
+    assert error.value.code == "integrity_error"
+
+
+def test_materialized_view_does_not_interpret_composition_record(composed_publication):
+    context, objects, _, manifest = composed_publication
+    pin = manifest["extensions"][COMPOSITION_EXTENSION]
+    manifest["extensions"][COMPOSITION_EXTENSION] = replace(objects, pin, {"format": "another-format"})
+    context["snapshot"] = replace(objects, context["snapshot"], manifest)
+
+    assert open_context(context, objects.read) == manifest
+    with pytest.raises(PublicationError) as error:
+        check_composition(context, objects.read)
+    assert error.value.code == "invalid_package"
+
+
+def test_open_sources_cannot_substitute_for_composition_record(publication):
+    context, objects = publication
+    with pytest.raises(PublicationError) as error:
+        check_composition(context, objects.read)
+    assert error.value.code == "unsupported_operation"
+    context["sources"] = [
+        {"registry": context["registry"]["reference"]["registry"], "snapshot": context["snapshot"]},
+    ]
+    with pytest.raises(PublicationError) as error:
+        check_composition(context, objects.read)
+    assert error.value.code == "invalid_package"
 
 
 @pytest.mark.parametrize("mutation", ["bytes", "missing"])

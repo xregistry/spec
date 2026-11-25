@@ -1,9 +1,11 @@
 """Resolution ownership and Resource-origin selection without network access."""
 
 from dataclasses import dataclass
-from typing import Callable, Sequence
+from typing import Callable, Iterable, Sequence
 
-from workingdrafts.federation.tools.federation_examples import FederationError, validate_xid
+from workingdrafts.federation.tools.federation_examples import (
+    FederationError, select_label, validate_xid, xid_parts,
+)
 
 
 @dataclass(frozen=True)
@@ -39,6 +41,27 @@ def _check_source(source: Source) -> None:
         or not callable(source.read)
     ):
         raise FederationError("invalid_package", "Invalid or duplicate source context")
+
+
+def check_composed_siblings(visible: Iterable[str], *, target: str | None = None) -> None:
+    """Check projected Group or Resource XIDs after exact-path shadowing."""
+    requested = xid_parts(target) if target is not None else None
+    seen = {}
+    for member in visible:
+        parts = xid_parts(member)
+        if len(parts) not in (2, 4):
+            raise FederationError("invalid_package", "Expected a projected Group or Resource")
+        key = parts[:-1], parts[-1].casefold()
+        first = seen.setdefault(key, parts)
+        if first != parts and (
+            requested is None or requested[:len(parts)] in (first, parts)
+        ):
+            raise FederationError("ambiguous", "Case-only sibling ID collision")
+
+
+def select_composed_label(visible: Sequence[dict], key: str, value: str) -> dict:
+    check_composed_siblings(item["xid"] for item in visible)
+    return select_label(visible, key, value)
 
 
 def resolve_resource_read(

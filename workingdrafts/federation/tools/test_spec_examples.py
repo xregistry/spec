@@ -15,7 +15,9 @@ from workingdrafts.federation.tools.federation_examples import (
     FederationError, select_label, select_profile, select_version, validate_profile,
     validate_xid,
 )
-from workingdrafts.federation.tools.federation_resolution_examples import Source, resolve_resource_read
+from workingdrafts.federation.tools.federation_resolution_examples import (
+    Source, check_composed_siblings, resolve_resource_read, select_composed_label,
+)
 
 
 def test_published_mqtt_example_selects_and_returns_exact_version_bytes():
@@ -123,7 +125,7 @@ def test_published_selection_example_filters_after_resource_shadowing(local_shad
         ["v1", "v7"] if local_shadow else ["v2", "v7"]
     )
     if local_shadow:
-        selected = select_label(effective, "stage", "production")
+        selected = select_composed_label(effective, "stage", "production")
         assert selected["assetid"] == "other"
         assert ("A", "entity", collection + "/item") not in calls
         document = resolve_resource_read(selected["xid"], "document", local, sources)
@@ -132,8 +134,60 @@ def test_published_selection_example_filters_after_resource_shadowing(local_shad
         }
     else:
         with pytest.raises(FederationError) as error:
-            select_label(effective, "stage", "production")
+            select_composed_label(effective, "stage", "production")
         assert error.value.code == "ambiguous"
+
+
+@pytest.mark.parametrize("target", [
+    None, "/documents/main/assets/Pump", "/documents/main/assets/pump/versions/v1",
+])
+def test_case_only_projected_siblings_are_ambiguous(target):
+    projected = ["/documents/main/assets/Pump", "/documents/main/assets/pump"]
+    with pytest.raises(FederationError) as error:
+        check_composed_siblings(projected, target=target)
+    assert error.value.code == "ambiguous"
+
+
+def test_case_only_collision_is_reported_before_label_selection():
+    visible = [
+        {"xid": "/documents/main/assets/Pump", "labels": {"stage": "production"}},
+        {"xid": "/documents/main/assets/pump", "labels": {"stage": "development"}},
+    ]
+    with pytest.raises(FederationError) as error:
+        select_composed_label(visible, "stage", "production")
+    assert error.value.code == "ambiguous"
+
+
+def test_case_only_collision_leaves_unrelated_exact_lookup_unchanged():
+    collection = "/documents/main/assets/"
+    entities = {collection + name: {"xid": collection + name} for name in ("Pump", "pump", "Fan")}
+
+    def read(operation, target):
+        if target not in entities:
+            raise FederationError("not_found", "Resource absent")
+        return entities[target]
+
+    local = Source("local", read)
+    target = collection + "Fan"
+    check_composed_siblings(entities, target=target)
+    assert resolve_resource_read(target, "entity", local, [])["value"] == entities[target]
+    target = collection + "PUMP"
+    check_composed_siblings(entities, target=target)
+    with pytest.raises(FederationError) as error:
+        resolve_resource_read(target, "entity", local, [])
+    assert error.value.code == "not_found"
+
+
+def test_composition_policy_can_remove_case_only_collision():
+    collection = "/documents/main/assets/"
+    check_composed_siblings([collection + "Pump"])
+    check_composed_siblings([collection + "Pump", collection + "SupplierPump"])
+    check_composed_siblings([collection + "Pump", "/documents/other/assets/pump"])
+    with pytest.raises(FederationError) as error:
+        check_composed_siblings(
+            ["/documents/Main", "/documents/main"], target=collection + "Pump",
+        )
+    assert error.value.code == "ambiguous"
 
 
 # Independent baseline retained before sample-tree removal.

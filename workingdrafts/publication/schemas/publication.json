@@ -6,7 +6,8 @@
     {"$ref": "#/$defs/manifest"},
     {"$ref": "#/$defs/channel"},
     {"$ref": "#/$defs/open"},
-    {"$ref": "#/$defs/package"}
+    {"$ref": "#/$defs/package"},
+    {"$ref": "#/$defs/composition"}
   ],
   "$defs": {
     "uri": {
@@ -64,6 +65,30 @@
     "versionXid": {
       "type": "string",
       "pattern": "^/[^/?#]+/[^/?#]+/[^/?#]+/[^/?#]+/versions/[^/?#]+$"
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["registry", "snapshot"],
+        "properties": {
+          "registry": {"$ref": "#/$defs/access"},
+          "snapshot": {"$ref": "#/$defs/descriptor"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "composition": {
+      "type": "object",
+      "required": ["format", "sources", "policy", "model"],
+      "properties": {
+        "format": {"const": "xregistry-publication-composition/1"},
+        "sources": {"$ref": "#/$defs/sources"},
+        "policy": {"$ref": "#/$defs/descriptor"},
+        "model": {"$ref": "#/$defs/descriptor"}
+      },
+      "additionalProperties": false
     },
     "manifest": {
       "type": "object",
@@ -155,18 +180,7 @@
           },
           "additionalProperties": false
         },
-        "sources": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["registry", "snapshot"],
-            "properties": {
-              "registry": {"$ref": "#/$defs/access"},
-              "snapshot": {"$ref": "#/$defs/descriptor"}
-            },
-            "additionalProperties": false
-          }
-        }
+        "sources": {"$ref": "#/$defs/sources"}
       },
       "additionalProperties": false
     }

@@ -150,9 +150,8 @@ Thing's `id` or `wotid`.
 
 The [Schema Registry](https://xregistry.io/xreg/xregistryspecs/schema-v1/docs/spec.html)
 recommends a major-version token for `schemaid`. It also uses `deprecated` to
-link a superseded schema to its replacement. A WoT registry can reuse both
-conventions, which makes the model familiar to readers of the approved
-specifications.
+link a superseded schema to its replacement. A WoT registry can follow the same
+conventions for Thing Models.
 
 **Consequence.** A Consumer holding a stale TM identifier can retrieve the
 predecessor and inspect its successor. A TD consumer resolves a major instance

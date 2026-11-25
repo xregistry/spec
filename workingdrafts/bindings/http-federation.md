@@ -214,8 +214,7 @@ export MUST resolve document-local pointers within that returned document.
 
 ## Metadata, Documents and Versions
 
-Resource metadata, the Meta entity, and Version metadata serve different
-purposes. A Resource's API-view `versionid` projects the default Version;
+A Resource's API-view `versionid` projects the default Version;
 [`meta.defaultversionid`](../../core/spec.md#defaultversionid-attribute)
 records which Version was selected. A resolver MUST NOT substitute lexical
 order, modification time, enumeration order or the greatest Version
@@ -520,8 +519,8 @@ Common errors are resolver outcomes, not additional Core HTTP errors:
 | Transport failure, rate limit or transient server failure outside a completed capture | `unavailable` |
 
 The resolver MUST retain the HTTP status and any Core error detail.
-`api_not_found` is not an absent entity. The resolver MUST NOT use a generic
-`404` without enough context to invent an empty collection.
+`api_not_found` is not an absent entity. Without enough context to interpret
+a generic `404`, the resolver MUST NOT report an empty collection.
 
 Failure of a previously identified member during capture is also evidence of
 incomplete capture, not proof of a consistent deletion history.
@@ -603,8 +602,7 @@ bridge 1 2
 
 The two requests obtain one complete collection page. The
 `later-page-ambiguity` case shows how a subsequent page can establish that
-the initial match is not unique. An initial match does not remove the need for
-complete selection.
+the initial match is not unique.
 
 The `document-revalidation` case preserves cached document bytes across this
 conditional request:
@@ -627,7 +625,7 @@ document. Neither response establishes a Registry-wide snapshot.
 
 The redirect case uses a synthetic, non-secret Authorization value. Its
 destination request carries neither that header nor the source's conditional
-validator, preserving the credential and representation boundaries.
+validator.
 
 ### Running the Offline Checks
 

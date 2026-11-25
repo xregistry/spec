@@ -621,10 +621,10 @@ epoch accidentally authorizing a write to a recreated channel.
 
 A timeout does not tell the publisher whether its head update took effect.
 Before retrying a head update after a timeout, the publisher reads back the
-head and epoch and reconciles the result. A matching head can satisfy the publication
-objective without proving which request set it; a different head can reflect
-an intervening authorized update. This read-back applies to channel-head
-updates, not to the underlying API's document-write retry semantics.
+head and epoch and reconciles the result. A matching head can confirm the
+intended selection without showing which request set it. A different head
+can reflect an intervening authorized update. This read-back applies to
+channel-head updates, not to the underlying API's document-write retry semantics.
 
 ### Opening a Channel
 
@@ -705,7 +705,8 @@ again.
 
 The schema defines the `open` record with `format`, `scope`, `snapshot`,
 `registry`, `completeness`, OPTIONAL `channel` selection, and OPTIONAL
-constituent `sources` for [federated views](#federated-sources). Here
+constituent `sources` copied from the checked
+[composition record](#federated-sources). Here
 `format` is `xregistry-open/1`. The channel selection records its selected
 Registry access, Resource XID, and observed Meta epoch. Unlike a byte
 descriptor, its `reference` has `resource` instead
@@ -970,12 +971,40 @@ binding to use the manifest and Registry descriptors directly.
 
 When several sources form a view, each selected immutable source context,
 the interpreted view model, and the exact composition policy MUST be captured
-to claim reproducible composition. The `sources` array records each source's
-snapshot and selected Registry access context. Policy and model records use
-checked extension descriptors. Their semantics MUST be supported by the
-producer or consumer that reconstructs the composition. A materialized
-producer-resolved snapshot can instead be consumed directly under its own
-complete Registry descriptor.
+to claim reproducible composition. The manifest MUST include a descriptor
+in `extensions` under `urn:xregistry:publication:composition:1`. It identifies
+an exact UTF-8 JSON Version document with the following fields, as defined
+by the `composition` definition in the [Publication schema](schemas/publication.json):
+
+| Field | Value |
+| --- | --- |
+| `format` | `xregistry-publication-composition/1`. |
+| `sources` | Nonempty array of entries with `registry`, the selected Registry access context, and `snapshot`, the exact selected manifest descriptor. The access context need not be the Registry that stores the manifest. |
+| `policy` | Descriptor for the exact composition policy, including mappings and precedence. |
+| `model` | Descriptor for the interpreted view model, including or pinning any model includes needed for interpretation. |
+
+The composition record is authoritative. The recorded policy identifies its
+inputs in `sources` and defines their precedence; array order does not
+imply precedence. The producer MUST NOT include
+`sources` in an open record unless the manifest has this composition
+extension. If repeated, the array MUST match the checked record entry for
+entry in the same order. Compare Registry access contexts and snapshot
+references under [Reference Comparison](#reference-comparison), and compare
+snapshot sizes and digests exactly.
+
+Before reconstructing, a reader MUST verify the manifest and the composition
+descriptor, reject a mismatch in repeated `sources`, and use the checked
+record rather than the open record as its source list. It MUST verify the
+policy and model bytes and verify each selected source snapshot before using
+it. The reader MUST support the recorded policy and model semantics; this
+extension does not define a common policy language. An open record listing
+source pins does not by itself establish reproducible composition.
+
+A materialized producer-resolved snapshot can instead be read through its
+own complete Registry descriptor. For such a snapshot, the producer MUST NOT
+list the composition extension in `requiredExtensions`. A reader using
+only the materialized view need not interpret the composition record or
+use a repeated `sources` list.
 
 Independently pinned sources do not establish one simultaneous capture.
 Federation precedence selects whole Resources, not compatible Versions or
@@ -1029,8 +1058,6 @@ request MUST fail. Readers MUST NOT search older snapshots for a compatible
 result. Raw exact retrieval remains distinct from validated consumption.
 
 ## Workflows and Lifecycle
-
-The rules above combine into the following workflows:
 
 - **Automated conversion.** Reuse unchanged Versions, store changed Versions,
   capture the complete set, then conditionally advance one head. An attempt

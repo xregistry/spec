@@ -4495,7 +4495,7 @@
           },
           "wotid": {
             "type": "string",
-            "description": "The authored WoT identifier of this Thing Description - the value of the document's 'id' member, verbatim. It is the document's identity in the WoT identifier space and is distinct from the thingdescriptionid, which is the Resource id within this registry and is chosen by the client. All Versions of a Thing Description share one wotid; it MUST NOT encode a revision of the document it names"
+            "description": "The WoT identifier of this Thing Description: the document's 'id' verbatim when present, or an identifier supplied by the Producer at write time otherwise. It is distinct from the client-chosen thingdescriptionid, which identifies the Resource within this Registry. All Versions share one exact wotid, including case; it MUST NOT encode a revision of the document it names."
           },
           "derivedfrom": {
             "type": "array",
@@ -4658,7 +4658,7 @@
           },
           "wotid": {
             "type": "string",
-            "description": "The authored WoT identifier of this Thing Description - the value of the document's 'id' member, verbatim. It is the document's identity in the WoT identifier space and is distinct from the thingdescriptionid, which is the Resource id within this registry and is chosen by the client. All Versions of a Thing Description share one wotid; it MUST NOT encode a revision of the document it names"
+            "description": "The WoT identifier of this Thing Description: the document's 'id' verbatim when present, or an identifier supplied by the Producer at write time otherwise. It is distinct from the client-chosen thingdescriptionid, which identifies the Resource within this Registry. All Versions share one exact wotid, including case; it MUST NOT encode a revision of the document it names."
           },
           "derivedfrom": {
             "type": "array",
@@ -4826,7 +4826,7 @@
           },
           "wotid": {
             "type": "string",
-            "description": "The authored WoT identifier of this Thing Model, equal to its document id when present. It includes the major version and is stable across compatible revisions. It is distinct from the client-chosen thingmodelid."
+            "description": "The WoT identifier of this Thing Model: the document's 'id' verbatim when present, or an identifier supplied by the Producer at write time otherwise. All Versions of the Resource share one exact wotid, including case. In the SemVer profile, it includes the major version. It is distinct from the client-chosen thingmodelid."
           },
           "derivedfrom": {
             "type": "array",
@@ -4989,7 +4989,7 @@
           },
           "wotid": {
             "type": "string",
-            "description": "The authored WoT identifier of this Thing Model, equal to its document id when present. It includes the major version and is stable across compatible revisions. It is distinct from the client-chosen thingmodelid."
+            "description": "The WoT identifier of this Thing Model: the document's 'id' verbatim when present, or an identifier supplied by the Producer at write time otherwise. All Versions of the Resource share one exact wotid, including case. In the SemVer profile, it includes the major version. It is distinct from the client-chosen thingmodelid."
           },
           "derivedfrom": {
             "type": "array",

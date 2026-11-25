@@ -581,7 +581,7 @@ context material and a dependency added to an unrelated entry.
 Neither the generic proposal's tests nor the 33 representative SemVer vectors
 establish those WoT semantics. A mapping for OPC UA needs the same context
 and closure semantics, including append-only generated NodeIds. This design
-pass does not change the `1.1-draft` model or any runtime implementation.
+leaves the `1.1-draft` model and runtime implementations unchanged.
 
 The [shape example](../../models/wot/samples/publication-closure.json) illustrates one binding,
 not an independently complete snapshot. Schema checks cover its shape,
@@ -1074,8 +1074,8 @@ concepts as follows. These are design proposals, not adopted requirements:
 - `WoTDependencyDataType` keeps `RequiredVersion` string-valued and
   profile-interpreted, and adds OPTIONAL `RequiredCompatibilityLine`.
   Projection-source floors and lines use the same fields. The source entry's
-  `uav:sourceDigest` remains in the projection-plan bytes; compare it with the
-  `ContentDigest` in the target record for the same dependency edge.
+  `wotproj:sourceDigest` remains in the projection-plan bytes; compare it
+  with the `ContentDigest` in the target record for the same dependency edge.
   This proposal uses `EdgeIndex` for that correlation; it does not
   define here how the mapping assigns that index. The illustrated check
   accepts the exact Version only if it satisfies the digest, line, and
@@ -1925,7 +1925,7 @@ points. The full catalog also requires fixture and integration evidence or
 a stated caller boundary. The number of listed workflows does not establish
 usability.
 
-Open implementation proof gates are:
+Before implementation sign-off:
 
 1. Verify model and profile discovery and counter behavior against the actual
    upstream reference server. Identify adapter obligations it does not meet.
@@ -1942,7 +1942,8 @@ The design includes the [generic publication proposal][pub-proposal] and the
 [WoT closure design and schema][pub-closure].
 The [summary][wot-summary] remains the overview. Incremental runtime
 support and tests, WoT closure integration, and generated OPC UA changes still
-require implementation. Generic synthetic examples do not close these gates.
+require implementation. The generic synthetic examples do not supply that
+implementation evidence.
 
 ### Specification and implementation impact
 
@@ -1977,8 +1978,8 @@ conflates bookkeeping with compatibility. Integer ordering with an explicit
 line applies one rule to generated and authored incremental revisions.
 
 Following the highest number without a line permits incompatible upgrades.
-Full ranges, compatibility graphs, and several line memberships add
-selection rules not needed by the chosen common path.
+Full ranges, compatibility graphs, and membership in several lines add rules
+that selection by line does not need, even when a numeric floor applies.
 
 Putting exact registry revisions into authored reference URLs binds them to
 one source's numbering. The design instead separates authored requirements
