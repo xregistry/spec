@@ -683,16 +683,16 @@ the same logical Registry, but need not expose the same instantaneous state.
 Credentials and trust are established independently.
 
 The Registry domain's
-[worked selection table](../models/registry/spec.md#62-advertisement-selection)
+[selection table](../models/registry/spec.md#62-advertisement-selection)
 applies this order to the
 [multi-profile catalog](../models/registry/samples/multi-profile-catalog.json).
 The implicit HTTP advertisement has priority zero even when an explicit
 HTTP advertisement has priority 20. The catalog entry's selected description
 Version is not the target Registry's snapshot revision. With
 [Resource shadowing](#local-resources-and-ordered-sources), a local hit
-needs no advertisement. Otherwise, policy orders the sources, the
-resolver selects a binding for the candidate it is trying, and the first
-source that supplies the Resource determines its origin.
+needs no advertisement. Otherwise, the resolver tries sources in policy
+order, using the selected binding for each one. The first source to supply
+the Resource determines its origin.
 
 ## Read Operations
 
@@ -768,9 +768,10 @@ another Registry.
 
 The OPTIONAL [publication extension](../publication/spec.md) defines a
 concrete open-context record and HTTP discovery link for views associated
-with an immutable publication. Implementations claiming that extension MUST
-return its checked context. This does not impose a publication write API on
-ordinary federation sources or change the resolution-owner signal.
+with an immutable publication. An implementation that declares support for
+the extension MUST return its checked context. This does not impose a
+publication write API on ordinary federation sources or change the
+resolution-owner signal.
 
 A resolver MAY bypass catalog discovery when the caller supplies a standalone
 endpoint, but MUST still establish all other context.
@@ -944,8 +945,8 @@ the matching or ambiguity outcome.
 With no matches, the outcome is `not_found`. If complete evaluation of the
 visible collection yields exactly one match, the result is that member.
 Multiple matches produce `ambiguous`.
-Before claiming uniqueness, a resolver MUST inspect all necessary
-continuation pages. It MAY report ambiguity as soon as it establishes a
+A resolver MUST inspect all necessary continuation pages before reporting
+a unique match. It MAY report ambiguity as soon as it establishes a
 second distinct, unshadowed visible match, without reading further pages.
 A resolver MUST NOT report a request limit,
 incomplete page chain, or unstable collection as a unique selection.
@@ -1098,9 +1099,9 @@ Bindings without such a mapping report their own pins, not an invented
 publication ID. Channel writes, promotion, and retention are publication
 operations, outside Federation resolution and downstream deployment.
 
-The following comparison separates capture from domain validation.
-The last row is a domain-profile claim layered over a snapshot, not a
-third generic completeness value.
+The first three rows compare live reads and snapshot completeness.
+The last row describes the additional checks a domain profile applies
+to a snapshot. It does not define another completeness class.
 
 | Selected view | What the reader can rely on | What it does not establish |
 | --- | --- | --- |
@@ -1397,8 +1398,8 @@ obtain a current token before that commit. Sender-side review does not
 override a receiver denial.
 
 The sender MUST distinguish completed writes and already converged items
-from blocked, retryable, unresolved, or review items. It MUST NOT claim
-synchronization of the selected mapping while any item remains unresolved.
+from blocked, retryable, unresolved, or review items. It MUST NOT report
+the selected mapping as synchronized while any item remains unresolved.
 A blocked item does not establish convergence even if no retry is pending.
 The schedule, persistence, approval interface, and retry budget are sender
 policy; they are not deployment wire protocols.

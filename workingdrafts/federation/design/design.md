@@ -544,12 +544,13 @@ change in that collection. A receiver can use a narrower generation that
 tracks membership changes for the specific Resource ID. Deployments into
 different Versions of the same Resource can also conflict. A retry starts
 with a fresh inspection rather than a weaker precondition. The receiver limits
-each token's lifetime independently of the stage's expiration. If the guarded
-state changes, the old token can't become valid again, even if the state looks
-the same after failover or restore. Invalidating outstanding tokens and
-stages on restore is one way to prevent old requests from becoming valid
-again. A Core epoch alone isn't enough: Core ignores a supplied epoch on
-create and doesn't tie it to the entity's lifetime.
+each token's lifetime independently of the stage's expiration. Once the
+guarded state changes, the old token stays invalid. That holds even if the
+state looks the same after another receiver takes over or the store is
+restored. A receiver can prevent old requests from becoming valid again
+by invalidating outstanding tokens and stages on restore. A Core epoch
+alone isn't enough: Core ignores a supplied epoch on create and doesn't
+tie it to the entity's lifetime.
 
 At commit, the receiver rechecks authorization, stage validity, target type,
 and the complete Core transition. It compares the live incarnations with its
@@ -644,10 +645,10 @@ the normal conflict policy.
 The inspected document descriptor and token describe the same Version
 state. The receiver updates or invalidates any retained document
 fingerprint when another allowed writer changes the Version, so inspection
-doesn't report an outdated digest. A receiver without a current document
-fingerprint reports that comparison isn't available rather than claiming
-a match. That fingerprint is for the document, not the sender's baseline
-comparison, which also includes selected metadata.
+doesn't report an outdated digest. Without a current document fingerprint,
+the receiver reports that comparison isn't available. The fingerprint
+covers the document. The sender's baseline comparison also includes
+selected metadata.
 
 ### One-way synchronization
 
@@ -920,8 +921,8 @@ A resolver bounds traversal depth, requests, and bytes. It checks loops
 on paths that it actually follows. Git readers don't execute repository
 content, and file readers enforce containment even through symbolic
 links. An exhausted bound, invalid package, failed integrity check, or
-denied access isn't an absent Resource or an empty collection. These
-distinctions let a consumer or operator decide what actually failed.
+denied access isn't an absent Resource or an empty collection. The failure
+tells the caller that the resolver didn't establish absence or completeness.
 
 For deployment, authorization and concurrency solve separate problems.
 The grant says whether the authenticated principal can write. The
@@ -936,9 +937,8 @@ substitutes for an authorized, successful commit.
 A first implementation can support one role and one binding. Supporting a
 resolver, a snapshot producer, or a deployment receiver doesn't imply
 support for the other roles. The
-[conformance section](../spec.md#conformance) defines what each role claims.
-The following examples provide independent checks at the corresponding
-layers:
+[conformance section](../spec.md#conformance) defines the requirements for
+each role. The examples below check different parts of those requirements.
 
 | Layer | Useful conformance case |
 | --- | --- |
