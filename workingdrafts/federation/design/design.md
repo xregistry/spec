@@ -252,8 +252,7 @@ The following references solve different problems:
 | Relative link inside a domain document | The document's base URI as established by the binding, not the catalog or the package directory. For example, an OCI package can supply `document.base` alongside embedded bytes. If the needed base is unavailable, the resolver fails rather than guessing. |
 | Document-view JSON Pointer | The returned JSON document. When a navigation target is included, the pointer addresses that included object. An omitted object doesn't gain a local pointer. |
 
-The distinction matters when a producer combines or packages records. A
-`self` link can locate metadata without locating the domain bytes.
+A `self` link can locate metadata without locating the domain bytes.
 An API view needs usable navigation in its own binding. In
 [document view](../spec.md#representations), Core navigation uses
 document-local JSON Pointers for included targets. Navigation to an omitted

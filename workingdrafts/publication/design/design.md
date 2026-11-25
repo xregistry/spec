@@ -291,9 +291,6 @@ resolves each recognized external reference occurrence and records one exact
 target binding without changing domain bytes. The resolver then checks
 whether the caller accepts the target.
 
-Two reference occurrences can bind the same logical target ID to different
-exact Versions:
-
 The channel Meta's `epoch` is the expected-state token for a conditional
 head update. The two bindings below point to different exact Versions
 even though they use the same authored target identifier.
@@ -322,8 +319,8 @@ The closure extension URI is:
 Its value in the generic manifest's `extensions` map is a checked descriptor
 of a `wot-publication-closure/1` JSON document stored as an exact xRegistry
 Version document. A domain-complete publication lists that URI in
-`requiredExtensions`. A generic reader that does not
-understand it fails rather than claiming WoT-complete interpretation.
+`requiredExtensions`. A generic reader fails if it does not understand
+the extension listed there.
 The [schema](../../models/wot/schemas/publication-closure.schema.json) defines its shape.
 
 `entries` lists Version XIDs from the captured Registry view.
@@ -370,9 +367,9 @@ Schema Resource documents remain outside this WoT closure profile; a consumer
 that requires their content and dependencies needs another profile.
 
 The OPC UA WoT Binding also models cross-document `uav:dataTypeDefinitions`
-references for materialization. A publication claiming that profile's complete
-dependency closure needs a separate binding contract for those edges; this
-W3C-derived descriptor alone does not provide it.
+references for materialization. A publisher needs a separate binding
+contract for those edges to declare complete dependency closure under that
+profile; this W3C-derived descriptor alone does not provide it.
 
 The schema restricts operator strings to the normative closure labels;
 the source vocabulary and captured contexts determine which label applies.
@@ -388,10 +385,10 @@ not one universal comparison key; use the rules for the occurrence's
 operator. `originRegistry`
 is provenance, not a document URI identity. The operator's rules determine
 whether a Resource or exact Version is selected. A unique match determines
-the Resource kind and whether the occurrence is in scope; a missing or
-ambiguous match prevents a domain-complete closure claim. A binding cannot
-choose its own target kind. A `type` link can therefore resolve through a
-captured TM document-view URI that differs from its `wotid`.
+the Resource kind and whether the occurrence is in scope. Without a unique
+match, the producer and consumer cannot establish domain-complete closure.
+A binding cannot choose its own target kind. A `type` link can therefore
+resolve through a captured TM document-view URI that differs from its `wotid`.
 
 The Producer enumerates references independently of the emitted binding
 table, applying the WoT draft's context, fragment, and composition rules. A
@@ -441,9 +438,9 @@ numeric floor. SemVer targets retain their target-kind floors, next-major
 bounds and prerelease rules. A bound revision that fails these checks
 produces `unsatisfied`. Absent or unsupported closure data, a missing binding
 or missing bound content produces `closure-incomplete`. Conflicting trusted
-declarations, or different bytes or fixed metadata claiming one source
-revision, produce `inconsistent-publication`. The snapshot fixes content
-without waiving those requirements. The raw
+declarations, or different bytes or fixed metadata presented as belonging
+to the same source revision, produce `inconsistent-publication`. The snapshot
+fixes content without waiving those requirements. The raw
 exact-pin retrieval path remains separate from this
 [compatibility-checked composition][Publication closure].
 
@@ -453,7 +450,7 @@ including its sticky-default rule. A captured default describes the
 snapshot's raw Resource read. It does not replace an explicit dependency
 binding.
 The existing raw exact-pin retrieval path still bypasses live floor or default
-selection. It is not compatibility-validated snapshot composition.
+selection.
 
 In an example separate from Figure A-1, entry E in snapshot S12 binds a
 line-A dependency to revision 42.
@@ -775,9 +772,9 @@ the proposed model does not demonstrate that allocation behavior.
 #### D4. Compatibility and authority
 
 Each incremental Version has zero or one effective compatibility line.
-A higher revision in the same line claims backward compatibility with
-every earlier revision in that line. Different lines can be incompatible.
-Neither revision order nor `ancestorid` proves the claim.
+By declaring a line for a higher revision, the publisher asserts backward
+compatibility with every earlier revision in that line. Different lines can
+be incompatible. Neither revision order nor `ancestorid` proves the claim.
 
 The publisher declares the line through root `uav:compatibilityLine`, or
 through authorized publication metadata `compatibilityline` when the bytes
@@ -1007,8 +1004,8 @@ replay is needed.
 
 This override applies to raw exact retrieval. A publication snapshot instead
 fixes the inputs to compatibility acceptance without overriding the check.
-Pinning a parent and retaining a complete dependency closure remain separate
-claims; a WoT-complete publication explicitly supplies both.
+A WoT-complete publication supplies both the parent pin and its complete
+dependency closure. The parent pin alone does not establish closure.
 
 #### D8. State changes, recovery, and migration
 
@@ -1026,7 +1023,8 @@ The original outcome remains unknown until reconciled. The publisher can
 deliberately retry while accepting possible duplication, but that retry
 does not determine the original outcome.
 
-Hard deletion can invalidate pins. It cannot reset the high-water mark.
+Deleting a revision can make pins to it unusable if no exact copy remains
+available. Deletion does not reset the high-water mark.
 Resource recreation retains a counter tombstone or establishes a distinct
 sequence identity. Restore of an old backup cannot resume an old identity
 using a guessed counter: recover authoritative allocation history or
@@ -1140,7 +1138,8 @@ The stored document digest equals the input digest.
 
 If a root declaration already says B, publication fails with no counter,
 default, or content change. Supply matching metadata or publish another
-authorized document. Never silently overwrite the root claim.
+authorized document. Do not silently rewrite the document's root line to
+match the metadata.
 
 #### P03. Create the first revision
 
@@ -1178,7 +1177,7 @@ integer bypass the watermark.
 
 #### P06. Publish a compatible update
 
-Starting with 42/A, publish updated bytes whose compatibility claim remains A.
+Starting with 42/A, publish updated bytes and declare line A again.
 For server-assigned publication, the next revision is 43/A. Existing
 unpinned line-A references can follow it. Existing exact pins do not move.
 
@@ -1228,8 +1227,8 @@ rejects the operation before committing. No Version, counter advancement,
 or default change is reported as successful.
 
 The authorized publisher resolves the conflicting declarations at their
-source before resubmitting. The registry neither chooses which claim to
-believe nor rewrites document bytes to make the declarations agree.
+source before resubmitting. The registry does not choose between the two
+lines or rewrite document bytes to make the declarations agree.
 
 #### P11. Reject later line mutation
 
@@ -1237,11 +1236,10 @@ Attempt to patch revision 42/A to B, or attach A to a previously line-less
 revision. D4 fixes each revision's line value, including its absence, at
 creation. A later selection-metadata patch fails.
 
-Publish the desired bytes and compatibility claim as a new revision. Existing
-pins retain the
-original declaration or its absence. If a downstream provider presents
-changed metadata against a retained expected line, replay validation fails
-rather than silently updating the consumer's record.
+Publish the desired bytes as a new revision with the intended line.
+Existing pins retain the original declaration or its absence. If a downstream
+provider presents changed metadata against a retained expected line, replay
+validation fails rather than silently updating the consumer's record.
 
 If the bytes contain canonical authored integer 42, D3 cannot assign revision
 43 to those same bytes. The author has to advance the authored integer too.
@@ -1267,9 +1265,9 @@ serializes allocation or retries a failed compare-and-swap, yielding distinct
 42 and 43 on successful commits. It commits each line and digest with its ID.
 
 When transaction retries are exhausted, publication fails explicitly rather
-than retrying indefinitely. An adapter without durable atomic state rejects
-allocation support before accepting writes. Pure assignment calls cannot
-provide this guarantee.
+than retrying indefinitely. An adapter that cannot commit the allocation
+and Version together durably rejects publication before accepting writes.
+Pure assignment calls cannot provide this guarantee.
 
 #### P14. Recover an unknown anonymous outcome
 
@@ -1281,9 +1279,9 @@ published a later revision.
 
 D8 distinguishes matching content from request identity. The absence of a
 match is inconclusive while the original request might still commit.
-Reconcile the outcome or deliberately retry while accepting possible duplicate
-content. This provides no exactly-once guarantee and requires no new
-idempotency service.
+Reconcile the outcome or deliberately retry while accepting that the same
+content can receive another revision ID. Recovery requires no new idempotency
+service.
 
 #### P15. Repeat an explicit creation
 
@@ -1337,8 +1335,9 @@ Resolve an incremental target with floor `"42"` but no line. D6 returns
 lines. A line-A reference with floor `"45"` returns `unsatisfied` in the
 running history.
 
-Add the intended line or explicitly pin a revision. An exact pin deliberately
-selects a revision; it does not verify the missing compatibility claim.
+Add the intended line or explicitly pin a revision. An exact pin identifies
+a revision; it does not establish that the revision belongs to the intended
+line.
 
 #### C04. Distinguish raw retrieval from resolution
 
@@ -1442,13 +1441,13 @@ an unconstrained success.
 After resolving a parent and its dependencies, retain each target, revision,
 exact digest, origin, and applicable profile and line expectations. A
 deployment can store these records using its existing activation mechanism
-or return them to the caller. The records alone are not a Publication
-snapshot; that claim requires a manifest and the applicable closure checks.
+or return them to the caller. Those records do not constitute a Publication
+snapshot without a manifest and the applicable closure checks.
 
 Registry pins are not inserted into authored reference strings, and selected
-versions do not replace floors. Without the dependency records, a future read
-can refresh an unpinned dependency, so the consumer cannot claim exact
-transitive reproduction.
+versions do not replace floors. Without the dependency records, a future
+read can refresh an unpinned dependency instead of reproducing the exact
+dependency selection.
 
 #### C14. Replay an exact revision
 
@@ -1467,7 +1466,8 @@ and D7 chooses the higher matching revision under the known profile.
 The bytes are pinned. Line membership is not.
 
 For the specific 42/A publication, retain its revision and expected metadata
-instead. Do not claim a bare digest authenticates a publisher or a line.
+instead. The digest alone neither authenticates the publisher nor establishes
+membership in a compatibility line.
 A later metadata mismatch in a full record is a replay error, not a reason
 to silently relabel that record.
 
@@ -1499,9 +1499,8 @@ Retain the dependency's own record and bytes as C13 describes.
 Replaying only the parent's bytes leaves that dependency unpinned.
 
 D7 applies the same rules to every edge. Missing dependency records or content
-prevent a claim of exact offline reproduction. Supply them or perform an
-explicitly unpinned refresh rather than silently combining old and new
-results.
+prevent exact offline reproduction. Supply them or perform an explicitly
+unpinned refresh rather than silently combining old and new results.
 
 #### C19. Run offline
 
@@ -1686,9 +1685,9 @@ identity to a replica. D2 permits the replica to serve that established
 sequence through the configured provider mapping.
 
 Verify digests and metadata rather than allocating fresh local numbers.
-A replica with incomplete authority/history cannot claim source-equivalent
-selection. It can serve only the validated subset under its supported
-operation contract.
+A replica with incomplete authority information or history cannot establish
+source-equivalent selection. It can serve only the validated subset under its
+supported operation contract.
 
 #### A14. Copy to an independent sequence
 
@@ -1709,8 +1708,8 @@ the configured publication or catalog authority.
 
 D4 rejects contradictory or untrusted declarations for constrained use.
 Copying a digest or accepting the first label encountered cannot establish
-trust. Without authority metadata, the receiver has exact-byte availability
-but no compatibility claim.
+trust. Without authority metadata, the receiver has the exact bytes but
+cannot establish a trusted compatibility line.
 
 #### A16. Operate while the origin is unavailable
 
@@ -1718,9 +1717,10 @@ Use an authorized replica or complete offline snapshot to replay retained
 pins without contacting the original endpoint. D2 and D7 preserve the
 logical source and exact bytes through the configured route.
 
-An unpinned request needing unavailable candidate metadata cannot determine
-the highest eligible revision and fails. It does not substitute an unrelated
-registry, stale claim, or raw default while claiming current resolution.
+An unpinned request needing unavailable candidate metadata fails because
+the resolver cannot determine the highest eligible revision. The resolver
+does not substitute an unrelated registry, stale candidate metadata, or the
+raw default for the result of current selection.
 
 ### Migration workflows
 
@@ -1771,8 +1771,7 @@ Preserve the source for existing pins and legacy consumers.
 
 D8 makes reversal a routing or activation operation. Restore the source route
 if the destination is unsuitable. Do not renumber destination history.
-If content needed for rollback has been removed, report that limitation
-rather than claim a reversible migration.
+Report any removed content that limits rollback.
 
 #### M05. Roll out the deployment vocabulary
 
@@ -1833,11 +1832,10 @@ the meaning of already-stored `uav` properties.
 ### Workflow evidence index
 
 All 63 workflow IDs above identify proposed acceptance cases. This index
-records the evidence still needed; it is a review checklist, not a generated
-test report. This documentation change does not claim execution of any new
-incremental, vocabulary, or operating case. Each future case retains its
-workflow ID to connect the result to the mechanism and state and error trace
-above.
+records the evidence still needed; it does not report test results for the
+new incremental, vocabulary, or operating cases. Each future case retains
+its workflow ID to connect the result to the mechanism and state and error
+trace above.
 
 Evidence labels:
 
@@ -1850,7 +1848,8 @@ Evidence labels:
 - `N-M`: planned migration fixtures with source and destination state.
 - `N-S`: planned vocabulary/schema/normalizer evidence.
 - `Caller`: existing caller/deployment procedure, to be documented and
-  demonstrated where supported, not claimed as a new registry feature.
+  demonstrated where supported. This label does not denote a new registry
+  feature.
 
 For E0, the existing examples include:
 
@@ -1917,8 +1916,8 @@ number cannot automate.
 Deployments that need both profiles configure two endpoints, each with its
 own model instance.
 Providers preserve trusted metadata alongside unchanged documents. Writable
-adapters persist allocation history atomically. Anonymous publication still
-has no exactly-once retries.
+adapters commit allocation history together with the published Version in one
+durable operation. Retrying an anonymous upload can allocate another revision.
 
 Implementation sign-off requires demonstrations of P02/P06/P07,
 C01/C02/C14/C16, P09/P14, A06/A11, and C19 through actual public entry
@@ -1931,7 +1930,8 @@ Open implementation proof gates are:
 1. Verify model and profile discovery and counter behavior against the actual
    upstream reference server. Identify adapter obligations it does not meet.
 2. Locate actual .NET publication owners and persistent state boundaries.
-   Reject unsupported writes instead of claiming helper-only support.
+   Check that adapters reject unsupported writes. A helper function alone
+   does not establish write support.
 3. Verify JSON-LD context, Turtle, schemas, reference parsing, and early
    diagnostics agree across registries and supporting implementations.
 4. Verify that the generated OPC UA model matches the

@@ -307,8 +307,8 @@ expiry and MQTT delivery order do not enforce commit atomicity.
 
 ## Conformance and Examples
 
-A sender or receiver MUST implement all operations and security rules
-for each deployment profile it claims. Supporting the
+A sender or receiver that declares conformance to a deployment profile MUST
+implement all operations and security rules for that profile. Supporting the
 [HTTP read profile](http-federation.md), [OPC UA API](opcua.md), or
 [MQTT binding](mqtt.md) does not imply deployment conformance.
 The [MQTT request schema](../federation/schemas/deployment-request.json)

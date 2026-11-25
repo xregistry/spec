@@ -814,7 +814,7 @@ Each followed external reference requires one read of its file.
 If a configured limit prevents a consumer from reading the complete index
 or the records needed for its request, the consumer MUST return
 `limit_exceeded`. It MUST NOT return the subset already read as a complete
-collection or use that subset to claim a unique match. The inline nesting
+collection or use that subset to report a unique match. The inline nesting
 depth within one file and the cumulative number of decoded metadata objects
 are such limits, in addition to file count and byte limits.
 
@@ -903,7 +903,7 @@ contain external-only domain documents. Captured resolved model material MUST
 permit offline interpretation in both classes.
 
 The shared [snapshot classes](../federation/spec.md#snapshots-and-completeness)
-describe these completeness claims independently of selective retrieval.
+distinguish snapshot completeness from the files visited by a selective read.
 
 The value `scope: "/"` covers the modeled Registry. Completeness and
 integrity checks cover files reached through the mapping's references,
@@ -923,8 +923,8 @@ copying every Registry mentioned by a catalog or following links inside
 domain documents.
 
 A full-graph validator is OPTIONAL and checks every referenced object.
-A selective read validates only its visited path and MUST NOT claim an
-independent audit of unvisited graph closure.
+A selective read validates only its visited path. The consumer MUST NOT
+report that read as an independent audit of unvisited graph closure.
 
 Consumers MUST verify the length and SHA-256 of every internally referenced
 file they open before parsing or returning its bytes. An inline object has

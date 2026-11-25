@@ -202,7 +202,7 @@ defines the assignment in place of its default
 [Version ID algorithm][Core Version IDs].
 
 The Registry MUST perform assignment and creation atomically with respect to
-concurrent writes, so two writes cannot claim the same generated id.
+concurrent writes, so it cannot assign the same generated id to two writes.
 
 Each Thing Model Version and each Thing Description Version MUST have a
 server-set, read-only `versionorigin`. Its value MUST be `authored` when the
@@ -850,9 +850,9 @@ but equally a URL such as `https://fabrikam.example/things/lamp-42`.
 
 These identifiers serve a similar purpose but follow different grammars.
 `https://fabrikam.example/things/lamp-42` is not a valid entity id or `xid`
-component. An `xid` is not what a Thing author writes. Where an authored
-identifier satisfies the id grammar, a client MAY use it as the Resource id.
-A Registry cannot rely on that choice.
+component. The Thing author supplies the WoT identifier; the Registry assigns
+the `xid`. Where an authored identifier satisfies the id grammar, a client MAY
+use it as the Resource id. A Registry cannot rely on that choice.
 
 This specification therefore does not equate them, and does not define a
 mapping between them:
@@ -966,7 +966,7 @@ Rewriting is incompatible with these documents for three reasons:
 
 - A TM published by a standards body is referenced by `id` from artifacts
   outside the registry, and rewriting the `id` would break those references
-  while leaving the registry's own copy claiming to be the standard document.
+  even though the registry would still serve its copy as the standard document.
 - A TD's `tm:extends` target resolves in the WoT identifier space, so a
   rewritten target no longer matches what any other WoT tool would look for.
 - A document copied between two registries would acquire two different
@@ -1300,7 +1300,7 @@ can satisfy the requirement without replacing it with `2.4.0`.
 | `unknown-profile` | Trusted metadata does not establish a recognized target profile for live selection, snapshot acceptance, or ranking multiple replay digest matches. |
 | `version-mismatch` | A supplied publication `versionid` disagrees with the authored or generated assignment. |
 | `invalid-version` | A floor, local authored version, or publication version violates the applicable version rules. |
-| `inconsistent-publication` | The root line and authorized Version metadata disagree, or trusted publication data claims conflicting bytes or fixed metadata for the same source revision. |
+| `inconsistent-publication` | The root line and authorized Version metadata disagree, or trusted publication data identifies conflicting bytes or fixed metadata for the same source revision. |
 | `closure-incomplete` | The manifest digest does not match, or necessary closure data, a binding, or bound content is absent or unsupported. |
 
 These names identify domain outcomes, not replacements for Core's protocol
@@ -1725,7 +1725,7 @@ The document-preservation and selection rules introduce the following risks:
   The same `wotid` MAY appear in more than one Group
   ([Section 5.3](#53-lookup)). A writer with access to any Group within a
   Registry-wide query's scope can therefore publish a document carrying another
-  party's `wotid` and claims of high `maturity`/`standardsbody` status. A
+  party's `wotid` and use `maturity` or `standardsbody` to raise its rank. A
   Consumer selecting on those attributes alone would compose the attacker's
   Thing Model and bind its affordances to that model's endpoints.
 

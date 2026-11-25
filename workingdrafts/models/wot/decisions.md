@@ -77,10 +77,8 @@ from the WoT identity; this draft defines no derivation between them.
 
 **Why.** A WoT identifier is a URI, while xRegistry restricts entity IDs.
 Hosting environments can restrict them further. A mandatory construction
-would prevent such a
-Registry from conforming. It would add little and reduce portability because
-the first-party `wotid` already lets a Consumer find the Resource by querying
-`wotid`.
+would prevent such a Registry from conforming. A Consumer can already find
+the Resource through the first-party `wotid` by querying `wotid`.
 
 **Example.** A registry can store `urn:fabrikam:lamp:42` under the Resource id
 `lamp-42`. It can instead use `urn.fabrikam.lamp.42`. Both choices conform. A
@@ -119,10 +117,10 @@ See [Section 5.3](spec.md#53-lookup).
 are the Version writer's assertions. They do not authenticate the document
 or determine its WoT identity.
 
-**Why.** An agent needs explicit metadata to prefer an official model over an
-obscure one rather than guess from a title or naming convention. Keeping the
-attributes on each Version associates them with the document they describe
-without changing its identity.
+**Why.** An agent can use these attributes to rank models it already trusts
+instead of guessing their provenance from titles or naming conventions.
+Keeping the attributes on each Version associates them with the document they
+describe without changing its identity.
 
 **Example.** Among already-trusted choices, an agent can prefer a Thing
 Model marked `Standard` with a `standardsbody` value over one marked

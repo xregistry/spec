@@ -94,5 +94,5 @@ do not change that contract. The example's naming convention uses the final
 payload member, even one whose presence is not mandatory, would use a new
 contract revision.
 
-The samples do not claim that the proposed closure envelope can reconstruct
-a composed TD or that an event version proves content integrity.
+The closure sample does not demonstrate that the proposed envelope can
+reconstruct a composed TD. The event version does not verify content integrity.

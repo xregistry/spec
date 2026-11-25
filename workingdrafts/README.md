@@ -16,10 +16,10 @@ The federation drafts define read-only resolution across independently
 administered Registries and optional deployment to configured destinations.
 
 The [Registry domain](models/registry/spec.md) defines catalog entries. The
-[Federation design guide](federation/design/design.md) explains how the
-pieces work together, and the [Federation specification](federation/spec.md)
-defines the contract. The binding comparison lists the available access
-methods.
+[Federation design guide](federation/design/design.md) explains how clients
+select and read sources and how senders deploy to downstream Registries.
+The [Federation specification](federation/spec.md) defines the contract.
+The binding comparison lists the available access methods.
 
 The arrows below indicate specification dependencies, not network requests.
 Core supplies the entities and interpretation rules. The other drafts add

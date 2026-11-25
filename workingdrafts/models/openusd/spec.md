@@ -837,7 +837,7 @@ locations within one selected Group and consistent Registry context:
    lookup of `pump`. A match at `F` is validated the same way.
 4. If neither permitted location matches, resolution fails. An already
    shortened source has just one distinct location. A Consumer MUST NOT try
-   a third suffix or claim a match from an incomplete search. It MUST NOT
+   a third suffix or report a match from an incomplete search. It MUST NOT
    treat authorization, transport, malformed metadata, incomplete reads, or
    exhausted limits as absence.
 

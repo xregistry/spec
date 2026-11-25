@@ -507,9 +507,9 @@ BrowseName Name component to its identifier: `GroupId`, `ResourceId` or
 `VersionId`, respectively, in the xRegistry namespace defined by OPC 30460-1.
 These are not separate Properties. On a document-backed logical Resource,
 the `VersionId` Property reports the selected default, not the identity
-of the logical Resource. The local `XREG-Resource` claim includes this
-observation (see [§12](#12-conformance)). Updating the default uses the
-domain mechanism in [§5.14](#514-reading-and-updating-resource-metadata).
+of the logical Resource. The local `XREG-Resource` requirements in
+[§12](#12-conformance) distinguish those two identifiers. Updating the default
+uses the domain mechanism in [§5.14](#514-reading-and-updating-resource-metadata).
 A metadata-only Resource
 retains its declared `ResourceId` and OPTIONAL `VersionId` Properties.
 To obtain a document-backed Resource ID from an exact Version, a client
@@ -1044,7 +1044,7 @@ continuation points where needed.
 
 A federation selector needs every necessary Browse page, not just a
 client-selected page. A client MUST call `BrowseNext` until no continuation
-point remains before claiming no match or a unique match. On early
+point remains before reporting no match or a unique match. On early
 termination it MUST release outstanding continuation points when the Session
 is usable. An expired or invalid Browse continuation point MUST fail the
 current federation read as `inconsistent_snapshot`. The caller MAY start a
@@ -1521,17 +1521,17 @@ This procedure also applies to `Model`, `Capabilities` and a namespace file.
    or transforming domain content.
 4. Continue after a short, nonempty Read. Part 20 permits fewer bytes than
    requested. An empty ByteString indicates end-of-file. A known, reliable
-   `Size` can also establish the total, but a premature end or a size change
-   MUST invalidate a complete-capture claim. Unknown size requires an
-   end-of-file observation. A successful zero-byte file still has an
-   Open/Read/Close lifecycle.
+   `Size` can also establish the total. If the read ends prematurely or the
+   size changes, the client MUST NOT report the capture as complete.
+   Unknown size requires an end-of-file observation. A successful zero-byte
+   file still has an Open/Read/Close lifecycle.
 5. Call `Close(fileHandle)` when finished. After every successful Open, the
    client MUST attempt Close on success, error, cancellation or limit
    exhaustion while the Session is usable. A failed Open does not allocate
    a handle to close. Session loss invalidates the handle. Reconnecting
    requires a new Open, not reuse of that handle or file position.
-6. Recheck available Version/default selection and change indicators when
-   the operation claims a consistent capture. Changed observations produce
+6. Before reporting a consistent capture, recheck available Version/default
+   selection and change indicators. Changed observations produce
    `inconsistent_snapshot`. An unchanged epoch is not a Registry-wide
    transaction or immutable revision pin.
 
@@ -1833,7 +1833,7 @@ The common federation selector looks up label keys as Core map keys and
 compares values as Core case-insensitive strings. Requested values are
 literal, including `*` and the empty string; an absent label does not match.
 The client MUST NOT impose NFC normalization or mandatory language labels.
-Before claiming unique selection, it needs every necessary Browse page and
+To report a unique match, the client needs every necessary Browse page and
 Property read. BrowseName namespace indexes and Browse order do not supply
 label values.
 
@@ -2035,7 +2035,8 @@ URL.
 the domain document with a defined retrieval mechanism. Preserve external
 documents as links when exporting a linked representation. An
 offline-complete export MUST obtain and include all declared documents in
-its scope under policy. It MUST NOT claim completeness from locators alone.
+its scope under policy. The exporter MUST NOT report a complete export
+based on locators alone.
 `ExternalReference` is not a Core JSON attribute. A documented extension can
 preserve it as native provenance, or a permitted document read can
 materialize its bytes, but it MUST NOT become `meta.xref`.
@@ -2043,7 +2044,7 @@ materialize its bytes, but it MUST NOT become `meta.xref`.
 The baseline export makes multiple calls without an atomic snapshot.
 Default selection, membership, Properties or document bytes can change
 between calls. If traversal is incomplete or an inconsistency is detected,
-the exporter MUST invalidate any complete, consistent-export claim.
+the exporter MUST NOT report the export as complete and consistent.
 Sections 10.4 and 11.1 define the resolver outcome.
 
 [Offline exports and read sequences](#121-offline-read-and-reference-examples)
@@ -2710,8 +2711,8 @@ Call NamespaceFile.Close(fileHandle)     -> status
 The client explicitly requests `ExportNamespace` to refresh the file,
 separately from ordinary read-only Registry discovery. If the Method is
 unavailable, the client can read only an exposed existing file and MUST NOT
-claim a refresh. This type defines neither a standard direct-return
-`Export` Method nor a standard `Import` Method. Part 5 describes
+report that it refreshed the file. This type defines neither a standard
+direct-return `Export` Method nor a standard `Import` Method. Part 5 describes
 vendor-specific import mechanisms. The example introduces no new domain
 or gateway.
 
@@ -2849,10 +2850,11 @@ A document-backed server conforms to the read-only OPC UA xRegistry API if it:
 - Supports Browse and Read sufficient to retrieve the declared metadata and
   collections.
 
-These claims use OPC 30460-1's four baseline units: `XREG-Registry`,
-`XREG-Group`, `XREG-Resource` and `XREG-Identity`. The hierarchy bullet
-applies to locally stored, non-xref document Resources; local xrefs and
-unmaterialized remote proxies use the explicit exceptions in §10.
+For a document-backed server, read-only conformance uses OPC 30460-1's four
+baseline units: `XREG-Registry`, `XREG-Group`, `XREG-Resource` and
+`XREG-Identity`. The hierarchy bullet applies to locally stored, non-xref
+document Resources; local xrefs and unmaterialized remote proxies use the
+explicit exceptions in §10.
 
 For document-bearing Resources, read-only conformance also requires
 `Open`/`Read`/`Close` sufficient to retrieve the declared documents.
@@ -3061,7 +3063,7 @@ statuses for failed reads and checks recorded Close cleanup. It does not
 turn failure into empty content or a successful trace.
 
 Browse cases consume all necessary continuation points, including a reused
-token, before claiming a complete collection. Namespace-file cases keep the
+token, before reporting a complete collection. Namespace-file cases keep the
 parameterless `ExportNamespace` refresh separate from the inherited file
 read. They define neither a generic Registry resolver nor a standard import
 Method.

@@ -363,7 +363,7 @@ by the model.
 
 - Type: Array of strings.
 - Description: URI identifiers of domain specifications or models that
-  the target Registry claims to expose.
+  the Producer advertises for the target Registry.
 - Constraints:
   - OPTIONAL. An empty array makes no type assertion.
   - Each item MUST be a nonempty absolute URI that identifies a domain or a
@@ -375,7 +375,7 @@ by the model.
   - To identify a particular revision, producers SHOULD use a URI that
     identifies that revision explicitly. When resolving a target Registry,
     Consumers MUST inspect its model for its actual version and compatibility
-    claims as specified in [Section 6.3](#63-consistency-and-failure).
+    declarations as specified in [Section 6.3](#63-consistency-and-failure).
     Reading the catalog description alone does not require that inspection.
   - Array order and duplicate identifiers MUST NOT affect binding
     selection. The list is not a target capability response or proof of
@@ -404,8 +404,8 @@ by the model.
 ### 4.5. `federationprofiles`
 
 - Type: Array of objects.
-- Description: Ordered advertisements of access methods for the claimed
-  logical target Registry.
+- Description: Ordered advertisements of access methods for the logical
+  Registry the entry describes.
 - Constraints:
   - OPTIONAL. An empty array advertises no explicit access methods.
   - Each object MUST satisfy [Section 5](#5-federation-advertisements).
@@ -811,7 +811,7 @@ Label values are literal strings, including the empty string. An absent
 label does not match. String matching is case-insensitive under Core. This
 domain MUST NOT impose NFC normalization, language-key selection, or a
 case-sensitive alternate default. A Consumer MUST examine every necessary
-page before claiming a unique match. Zero matches yield `not_found`.
+page before reporting a unique match. Zero matches yield `not_found`.
 Multiple matches yield `ambiguous`, not an arbitrary first entry.
 
 The Consumer MUST select an explicit catalog-description Version if the
@@ -1061,10 +1061,10 @@ this class. No conformance claim guarantees current endpoint availability.
 
 ### 10.3. Catalog Consumer
 
-A catalog Consumer claiming resolution conformance MUST implement the
+A catalog Consumer that declares resolution conformance MUST implement the
 selection procedure. It MUST preserve origin and revision distinctions. It
-MUST conform to [shared federation][Federation] and each binding it claims
-to support. It MUST report unsupported operations and failures explicitly.
+MUST conform to [shared federation][Federation] and each binding for which it
+declares support. It MUST report unsupported operations and failures explicitly.
 It is not REQUIRED to implement every built-in binding.
 
 Read-only federation consumption does not prohibit independent,

@@ -612,7 +612,7 @@ fetch, drop or reject them merely because of their names.
 All other modes require `hasdocument` to be true. Among document-capable
 Versions, only `external` has the Core `<RESOURCE>url` Document locator.
 
-An `external` Version cannot claim to contain bytes. Missing an expected
+An `external` Version has no domain-document layer. Missing an expected
 `embedded` blob is an invalid package, not an empty document. Core requires
 a document-capable Version to have a document, even if its length is zero.
 That Version cannot represent an absent document as a successful state.
@@ -646,13 +646,13 @@ blobs does not relax this profile.
 A `linked` snapshot MAY have `external` documents. An `offline-complete`
 snapshot MUST NOT: every document declared to exist in its captured
 scope has embedded bytes. `metadata-only` explicitly declares no domain
-document and does not invalidate offline completeness. An
-offline-complete claim does not guarantee availability of a domain
-document for every possible document request.
+document and does not invalidate offline completeness. Declaring a snapshot
+offline-complete does not guarantee that a domain document is available for
+every document request.
 
 These are the shared
-[snapshot completeness classes](../federation/spec.md#snapshots-and-completeness),
-not a claim that a selective read has audited the entire graph.
+[snapshot completeness classes](../federation/spec.md#snapshots-and-completeness).
+Neither class establishes that a selective read verified the entire graph.
 
 Completeness covers the single selected Registry snapshot. It does not
 recursively capture external federation advertisements, descriptive
@@ -928,7 +928,8 @@ implements root pinning, metadata/document operations, range traversal,
 shared selection, Core view semantics and integrity/error rules. A
 **linked snapshot** and an **offline-complete snapshot** satisfy their
 respective Section 5.4 requirements. A **compatible copier** preserves
-the selected descriptor closure. Claims MUST state which roles apply.
+the selected descriptor closure. A declaration of conformance MUST identify
+which roles apply.
 
 The [graph schema](schemas/oci-graph.schema.json) supplements the
 [standard OCI schemas][oci-schemas]. Both sets apply. JSON Schema alone
@@ -1006,8 +1007,8 @@ The explicit `v2` document command returns:
 The trace for this graph records two layout entry-point reads, 16
 manifest-route reads and five blob-route reads. Only one reads a domain
 document blob: the selected 18-byte `v2`. Default `v1` and the other
-payloads are not fetched. These 23 file reads are not a claim about the
-request count of a live client.
+payloads are not fetched. These 23 file reads do not measure a live client's
+request count.
 
 Metadata results contain `value`, the standalone Core document-view JSON,
 and `pointer`, which selects the requested entity within `value`. Core

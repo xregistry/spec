@@ -966,8 +966,9 @@ that binding's rules. For example,
 requires reporting conflicting duplicates or changed declared totals;
 [OPC UA](../bindings/opcua.md#47-supported-operations-discovery-and-pagination)
 reports an invalid or expired Browse continuation point as
-`inconsistent_snapshot`. An operation that claims snapshot consistency is
-subject to [Snapshots and Completeness](#snapshots-and-completeness).
+`inconsistent_snapshot`. If a resolver reports snapshot consistency for an
+operation, the requirements in
+[Snapshots and Completeness](#snapshots-and-completeness) apply.
 
 ## Representations
 

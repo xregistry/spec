@@ -227,10 +227,10 @@ When a multi-request operation needs both default metadata and bytes, the
 resolver SHOULD record the selected default Version ID and use its explicit
 Version URLs for subsequent requests.
 
-When claiming a consistent capture, the resolver MUST detect changes to the
+A resolver reporting a capture as consistent MUST detect changes to the
 selection. A live Version can change without its Version ID changing. See
-[Live Capture and Errors](#live-capture-and-errors) for the distinction
-between revalidating individual responses and claiming a consistent view.
+[Live Capture and Errors](#live-capture-and-errors) for the limits of
+revalidating individual responses.
 
 The following partial exchange uses the non-root base from the advertisement.
 Model, Core version and enabled-capability discovery precede these reads.
@@ -485,8 +485,8 @@ A capture MUST record the following separately from Core IDs:
 - Available validators.
 - The immutable pin, or its absence for live access.
 
-It MUST distinguish a live, best-effort observation from a
-producer-guaranteed snapshot.
+The capture MUST distinguish between live observations, which carry no
+snapshot guarantee, and producer-guaranteed snapshots.
 
 A resolver requiring a stronger guarantee MUST fail explicitly when the endpoint
 cannot provide it. If the necessary capture operation is unsupported, the outcome
@@ -532,7 +532,7 @@ A conforming resolver implements the applicable native mappings and Core
 views, checks versions, applies literal selectors and follows every necessary
 page. It falls back to local selection when filtering is unavailable and
 applies the HTTP validator and security rules. Live reads alone do not
-justify an immutable-snapshot claim. Servers remain subject to Core HTTP
+establish an immutable snapshot. Servers remain subject to Core HTTP
 conformance, and this document does not require query support from a no-code
 server.
 

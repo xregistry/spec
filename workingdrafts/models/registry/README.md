@@ -20,7 +20,8 @@ with reproducible generation commands and current generator limitations.
 
 [Shared federation](../../federation/spec.md) defines read-only resolution
 after catalog selection.
-[Base and resolvable conformance](spec.md#10-conformance) are separate claims.
+The specification defines
+[base and resolvable conformance](spec.md#10-conformance) separately.
 The base catalog can store entries without access methods. A resolvable
 entry requires an advertisement usable by the Consumer under its binding
 support and policy. Advertising access does not establish reachability

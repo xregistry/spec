@@ -450,8 +450,8 @@ The channel's `head` carries the digest of these 1143 bytes. The `registry`
 descriptor selects the 790-byte Registry JSON Version document.
 The one `documents` entry associates Version `7` of `intro` in the view
 with its origin and its 36 bytes. The view and origin XIDs happen to match;
-they are interpreted in different Registry contexts. The `content` reference
-is where the reader retrieves the retained bytes. This manifest records no
+they are interpreted in different Registry contexts. The reader uses the
+`content` reference to retrieve the retained bytes. This manifest records no
 preparation history, so it has no `parent`.
 
 Consumers MUST verify the exact size and SHA-256 of every descriptor they
@@ -518,9 +518,9 @@ The `capture` classification describes how the selected state was obtained:
 - `live-observation` denotes source reads without a source-wide consistency
   guarantee.
 - `source-snapshot` is permitted only when the source guarantees that the
-  reads used one immutable captured state. For this claim, the producer MUST
-  retain its source identity and capture evidence in a provenance extension
-  under `requiredExtensions`.
+  reads used one immutable captured state. The producer MUST retain the
+  source identity and capture evidence in a provenance extension under
+  `requiredExtensions`.
 
 The classification does not weaken the output's immutability or internal
 completeness. A consumer requiring atomic source capture MUST reject
@@ -806,7 +806,7 @@ does not supply the publication context link for an unpinned live response.
 The extension does not change ordinary non-publication HTTP endpoints.
 
 A pin-aware consumer MUST obtain and validate the open record and manifest
-before claiming a pinned result. In an HTTP projection,
+before reporting that a result is pinned. In an HTTP projection,
 snapshot-specific API `self` and navigation URLs MUST be retrievable Core
 URLs. Checking the stored Registry descriptor verifies the captured JSON
 bytes, not the bytes of a projected API response. The projection still
@@ -852,9 +852,9 @@ descriptor representation is checked with that descriptor's digest.
 ### Offline Packages
 
 A byte-preserving offline export MUST include the manifest and all objects
-needed by its completeness claim. Captured bytes MUST NOT be rewritten
-when a package moves to another location. Publication readers MUST NOT fetch
-external objects during offline replay.
+needed for the manifest's completeness classification. Captured bytes
+MUST NOT be rewritten when a package moves to another location. Publication
+readers MUST NOT fetch external objects during offline replay.
 
 The portable byte bundle is a directory with `publication-package.json`.
 Its schema-defined `context` supplies the open record. `objects` is an array
@@ -871,14 +871,14 @@ enforce resolved containment, including symbolic links, and apply byte and
 traversal limits before reading.
 
 The `objects` array MUST cover the selected manifest, captured Registry
-JSON, associated documents, and extensions needed for its completeness
-claim. Parent manifests are not needed merely to read the selected snapshot.
+JSON, associated documents, and extensions needed for the manifest's
+completeness classification. Parent manifests are not needed merely to read
+the selected snapshot.
 
 The checked [sample bundle](samples/publication-package.json) consists of
 five files. It includes both HTTP and UA manifest examples over the same
 Registry JSON and document bytes. The local map does not replace the
-original references or claim that a local file implements either network
-binding.
+original references or provide either network binding.
 
 ```text
 bundle/
@@ -912,9 +912,9 @@ network read through the referenced Registry.
 
 The byte bundle provides direct offline publication access; it does not
 define another Federation native Registry layout. A bundle can accompany a
-directory mapping or OCI layout. Before claiming its Snapshot ID, native
-readers still need their own format and verified equivalence with the
-manifest. This extension adds no OCI role or Git directory-mapping field.
+directory mapping or OCI layout. Native readers still need their own format
+and verified equivalence with the manifest before reporting the same Snapshot
+ID. This extension adds no OCI role or Git directory-mapping field.
 A byte-bundle reader MUST NOT advertise unsupported native binding
 conformance.
 
@@ -1052,8 +1052,8 @@ The rules above combine into the following workflows:
 - **Replay.** Open an exact manifest descriptor without consulting a channel.
   Missing or corrupt content fails and never refreshes automatically.
 - **Export and offline use.** Retain the checked manifest, Registry graph and
-  necessary bytes. Missing domain closure prevents a claim to satisfy the
-  requested domain closure profile.
+  necessary bytes. Without domain closure, the export cannot satisfy the
+  requested profile.
 
 The adapter MUST protect the bytes reachable from current channel heads and
 retained snapshots against overwrite and ordinary deletion. Snapshot
@@ -1090,7 +1090,7 @@ format validation, byte integrity, shared snapshots, conditional updates,
 stale and rollback epochs, and deletion non-reuse. They do not implement a Core
 server, full Core graph validator, or native package binding, and they do not
 prove storage durability. Adapter and cross-binding integration checks are
-needed before claiming writable or deployed support.
+needed to substantiate write support or conformance in a deployment.
 
 Automatic merging, rebasing, and write-through federation are outside this
 extension. It also does not define global document IDs, signature formats
