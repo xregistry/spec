@@ -55,6 +55,7 @@
         "values": {
           "type": "record",
           "name": "MessagegroupType",
+          "namespace": "io.xregistry.messagegroups",
           "fields": [
             {
               "name": "messagegroupid",
@@ -246,16 +247,54 @@
                       "doc": "Time of the object modification"
                     },
                     {
-                      "type": "string",
+                      "name": "versionid",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "description": "ID of the message version",
+                      "default": null
+                    },
+                    {
+                      "name": "ancestorid",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "isdefault",
+                      "type": [
+                        "null",
+                        "boolean"
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "contenttype",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "default": null
+                    },
+                    {
+                      "type": [
+                        "null",
+                        "string"
+                      ],
                       "doc": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition",
-                      "name": "basemessage"
+                      "name": "basemessage",
+                      "default": null
                     },
                     {
                       "name": "envelope",
                       "type": [
+                        "null",
                         {
                           "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
+                          "namespace": "io.xregistry.messagegroups.messages",
                           "name": "EnvelopeCloudevents10Type",
                           "fields": [
                             {
@@ -271,14 +310,16 @@
                           ]
                         }
                       ],
-                      "doc": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups. The predefined envelope format is 'CloudEvents/1.0'"
+                      "doc": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups. The predefined envelope format is 'CloudEvents/1.0'",
+                      "default": null
                     },
                     {
                       "name": "protocol",
                       "type": [
+                        "null",
                         {
                           "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
+                          "namespace": "io.xregistry.messagegroups.messages",
                           "name": "ProtocolAmqp10Type",
                           "fields": [
                             {
@@ -290,7 +331,7 @@
                         },
                         {
                           "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
+                          "namespace": "io.xregistry.messagegroups.messages",
                           "name": "ProtocolMqtt311Type",
                           "fields": [
                             {
@@ -302,7 +343,7 @@
                         },
                         {
                           "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
+                          "namespace": "io.xregistry.messagegroups.messages",
                           "name": "ProtocolMqtt50Type",
                           "fields": [
                             {
@@ -314,7 +355,7 @@
                         },
                         {
                           "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
+                          "namespace": "io.xregistry.messagegroups.messages",
                           "name": "ProtocolKAFKAType",
                           "fields": [
                             {
@@ -326,7 +367,7 @@
                         },
                         {
                           "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
+                          "namespace": "io.xregistry.messagegroups.messages",
                           "name": "ProtocolHTTPType",
                           "fields": [
                             {
@@ -338,7 +379,7 @@
                         },
                         {
                           "type": "record",
-                          "namespace": "io.xregistry.messagegroups",
+                          "namespace": "io.xregistry.messagegroups.messages",
                           "name": "ProtocolNATSType",
                           "fields": [
                             {
@@ -349,32 +390,236 @@
                           ]
                         }
                       ],
-                      "doc": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups"
+                      "doc": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
+                      "default": null
                     },
                     {
-                      "type": "string",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
                       "doc": "The schema format applicable to the message payload, equivalent to the 'format' attribute of the schema registry",
-                      "name": "dataschemaformat"
+                      "name": "dataschemaformat",
+                      "default": null
                     },
                     {
-                      "type": "io.xregistry.GenericRecord",
+                      "type": [
+                        "null",
+                        "io.xregistry.GenericRecord"
+                      ],
                       "doc": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry",
-                      "name": "dataschema"
+                      "name": "dataschema",
+                      "default": null
                     },
                     {
-                      "type": "string",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
                       "doc": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry",
-                      "name": "dataschemauri"
+                      "name": "dataschemauri",
+                      "default": null
                     },
                     {
-                      "type": "string",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
                       "doc": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry.",
-                      "name": "dataschemaxid"
+                      "name": "dataschemaxid",
+                      "default": null
                     },
                     {
-                      "type": "string",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
                       "doc": "The content type for the message payload",
-                      "name": "datacontenttype"
+                      "name": "datacontenttype",
+                      "default": null
+                    },
+                    {
+                      "name": "versions",
+                      "type": [
+                        "null",
+                        {
+                          "type": "map",
+                          "values": {
+                            "type": "record",
+                            "name": "MessageVersionType",
+                            "namespace": "io.xregistry.messagegroups",
+                            "fields": [
+                              {
+                                "name": "messageid",
+                                "type": "string",
+                                "description": "ID of the message object"
+                              },
+                              {
+                                "name": "name",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "doc": "Name of the object"
+                              },
+                              {
+                                "name": "epoch",
+                                "type": [
+                                  "int",
+                                  "null"
+                                ],
+                                "doc": "Epoch time of the object creation"
+                              },
+                              {
+                                "name": "self",
+                                "type": "string",
+                                "doc": "URL of the object"
+                              },
+                              {
+                                "name": "xid",
+                                "type": "string",
+                                "doc": "XID of the object"
+                              },
+                              {
+                                "name": "description",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "doc": "Description of the object"
+                              },
+                              {
+                                "name": "documentation",
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "doc": "URI of the documentation of the object"
+                              },
+                              {
+                                "name": "labels",
+                                "type": {
+                                  "type": "map",
+                                  "values": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "doc": "Labels for the object"
+                              },
+                              {
+                                "name": "createdat",
+                                "type": [
+                                  {
+                                    "type": "int",
+                                    "logicalType": "time-millis"
+                                  },
+                                  "null"
+                                ],
+                                "doc": "Time of the object creation"
+                              },
+                              {
+                                "name": "modifiedat",
+                                "type": [
+                                  {
+                                    "type": "int",
+                                    "logicalType": "time-millis"
+                                  },
+                                  "null"
+                                ],
+                                "doc": "Time of the object modification"
+                              },
+                              {
+                                "name": "versionid",
+                                "type": "string",
+                                "description": "ID of the message version"
+                              },
+                              {
+                                "name": "ancestorid",
+                                "type": "string"
+                              },
+                              {
+                                "name": "isdefault",
+                                "type": "boolean"
+                              },
+                              {
+                                "name": "contenttype",
+                                "type": [
+                                  "null",
+                                  "string"
+                                ],
+                                "default": null
+                              },
+                              {
+                                "type": "string",
+                                "doc": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition",
+                                "name": "basemessage"
+                              },
+                              {
+                                "name": "envelope",
+                                "type": [
+                                  "io.xregistry.messagegroups.messages.EnvelopeCloudevents10Type"
+                                ],
+                                "doc": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups. The predefined envelope format is 'CloudEvents/1.0'"
+                              },
+                              {
+                                "name": "protocol",
+                                "type": [
+                                  "io.xregistry.messagegroups.messages.ProtocolAmqp10Type",
+                                  "io.xregistry.messagegroups.messages.ProtocolMqtt311Type",
+                                  "io.xregistry.messagegroups.messages.ProtocolMqtt50Type",
+                                  "io.xregistry.messagegroups.messages.ProtocolKAFKAType",
+                                  "io.xregistry.messagegroups.messages.ProtocolHTTPType",
+                                  "io.xregistry.messagegroups.messages.ProtocolNATSType"
+                                ],
+                                "doc": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "The schema format applicable to the message payload, equivalent to the 'format' attribute of the schema registry",
+                                "name": "dataschemaformat"
+                              },
+                              {
+                                "type": "io.xregistry.GenericRecord",
+                                "doc": "The inline schema for the message payload, equivalent to the 'schema' attribute of the schema registry",
+                                "name": "dataschema"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "The URI of the schema for the message payload, equivalent to the 'schemauri' attribute of the schema registry",
+                                "name": "dataschemauri"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "Contains the xid of the xRegistry schema Resource entity associated with the dataschemauri referenced schema document. Note that this means the entity MUST be located within the same Registry.",
+                                "name": "dataschemaxid"
+                              },
+                              {
+                                "type": "string",
+                                "doc": "The content type for the message payload",
+                                "name": "datacontenttype"
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "versionsurl",
+                      "type": [
+                        "null",
+                        "string"
+                      ],
+                      "default": null
+                    },
+                    {
+                      "name": "versionscount",
+                      "type": [
+                        "null",
+                        "long"
+                      ],
+                      "default": null
                     }
                   ]
                 }

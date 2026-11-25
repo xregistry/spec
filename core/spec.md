@@ -3,7 +3,7 @@
 <!-- words: validatecompatibility validateformat strictvalidation -->
 <!-- words: compat formatvalidated compatibilityvalidated -->
 <!-- words: compat formatvalidatedreason compatibilityvalidatedreason -->
-<!-- words: matchversions excludeall -->
+<!-- words: matchversions excludeall subnamespaces -->
 <!-- words: myarray myobject -->
 <!-- words: href schemaregistry missingschema webpage -->
 
@@ -1014,6 +1014,12 @@ attributes. However, they MUST adhere to the following rules:
   potential conflicts with future xRegistry specification-defined attributes.
   For example, use of a model (or domain) specific prefix could be used to help
   avoid possible future conflicts.
+
+Namespaces for types defined by xRegistry specifications use `io.xregistry` as
+their base. For finer-grained namespaces, append the Group and Resource type
+plural names, separated by dots. Additional components MAY distinguish nested
+types. Vendor-defined types MUST use namespaces outside `io.xregistry` and its
+subnamespaces.
 
 Use of an attribute (specification-defined, or extension) that does not
 conform to this specification MUST generate an error

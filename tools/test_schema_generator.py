@@ -351,13 +351,12 @@ class TestSchemaGenerator:
         messagegroup_type = messagegroups_field['type']['values']
         messages_field = next(f for f in messagegroup_type['fields'] if f['name'] == 'messages')
         message_type = messages_field['type']['values']
-        dataschema_field = next((f for f in message_type['fields'] if f['name'] == 'dataschema'), None)
-        
-        if dataschema_field:
-            # Should be a reference to GenericRecord, not an inline definition
-            field_type = dataschema_field['type']
-            assert field_type == 'io.xregistry.GenericRecord', \
-                "'any' type should map to GenericRecord reference"
+        dataschema_field = next(f for f in message_type['fields'] if f['name'] == 'dataschema')
+        assert dataschema_field['type'] == ['null', 'io.xregistry.GenericRecord']
+        versions_field = next(f for f in message_type['fields'] if f['name'] == 'versions')
+        version_type = versions_field['type'][1]['values']
+        version_dataschema = next(f for f in version_type['fields'] if f['name'] == 'dataschema')
+        assert version_dataschema['type'] == 'io.xregistry.GenericRecord'
 
     # Tests matching Makefile schema generation commands
     def test_makefile_schema_json_schema_with_schema_id(self, schema_model, tools_dir):
