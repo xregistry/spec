@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xregistry.io/workingdrafts/federation/schemas/deployment-request.json",
+  "title": "MQTT Federation deployment request",
+  "description": "The binding also validates Core XIDs, unsigned 64-bit bounds, media types, and canonical Base64.",
+  "type": "object",
+  "required": ["profile", "operation", "arguments"],
+  "properties": {
+    "profile": {"const": "xreg-deploy/1"},
+    "operation": {
+      "enum": ["limits", "inspectTarget", "begin", "inspectStage", "append", "commit", "abort"]
+    },
+    "arguments": {"type": "object"}
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {"properties": {"operation": {"const": "limits"}}},
+      "then": {"properties": {"arguments": {"maxProperties": 0}}}
+    },
+    {
+      "if": {"properties": {"operation": {"const": "inspectTarget"}}},
+      "then": {"properties": {"arguments": {"$ref": "#/$defs/inspectTarget"}}}
+    },
+    {
+      "if": {"properties": {"operation": {"const": "begin"}}},
+      "then": {"properties": {"arguments": {"$ref": "#/$defs/begin"}}}
+    },
+    {
+      "if": {"properties": {"operation": {"const": "inspectStage"}}},
+      "then": {"properties": {"arguments": {"$ref": "#/$defs/inspectStage"}}}
+    },
+    {
+      "if": {"properties": {"operation": {"const": "append"}}},
+      "then": {"properties": {"arguments": {"$ref": "#/$defs/append"}}}
+    },
+    {
+      "if": {"properties": {"operation": {"const": "commit"}}},
+      "then": {"properties": {"arguments": {"$ref": "#/$defs/commit"}}}
+    },
+    {
+      "if": {"properties": {"operation": {"const": "abort"}}},
+      "then": {"properties": {"arguments": {"$ref": "#/$defs/abort"}}}
+    }
+  ],
+  "$defs": {
+    "target": {
+      "type": "string",
+      "pattern": "^/[^/]+/[^/]+/[^/]+/[^/]+/[^/]+/[^/]+(?![\\s\\S])"
+    },
+    "byteCount": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,19})(?![\\s\\S])"
+    },
+    "stage": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,128}(?![\\s\\S])"
+    },
+    "token": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,512}(?![\\s\\S])"
+    },
+    "descriptor": {
+      "type": ["object", "null"],
+      "required": ["size", "digest", "contenttype"],
+      "properties": {
+        "size": {"$ref": "#/$defs/byteCount"},
+        "digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}(?![\\s\\S])"
+        },
+        "contenttype": {"type": ["string", "null"], "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "inspectTarget": {
+      "type": "object",
+      "required": ["target"],
+      "properties": {
+        "target": {"$ref": "#/$defs/target"},
+        "fields": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      },
+      "additionalProperties": false
+    },
+    "begin": {
+      "type": "object",
+      "required": ["target", "mode", "descriptor"],
+      "properties": {
+        "target": {"$ref": "#/$defs/target"},
+        "mode": {"enum": ["create", "replace"]},
+        "descriptor": {"$ref": "#/$defs/descriptor"}
+      },
+      "additionalProperties": false
+    },
+    "inspectStage": {
+      "type": "object",
+      "required": ["target"],
+      "properties": {
+        "target": {"$ref": "#/$defs/target"},
+        "stage": {"$ref": "#/$defs/stage"}
+      },
+      "additionalProperties": false
+    },
+    "append": {
+      "type": "object",
+      "required": ["stage", "offset", "data"],
+      "properties": {
+        "stage": {"$ref": "#/$defs/stage"},
+        "offset": {"$ref": "#/$defs/byteCount"},
+        "data": {
+          "type": "string",
+          "minLength": 4,
+          "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?(?![\\s\\S])"
+        }
+      },
+      "additionalProperties": false
+    },
+    "commit": {
+      "type": "object",
+      "required": ["stage", "token", "metadata"],
+      "properties": {
+        "stage": {"$ref": "#/$defs/stage"},
+        "token": {"$ref": "#/$defs/token"},
+        "metadata": {"type": "object"}
+      },
+      "additionalProperties": false
+    },
+    "abort": {
+      "type": "object",
+      "required": ["target", "stage"],
+      "properties": {
+        "target": {"$ref": "#/$defs/target"},
+        "stage": {"$ref": "#/$defs/stage"}
+      },
+      "additionalProperties": false
+    }
+  }
+}

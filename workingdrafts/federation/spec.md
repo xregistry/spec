@@ -5,16 +5,23 @@
 <!-- words: assetid selectedxid -->
 <!-- words: usda -->
 <!-- words: powershell pytest workingdrafts -->
+<!-- words: contenttype federationdeployment https mqtt opcua staging uint -->
+<!-- words: inspectstage inspecttarget matchversions retryable workflow -->
 
 ## Abstract
 
 This specification defines how a consumer reads entities and documents across
-independently administered xRegistries. A catalog, which is an xRegistry
-using the Registry domain, describes the available access methods. A resolver
-selects an access method and uses xRegistry Core to interpret identifiers
-and metadata within the selected
-Registry context. Protocol bindings define how the resolver retrieves the
-data. Federation resolution is read-only.
+independently administered xRegistries. A catalog is an xRegistry that uses
+the Registry domain to describe how to access other Registries. It describes
+those Registries rather than containing their data. A resolver uses the
+composition policy to order candidate sources and selects an access method
+for each catalog-based source it tries. It uses xRegistry Core to
+interpret identifiers and metadata in that source's Registry context.
+Protocol bindings define how the resolver retrieves the data. Federation
+resolution is read-only.
+An independent, OPTIONAL deployment capability lets an authorized sender
+push selected Versions to a configured destination Registry that grants
+write access.
 
 ## Table of Contents
 
@@ -30,12 +37,22 @@ data. Federation resolution is read-only.
 - [Selectors](#selectors)
 - [Representations](#representations)
 - [Snapshots and Completeness](#snapshots-and-completeness)
+- [Downstream Deployment](#downstream-deployment)
+  - [Deployment Authority and Discovery](#deployment-authority-and-discovery)
+  - [Deployment Operations](#deployment-operations)
+  - [Conditional Commit](#conditional-commit)
+  - [Recovery and Synchronization](#recovery-and-synchronization)
+  - [Deployment from a Publication](#deployment-from-a-publication)
+  - [Deployment Errors](#deployment-errors)
 - [Errors](#errors)
 - [Security Considerations](#security-considerations)
 - [Conformance](#conformance)
 - [References](#references)
 
 ## Overview
+
+The [Federation design guide](design/design.md) explains the architecture
+and illustrates how reads and deployment work.
 
 Federation presents local Resources and Resources from configured source
 Registries through one Registry view. A Resource present in the local view
@@ -49,17 +66,21 @@ Each catalog entry is a metadata-only Resource describing another Registry,
 not the root of that Registry. When an API server performs resolution, its
 consumer need not query or see the catalog.
 
-The Registry domain's
+The resolver reads an advertisement from a Version of the catalog entry,
+then uses that advertisement's endpoint and binding to open the described
+Registry. The Registry domain's
 [context diagram](../models/registry/spec.md#6-discovery-and-selection)
 separates the catalog entry and its description Version from the target
-Registry that the resolver opens using the selected advertisement.
+Registry.
 
 For example, an organization can expose a Registry containing a locally
 approved asset at `/documents/main/assets/approved`. It can also use a
 supplier's Registry to serve `/documents/main/assets/supplied`, which is not
 locally present. Requests for `approved` use the local Resource even if the
-supplier advertises a Resource with that path. The composition policy
-defines which supplier Registries participate and their order.
+supplier has a Resource at that path. The resolver's
+[composition policy](#local-resources-and-ordered-sources) defines which
+supplier Registries can supply the path and in what order the resolver
+tries them.
 
 This specification defines how resolvers interpret resolution requests.
 [HTTP](../bindings/http-federation.md), [OCI](../bindings/oci.md),
@@ -69,10 +90,12 @@ to perform those reads. The
 [directory mapping format](../bindings/mapping.md) is shared by Git and File.
 Native bindings do not require an HTTP facade.
 
-This specification does not cover synchronization, replication, write-through,
-global entity identifiers, arbitrary merge precedence, or discovery of
-dependencies inside domain documents. OCI publication is a separate producer
-operation.
+An authorized sender can explicitly [deploy](#downstream-deployment) selected
+content to one destination over HTTPS, OPC UA, or MQTT. Deployment does not
+perform bidirectional synchronization, automatic propagation, replication,
+or write-through. This specification does not define global entity
+identifiers, arbitrary merge precedence, or discovery of dependencies inside
+domain documents. OCI publication is a separate producer operation.
 
 ## Notations and Terminology
 
@@ -92,10 +115,10 @@ edition, a catalog-description Version ID, or a target Resource's Version ID.
 | Catalog entry | A `registry` Resource under a `category` Group. |
 | Advertisement | A record describing one access method in a catalog-description Version. |
 | Registry context | The selected logical Registry, model, and access context in which an XID is interpreted. |
-| Revision pin | A binding's immutable snapshot selection, when supported. |
-| Origin | The source context, including the selected revision when available, from which a result was obtained. |
+| Revision pin | A binding's immutable snapshot selection, when supported. See [Snapshots and Completeness](#snapshots-and-completeness). |
+| Origin | The selected context and revision, when pinned, from which a result was obtained. See [Read Operations](#read-operations). |
 | Resolver | The client-side or server-side component selecting the source and retrieving a requested entity or document. |
-| Resolution owner | The side responsible for producing the selected Registry view: its consumer or its producer. |
+| Resolution owner | The side responsible for producing the selected Registry view: its consumer or its producer. See [Signaling Who Performs Resolution](#signaling-who-performs-resolution). |
 | Federating Registry | The consumer-visible Registry whose view combines local Resources and explicitly configured source Registries. |
 | Source Registry | A Registry selected as a source by the federating Registry's composition policy. |
 | Shadow Resource | A local Resource that takes precedence over the same Resource path in configured sources. |
@@ -103,8 +126,11 @@ edition, a catalog-description Version ID, or a target Resource's Version ID.
 | Selector | A criterion used to select members of a collection, such as a label key and value. See [Selectors](#selectors). |
 | Snapshot | A captured Registry state read as one selected revision. See [Snapshots and Completeness](#snapshots-and-completeness). |
 | Package | A stored representation of a snapshot's metadata and declared documents, using the document-tree or OCI format. |
-| Linked snapshot | A complete internal package graph allowing explicit external document references. |
+| Linked snapshot | A snapshot that contains all records its package references internally and allows explicit external document references. |
 | Offline-complete snapshot | A snapshot also carrying all declared xRegistry documents in its selected scope. |
+| Deployment sender | The component acting for a parent Registry that explicitly selects content and pushes it to one destination Registry. |
+| Deployment receiver | The component that enforces the destination Registry's grant and commits authorized writes to its local store. |
+| Deployment grant | Receiver policy that reserves a destination scope and authorizes one principal to deploy there. See [Deployment Authority and Discovery](#deployment-authority-and-discovery). |
 
 The catalog's `registryid`, its entry's `registryid`, and the described
 Registry root's `registryid` have different scopes. Their values need not
@@ -129,7 +155,8 @@ source through its native binding. The application supplies the local view,
 permitted source scope, and source order. The consumer keeps each result's
 source context and revision separate from its XID.
 
-This is the default when no resolution-owner capability is declared.
+This is the default when the enabled capabilities omit the
+[`federation` extension](#signaling-who-performs-resolution).
 
 An offline tool or application with an OCI, Git, or other native reader can
 select and retrieve content directly. The stored catalog describes the
@@ -354,15 +381,26 @@ catalog or the policy can change independently. The `priority` inside a
 catalog entry orders that entry's access advertisements, not different source
 Registries. See [Discovery and Binding Selection](#discovery-and-binding-selection).
 
-For a Resource path that appears in several sources, precedence selects the
-first source that supplies it if there is no local Resource at that path.
+If the local view does not supply a Resource path, the resolver selects the
+first eligible source that supplies it. If exactly one eligible mapped
+Resource is present in that source at the path, the resolver MUST use it.
+If multiple eligible mapped Resources are present there, the composition
+policy MAY explicitly select one of them. If the policy selects exactly
+one of the present Resources, the resolver MUST use it. Otherwise, the
+resolver MUST return `ambiguous` without trying another source or binding.
+A preference breaks a tie; it does not make other mapped Resources
+ineligible. Only the winning Resource contributes Versions, labels, and
+origin. If a local Resource or an earlier source already supplies the
+path, a collision in a later source does not affect that path's result.
+
 After shadowing, a selector can still match several distinct visible
 Resources. The resolver reports `ambiguous` rather than choosing between
 them by source precedence. See
 [Select After Applying Shadows](#example-select-after-applying-shadows).
 
-For Resource metadata, Meta, Version metadata, and document reads, the unit
-of shadowing is the Resource, including all of its Versions:
+For Resource metadata, [Resource Meta](../../core/spec.md#meta-entity),
+Version metadata, and document reads, the unit of shadowing is the
+Resource, including all of its Versions:
 
 1. Check the requested Resource path in the local Registry view. A present
    local Resource wins, including a local alias. A resolver MUST NOT fill its
@@ -372,31 +410,43 @@ of shadowing is the Resource, including all of its Versions:
    catalog-description Version and then one binding using
    [Discovery and Binding Selection](#discovery-and-binding-selection).
    For a directly configured source, use its configured access context.
-3. Resolve the same typed Resource XID in the selected source context. A
-   policy that projects a different source path MUST define that mapping
-   explicitly. The source's model and data MUST be compatible with the
-   consumer-visible model for that path.
-4. A Resource is found when that exact Resource exists and its metadata
-   can be interpreted under the selected source context and composition
-   policy. A successful empty collection, a reachable endpoint, or a catalog
-   entry alone is not a found Resource.
+3. If the policy projects a different source path, it MUST define that
+   mapping explicitly. Otherwise, the resolver uses the same typed
+   Resource XID in the selected source context. For a source to supply the
+   Resource, its model and data MUST allow the resolver to represent the
+   result under the consumer-visible model at that path. This requirement
+   concerns the projected result, not Core's same-Resource-type rule for
+   [local aliases](#local-cross-references).
+4. Apply the same-source selection rule above to the eligible Resources
+   that are present and map to the requested path. If the preferred
+   Resource is confirmed absent, apply the rule to the remaining eligible
+   mapped Resources. A Resource is found when the winning Resource's
+   metadata can be interpreted under the selected source context and
+   composition policy. A successful empty collection, a reachable
+   endpoint, or a catalog entry alone is not a found Resource.
 5. Stop at the first found Resource. Select its requested Version, or its
    Core default Version, and obtain the requested representation. Within
    this operation, all Meta, Version, and document reads for the Resource
    MUST use that origin and retain the revision pin if one was selected.
    Do not merge Version sets across origins.
-6. If `not_found` establishes that the Resource is absent in the selected
-   source context, proceed to the next eligible source. The composed view
-   reports the Resource absent only after exhausting the eligible sources.
+6. Advance to the next eligible source only if the resolver establishes
+   that no eligible Resource mapped to the requested path is present in
+   the selected source context. If the preferred Resource is not the only
+   eligible candidate, its `not_found` alone does not establish absence
+   at the path. The composed view reports the Resource absent only after
+   exhausting the eligible sources.
    A `not_found` from a different stage, such as a failure to
    establish the selected Registry root, does not establish that the
    Resource is absent.
-   The resolver MUST report other failures, including authorization denial,
-   unsupported binding or version, malformed data, and integrity failure,
-   rather than treat them as absence.
+   The resolver MUST report other failures, including a timeout,
+   authorization denial, unsupported binding or version, malformed data,
+   and integrity failure, rather than treat them as absence. An
+   incompatible projection is not evidence that the source lacks the
+   Resource. This specification does not define a general compatibility
+   test or assign a distinct error code for incompatible projections.
 
-The resolver tries the same XID in the next configured source Registry only
-when the Resource is absent. If the resolver cannot retrieve the selected
+The resolver advances to the next configured source Registry only on
+confirmed absence at the requested path. If it cannot retrieve the selected
 Resource's Version or document, it reports that failure rather than
 selecting a lower-priority origin. Source traversal follows the configured
 projection policy, not arbitrary Registries or descriptive catalog
@@ -419,10 +469,11 @@ sequenceDiagram
         R->>K: Read eligible source entries in policy order
         K-->>R: Versioned binding advertisements
         loop Until a Resource is found, a non-miss error occurs, or sources end
-            R->>S: Resolve Resource XID through selected binding
+            R->>S: Read candidate Resource metadata through selected binding
             S-->>R: Resource metadata, not_found, or another error
+            Note over R,S: Multiple present candidates need one explicit winner or return ambiguous
         end
-        Note over R,S: Only Resource not_found advances to the next source
+        Note over R,S: Advance only on confirmed absence at the visible path in this source
         alt A Resource was found
             R->>S: Read chosen Version or document at selected origin and revision, if pinned
             S-->>R: Requested representation or its error
@@ -437,18 +488,29 @@ sequenceDiagram
 
 For a Group path, the resolver MUST use the local Group's metadata if
 present. Otherwise it MUST use metadata from the first eligible source in
-the total order that supplies the Group. The choice of Group metadata does
-not shadow the whole Group: the resolver MUST combine its child collections
-from the local view and eligible sources, applying Resource precedence at
-each Resource path. If a selector tests Group metadata, it uses the metadata
-selected for that Group.
+the total order that supplies the Group. For an exact Group metadata read,
+the resolver MUST advance from the local view or an eligible source only if
+the Group lookup confirms absence in that Registry context. If the local
+lookup and all eligible sources confirm absence, the resolver MUST return
+`not_found`. Failure to establish the source Registry root or access
+context does not confirm Group absence, even if it reports `not_found`.
+The resolver MUST report that failure or another lookup failure, such as
+a timeout, access denial, or invalid response, rather than advance.
+
+The choice of Group metadata does not shadow the whole Group: the resolver
+MUST combine its child collections from the local view and eligible
+sources, applying Resource precedence at each Resource path. If a selector
+tests Group metadata, it uses the metadata selected for that Group.
 
 A resolver exposing a combined Group or Resource collection MUST
 enumerate all eligible source collections needed for that view and apply the
-Group and Resource precedence rules before returning members. A shadowed
-source Resource contributes no additional Versions or alternate label
-values. Configured source type mappings MUST account for the collection's
-model.
+Group and Resource precedence rules before returning members. For each
+Resource path, the resolver MUST apply the same-source selection rule
+before returning a member or evaluating a selector. A shadowed source
+Resource contributes no additional Versions or alternate label values.
+When the policy maps source types, the mappings MUST account for
+the consumer-visible collection's model as well as the mapped member
+paths.
 
 If the caller supplies a label selector, the resolver evaluates it against
 the visible collection.
@@ -456,9 +518,11 @@ One match in an early source does not establish uniqueness. The resolver
 MUST consider all necessary collection pages and unshadowed sources. It
 MUST NOT represent an error or incomplete traversal as a complete result.
 Counts, continuation links, and reads of the model and capabilities MUST
-describe the consumer-visible Registry rather than the first source to respond.
-Continuation links are binding-specific. They do not establish an immutable
-view when the binding only provides live reads.
+describe the consumer-visible Registry rather than the first source to
+respond. The binding defines how the resolver reaches the end of a
+collection. Reaching that end does not prove that the pages represent one
+immutable state. See [Selectors](#selectors) for how page completion
+affects a unique match.
 
 The client-side model performs the same selection locally. A consumer that
 already selected exactly one source bypasses composition and uses the
@@ -495,9 +559,11 @@ does not match. `other` matches, so it is the unique selected Resource.
 Filtering the sources before applying shadows would incorrectly admit A's
 `item`, which is not part of the consumer-visible view.
 
-A subsequent default-document read of `other` uses source B's `v7`. It does
-not use `v1` or `v2` from `item`. For a server exposing Core HTTP, the selected
-Version's metadata can be returned as follows:
+With the same live inputs, a subsequent default-document read of `other`
+uses source B's `v7`. It does not use `v1` or `v2` from `item`. This example
+assumes the inputs remain unchanged; the selector result does not pin a
+later live read. For a server exposing Core HTTP, the selected Version's
+metadata can be returned as follows:
 
 ```json
 {
@@ -552,8 +618,8 @@ match.
 ## Discovery and Binding Selection
 
 The composition policy determines source order and local shadow precedence.
-After selecting a source Registry, the resolver chooses an access method
-from that catalog entry's advertisements.
+When the resolver tries a catalog-based source, it chooses an access method
+from that catalog entry's advertisements before looking up the Resource.
 
 A resolver MUST select a catalog-description Version before interpreting its
 advertisements. In the absence of an explicit description Version, it MUST
@@ -574,7 +640,7 @@ are case-sensitive. The values defined by this family are:
 | `oci` | `oci://host/repository` | `reference`: tag or `sha256` digest. |
 | `git` | HTTPS repository URL | `revision`: full ref or complete object ID. `path` defaults to `xregistry`, with an empty string selecting the repository root. |
 | `file` | File URI selecting a directory | `layout`: `document-tree` or `oci-layout`. `reference` for OCI layout selection only. |
-| `opcua` | Native UA endpoint URL | `registryroot`: portable NodeId. OPTIONAL `applicationuri` and `transportprofileuri`. |
+| `opcua` | Native UA endpoint URL | `registryroot`: [portable NodeId](../bindings/opcua.md#101-advertisement-and-registry-selection). OPTIONAL `applicationuri` and `transportprofileuri`. |
 | `mqtt` | `mqtts://host[:port]` | `requesttopic`: concrete MQTT Topic Name for the [exposed Registry view](../bindings/mqtt.md#advertisement). |
 
 The bindings define parameter grammars and their supported transports.
@@ -622,9 +688,11 @@ applies this order to the
 [multi-profile catalog](../models/registry/samples/multi-profile-catalog.json).
 The implicit HTTP advertisement has priority zero even when an explicit
 HTTP advertisement has priority 20. The catalog entry's selected description
-Version is not the target Registry's snapshot revision. Compare
-[Resource shadowing](#example-select-after-applying-shadows), which chooses
-an origin before this access-method decision.
+Version is not the target Registry's snapshot revision. With
+[Resource shadowing](#local-resources-and-ordered-sources), a local hit
+needs no advertisement. Otherwise, policy orders the sources, the
+resolver selects a binding for the candidate it is trying, and the first
+source that supplies the Resource determines its origin.
 
 ## Read Operations
 
@@ -790,10 +858,11 @@ external content. Any `xref` it exposes MUST satisfy Core within that
 Registry. A projection MUST NOT treat Resources as identical solely because
 their XIDs collide. When projecting source Registries into a federated view,
 use the [composition policy](#local-resources-and-ordered-sources) to select
-an origin for a Resource path. For other projections, report `ambiguous`
-if competing origins remain unresolved rather than choosing one implicitly.
-A domain can
-define a shared logical-identity policy without altering XID scope.
+the Resource and its origin for a visible path. For other projections,
+report `ambiguous` if competing origins remain unresolved rather than
+choosing one implicitly.
+A domain can define a shared logical-identity policy without altering XID
+scope.
 
 Catalog relationships are descriptions, not instructions to walk a graph,
 copy registries, establish trust, or synchronize changes.
@@ -812,8 +881,16 @@ copy registries, establish trust, or synchronize changes.
 
 A resolver MUST NOT substitute one of these bases for another. Some bindings
 cannot preserve or supply the base needed to interpret a relative document
-URI. Such a binding MUST report `invalid_package` or `unsupported_operation`
-rather than guess.
+URI. If that base is missing, the resolver MUST report `invalid_package`
+or `unsupported_operation` rather than guess. Where the selected binding
+specifies the outcome, its rules apply. For example, a relative external
+locator in the [directory mapping](../bindings/mapping.md#documents)
+requires an absolute `base`; without it, the descriptor is invalid.
+The [OCI binding](../bindings/oci.md#53-version-documents-and-placeholders)
+requires an absolute external locator and allows a separate base for
+relative links inside an embedded document. The external locator identifies
+the document itself. The base for embedded bytes is used to interpret
+references inside those bytes.
 
 For example, these three references retain different bases even when
 their metadata and bytes are retrieved through the same package. The
@@ -875,6 +952,18 @@ incomplete page chain, or unstable collection as a unique selection.
 Resource selectors examine the effective metadata of their default Versions
 as defined by Core, not only the reduced Resource object in document view.
 
+For a live binding, a completed traversal with no inconsistency detected
+establishes the match count for the members observed, not a match count at
+one immutable revision. The resolver reports the result as live. If the
+binding detects inconsistent pages, the resolver reports the failure under
+that binding's rules. For example,
+[HTTP](../bindings/http-federation.md#pagination-and-no-filter-fallback)
+requires reporting conflicting duplicates or changed declared totals;
+[OPC UA](../bindings/opcua.md#47-supported-operations-discovery-and-pagination)
+reports an invalid or expired Browse continuation point as
+`inconsistent_snapshot`. An operation that claims snapshot consistency is
+subject to [Snapshots and Completeness](#snapshots-and-completeness).
+
 ## Representations
 
 Metadata and domain documents are distinct results, even when both are JSON.
@@ -903,10 +992,12 @@ determines inclusion for API representations. Document view does not
 make an omitted target present.
 
 Native bindings MUST distinguish document-view metadata from the operation
-that retrieves an alias's target document under Core. A resolver MUST
-report an unsupported view, or retain the Core `cannot_doc_xref` failure for
-document-view metadata of an alias's Versions or an individual Version.
-It MUST NOT silently substitute a different representation.
+that retrieves an alias's target document under Core. If a binding does
+not support the requested view, the resolver MUST report it as unsupported.
+If the binding supports document view and the request in that view is for
+an alias's Versions collection or one of its Versions, the resolver MUST
+retain Core's `cannot_doc_xref` failure. It MUST NOT silently substitute
+a different representation.
 
 A binding offering API-view results MUST define Core-conforming `self` and
 navigation URLs that clients can retrieve. An implementation-defined URI
@@ -1005,7 +1096,7 @@ unchecked assertion do not establish that mapping. See
 [Binding Equivalence](../publication/spec.md#binding-equivalence).
 Bindings without such a mapping report their own pins, not an invented
 publication ID. Channel writes, promotion, and retention are publication
-operations, outside this read-only federation contract.
+operations, outside Federation resolution and downstream deployment.
 
 The following comparison separates capture from domain validation.
 The last row is a domain-profile claim layered over a snapshot, not a
@@ -1022,6 +1113,333 @@ For the last row, see the
 [WoT closure and acceptance design](../publication/design/design.md#wot-channels-snapshots-and-dependency-bindings).
 The [publication examples](../publication/samples/README.md) exercise
 generic byte replay independently of domain closure.
+
+## Downstream Deployment
+
+Deployment commits one exact Version to a receiver's local Registry. A
+sender MUST choose an explicit mapping from a source Version to a
+destination Version in one configured Registry. The receiver MUST NOT
+traverse the destination's catalog, resolve an alias for writing, or
+forward a deployment operation. Resource paths visible only through
+read composition are not local write targets. The sender MUST NOT infer
+write authority from a source relationship, catalog advertisement, or
+matching XID. A sender using a live source MUST select an exact source
+Version through an authorized binding. An exact live Version ID does not
+establish that its document is immutable.
+
+The receiver either creates an exact Version, including its owning Resource
+when absent, or conditionally replaces an existing managed Version. The
+destination MUST expose each successful write independently. A later
+failure MUST NOT undo an earlier write. No operation deletes Versions,
+changes the model, creates a Group, edits Resource Meta explicitly, or
+activates a snapshot.
+
+The [deployment bindings](../bindings/deployment.md) define HTTPS, native
+OPC UA, and MQTT profiles for the operations in this section. The
+[design](design/design.md#downstream-deployment) describes the choices
+behind the contract.
+
+### Deployment Authority and Discovery
+
+Deployment MUST be disabled unless the receiver enables a binding profile
+and grants a principal access to a pre-provisioned scope. The scope
+identifies one Registry root, an existing Group, allowed Resource types,
+and Resource IDs or rules for those IDs. A grant also identifies permitted
+write modes, writable Version fields, and limits. The receiver MUST NOT
+enable overlapping scopes, including collisions under Core's
+case-insensitive ID uniqueness rule.
+
+The sender MUST configure the destination identity, root, profile, and
+deployment entry point independently of read discovery. It MUST authenticate
+the configured destination. It MUST NOT follow a redirect, fall back to
+another endpoint or binding in the same operation, or send deployment
+credentials to a source. The receiver MUST authenticate the caller using
+the selected binding's rules and authorize each operation. In particular:
+
+- The receiver MUST validate and resolve the exact typed Version XID
+  under the destination model and Core ID rules before applying a grant.
+  Authorization MUST use the validated components, not a string-prefix
+  comparison. Case-insensitive uniqueness does not allow different-case
+  lookup or creation of another entity at a colliding path.
+- The receiver MUST record ownership for each Resource and Version created
+  by deployment. Ownership MUST be bound to the entity's incarnation, its
+  lifetime from creation to deletion. A scope reservation alone does not
+  make existing entities managed. A new grant MUST NOT adopt an existing
+  Resource or Version implicitly.
+- The receiver MUST deny mutations to unmanaged Resources, replacement
+  of unmanaged Versions, and mutations to aliases, read-only or protected
+  targets. The receiver MUST NOT expose target or stage state to a caller
+  outside the grant.
+- Revocation MUST invalidate existing preconditions and stages. The
+  receiver MUST check the current grant and stage at the point of commit.
+  Operations committed before revocation remain committed.
+
+The OPTIONAL `federationdeployment` extension of Core's enabled
+capabilities is an object containing a REQUIRED `profiles` array of
+one or more distinct deployment profile identifiers. This specification
+defines `https-deploy/1`, `opcua-deploy/1`, and `xreg-deploy/1`. It does not add
+fields to `federation.resolution`, the Core `flags` array, or catalog
+advertisements. For example:
+
+```json
+{
+  "available": {
+    "capabilities": {"mutable": false},
+    "entities": {"mutable": true},
+    "model": {"mutable": false}
+  },
+  "federationdeployment": {"profiles": ["https-deploy/1"]}
+}
+```
+
+In the enabled capabilities for a Registry context, the extension MUST
+list only profiles that the receiver offers in that context. A receiver
+MUST NOT advertise immutable Core entities to the same principal in a
+context that permits deployment to them. Capability discovery does not
+identify endpoint locations or grant write permission. A sender using a
+configured deployment entry point MUST confirm its profile and limits
+directly through `limits`. That operation does not require access to a
+separate read binding. The [capability schema](schemas/capabilities.json)
+constrains the extension's shape.
+
+### Deployment Operations
+
+These are abstract operations. The
+[deployment bindings](../bindings/deployment.md#operation-data) define
+their transport data. A stage is a bounded pending upload outside the live
+Registry. A precondition token is an opaque comparison value for a later
+write. Neither one confers authorization.
+
+| Operation | Target and arguments | Result |
+| --- | --- | --- |
+| `limits` | Configured deployment entry point | Active profile and bounds for documents, chunks, control messages, tokens, and staging. |
+| `inspectTarget` | Exact destination Version XID and OPTIONAL requested Version fields | Live target state, eligible mode, and a comparison token, expiration, and state marker if writable. For an existing managed Version, the document descriptor and requested readable fields. |
+| `begin` | Exact destination Version XID, mode `create` or `replace`, and document descriptor | Identifier and current progress of the active stage for that request. |
+| `inspectStage` | Exact destination Version XID and OPTIONAL stage ID | Metadata and current progress of the matching live stage, without document bytes. |
+| `append` | Stage ID, byte offset, and a nonempty byte chunk | Next accepted byte offset. |
+| `commit` | Stage ID, precondition token, and Version metadata | Exact destination XID, `created` or `replaced`, Version epoch, and document descriptor. |
+| `abort` | Exact destination Version XID and stage ID | Whether this operation removed the matching live stage. No future commit of that stage can take effect. |
+
+For a document-bearing Version, the descriptor MUST specify the size in
+bytes, the SHA-256 digest of those exact bytes, and the media type or
+`null` when it is absent. A zero-byte document has size zero and the
+digest of the empty byte sequence. For a `hasdocument: false` type, the
+descriptor MUST be `null`. Neither case requires an `append`. An omitted
+descriptor is invalid. The descriptor MUST agree with the effective
+`hasdocument` setting at `begin` and at `commit`. The receiver MUST NOT
+substitute external locators, fetch a location supplied by the sender, or
+normalize the document bytes. On a document-bearing Version, the descriptor
+sets `contenttype`; `null` expresses its absence, subject to model validation.
+
+The receiver MUST bind stages and tokens to the selected Registry, binding
+context, principal, and grant generation. It MUST bind a stage to the exact
+target, mode, descriptor, and a fixed expiration. Stage IDs MUST NOT be
+reused, including after a staging-state loss or rollback. The receiver
+MUST enforce configured limits by grant and across grants. It MUST account
+for the declared size against staging quotas before accepting an upload
+and release its staging allocation when the stage ends. A stage MUST NOT
+hold a live Resource lock while the sender uploads. Before allocating a
+new stage, the receiver MUST check the destination Group, write eligibility,
+and whether the requested write would evict a live Version under known
+Core or store limits. If the write would cause such an eviction, the
+receiver MUST reject `begin` with `validation_error` without allocating a
+stage. Exceeding a staging size or quota bound is a separate
+`limit_exceeded` condition. See [Deployment Errors](#deployment-errors).
+
+The receiver MUST allow at most one live stage per grant, target, and
+binding. For the same mode and descriptor, `begin` returns an existing
+live stage without extending its lifetime. A different mode or descriptor
+for that stage produces `conflict`. A sender that loses a `begin` reply
+can inspect the stage by target and compare the mode and descriptor.
+
+The receiver MUST serialize appends on a stage and accept a chunk only at
+the current next offset, initially zero. If the offset differs, it MUST
+return `offset_mismatch` with the current offset and accept no bytes. It
+MUST reject an append that exceeds the declared total or the configured
+chunk limit without advancing the offset. The sender can inspect the
+stage after a lost reply. Offsets report progress, not the identity of
+accepted bytes. The receiver MUST verify the total length and exact digest
+before publishing. Verification MUST NOT require buffering the entire
+document in memory.
+
+### Conditional Commit
+
+`inspectTarget` MUST evaluate one exact target under current policy. An
+authorized result distinguishes a missing Resource, a missing Version on
+a managed Resource, and an existing managed Version. It MUST NOT convert
+an unmanaged collision, unavailable read, or denied inspection into
+absence. If it issues a token, the receiver MUST:
+
+1. Bind it to the Registry, binding, principal, grant generation, target,
+   write mode, expiration, and relevant destination state.
+2. Detect changes to that state even when the target or owning entity was
+   deleted and recreated with the same XID. A create token MUST detect
+   an intervening creation and deletion of that target. For example, a
+   generation on the destination Resource collection can protect absence
+   of a Resource, and a Resource's incarnation and Meta epoch can protect
+   absence of one of its Versions.
+3. Use a comparison value for changes to the Group identity, effective
+   model, ownership, and applicable Version or Resource state. An
+   implementation recovering from a restore MUST prevent earlier staged
+   operations or preconditions from becoming valid again.
+
+A state marker MUST be stable when only the token's issuance or expiration
+changes. It MUST change when the guarded state or authorization context
+changes, including when a Version is recreated with the same data. The
+sender uses the marker for comparing observations, not for granting or
+committing a write. Neither inspection nor a token reserves the target.
+
+`commit` is the only deployment operation that mutates live Core state.
+The receiver MUST establish that the exact stage is live before comparing
+the token. It MUST check the token, grant, protection, ownership, and
+applicable model at the same atomic point as the Core mutation. A create
+MUST find the exact target absent. A replace MUST find the exact managed
+Version unchanged. The receiver MUST NOT substitute a new token or switch
+the write mode. If comparison fails for a correctly bound token that has
+expired or whose state changed, it MUST return `stale_precondition` without
+changing Core state. It MUST NOT discard the stage solely for that error.
+Expired, aborted, consumed, and revoked stages MUST NOT commit.
+
+The receiver MUST apply Core create and update semantics, including format,
+Group, `matchversions`, lineage, and compatibility checks. It MUST use
+the supplied exact Version ID, or reject creation if the target model
+does not permit client-assigned IDs. It MUST NOT commit if the complete
+Core transition would evict a Version, affect protected content, or
+require an unauthorized change. For metadata, the receiver MUST:
+
+- Accept only expressly allowed writable Version fields. It MUST reject
+  navigation, identity, generated state, alias, external retrieval, and
+  publication controls. It MUST NOT accept the document or its media type
+  a second time in the metadata object. A Version using an external
+  document or proxy URL is not replaceable through deployment.
+- Preserve omitted metadata fields on replace. On create, apply the
+  destination model's required fields and defaults. Interpret supplied
+  values, including `null`, under Core and the model.
+- Let Core determine default selection, epochs, timestamps, and ancestry.
+  A new Version can become the Core default. A replacement of the
+  current default changes ordinary Resource reads without moving a
+  Publication channel.
+
+The Core write and consumption of the stage MUST take effect in the same
+durable transaction. A successful response MUST describe the committed
+Version. An operation error MUST leave Core unchanged for that execution.
+A receiver that cannot enforce this transaction, the preconditions, or
+byte fidelity MUST NOT offer deployment for the affected targets.
+
+### Recovery and Synchronization
+
+One commit request might arrive more than once. A duplicate cannot
+commit after the successful execution consumes its stage. In particular,
+`stage_unavailable` does not establish that the earlier execution failed.
+If a binding can deliver a commit more than once, the sender MUST
+reconcile a commit error rather than assume that all deliveries produced
+the same error. A `stale_precondition` from a live stage is an exception:
+the same token cannot later become valid again. A new token requires a
+new policy decision. A usable commit success MUST NOT be superseded by
+an error from another delivery of the same exchange.
+
+If a commit outcome is indeterminate, the sender MUST NOT blindly replay
+it or change bindings. Before another commit attempt, the sender MUST
+obtain an authorized `abort` result for the exact target and stage, then
+inspect the exact target. The receiver MUST serialize `abort` with
+commit. Both `removed: true` and `removed: false` guarantee that this
+stage cannot commit in the future. Only `true` establishes that the
+receiver removed the matching live stage and that the stage never
+committed. A later `false` does not recover a lost `true` result and
+does not distinguish consumption from expiration or other removal.
+
+The sender compares document presence, byte length, digest, media type,
+and requested metadata using model-aware equality. Generated fields are
+not part of that comparison. Matching state can meet the objective but
+does not identify the writer. The receiver MUST associate any reported
+document fingerprint with the same Version state as the inspection.
+If a current fingerprint is not available, it MUST report that comparison
+is unavailable rather than return a stale descriptor.
+
+A sender using this specification's synchronization workflow runs it only
+on explicit invocation. A local scheduler or Core event consumer can
+invoke it; neither events nor transport acknowledgments grant permission
+or establish convergence. The receiver does not reconcile multiple
+sources or downstream edits. The sender MUST reject multiple mappings to
+one target, including collisions under Core ID uniqueness. It MUST
+compare only fields that the grant permits it to read and write.
+
+For that workflow the sender MUST inspect the target again after upload
+and apply its policy with a current token before requesting commit.
+The sender initializes a job for one configured destination. It records
+attempts before dispatch and retains mapping history locally. It MUST treat
+missing or restored history as uncertain unless it has independently
+established continuity. If a prior commit outcome for the target is
+indeterminate, the sender MUST obtain the authorized `abort` result and
+inspect the target as described above before reporting convergence from
+an inspection.
+
+The default policy is:
+
+| Observation | Result |
+| --- | --- |
+| Target is absent and trusted history identifies a new mapping. | Create conditionally if authorized. |
+| Authorized inspection confirms the managed target matches the desired state, with or without a comparable baseline. | Report convergence without a write. This inspection can establish a baseline. |
+| Managed target differs from the desired state but matches its last verified baseline for the same mapping and selected fields. | Replace conditionally if authorized. |
+| Managed target differs from the desired state and either differs from its last verified baseline for the same mapping and selected fields or lacks a comparable baseline. | Report the item for review rather than replace it. |
+| Target is absent and history is uncertain or identifies an earlier deployment. | Report the item for review rather than recreate it. |
+| Authorization, ownership, or protection rejects the write. | Report the item as blocked. |
+
+The sender MAY retry an indeterminate first create with a fresh token
+if `abort` returned `removed: true` and inspection still shows absence.
+If `abort` returned `false` and the target is absent, it MUST report the
+item for review; the Version might have been created and then deleted.
+A baseline MUST come from authorized inspection confirming convergence.
+Approval for an exceptional write MAY survive token expiry only if the
+observed-state marker, target, write mode, and prepared document
+descriptor and metadata still match. The sender MUST inspect again and
+obtain a current token before that commit. Sender-side review does not
+override a receiver denial.
+
+The sender MUST distinguish completed writes and already converged items
+from blocked, retryable, unresolved, or review items. It MUST NOT claim
+synchronization of the selected mapping while any item remains unresolved.
+A blocked item does not establish convergence even if no retry is pending.
+The schedule, persistence, approval interface, and retry budget are sender
+policy; they are not deployment wire protocols.
+
+### Deployment from a Publication
+
+A sender deploying from a [Publication](../publication/spec.md) MUST
+retain the selected immutable manifest context and verify the source
+document's descriptor before requesting commit. It MUST apply the source
+access and redistribution policy separately from the receiver's grant.
+If source verification fails, the sender MUST NOT commit the stage. An
+unavailable Version in a pinned snapshot is not a request to reopen its
+channel or use a different manifest.
+
+The receiver MUST reject writes to Publication control Resources and
+writes that would change a Version protected by Publication immutability
+or retention. It MUST enforce that protection atomically with commit or
+exclude the affected scope. Deployment MUST NOT rewrite a manifest, move
+a channel, extend retention, or assert binding equivalence for the
+destination.
+
+### Deployment Errors
+
+| Code | Condition |
+| --- | --- |
+| `invalid_request` | An operation, field, target, token, or offset has invalid syntax or does not bind to its declared request context. |
+| `policy_denied` | Authentication, authorization, ownership, or target protection denies the operation. |
+| `not_found` | The provisioned destination Group is absent. |
+| `stage_unavailable` | The matching stage is not live. An authorized `abort` does not use this error. |
+| `stale_precondition` | A correctly bound token for the live stage expired or the expected state changed. |
+| `conflict` | The requested mode cannot use the current target, or a different stage is active. |
+| `offset_mismatch` | The byte offset is not the next accepted byte offset. |
+| `unsupported_operation` | The receiver or target does not support the requested operation. |
+| `integrity_error` | The staged bytes do not match the declared length or digest. |
+| `validation_error` | The proposed change does not satisfy Core or the model, or would cause eviction. |
+| `limit_exceeded` | The request exceeds a size or quota bound. |
+
+The receiver MUST retain a safe Core diagnostic when available without
+disclosing protected data or credentials. A transport acknowledgment or
+missing authenticated operation result MUST NOT be represented as a
+successful write. The binding defines the wire encoding of these errors.
 
 ## Errors
 
@@ -1079,6 +1497,14 @@ does not imply support for another.
 A snapshot producer MUST identify its format, scope, and completeness class
 and produce a complete internal graph. An OPTIONAL
 API facade requires separate protocol-binding conformance.
+
+A deployment sender or receiver MUST conform to
+[Downstream Deployment](#downstream-deployment) and identify each
+[deployment binding](../bindings/deployment.md) it implements. Support for
+reads, generic Core writes, or Publication writes does not establish
+deployment conformance. Deployment support does not imply support for all
+read bindings. The binding's executable examples illustrate selected
+outcomes; they do not implement a production receiver.
 
 The executable examples check the specified behavior offline; they do not
 implement production resolution. The
