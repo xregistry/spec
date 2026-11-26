@@ -13,18 +13,17 @@ of released specifications.
 ## Federation Specification Family
 
 The federation drafts define read-only resolution across independently
-administered Registries and opt-in deployment to configured destinations.
+administered Registries.
 
 The [Registry domain](models/registry/spec.md) defines catalog entries. The
 [Federation design guide](federation/design/design.md) explains how clients
-select and read sources and how senders deploy to downstream Registries.
+select and read sources.
 The [Federation specification](federation/spec.md) defines the contract.
 The binding comparison lists the available access methods.
 
 The arrows below indicate specification dependencies, not network requests.
 Core supplies the entities and interpretation rules. The other drafts add
-catalog discovery, access methods, downstream deployment, or publication
-context.
+catalog discovery, access methods, or publication context.
 
 ```mermaid
 flowchart TD
@@ -32,7 +31,6 @@ flowchart TD
     C --> F["Federation: source context and selection"]
     R --> F
     F --> B["HTTP / OCI / Git / File / OPC UA / MQTT bindings"]
-    F --> W["Deployment: HTTPS / OPC UA / MQTT"]
     F --> P["Publication extension: channels and snapshots"]
     P --> D["Domain closure and compatibility, for example WoT"]
 ```
@@ -40,9 +38,6 @@ flowchart TD
 - **Discover and read:** [catalog selection](models/registry/spec.md#6-discovery-and-selection),
   then [federation reads](federation/spec.md#read-operations) and the chosen
   binding below.
-- **Deploy downstream:** [shared deployment rules and protocol profiles](federation/spec.md#downstream-deployment).
-  The [deployment design](federation/design/design.md#downstream-deployment)
-  explains policy and recovery.
 - **Publish and promote:** [channel updates](publication/spec.md#publishing-and-opening-a-channel),
   then the [publication examples](publication/samples/README.md).
 - **Capture and replay:** [snapshot completeness](federation/spec.md#snapshots-and-completeness),
@@ -51,8 +46,7 @@ flowchart TD
 | Specification | Scope |
 | --- | --- |
 | [Registry of Registries](models/registry/spec.md) | Catalog model with the xRegistry Hub's category and registry hierarchy, advertisements and relationships. |
-| [Federation](federation/spec.md) | Registry contexts, selection, references, representations, and downstream deployment. |
-| [Downstream deployment](federation/spec.md#downstream-deployment) | Shared staging and commit rules, with separate API profiles for HTTPS, OPC UA, and MQTT. |
+| [Federation](federation/spec.md) | Registry contexts, selection, references, and representations. |
 | [Directory mapping](bindings/mapping.md) | Map existing directory contents to a Registry through Git or File. |
 | [OCI](bindings/oci.md) | Bounded descriptor graphs, publication and native snapshot resolution. |
 | [HTTP federation](bindings/http-federation.md) | Federation using the existing xRegistry HTTP API. |
@@ -60,27 +54,6 @@ flowchart TD
 | [File](bindings/file.md) | Local document-tree and OCI-layout access. |
 | [OPC UA](bindings/opcua.md) | Native OPC UA API and federation integration. |
 | [MQTT 5.0 RPC](bindings/mqtt.md) | Native xRegistry API and Federation reads over single-packet MQTT request and reply publications. |
-
-The [WoT generator](bindings/tools/generate_wot.py) turns repository
-`model.json` files into the proposed MQTT Thing Models and JSON Schemas.
-`python -m workingdrafts.bindings.tools.generate_wot <output-dir>`
-writes the bundle to a dedicated directory. A `.zip` output path packages
-only the generated files under `xregistry-wot/`.
-The same command with `--check` reports missing, changed, or stale output
-without writing. The bundle includes `XRegistry.TM.json`, the domain models
-that extend it, and shared RPC schemas. The `xreg:types` link in each model
-points to its generated metadata types; `xreg:facets` and
-`xreg:ifvalues` preserve Core aspects that require model-aware interpretation.
-Action forms use the [WoT MQTT binding draft][wot-mqtt-binding] terms
-`mqv:controlPacket`, `mqv:qos`, and `mqv:retain` to describe the publish
-step. `xreg:topic` remains a template, not a concrete `mqv:topic`.
-The xRegistry binding specifies the full RPC exchange, including exact
-QoS 1; `mqv:qos` describes a minimum. An SDK generator must support the
-xRegistry binding to produce compatible client or server code.
-The generator tests in `bindings/tools/test_generate_wot.py` are included
-in the repository's `testpython` target through pytest discovery.
-
-[wot-mqtt-binding]: https://w3c.github.io/wot-binding-templates/bindings/protocols/mqtt/#form-terms
 
 ### Choosing a Binding
 
@@ -253,10 +226,10 @@ The extension includes a reusable [model](publication/model.json),
 [schemas](publication/schemas/publication.json) and
 [executable examples](publication/samples/README.md). Publication defines
 conditional channel writes and retention. Federation resolution remains
-read-only, and deployment does not move a Publication channel. The
-manifest, captured Registry JSON and domain bytes are xRegistry Version
-documents selected through a binding-aware reference. Native UA reads do not
-need an HTTP facade. The caller-visible open record retains the selection.
+read-only. The manifest, captured Registry JSON and domain bytes are xRegistry
+Version documents selected through a binding-aware reference. Native UA
+reads do not need an HTTP facade. The caller-visible open record retains the
+selection.
 A snapshot-specific HTTP root links to that record without adding a field
 or parameter to ordinary HTTP catalog advertisements.
 Cross-binding equivalence requires a checked mapping; equal Registry IDs
