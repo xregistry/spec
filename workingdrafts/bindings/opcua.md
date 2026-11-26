@@ -1,6 +1,7 @@
 # xRegistry OPC UA API - Version 1.0-rc4
 
 <!-- words: bytestrings compatibilityvalidated firstregistry formatvalidated identifiertype methodid modellingrules namespaces namespaceversion objectid qualifiedname readme referencetype reserializing standalone -->
+<!-- words: baseobjecttype federationdeploymenttype getlimits inspectstage inspecttarget nextoffset stageid targetxid -->
 
 <!-- words: xregistry addressspace browsename browsenames browsepath -->
 <!-- words: browsepaths nodeid nodeids nodeclass typedefinition opc ua -->
@@ -155,6 +156,7 @@ the OPC UA Parts.
   - [10.4. Trust and live consistency](#104-trust-and-live-consistency)
   - [10.5. Namespace export is separate](#105-namespace-export-is-separate)
   - [10.6. OPC UA model alignment](#106-opc-ua-model-alignment)
+  - [10.7. Downstream deployment](#107-downstream-deployment)
 - [11. Error handling](#11-error-handling)
   - [11.1. Federation resolver outcomes](#111-federation-resolver-outcomes)
 - [12. Conformance](#12-conformance)
@@ -2419,7 +2421,8 @@ The [common federation contract][federation] uses this binding's addressing
 and read operations for native federation, without an HTTP facade. OPC
 30460-1 defines `OriginRegistry`, `ExternalReference` and
 `ResourceUrl` Properties as inputs. The following clauses constrain their
-interpretation.
+interpretation. The OPTIONAL [downstream deployment
+profile](#107-downstream-deployment) adds a separate set of Methods.
 
 ### 10.1. Advertisement and Registry selection
 
@@ -2754,6 +2757,76 @@ hierarchy. A proxy that does not materialize Versions omits its local
 `Versions` folder, and the client browses at the verified remote logical
 target. It MUST NOT fabricate local Version Objects implying locally
 authoritative remote state.
+
+### 10.7. Downstream deployment
+
+The OPTIONAL `opcua-deploy/1` profile maps [Federation downstream
+deployment](../federation/spec.md#downstream-deployment) to OPC UA
+Methods. The [shared operation data](../federation/spec.md#deployment-operation-data)
+and [conformance rules](../federation/spec.md#conformance) apply.
+
+The profile uses the configured Registry Object. The Object exposes the
+OPTIONAL `Deployment` component. Its qualified BrowseName is `Deployment`
+in `urn:xregistry:federation:deployment:v1`. The component has type
+`FederationDeploymentType`, a subtype of `BaseObjectType` in that
+namespace. A receiver implementing the profile MUST expose the component
+and its Methods. Clients MUST resolve the configured root and the qualified
+component BrowseName; a server endpoint alone does not select a Registry.
+
+Every call MUST use a `SignAndEncrypt` SecureChannel. The sender MUST
+verify the server application identity. The receiver MUST authenticate
+the Session's user identity, map it to the grant, and authorize each
+operation. Stage ownership is bound to the principal and Registry, not
+the Session ID. Reconnecting with another principal does not transfer it.
+
+The following table defines the input arguments in order. Methods use the
+deployment namespace and are components of the `Deployment` Object.
+
+| Operation | Method and input arguments |
+| --- | --- |
+| `limits` | `GetLimits()` |
+| `inspectTarget` | `InspectTarget(TargetXid: String, Fields: String[])` |
+| `begin` | `Begin(TargetXid: String, Mode: String, Descriptor: String)` |
+| `inspectStage` | `InspectStage(TargetXid: String, StageId: String)` |
+| `append` | `Append(StageId: String, Offset: UInt64, Chunk: ByteString)` |
+| `commit` | `Commit(StageId: String, Token: String, Metadata: String)` |
+| `abort` | `Abort(TargetXid: String, StageId: String)` |
+
+An empty `Fields` array requests no fields. An empty `StageId` in
+`InspectStage` means the OPTIONAL `stage` argument is absent.
+`Descriptor` and `Metadata` carry the respective JSON values in strings;
+`Descriptor` carries the four-character JSON literal `null` for a
+metadata-only Version. `Offset` and `Chunk` carry the native value
+and bytes. The receiver MUST enforce the control and chunk limits and
+applicable UA string, byte string, and message limits.
+
+The output arguments in order are `StatusCode: StatusCode` and
+`Result: String`. If a well-typed Call reaches the deployment operation,
+the receiver MUST return a Good Call status and both output arguments.
+The operation `StatusCode` is `Good` on success or the applicable status
+below. On success, `Result` contains the corresponding JSON object from
+the [shared operation data](../federation/spec.md#deployment-operation-data).
+On error, it contains a JSON object with one `error` member carrying the
+[shared error data](../federation/spec.md#deployment-errors). The sender
+MUST verify both statuses and the result shape. A service-level rejection,
+timeout, or lost Session does not supply an operation result.
+
+| Code | OPC UA operation status |
+| --- | --- |
+| `invalid_request` | `Bad_InvalidArgument` |
+| `policy_denied` | `Bad_UserAccessDenied` |
+| `not_found` | `Bad_NotFound` |
+| `stage_unavailable` | `Bad_InvalidState` |
+| `stale_precondition`, `conflict`, `offset_mismatch` | `Bad_InvalidState` |
+| `unsupported_operation` | `Bad_NotSupported` |
+| `integrity_error`, `validation_error` | `Bad_InvalidArgument` |
+| `limit_exceeded` | `Bad_EncodingLimitsExceeded` for size; `Bad_ResourceUnavailable` for quota |
+
+For example, `Append("upload-2", 0, ByteString(0x61 0x62))`
+returns operation status `Good` with `{"nextOffset":"2"}`. Repeating
+the offset produces operation status `Bad_InvalidState` with the
+`offset_mismatch` error. `CreateResource` with a file handle and ordinary
+FileType `Close` do not satisfy conditional deployment commit.
 
 ## 11. Error handling
 

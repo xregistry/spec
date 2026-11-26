@@ -1,7 +1,7 @@
 # Registry-of-Registries Service - Version 1.0-rc1
 
 <!-- words: applicationuri federationprofiles nodeid nsu opcua registryroot -->
-<!-- words: registrytypes requesttopic transportprofileuri weburl xregurl -->
+<!-- words: registrytypes topicbase transportprofileuri weburl xregurl -->
 <!-- words: categoryid curated docx mcp namespace nfc nodeset opc opcfoundation -->
 <!-- words: opencontainers parametersreference publicschemas readme -->
 <!-- words: registrygroups registryurl ssh ua uabinary uasc uatcp unversioned -->
@@ -755,8 +755,8 @@ owned by that extension. Their names do not activate built-in semantics.
 The `mqtt` profile provides access to an exposed Registry view through the
 [MQTT 5.0 RPC binding](../../bindings/mqtt.md). The endpoint MUST be a
 broker URI of the form `mqtts://host[:port]`, with no credentials, path,
-query, or fragment. `parameters.requesttopic` is REQUIRED and MUST be a
-concrete MQTT Topic Name. The broker and request topic select the view;
+query, or fragment. `parameters.topicbase` is REQUIRED and MUST meet the
+binding's topic-base rules. The broker and topic base select the view;
 they do not identify an entity within it. No other parameters are defined.
 See the binding's [advertisement rules](../../bindings/mqtt.md#advertisement)
 for validation and port selection. The binding also defines a native

@@ -205,7 +205,7 @@ _PROFILE_PARAMETERS = {
     "git": {"revision", "path"},
     "file": {"layout", "reference"},
     "opcua": {"registryroot", "applicationuri", "transportprofileuri"},
-    "mqtt": {"requesttopic"},
+    "mqtt": {"topicbase"},
 }
 
 
@@ -367,15 +367,17 @@ def validate_profile(profile):
             r"(?:\[[^\]]+\]|[^:\[\]]+)(?::[0-9]+)?", uri.netloc
         ):
             raise FederationError("invalid_package", "MQTT endpoint must be a broker authority")
-        topic = parameters.get("requesttopic")
-        if not isinstance(topic, str) or not topic or any(c in topic for c in "\x00+#"):
-            raise FederationError("invalid_package", "Invalid MQTT request topic")
+        topic = parameters.get("topicbase")
+        if not isinstance(topic, str) or any(c in topic for c in "\x00+#") or any(
+            level in ("", ".", "..") for level in topic.split("/")
+        ):
+            raise FederationError("invalid_package", "Invalid MQTT topic base")
         try:
-            length = len(topic.encode("utf-8"))
+            length = len((topic + "/read/").encode("utf-8"))
         except UnicodeError as error:
-            raise FederationError("invalid_package", "Invalid MQTT request topic") from error
+            raise FederationError("invalid_package", "Invalid MQTT topic base") from error
         if length > 65535:
-            raise FederationError("invalid_package", "Invalid MQTT request topic")
+            raise FederationError("invalid_package", "Invalid MQTT topic base")
 
 
 def select_profile(entry, supported, *, binding=None):

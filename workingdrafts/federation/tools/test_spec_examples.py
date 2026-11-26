@@ -9,7 +9,6 @@ from unittest.mock import Mock
 from uuid import RFC_4122, UUID
 
 import pytest
-from jsonschema import Draft202012Validator
 
 from workingdrafts.federation.tools.federation_examples import (
     FederationError, select_label, select_profile, select_version, validate_profile,
@@ -24,7 +23,7 @@ def test_published_mqtt_example_selects_and_returns_exact_version_bytes():
     federation = Path(__file__).resolve().parents[1]
     draft = (federation.parent / "bindings" / "mqtt.md").read_text(encoding="utf-8")
     pattern = r"^```json\n(.*?)\n```$"
-    intro, examples = draft.split("\n## Short Read Examples\n", 1)
+    intro, examples = draft.split("\n## Read Examples\n", 1)
     profiles = (json.loads(body) for body in re.findall(pattern, intro, re.M | re.S))
     profile = next(snippet for snippet in profiles if "binding" in snippet)
     selected = select_profile({"federationprofiles": [profile]}, {"mqtt"})
@@ -33,7 +32,8 @@ def test_published_mqtt_example_selects_and_returns_exact_version_bytes():
     exchange = next(snippet for snippet in snippets if "request" in snippet)
     request, reply = exchange["request"], exchange["reply"]
 
-    assert request["topic"] == selected["parameters"]["requesttopic"]
+    base = selected["parameters"]["topicbase"]
+    assert request["topic"].startswith(base + "/read/")
     assert reply["topic"] == request["responsetopic"] != request["topic"]
     assert "responsetopic" not in reply
     correlation = bytes.fromhex(request["correlationdata"])
@@ -48,16 +48,19 @@ def test_published_mqtt_example_selects_and_returns_exact_version_bytes():
     assert request["userproperties"] == [["mrpc-version", "mrpc/1.0"]]
     assert reply["userproperties"] == [["mrpc-version", "mrpc/1.0"], ["mrpc-status", "200"]]
 
-    request_schema = json.loads((federation / "schemas" / "request.json").read_text(encoding="utf-8"))
-    Draft202012Validator(request_schema).validate(request["payload"])
-    target = validate_xid(request["payload"]["target"])
-    assert request["payload"]["operation"] == "document"
+    target = validate_xid(request["topic"][len(base + "/read"):])
+    assert request["payload"] == {"view": "document"}
     assert set(reply["payload"]) == {"result"}
     result = reply["payload"]["result"]
     assert result["origin"]["selectedxid"] == target
     assert result["origin"]["revision"] is None
-    assert base64.b64decode(result["value"]["base64"], validate=True) == b"v2\n"
-    errors = [snippet["error"]["code"] for snippet in snippets if set(snippet) == {"error"}]
+    assert result["value"]["metadata"]["xid"] == target
+    assert result["value"]["metadata"]["self"] == selected["endpoint"] + "/" + request["topic"]
+    assert base64.b64decode(result["value"]["document"]["base64"], validate=True) == b"v2\n"
+    errors = [
+        snippet["error"]["code"]
+        for snippet in snippets if isinstance(snippet, dict) and set(snippet) == {"error"}
+    ]
     assert sorted(errors) == ["limit_exceeded", "not_found"]
 
 

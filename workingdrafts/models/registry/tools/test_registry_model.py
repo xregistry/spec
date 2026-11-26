@@ -40,7 +40,7 @@ UA = {
 MQTT = {
     "binding": "mqtt",
     "endpoint": "mqtts://broker.example.test:8883",
-    "parameters": {"requesttopic": "registries/catalog/reads"},
+    "parameters": {"topicbase": "registries/catalog"},
 }
 EXTENSION = {
     "binding": "com.example.discovery",
@@ -236,14 +236,15 @@ def test_registry_resolvable_entry_requires_supported_valid_advertisement(
          "MQTT endpoint must be a broker authority"),
         ({"endpoint": "mqtts://user@broker.example.test"}, "policy_denied",
          "Embedded credentials prohibited"),
-        ({"parameters": {}}, "invalid_package", "Invalid MQTT request topic"),
-        ({"parameters": {"requesttopic": ""}}, "invalid_package", "Invalid MQTT request topic"),
-        ({"parameters": {"requesttopic": "read/+"}}, "invalid_package", "Invalid MQTT request topic"),
-        ({"parameters": {"requesttopic": "read/#"}}, "invalid_package", "Invalid MQTT request topic"),
-        ({"parameters": {"requesttopic": "read/\x00"}}, "invalid_package", "Invalid MQTT request topic"),
-        ({"parameters": {"requesttopic": "\u00e9" * 32768}}, "invalid_package",
-         "Invalid MQTT request topic"),
-        ({"parameters": {"requesttopic": "read", "extra": True}}, "unsupported_operation",
+        ({"parameters": {}}, "invalid_package", "Invalid MQTT topic base"),
+        ({"parameters": {"topicbase": ""}}, "invalid_package", "Invalid MQTT topic base"),
+        ({"parameters": {"topicbase": "read/+"}}, "invalid_package", "Invalid MQTT topic base"),
+        ({"parameters": {"topicbase": "read/#"}}, "invalid_package", "Invalid MQTT topic base"),
+        ({"parameters": {"topicbase": "read/\x00"}}, "invalid_package", "Invalid MQTT topic base"),
+        ({"parameters": {"topicbase": "read/../x"}}, "invalid_package", "Invalid MQTT topic base"),
+        ({"parameters": {"topicbase": "read//x"}}, "invalid_package", "Invalid MQTT topic base"),
+        ({"parameters": {"topicbase": "x" * 65530}}, "invalid_package", "Invalid MQTT topic base"),
+        ({"parameters": {"topicbase": "read", "extra": True}}, "unsupported_operation",
          "Unknown profile parameter"),
     ],
 )

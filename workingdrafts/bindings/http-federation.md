@@ -7,14 +7,16 @@
 <!-- words: sequencediagram -->
 <!-- words: powershell py pytest -->
 <!-- words: federationerror revalidates -->
+<!-- words: coreerror inspectstage inspecttarget nextoffset -->
 
 ## Abstract
 
 This specification defines how a federation resolver uses the existing
 [xRegistry HTTP binding](../../core/http.md) to perform
 [xRegistry Federation](../federation/spec.md) reads. It specifies catalog
-bootstrap, binding selection and capture requirements without introducing
-another HTTP API.
+bootstrap, binding selection and capture requirements without changing
+the Core HTTP API. The OPTIONAL [downstream deployment
+profile](#downstream-deployment) defines a separate HTTPS API.
 
 **Status:** Unreleased working draft, using xRegistry Core Version 1.0-rc4.
 Neither this document nor a catalog advertisement asserts compatibility
@@ -33,6 +35,7 @@ with an earlier release candidate.
 - [HTTP Validators and Partial Content](#http-validators-and-partial-content)
 - [Redirects and Authorization Boundaries](#redirects-and-authorization-boundaries)
 - [Live Capture and Errors](#live-capture-and-errors)
+- [Downstream Deployment](#downstream-deployment)
 - [Conformance and Offline Examples](#conformance-and-offline-examples)
   - [Concrete Read Sequences](#concrete-read-sequences)
   - [Running the Offline Checks](#running-the-offline-checks)
@@ -51,9 +54,9 @@ It also defines [`xref`](../../core/spec.md#cross-referencing-resources),
 The [HTTP binding](../../core/http.md#resource-metadata-vs-resource-document)
 defines methods, paths, `$details`, HTTP metadata headers, and the wire
 representation of flags. [HTTP Semantics][http] and [HTTP Caching][cache]
-define HTTP processing. This document's requirements apply to federation
-resolvers; they neither require servers to implement an OPTIONAL Core API
-nor redefine CRUD operations.
+define HTTP processing. This document's read requirements apply to
+federation resolvers. They neither require servers to implement an
+OPTIONAL Core API nor redefine CRUD operations.
 
 In the tables, `B` is the selected Registry root URL, `G` is
 `/<GROUPS>/<GID>`, `R` is `G/<RESOURCES>/<RID>`, and `V` is
@@ -524,6 +527,81 @@ a generic `404`, the resolver MUST NOT report an empty collection.
 
 Failure of a previously identified member during capture is also evidence of
 incomplete capture, not proof of a consistent deletion history.
+
+## Downstream Deployment
+
+The OPTIONAL `https-deploy/1` profile maps [Federation downstream
+deployment](../federation/spec.md#downstream-deployment) to HTTPS. The
+[shared operation data](../federation/spec.md#deployment-operation-data)
+and [conformance rules](../federation/spec.md#conformance) apply.
+
+The profile uses a configured HTTPS base URL outside Core entity CRUD.
+The base URL has no user information, query, or fragment. The sender
+MUST authenticate the service, use credentials scoped to the configured
+destination, and reject redirects. The receiver MUST authenticate each
+request. The sender MUST NOT configure automatic transport or intermediary
+retries for `commit`.
+
+The receiver MUST implement the following paths under the complete
+configured base path. `{stage}` is one path segment, and `{offset}` is a
+byte count. The sender MUST NOT interpret either field as another path.
+
+| Operation | Method and path | Request body |
+| --- | --- | --- |
+| `limits` | `GET /limits` | None. |
+| `inspectTarget` | `POST /inspect-target` | Argument object. |
+| `begin` | `POST /stages` | Argument object. |
+| `inspectStage` | `POST /inspect-stage` | Argument object. |
+| `append` | `POST /stages/{stage}/chunks?offset={offset}` | Raw bytes. |
+| `commit` | `POST /stages/{stage}/commit` | Argument object without `stage`. |
+| `abort` | `POST /stages/{stage}/abort` | Argument object without `stage`. |
+
+Control request bodies and operation replies use `application/json`.
+An `append` request MUST use `application/octet-stream` and MUST NOT
+apply a non-identity content coding. The receiver MUST enforce body
+bounds as it reads. A declared length alone does not establish that the
+sender supplied that many bytes.
+
+A successful reply has status `200`, or `201` when `commit` creates
+the destination Version. Its body is the corresponding success object.
+An operation error reply contains a JSON object with one `error` member
+carrying the [shared error data](../federation/spec.md#deployment-errors).
+The following table maps the error code to an HTTPS status. Operation
+responses MUST include `Cache-Control: no-store`. A Core `PUT` or a
+successful response outside this contract is not a deployment result.
+
+| Code | HTTPS status |
+| --- | --- |
+| `invalid_request` | `400 Bad Request` |
+| `policy_denied` | `401 Unauthorized` for missing or invalid authentication; otherwise `403 Forbidden` |
+| `not_found` | `404 Not Found` |
+| `stage_unavailable` | `404 Not Found` |
+| `stale_precondition`, `conflict`, `offset_mismatch` | `409 Conflict` |
+| `unsupported_operation` | `422 Unprocessable Content` |
+| `integrity_error`, `validation_error` | `422 Unprocessable Content` |
+| `limit_exceeded` | `413 Content Too Large` for size; `429 Too Many Requests` for quota |
+
+For example, the following exchange appends the first two bytes of a
+3-byte staged document. The request body is `ab`, without a newline.
+
+```text
+POST /deployment/v1/plant/stages/upload-2/chunks?offset=0 HTTP/1.1
+Host: receiver.example.test
+Content-Type: application/octet-stream
+Content-Length: 2
+
+ab
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+Cache-Control: no-store
+
+{"nextOffset":"2"}
+```
+
+The example omits authentication. A repeat with offset `0` returns
+`409 Conflict` with `{"error":{"code":"offset_mismatch","nextOffset":"2"}}`
+and does not append another `ab`.
 
 ## Conformance and Offline Examples
 

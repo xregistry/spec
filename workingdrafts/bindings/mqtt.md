@@ -1,16 +1,19 @@
 # xRegistry MQTT 5.0 RPC Binding
 
-<!-- words: djik mqtt mqtts mrpc requesttopic uuids xids memberorigins selectedxid -->
+<!-- words: djik mqtt mqtts mrpc topicbase uuids xids memberorigins selectedxid -->
 <!-- words: applicationerror correlationdata messageexpiryinterval payloadformatindicator puback qos responsetopic userproperties -->
-<!-- words: capabilitiesoffered contentlocation setdefaultversionid -->
+<!-- words: capabilitiesoffered contentlocation setdefaultversionid xregcorrelationid -->
+<!-- words: nextoffset ywi -->
 
 ## Abstract
 
 This binding defines remote procedure calls (RPC) for the xRegistry API
 using MQTT 5.0 PUBLISH properties and JSON payloads. It supports direct
 access to a Registry without a Federation catalog or an HTTP endpoint,
-and provides short read requests for
-[xRegistry Federation](../federation/spec.md).
+including native reads for [xRegistry Federation](../federation/spec.md).
+It also defines an OPTIONAL mapping for [Registry events](#registry-events).
+The OPTIONAL [downstream deployment profile](#downstream-deployment)
+defines a separate MQTT API.
 
 **Status:** Unreleased working draft using xRegistry Core Version 1.0-rc4.
 
@@ -21,18 +24,16 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 interpreted as described in [RFC 2119][rfc2119].
 
 The client sends the request; the serving Registry sends the reply. Each
-message uses one MQTT 5.0 PUBLISH packet and is subject to the
+RPC request or reply uses one MQTT 5.0 PUBLISH packet and is subject to the
 [packet and processing limits](#security-and-conformance). Only the
 Annex A `read` operation on a collection can request
-[pages](#a4-native-collection-pagination) as separate operations. The
-[short read forms](#short-read-requests), including those used by
-Federation, do not support continuation.
+[pages](#a4-native-collection-pagination) as separate operations.
 
 [MQTT 5.0][mqtt5] QoS 1 allows duplicate delivery; it does not guarantee
-that the Registry executes an operation only once. This binding does not
-define multi-packet transfer, session management, retries, duplicate
-handling, deadline calculation, or deployment agreements between the
-parties, such as credential provisioning.
+that the Registry executes an operation only once. The Registry RPC API
+does not define multi-packet transfer, session management, retries,
+duplicate handling, deadline calculation, or deployment agreements
+between the parties, such as credential provisioning.
 
 ## Advertisement
 
@@ -44,36 +45,36 @@ omitted, the client uses port 8883. The endpoint identifies the broker,
 not an xRegistry entity or a document retrieval URL. `mqtts` requires
 MQTT over TLS; see [Security and Conformance](#security-and-conformance).
 
-The `parameters` object MUST contain a `requesttopic` string. Its value
+The `parameters` object MUST contain a `topicbase` string. Its value
 MUST be a concrete MQTT Topic Name: nonempty, representable as an MQTT
-UTF-8 Encoded String, and containing neither `+` nor `#`. The client uses
-the string as supplied, without percent-decoding or treating it as a Topic
-Filter or XID. The broker and request topic select one exposed Registry
-view: the entities and collections made available at that broker and
-topic, interpreted under that view's model. The native request's
+UTF-8 Encoded String, and containing neither `+` nor `#`. Its levels
+MUST NOT be empty or equal to `.` or `..`. The base and `/read/` suffix
+combined MUST fit in an MQTT UTF-8 Encoded String. The client uses the
+base as supplied, without percent-decoding or treating it as a Topic
+Filter or XID. The broker and base select one exposed Registry view:
+the entities and collections made available under that base and
+interpreted under that view's model. The request's
 [`view` member](#a1-native-requests-and-targets) instead selects
 metadata or a domain document within that Registry.
 
 The resolver MUST validate common advertisement fields and apply caller
 policy as part of [catalog selection][selection]. After selecting an
 advertisement and before contacting the broker, the resolver MUST check
-the parameter names. A key other than `requesttopic` produces
+the parameter names. A key other than `topicbase` produces
 `unsupported_operation`. If there are no unknown parameter names, a
-missing or invalid `requesttopic` produces `invalid_package` under the
+missing or invalid `topicbase` produces `invalid_package` under the
 [Registry catalog error rules][catalog-errors]. These are selection
 failures, not PUBLISH replies.
 
-A client can also obtain the broker URI and request topic through local
-configuration. Both the [short reads](#short-read-requests) and the
-[native API](#annex-a-correspondence-to-the-xregistry-http-binding-normative)
-work without catalog discovery.
+A client can also obtain the broker URI and topic base through local
+configuration. The native API works without catalog discovery.
 
 ```json
 {
   "binding": "mqtt",
   "endpoint": "mqtts://broker.example.com",
   "parameters": {
-    "requesttopic": "registries/supplier/reads"
+    "topicbase": "registries/supplier"
   }
 }
 ```
@@ -102,30 +103,23 @@ the request topic, and the client needs one on the Response Topic.
 | Message Expiry Interval | REQUIRED. The requested lifetime in whole seconds, from 1 through 4294967295. | REQUIRED. The reply lifetime in whole seconds, in the same range. |
 | Content Type | REQUIRED: `application/json`. | REQUIRED for `200`: `application/json`. MUST be absent for every other status. |
 | Payload Format Indicator | REQUIRED: `1` for UTF-8 character data. | REQUIRED for `200`: `1`. MUST be absent for every other status. |
-| User Property `mrpc-version` | REQUIRED, exactly once, with value `mrpc/1.0`. | REQUIRED, exactly once, with value `mrpc/1.0`. |
-| User Property `mrpc-status` | MUST be absent. | Exactly one, with one of the values below. |
+| User Property `mrpc-version` | REQUIRED with value `mrpc/1.0` after alias handling. | REQUIRED with value `mrpc/1.0` after alias handling. |
+| User Property `mrpc-status` | MUST be absent. | REQUIRED after alias handling, with one of the values below. |
 
 Replies use three decimal digits for `mrpc-status`:
 `200`, `204`, `400`, `408`, `415`, `500`, `503`, or `505`. Only `200`
-carries a nonempty payload. The others have an empty payload and are not
-xRegistry outcomes. In particular, `204` does not report a successful
-xRegistry operation. This binding does not specify when to send it;
-clients cannot rely on receiving it.
-This binding does not assign envelope failure conditions to individual
-non-`200` statuses. Such a status alone does not identify a specific
-failure cause.
+carries a nonempty payload. Other statuses, including `204`, carry an
+empty payload and do not establish an xRegistry outcome. This binding
+does not specify when to send `204` or assign envelope failure
+conditions to individual non-`200` statuses.
 
 The serving Registry MUST validate the request's Correlation Data length,
 UUID version and variant. It does not have to verify freshness or detect
 replay. Correlation Data is not a request deduplication key.
 
-The sender MUST include a positive Message Expiry Interval in both
-request and reply publications. The receiver MUST validate the property
-as delivered by MQTT, not reconstruct the lifetime as published. An
-absent interval or a delivered interval of zero makes the envelope
-invalid. A Registry handles such a request under the invalid-envelope
-rule below; a client MUST NOT interpret such a reply as an xRegistry
-outcome.
+The receiver MUST validate the Message Expiry Interval as delivered by
+MQTT, not reconstruct the lifetime as published. An absent interval or
+a delivered interval of zero makes the envelope invalid.
 
 Under [MQTT 5.0][mqtt5] §3.3.2.3.3, the broker decrements Message Expiry
 Interval when forwarding a PUBLISH and discards a pending delivery if
@@ -151,21 +145,32 @@ including when it supplies an invalid outcome. The value MUST be the
 string `false` for other causes, including
 serialization or reply construction failure at the binding layer after
 application processing supplies a valid outcome. That property MUST be
-absent from all other replies. Requests, `204` replies, and `200`
-replies (including those carrying an xRegistry
-`error`) MUST NOT carry envelope diagnostic properties. Diagnostics do
-not replace `mrpc-status`.
+absent from all other replies. Requests MUST NOT carry envelope
+diagnostic properties.
+
+The following case-sensitive User Property names are aliases:
+
+| xRegistry name | Alias | Alias value |
+| --- | --- | --- |
+| `mrpc-version` | `__protVer` | `1.0`, equivalent to `mrpc/1.0` under `mrpc-version`. |
+| `mrpc-status` | `__stat` | Same as `mrpc-status`. |
+| `mrpc-status-message` | `__stMsg` | Same as `mrpc-status-message`. |
+| `mrpc-property-name` | `__propName` | Same as `mrpc-property-name`. |
+| `mrpc-property-value` | `__propVal` | Same as `mrpc-property-value`. |
+| `mrpc-application-error` | `__apErr` | Same as `mrpc-application-error`. |
+
+A sender MAY use either name or both names. A receiver MUST reject a
+repeated spelling or an invalid value for either spelling. When both
+names appear once, the receiver MUST reject conflicting values and
+otherwise treat them as one logical property. Version equivalence is
+defined in the table; for the other pairs the values MUST be identical.
+The same presence, direction, status, and diagnostic rules apply to
+either spelling.
 
 After checking MQTT encoding and size limits, implementations MUST
-ignore MQTT User Properties outside the `mrpc-` prefix, whether supplied
-by the publisher or the broker. These properties do not affect envelope
-conformance or supply xRegistry fields. The `mrpc-` prefix is reserved
-for envelope properties. Implementations MUST disregard unrecognized
-properties under that prefix after the same checks. A publication with
-`mrpc-chunk` is outside this binding. The receiver MUST discard it
-without processing or replying; it is not eligible for the
-invalid-envelope reply described below. A client MUST NOT derive an
-xRegistry outcome from such a publication.
+ignore unrecognized User Properties, whether supplied by the publisher
+or the broker. Only the names defined by this binding have envelope
+semantics; the `mrpc-` prefix is reserved.
 
 The client MUST NOT interpret a reply as an xRegistry outcome unless
 the actual Topic Name matches the request's Response Topic, the
@@ -207,134 +212,59 @@ After acceptance, the Registry MUST NOT send an empty envelope error
 as a fallback. It does not wait for `PUBACK` to close the fallback;
 a later negative `PUBACK` or delivery failure does not reopen it.
 
-## Request Validation
+## Request Topics and Validation
+
+The client MUST publish to `<topicbase>/<action><target>`. The six
+case-sensitive actions are `read`, `replace`, `update`, `upsert`,
+`delete`, and `options`. The target begins with `/` and is `/` for the
+Registry root, a Registry-relative [entity XID][xid], or a
+[typed collection path][collections]. For example, the root read topic
+for `registries/supplier` is `registries/supplier/read/`. A collection
+read can use `registries/supplier/read/documents/main/assets`.
+
+The client MUST append the target as written, without percent-encoding
+or normalizing it at the MQTT layer. The Registry matches the configured
+base plus `/` exactly, takes the next level as the action, and takes the
+remaining suffix, including its initial `/`, as the target. It MUST NOT
+percent-decode or normalize the topic. The target MUST NOT contain empty
+levels other than the root, `.` or `..` levels, a query, fragment, or
+HTTP suffix. Resolve names against the selected model and use Core's
+[case-sensitive ID lookup][ids]. The full topic MUST satisfy the MQTT
+Topic Name length and encoding rules. A Registry MUST NOT dispatch a
+request to more than one view; deployments sharing a broker MUST avoid
+overlapping request routes.
 
 In request and reply payloads, the receiver MUST reject duplicate member
-names in JSON objects defined by this binding before collapsing object
-members. This applies to the top-level objects and to nested objects
-such as `selector`, `flags`, `page`, the document wrappers, `result`,
-`error`, and origin objects. It does not redefine Core processing of
-entity metadata or Core mutation objects, and does not apply to opaque
-domain document bytes. For a request, apply the malformed-request
-rules below. For a reply, follow the
-[invalid-reply rule](#reply-payload).
+names in binding-defined JSON objects before collapsing object members.
+This includes `flags`, `page`, document wrappers, `result`, `error`,
+and origin objects. It does not redefine Core processing of entity
+metadata or mutation objects, and does not apply to opaque domain bytes.
 
-The MQTT envelope does not supply an operation name or target. The
-serving Registry MUST validate the envelope before processing the
-xRegistry payload. For a valid envelope and an authorized reply route,
-apply these checks in order. Report the named xRegistry errors in a
-conforming `200` [error reply](#reply-payload) if one can be sent.
+After envelope validation and reply-route authorization, the Registry
+MUST apply these checks in order to requests delivered under its base:
 
-1. The payload MUST be one UTF-8 JSON object with exactly one
-   `operation` member, whose value is a nonempty string. If either
-   check fails, return Core `bad_request`.
-2. The object MUST have a string `target` and no duplicate member
-   names. If either check fails, return `invalid_package` only if
-   the unique `operation` value is a known short read name; otherwise
-   return Core `bad_request`.
-3. If the operation name is not defined by either request form, return
-   `unsupported_operation`. For a known operation, apply the
-   family-specific checks in [Short Read Requests](#short-read-requests)
-   or [Section A.1](#a1-native-requests-and-targets).
-   A duplicate in a nested object defined by the request form is a
-   malformed request under that form's rules.
+1. The topic MUST have a nonempty action level. The payload MUST be one
+   UTF-8 JSON object, with no duplicate top-level names and no `operation`
+   or `target` member. Use `{}` when no arguments apply. A failure at this
+   step produces `bad_request`.
+2. An unrecognized action produces `unsupported_operation`. A Registry
+   needs a matching subscription to report this outcome for a request
+   under its base. MQTT does not guarantee delivery to the Registry.
+3. For a known action, apply [Section A.1](#a1-native-requests-and-targets).
+   A missing target or a malformed target path produces `malformed_xid`
+   at that section's target validation stage.
 
-Both forms address the exposed Registry by Registry-relative
-[entity XID][xid] or [typed collection path][collections]. For example,
-`/documents` identifies a Group collection, `/documents/main/assets` a
-Resource collection, and `/documents/main/assets/item/versions` a
-Version collection. Resolve names against the selected model and use
-Core's [case-sensitive ID lookup][ids]. The `target` string is not a
-broker or retrieval URI; it does not contain an HTTP method, `$details`,
-query, or fragment.
-
-<a id="read-requests"></a>
-
-## Short Read Requests
-
-This section defines only the short read forms, including those used by
-Federation. The `operation` name identifies the form: the table below
-lists the short read names, and
-[Annex A](#annex-a-correspondence-to-the-xregistry-http-binding-normative)
-lists the distinct native operation names.
-
-The request payload MUST be a UTF-8 JSON object with `operation` and
-`target`, both strings. The only other member is `selector`, which MAY
-appear with `collection` only. If present, `selector` MUST be an object
-with exactly `label` and `value`, both strings. `label` is the literal
-label key and `value` is the literal comparison value under
-[Federation Selectors][selectors].
-
-| `operation` | `target` | `result.value` on success |
-| --- | --- | --- |
-| `model` | `/` | An object containing `model`, the interpreted Core model, and `modelsource` if the serving Registry makes it available. |
-| `capabilities` | `/` | The enabled Core capabilities object for the exposed view, not offered capabilities. |
-| `collection` | A typed Group, Resource, or Version collection path, such as `/documents/main/assets` for a Resource collection. | The complete Core collection object, keyed by member ID. With a selector, the object contains the unique visible matching member. |
-| `entity` | A Registry, Group, Resource, Meta, or Version XID. | Core metadata for that entity. |
-| `document` | A Resource or Version XID. | For a document-bearing type, an object with only `base64` for the [document bytes](#document-bytes) and, if available, a `contenttype` string. For a metadata-only type, the same Core metadata as an `entity` read at that target. |
-
-For a known short read, the serving Registry MUST return `invalid_package`
-for malformed request members, malformed target syntax, or a target of
-a kind not allowed for that operation. Check target syntax and kind
-before looking up the entity. For example, a Group XID is not a valid
-target for `document`. A missing target of the correct kind produces
-`not_found`.
-
-Core determines default Version selection, exact Version lookup and
-alias handling. A request for an explicit Version MUST NOT select the
-default or any other Version. If the target's Resource type has
-[`hasdocument: false`][hasdocument], the serving Registry MUST return the
-same Core metadata for `document` as for `entity` at that target. The
-Resource type determines the result shape, not the presence of a `base64`
-member. A missing or unreadable document on a document-bearing type does
-not cause a metadata result.
-
-Before accepting a successful short `document` result, the client MUST
-establish that its model applies to the exposed Registry view and the
-reply, using one of these means:
-
-- A deployment guarantee that covers the selected view and the reply.
-  The guarantee can cover an authoritative configured model or a model
-  response.
-- An independently verified shared [immutable snapshot pin][snapshots]
-  that scopes the model and reply to the same exposed Registry view,
-  source Registry, and binding.
-
-Otherwise, the client MUST NOT accept the result. A model read from
-the same broker and topic, even immediately before the document read,
-is not sufficient on its own. Reply member names, Correlation Data,
-Message Expiry Interval, a Core Version ID, or a revision value outside
-the verified context do not establish which model applies.
-
-When these short forms are used for Federation, the serving Registry
-MUST apply [Federation read semantics][reads], including the
-[resolution-owner boundary][resolution]: a consumer reads a
-producer-resolved view without repeating its resolution; with
-consumer-side resolution, the consumer applies its composition policy
-outside the single-source read. This is the role of the Registry in
-Federation, not a separate MQTT request type. Direct short reads work
-against the addressed Registry and do not initiate catalog traversal.
-
-Without a selector, a complete read MAY return an empty collection.
-Neither an incomplete read nor an inaccessible source is an empty
-collection. A selector with no match produces `not_found`; multiple
-distinct visible matches produce `ambiguous`. If a read cannot produce its
-complete result within the binding's configured limits, it MUST fail, not
-return a partial success or a continuation token. See the `limit_exceeded`
-rule in [Security and Conformance](#security-and-conformance).
+When possible, the Registry MUST report these errors in a conforming
+`200` [error reply](#reply-payload). A request outside the configured
+base is not addressed to this Registry.
 
 <a id="read-replies"></a>
 
 ## Reply Payload
 
-These payload rules apply to both short and native operations. To
-treat a `200` reply as an xRegistry outcome, the client MUST validate
-its payload against these rules. For a `result`, the client MUST also
-apply all applicable binding-defined result shape rules in
-[Short Read Requests](#short-read-requests) and
-[Short Read Results](#short-read-results) for short reads, or throughout
-[Annex A](#annex-a-correspondence-to-the-xregistry-http-binding-normative)
-for native operations.
+To treat a `200` reply as an xRegistry outcome, the client MUST validate
+its payload against these rules and the applicable result shape rules
+in [Annex A](#annex-a-correspondence-to-the-xregistry-http-binding-normative).
 
 The client MUST check member presence, absence, and constraints when
 it can determine which rules apply from the request, the reply, and
@@ -343,19 +273,16 @@ without `page` for an explicitly paginated native collection read, or
 without `order` for a paginated or explicitly sorted native collection
 read, does not establish an xRegistry outcome. The client does not
 have to establish unobservable facts unless a specific rule requires
-evidence, as for the applicable model on a short `document` result.
-Apply the rules on duplicate members separately from the allowed
-member names.
+evidence. Duplicate-member checks apply even to allowed member names.
 
 The client MUST reject unlisted members in binding-defined reply
-objects. These include `result`, origin and `catalog` objects, the
-short `model` and document-bytes wrappers, native `options` and document
-wrappers, `page`, and its link objects. Use the members specified for the
-operation and object; `error` also permits the extensions described
-below. This rule does not restrict Core-defined objects or metadata
-extensions, member IDs used as map keys, catalog
-advertisement fields governed by the Registry catalog, or opaque
-document bytes. An object in a map still follows its own shape rules.
+objects, including `result`, origin and `catalog` objects, `options`
+results, document wrappers, `page`, and its link objects. The `error`
+object also permits the extensions described below. This rule does
+not restrict Core-defined objects or metadata extensions, member IDs
+used as map keys, catalog advertisement fields governed by the Registry
+catalog, or opaque document bytes. An object in a map still follows
+its own shape rules.
 
 A `200` reply MUST contain one UTF-8 JSON object with exactly one member,
 `result` or `error`, whose value is an object. `error` MUST contain `code`,
@@ -381,23 +308,27 @@ A non-`200` reply, invalid envelope, invalid `200` payload, or absent
 reply does not establish an xRegistry outcome, such as a Federation
 `not_found`.
 
-## Short Read Results
+## Result Provenance
 
-For a short read, `result` MUST contain `value` with the shape in the
-request operation table and a provenance `origin` object as described
-below. For `collection`, it MUST also contain `memberorigins`, an
-object with one origin per returned
-member, keyed by the same member IDs as `value`. The collection's own
-`origin` describes the exposed collection view; it does not replace
-the origin of each member. `memberorigins` MUST be absent for other operations.
+An ordinary native result MAY include `origin`. A collection result MAY
+also include `memberorigins`. If supplied, `memberorigins` MUST contain
+exactly the keys in the returned collection `value`. For a page or
+collection mutation, this is the returned subset, not the entire
+collection. `memberorigins` MUST be absent from non-collection results.
+
+A producer-resolved Federation view MUST provide `origin` for each
+successful read result and `memberorigins` for collection results. These
+requirements apply to each page when a collection is paginated. The
+collection's origin identifies the exposed collection view; it does not
+replace the origin of each member.
 
 An origin object contains `source`, `selectedxid`, and `revision`.
 `source` is a nonempty opaque label for the selected Registry access
 context, scoped to the serving Registry's origin reporting. It is not
 a retrieval URI, a transferable or persistent identifier, or a trust
 assertion. `selectedxid` is the selected entity XID or typed collection
-path in that context. If the result carries document bytes, it
-identifies the exact Version that supplied them.
+path in that context. For a domain-document result, it identifies the
+exact Version that supplied the bytes or locator.
 `revision` is a string identifying the
 [pinned immutable snapshot][snapshots] of the source Registry, or `null`
 when the source has no such pin. Compare revision identifiers only after
@@ -419,56 +350,26 @@ the serving Registry through its own catalog retains that selection
 separately. Origin data is not part of a Core entity's metadata. MQTT
 correlation and expiry do not establish an immutable snapshot.
 
-For short and native results, the client MUST validate the origin
-fields it can check and reject a reply if known facts about the serving
-Registry's catalog selection contradict the presence, absence, or
-contents of `catalog`. The client does not have to prove catalog use
-it cannot observe. Opaque `source` labels do not establish identity
-or trust.
-
-For both direct and Federation short reads, metadata in `value` MUST
-use [Core document view][doc] as specialized by
-[Federation representations][representations]. `value` is the document
-root for any document-local JSON Pointer; in a
-collection it is the entire member map, not an individual member. For
-example, `#/item` locates the member keyed by `item` in that map. The
-reply envelope and origin objects are outside that document. If the
-serving Registry cannot supply a navigation URL that Core requires, it
-MUST fail with `unsupported_operation` rather than invent a URL or return
-a pointer to an omitted target. See [Navigation URIs](#navigation-uris).
-
-A short `document` reply MUST NOT substitute an external locator for the
-bytes. An absent target produces `not_found`. For an existing Version
-of a document-bearing type, the serving Registry MUST report
-`policy_denied` if policy denies retrieval. If policy permits retrieval
-but the bytes are unobtainable, it MUST report `unavailable` unless a
-more specific Core or Federation integrity or consistency error applies.
-Failure to retrieve bytes does not establish that the Version is missing.
-For a metadata-only target, the reply carries the metadata object
-directly in `value`, not a Base64 encoding of that object or an empty
-document.
+The client MUST validate the origin fields it can check and reject a
+reply if known facts about the serving Registry's catalog selection
+contradict the presence, absence, or contents of `catalog`. The client
+does not have to prove catalog use it cannot observe. Opaque `source`
+labels do not establish identity or trust.
 
 ## Document Bytes
 
-In short read replies and native requests and replies, encode document
-bytes in `base64` as standard [RFC 4648][base64] Base64, with padding
-where applicable and no line breaks. `""` denotes zero bytes, not a
-missing document.
+In a `document` object, `base64` carries the exact bytes in standard
+[RFC 4648][base64] Base64, with padding where applicable and no line
+breaks. `""` denotes zero bytes, not a missing document.
 
-If the media type is available to the serving Registry, it MUST include
-`contenttype` in a short document-bytes result. A client MUST NOT reject
-such a result solely because `contenttype` is absent. In native
-`document` objects, `contenttype` is OPTIONAL.
-
-When present in either form, `contenttype` MUST be a JSON string with
-the media-type semantics of [Core `contenttype`][media-type]. `null` and
-numbers are not valid. A malformed native request produces
-`bad_request`; a reply with a malformed `contenttype` does not establish
-an xRegistry outcome.
+When present, `contenttype` MUST be a JSON string with the media-type
+semantics of [Core `contenttype`][media-type]. `null` and numbers are
+not valid. A malformed request produces `bad_request`; a reply with a
+malformed `contenttype` does not establish an xRegistry outcome.
 
 <a id="example"></a>
 
-## Short Read Examples
+## Read Examples
 
 The following JSON is notation for two MQTT publications, not an
 additional wire format. `correlationdata` is shown as hexadecimal octets,
@@ -476,12 +377,13 @@ additional wire format. `correlationdata` is shown as hexadecimal octets,
 `payload` are UTF-8 JSON payloads. The example uses the Registry advertised
 above. Assume the client has an authoritative configured model and the
 deployment guarantees that it applies to the selected view and this
-reply. The example does not assume an immutable revision.
+reply. The example does not assume an immutable revision. The reply omits
+other Core metadata attributes for brevity.
 
 ```json
 {
   "request": {
-    "topic": "registries/supplier/reads",
+    "topic": "registries/supplier/read/documents/main/assets/item/versions/v2",
     "qos": 1,
     "retain": 0,
     "responsetopic": "example/replies/client-7",
@@ -491,8 +393,7 @@ reply. The example does not assume an immutable revision.
     "payloadformatindicator": 1,
     "userproperties": [["mrpc-version", "mrpc/1.0"]],
     "payload": {
-      "operation": "document",
-      "target": "/documents/main/assets/item/versions/v2"
+      "view": "document"
     }
   },
   "reply": {
@@ -506,7 +407,20 @@ reply. The example does not assume an immutable revision.
     "userproperties": [["mrpc-version", "mrpc/1.0"], ["mrpc-status", "200"]],
     "payload": {
       "result": {
-        "value": {"base64": "djIK", "contenttype": "text/plain"},
+        "value": {
+          "document": {"base64": "djIK", "contenttype": "text/plain"},
+          "metadata": {
+            "assetid": "item",
+            "versionid": "v2",
+            "xid": "/documents/main/assets/item/versions/v2",
+            "self": "mqtts://broker.example.com/registries/supplier/read/documents/main/assets/item/versions/v2",
+            "epoch": 3,
+            "createdat": "2026-01-01T00:00:00Z",
+            "modifiedat": "2026-01-01T00:00:00Z",
+            "ancestorid": "v1",
+            "isdefault": true
+          }
+        },
         "origin": {
           "source": "supplier",
           "selectedxid": "/documents/main/assets/item/versions/v2",
@@ -590,33 +504,126 @@ remains committed. Without a valid reply, the client cannot determine
 from the exchange whether the mutation took effect.
 
 After any unsuccessful read, the resolver MUST NOT try another
-advertisement for the same catalog entry in that read. This includes a
-confirmed `not_found` as well as an MQTT failure or no confirmed
-xRegistry outcome. Under
+advertisement for the same catalog entry in that read. Under
 [Federation Discovery and Binding Selection][binding-selection], a
 genuine Resource miss can advance to the next source entry, not to
-another advertisement for the same entry. The caller MAY initiate a
-separate read with an explicitly different advertisement.
+another advertisement for the same entry.
 
-Conformance to this draft covers the defined properties, payloads, and
-Core operation behavior. A conforming serving Registry MUST implement:
+A conforming serving Registry MUST implement `read` at `/` without
+`surface`, with `surface: "model"`, and with `surface: "capabilities"`.
+A Registry serving a Federation view MUST also support the native read
+mappings needed for that view under [Federation reads][federation-mqtt].
 
-- Native `read` at `/` without `surface`, at `/` with `surface: "model"`,
-  and at `/` with `surface: "capabilities"`.
-- All five short read forms: `model`, `capabilities`, `collection`,
-  `entity`, and `document`.
+The three root reads do not require Federation. Supporting a mapping
+does not grant access or guarantee success for every view, model,
+target, or packet size. Other native operations and features retain
+Core's optionality and applicable requirements.
 
-These mappings do not require Federation. Implementing them does not
-grant access or guarantee success for every view, model, target, or
-packet size. Other native operations and features retain Core's
-optionality and applicable requirements. `options` is OPTIONAL.
-This binding does not grant write access to a read-only Registry or
-imply support for chunking or another RPC protocol.
+## Registry Events
+
+A Registry MAY publish [xRegistry change events][events] on MQTT 5.0
+using the structured or binary mode of the
+[CloudEvents MQTT binding][cloudevents-mqtt]. Publishers and subscribers
+use configured event topics and access policy. Event topics MUST be
+separate from RPC request and response topics. Events do not use the RPC
+envelope, and the catalog advertisement does not advertise event topics.
+
+If the event's Registry root uses this binding, `source` is its MQTT
+root read URI and `subject` is the entity's XID. Replacing the root `/`
+at the end of `source` with the `subject` path, escaped according to
+[Navigation URIs](#navigation-uris), yields the entity's read URI.
+
+If events from an MQTT RPC interaction include `xregcorrelationid`, its
+`200` reply MUST carry the same value in exactly one `xregcorrelationid`
+User Property. Otherwise, that property MUST be absent from RPC
+publications. MQTT Correlation Data still matches the request to its
+reply; it does not identify the Registry interaction in an event.
+
+## Downstream Deployment
+
+The OPTIONAL `xreg-deploy/1` profile maps [Federation downstream
+deployment](../federation/spec.md#downstream-deployment) to [MQTT 5.0][mqtt5]
+using a configured TLS broker. The
+[shared operation data](../federation/spec.md#deployment-operation-data)
+and [conformance rules](../federation/spec.md#conformance) apply. The
+profile does not extend `mrpc/1.0`. The sender and receiver MUST verify
+the broker's identity and use separate broker credentials.
+
+The administrator MUST configure nonempty, distinct, concrete request
+and reply Topic Names for each grant generation. Only the sender
+principal can publish to the request topic and subscribe to the reply
+topic. Only the receiver can subscribe to the request topic and publish
+to the reply topic. The broker MUST enforce those restrictions, including
+against wildcard subscriptions or routing that would bypass them. The
+receiver maps the exact delivered request topic to the grant. A payload,
+client ID, or MQTT property supplied by the sender MUST NOT assert a
+principal or grant. Revocation MUST disable the receiver's mapping.
+Old topic pairs MUST NOT be assigned to a new grant generation.
+
+Each request and reply MUST fit in one PUBLISH packet. Both use QoS 1,
+`RETAIN` set to `0`, `Content Type` set to `application/json`, `Payload
+Format Indicator` set to `1`, and a positive `Message Expiry Interval`.
+Both subscriptions MUST set Retain Handling to `2` and Retain As Published
+to `1`. The broker configuration MUST prevent storage of retained
+deployment messages. A receiver MUST NOT act on a retained message.
+
+A request MUST include the configured reply topic as `Response Topic` and
+fresh, unpredictable `Correlation Data` of 16 bytes. The receiver MUST
+reject a request with another Response Topic and MUST NOT publish to it.
+Replies MUST omit `Response Topic`, carry the same `Correlation Data`,
+and have a positive expiry no greater than the request's remaining expiry.
+The receiver sends a reply only through the configured reply topic while
+authorized. The sender MUST check the topic, profile, correlation, and
+properties before interpreting the result. Delivery acknowledgments and
+correlation are not operation results or authorization.
+
+The UTF-8 JSON request contains exactly `profile` with value
+`"xreg-deploy/1"`, `operation`, and `arguments`. The reply contains the
+same `profile` and exactly one of `result` or `error`. `result` is the
+success record and `error` is the
+[shared error data](../federation/spec.md#deployment-errors), with its
+error code returned directly.
+An `append` carries `data` as [RFC4648][base64] standard Base64. The
+encoding MUST include applicable padding and MUST NOT contain whitespace.
+The decoder MUST reject noncanonical encodings. Applicable control, chunk,
+and maximum packet sizes MUST account for JSON, PUBLISH overhead, and
+Base64 expansion. A document can span `append` requests, but an individual
+control message cannot span packets.
+
+The [MQTT deployment request schema](../federation/schemas/deployment-request.json)
+validates JSON shape. The binding and model govern size, byte decoding,
+XID, authorization, and commit behavior.
+
+The following example appends two bytes at offset zero. The payloads omit
+PUBLISH properties for brevity.
+
+```json
+{
+  "profile": "xreg-deploy/1",
+  "operation": "append",
+  "arguments": {"stage": "upload-2", "offset": "0", "data": "YWI="}
+}
+```
+
+```json
+{
+  "profile": "xreg-deploy/1",
+  "result": {"nextOffset": "2"}
+}
+```
+
+A repeated MQTT delivery can return `offset_mismatch` without changing
+the stage. For commit, a duplicate can return `stage_unavailable` even
+when the first execution committed. That reply does not supersede a
+usable success for the same exchange. If no usable success is available,
+the sender follows [Recovery and
+Synchronization](../federation/spec.md#recovery-and-synchronization).
+Message expiry and MQTT delivery order do not enforce commit atomicity.
 
 ## Annex A: Correspondence to the xRegistry HTTP Binding (normative)
 
 This annex defines the native Registry API over MQTT. The client addresses
-the Registry selected by the broker and request topic, whether or not that
+the Registry selected by the broker and topic base, whether or not that
 Registry uses Federation. For every operation it implements, including
 the [minimum native reads](#security-and-conformance), the serving
 Registry MUST apply the [Core processing rules][core] and preserve the
@@ -631,15 +638,11 @@ the common [reply payload](#reply-payload).
 
 ### A.1. Native Requests and Targets
 
-A native request follows the common
-[request validation rules](#request-validation). Its only members
-besides `operation` and `target` are `surface`, `view`, `flags`, `body`,
-and `page`, as defined below. The native operation names are
-`read`, `replace`, `update`, `process`, `delete`, and `options`. They are
-distinct from the forms in [Short Read Requests](#short-read-requests).
+The request topic supplies the action and target under
+[Request Topics and Validation](#request-topics-and-validation). The payload
+object permits only `surface`, `view`, `flags`, `body`, and `page`, as
+defined below.
 
-- `target` is `/`, an entity XID, or a typed collection path, as defined
-  under [Request Validation](#request-validation).
 - `surface` selects a Registry service instead of an entity at `/`: use
   `capabilities`, `capabilitiesoffered`, `model`, `modelsource`, `export`,
   or `discovery`. It MUST be absent for other targets.
@@ -661,8 +664,7 @@ distinct from the forms in [Short Read Requests](#short-read-requests).
   does not take input, `body` MUST be absent.
 - `page` applies only to native collection reads. See
   [Section A.4](#a4-native-collection-pagination) for its shape and
-  applicability errors. The `selector` member is not part of a native
-  request.
+  applicability errors.
 
 The table gives the allowed operation and target combinations. HTTP
 paths are relative to the HTTP Registry root. `G` is
@@ -699,28 +701,28 @@ If independent checks fail in the same validation stage, the serving
 Registry MAY report any applicable error from that stage. A
 later-stage error MUST NOT override an earlier-stage error.
 
-| HTTP API | MQTT `operation` | MQTT `target` and qualifiers |
+| HTTP API | MQTT action | Target and qualifiers |
 | --- | --- | --- |
 | `GET /` | `read` | `/` |
-| `PUT /`, `PATCH /`, `POST /` | `replace`, `update`, `process`, respectively | `/` |
+| `PUT /`, `PATCH /`, `POST /` | `replace`, `update`, `upsert`, respectively | `/` |
 | `GET /export` or its Core export flags on `GET /` | `read` | `/` with `surface: "export"`, or a root read with the export flags and no `surface` |
 | `GET /capabilities`, `PUT /capabilities`, `PATCH /capabilities` | `read`, `replace`, `update`, respectively | `/`, `surface: "capabilities"` |
 | `GET /capabilitiesoffered` | `read` | `/`, `surface: "capabilitiesoffered"` |
 | `GET /model` | `read` | `/`, `surface: "model"` |
 | `GET /modelsource`, `PUT /modelsource` | `read`, `replace`, respectively | `/`, `surface: "modelsource"` |
-| `GET`, `PATCH`, `POST`, `DELETE` on `/<GROUPS>`, `G/<RESOURCES>`, or `R/versions` | `read`, `update`, `process`, `delete`, respectively | The typed collection path |
-| `GET G`, `PUT G`, `PATCH G`, `POST G`, `DELETE G` | `read`, `replace`, `update`, `process`, `delete`, respectively | `G`; `process` addresses its child Resource collections |
+| `GET`, `PATCH`, `POST`, `DELETE` on `/<GROUPS>`, `G/<RESOURCES>`, or `R/versions` | `read`, `update`, `upsert`, `delete`, respectively | The typed collection path |
+| `GET G`, `PUT G`, `PATCH G`, `POST G`, `DELETE G` | `read`, `replace`, `update`, `upsert`, `delete`, respectively | `G`; `upsert` addresses its child Resource collections |
 | `GET`, `PUT`, `PATCH` on `R$details` or `V$details` (also bare `PUT` or `PATCH` for a metadata-only type) | `read`, `replace`, `update`, respectively | `R` or `V`, `view: "metadata"` |
 | `GET` or `PUT` on bare `R` or `V` for a document-bearing type | `read` or `replace`, respectively | `R` or `V`, `view: "document"` |
 | `GET` on bare `R` or `V` for a metadata-only type | `read` | `R` or `V`, either view; returns metadata |
-| `POST R$details` (or bare `POST R` for a metadata-only type) | `process` | `R`, `view: "metadata"`; creates or updates one Version |
-| Bare `POST R` for a document-bearing type | `process` | `R`, `view: "document"`; creates or updates one Version |
+| `POST R$details` (or bare `POST R` for a metadata-only type) | `upsert` | `R`, `view: "metadata"`; creates or updates one Version |
+| Bare `POST R` for a document-bearing type | `upsert` | `R`, `view: "document"`; creates or updates one Version |
 | `DELETE R` or `DELETE V` | `delete` | `R` or `V`, metadata address; deletes the entity, not just its bytes |
 | `GET`, `PUT`, or `PATCH` on `R/meta` | `read`, `replace`, `update`, respectively | `R/meta`; deletion is not supported |
 | `OPTIONS` on a supported API target | `options` | A qualified address with another implemented native operation. Use its `target` and applicable `surface` and `view`; for a metadata-only type, use the metadata address. |
 | `GET /.xregistry` | `read` | `/`, `surface: "discovery"` |
 
-For a metadata-only Resource, the `process` request at `R` takes the
+For a metadata-only Resource, the `upsert` request at `R` takes the
 Version metadata body described in Section A.2.
 
 By default, `surface: "export"` has the semantics of a Registry read
@@ -757,9 +759,9 @@ cross-origin policy headers are not returned.
 ### A.2. Inputs and Results
 
 For metadata and service mutations, `body` MUST have the shape of the
-corresponding Core input. For example, collection `process` and `update`
-take a map keyed by member ID; `process` at `/` or `G` takes only the
-named nested collections. The `process` operation at `R` takes the
+corresponding Core input. For example, collection `upsert` and `update`
+take a map keyed by member ID; `upsert` at `/` or `G` takes only the
+named nested collections. The `upsert` operation at `R` takes the
 input for one Version; the presence or absence of `versionid` has the
 same effect as in the corresponding HTTP operation. Omitted mutable fields,
 explicit `null`, and nested values have their existing replace or update
@@ -768,13 +770,13 @@ IDs to objects with an OPTIONAL `epoch`; omission requests deletion of
 the entire collection under Core's rules. A single-entity `delete` uses
 `flags.epoch` for a precondition, not a body.
 
-For `replace`, `update`, and `process`, put an epoch precondition in the
+For `replace`, `update`, and `upsert`, put an epoch precondition in the
 Core mutation body, including the applicable per-member body, or in
 `body.metadata` for a domain-document write. `flags.epoch` is valid only
 on a single-entity `delete`. Specifying it elsewhere produces `bad_flag`;
 the server does not choose between it and a body epoch.
 
-For a domain-document `replace` or `process`, `body` MUST be an object
+For a domain-document `replace` or `upsert`, `body` MUST be an object
 with `document` and at most one other member, the OPTIONAL `metadata`
 object. The `document` object MUST contain exactly one of `base64`
 (exact bytes) or `url` (a Core external document reference). It MAY
@@ -790,12 +792,11 @@ content, content type, and external document URL belong in `document`,
 not in `metadata`. A partial update of domain bytes is not supported.
 
 For example, the following replaces the bytes of an exact Version, provided
-its epoch is still `3`:
+its epoch is still `3`. The request topic is
+`registries/supplier/replace/documents/main/assets/item/versions/v2`:
 
 ```json
 {
-  "operation": "replace",
-  "target": "/documents/main/assets/item/versions/v2",
   "view": "document",
   "body": {
     "metadata": {"epoch": 3},
@@ -823,9 +824,7 @@ which is the root for any document-local JSON Pointers. The `metadata`
 object MUST NOT also inline the document returned in `document`.
 Other applicable Core serialization rules still apply.
 For external content, the native reply carries the URL HTTP would use
-as its redirect destination. This does not authorize retrieval. The
-short `document` read still returns bytes only for document-bearing
-targets.
+as its redirect destination. This does not authorize retrieval.
 
 For a successful native `read` of a Resource or Version with
 `view: "document"`, the serving Registry MUST return the document
@@ -833,9 +832,8 @@ wrapper for a document-bearing type or direct Core metadata for a
 metadata-only type. If the client has no model known to apply to the
 reply, either otherwise conforming form is acceptable. If a model
 known to apply rules out the returned form, the client MUST reject
-the reply. Do not infer the model from the reply members. The
-[short-read model proof rule](#short-read-requests) does not apply to
-this native read; the other reply and Core validation rules still apply.
+the reply. Do not infer the model from the reply members. For Federation,
+the resolver MUST also meet the [applicable model rules][federation-mqtt].
 
 This `200` reply payload for the native Version document operation above
 omits other Core metadata attributes:
@@ -855,7 +853,7 @@ omits other Core metadata attributes:
 ```
 
 Successful mutations return the corresponding result after processing;
-collection `update` and `process` return only the processed members, not
+collection `update` and `upsert` return only the processed members, not
 the entire collection. A successful `delete` returns `value: null`.
 
 - `location` MUST be present if the corresponding HTTP mutation
@@ -884,19 +882,7 @@ the native replace request above, the `200` reply can carry this payload:
 {"error": {"code": "mismatched_epoch"}}
 ```
 
-`origin` and `memberorigins` are OPTIONAL in native results and use the
-object shapes in [Short Read Results](#short-read-results). Each origin
-that is included, whether for the result or a member, MUST contain
-`catalog` if and only if the serving Registry used a catalog to select
-that origin's source. The client's own catalog selection does not
-affect this condition. The client follows the origin validation rules
-in [Short Read Results](#short-read-results).
-
-If supplied, `memberorigins` MUST contain exactly the keys in the
-returned collection `value`. For an operation that returns a page or
-only processed members, that means the returned subset, not the entire
-collection.
-`memberorigins` MUST be absent from non-collection results.
+`origin` and `memberorigins` follow [Result Provenance](#result-provenance).
 
 #### Navigation URIs
 
@@ -912,52 +898,47 @@ fail the read with `unsupported_operation` rather than supply a
 placeholder URI. This rule does not override applicable access-policy,
 transient-failure, size-limit, or more specific errors.
 
-The MQTT form of a native read URI is
-`mqtts://host[:port]/<encoded-request-topic><target>`. The broker
-authority follows the [advertisement rules](#advertisement). Encode
-the request topic as one path segment, percent-encoding its UTF-8
-octets except [URI unreserved characters][rfc3986]. The topics `.` and
-`..` MUST instead use the literal segments `!.` and `!..`, respectively,
-so URI processing does not remove them as dot segments. A literal `!`
-in any other topic is encoded as `%21`.
+The MQTT read URI format is `mqtts://host[:port]/<encoded-topic>`
+with the OPTIONAL query below. `<encoded-topic>` is the full `read`
+request topic, including its topic base and target, encoded as described
+below. The broker authority follows the [advertisement rules](#advertisement).
 
-In the encoded URI path, split at the first `/` after the initial `/`.
-Interpret the exact segments `!.` and `!..` as `.` and `..` before
-normal decoding. For any other segment, percent-decode that segment
-once. Check that the decoded topic meets the
-[Topic Name requirements for `requesttopic`](#advertisement), then
-re-encode it using the rules above. The original segment MUST match
-the re-encoded segment, except that either case of the hexadecimal
-digits in percent escapes is accepted. Do not ignore case elsewhere.
-The client MUST NOT follow a URI with an invalid encoded topic segment.
+The URI path starts with one `/` before the topic. In the topic, keep `/`
+separators and percent-encode every other UTF-8 octet except
+[URI unreserved characters][rfc3986]. Preserve case and trailing `/`.
+A client MUST parse the raw path before normalization, decode each
+segment once, and reject malformed UTF-8, decoded `/` within a segment,
+and literal or decoded `.` and `..` segments. It MUST re-encode the path
+and reject a noncanonical encoding, except for the case of hexadecimal
+digits in percent escapes. It MUST validate the decoded MQTT Topic Name.
 
-Use the remaining path verbatim as `target`, including the leading
-`/`. Do not percent-decode or normalize that path at the URI layer.
-The same Core target processing then applies as for a `target` supplied
-directly in a request. `/` names the Registry.
+Before publishing, the client MUST verify that the topic matches exactly
+one authorized Registry's known `<topicbase>/read` followed by a valid
+target path beginning with `/`. The authorized route comes from catalog
+selection or configuration, not from searching for a `read` level in an
+untrusted URL. A client MUST NOT publish a navigation request to a
+mutation topic. It sends `{}` when the URI has no query.
 
 An MQTT navigation URI MUST NOT contain a fragment. Its query takes
-one of these forms for a valid native read address:
+one of these forms for a valid read address:
 
 - No query for a Registry, entity, or collection metadata URI.
 - Exactly `?view=document` for a Resource or Version document URI.
-- Exactly `?surface=<name>` for a Registry service URI with `target: "/"`.
+- Exactly `?surface=<name>` for a Registry service URI with target `/`,
+  where `<name>` is an allowed
+  [`surface` value](#a1-native-requests-and-targets).
 
-The client MUST NOT use a URI with any other query, including repeated
-members or a combination of `view` and `surface`. The query is not part
-of `target`.
+The client MUST reject other query forms, including repeated members and
+combined qualifiers. It maps the selected qualifier to the corresponding
+JSON member without changing the request topic.
 
-For example, `mqtts://broker.example.com/registries%2Fsupplier%2Freads/`
+For example, `mqtts://broker.example.com/registries/supplier/read/`
 locates the Registry. The URI
-`mqtts://broker.example.com/registries%2Fsupplier%2Freads/documents/main/assets/item`
-locates Resource metadata. Adding `?view=document` selects its domain
-document for the native `read` operation. Broker and topic authorization
-apply before following a URI. Core's document-view pointers retain their
-usual meaning. An MQTT `self` URI is not an HTTP URL.
-
-For the request topic `..`, the Registry root is
-`mqtts://broker.example.com/!../`. For the literal topic `!..`, it is
-`mqtts://broker.example.com/%21../`.
+`mqtts://broker.example.com/registries/supplier/read/documents/main/assets/item`
+locates Resource metadata. The `self` URI contains the Registry's read
+address followed by the Resource XID, with URI escaping as above.
+Adding `?view=document` selects the document view, not a different XID.
+Core's document-view pointers retain their usual meaning.
 
 ### A.3. Request Flags
 
@@ -992,8 +973,7 @@ the applicable Core error, such as `bad_flag` for `collections` on a
 Resource. If it is valid and applicable but unsupported, the server
 MUST report `unsupported_operation`. See
 [Section A.1](#a1-native-requests-and-targets) for validation order.
-The short read forms retain their literal selector semantics; the
-`filter` flag does not require a unique match on a native collection read.
+The `filter` flag does not require a unique match on a collection read.
 
 A native collection result MUST include `order` if it is paginated or
 sorted, whether sorted by default or by the `sort` flag. An unsorted,
@@ -1094,10 +1074,12 @@ here; Core epoch preconditions still apply.
 - [RFC 9562: UUIDs][uuid]
 
 [reads]: ../federation/spec.md#read-operations
+[federation-mqtt]: ../federation/spec.md#mqtt-native-reads
 [binding-selection]: ../federation/spec.md#discovery-and-binding-selection
-[resolution]: ../federation/spec.md#signaling-who-performs-resolution
 [snapshots]: ../federation/spec.md#snapshots-and-completeness
 [core]: ../../core/spec.md
+[events]: ../../core/events.md
+[cloudevents-mqtt]: https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/bindings/mqtt-protocol-binding.md
 [http-api]: ../../core/http.md#registry-http-apis
 [http-export]: ../../core/http.md#get-export
 [core-errors]: ../../core/spec.md#error-processing
@@ -1111,14 +1093,11 @@ here; Core epoch preconditions still apply.
 [sort]: ../../core/spec.md#sort-flag
 [pagination]: ../../pagination/spec.md
 [page-links]: ../../pagination/spec.md#server-attributes
-[selectors]: ../federation/spec.md#selectors
 [errors]: ../federation/spec.md#errors
-[representations]: ../federation/spec.md#representations
 [advertisements]: ../models/registry/spec.md#51-common-fields
 [selection]: ../models/registry/spec.md#62-advertisement-selection
 [catalog-errors]: ../models/registry/spec.md#8-error-handling
 [doc]: ../../core/spec.md#doc-flag
-[hasdocument]: ../../core/model.md#groupsstringresourcesstringhasdocument
 [media-type]: ../../core/spec.md#contenttype-attribute
 [mqtt5]: https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html
 [rfc2119]: https://www.rfc-editor.org/rfc/rfc2119

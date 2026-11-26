@@ -16,7 +16,11 @@ from workingdrafts.publication.tools.publication_examples import Channels, check
 
 
 FEDERATION = Path(__file__).resolve().parents[1]
-BINDING = FEDERATION.parent / "bindings" / "deployment.md"
+DEPLOYMENT_SECTIONS = {
+    "https": ("http-federation.md", "## Downstream Deployment"),
+    "opcua": ("opcua.md", "### 10.7. Downstream deployment"),
+    "mqtt": ("mqtt.md", "## Downstream Deployment"),
+}
 V1 = "/documents/main/assets/item/versions/v1"
 V2 = "/documents/main/assets/item/versions/v2"
 
@@ -150,7 +154,9 @@ class ExampleReceiver:
 
 @pytest.mark.parametrize("binding", ["https", "opcua", "mqtt"])
 def test_published_append_has_the_same_observable_behavior(binding):
-    draft = BINDING.read_text(encoding="utf-8")
+    filename, heading = DEPLOYMENT_SECTIONS[binding]
+    draft = (FEDERATION.parent / "bindings" / filename).read_text(encoding="utf-8")
+    draft = draft.split(f"\n{heading}\n", 1)[1].split("\n## ", 1)[0]
     if binding == "mqtt":
         request, response = [
             json.loads(snippet) for snippet in re.findall(r"^```json\n(.*?)\n```$", draft, re.M | re.S)
