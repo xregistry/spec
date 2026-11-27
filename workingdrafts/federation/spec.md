@@ -1822,11 +1822,11 @@ not complete serialized Core API responses. Omitted server-generated metadata
 in a test vector does not authorize an API to omit the same metadata.
 
 [examples.json](samples/examples.json) contains the named Registry examples
-used by the [shared generator](tools/generate_examples.py). See the
-[samples README](samples/README.md) for a short description of the source. The
-[generation and reading instructions](../README.md#generating-and-reading-examples)
-show how to produce the existing File, Git, and OCI formats. The source is
-non-normative example notation, not another federation representation.
+used by the [shared generator](tools/generate_examples.py). The
+[generation and reading instructions](samples/README.md#generating-and-reading-examples)
+describe the source and show how to produce File, Git, and OCI examples.
+The source is non-normative example notation, not another federation
+representation.
 Protocol observations and expected results remain in the
 [HTTP](../bindings/tools/test_http_examples.py),
 [OPC UA](../bindings/tools/test_opcua_examples.py), and other binding tests.

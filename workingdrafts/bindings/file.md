@@ -94,7 +94,7 @@ checks the complete declared graph. For local OCI output, use the
 [OCI generation and reading commands](oci.md#generate-and-read-a-layout)
 with `layout: "oci-layout"` and the chosen reference.
 
-The [shared example instructions](../README.md#generating-and-reading-examples)
+The [shared example instructions](../federation/samples/README.md#generating-and-reading-examples)
 list the other examples, dependencies, and Linux path equivalents.
 
 ## Advertisement and File URI

@@ -296,7 +296,7 @@ pins its commit before reading. To read the same state in a later operation,
 regardless of ref movement, pass the generator's complete commit ID as
 `--revision`. The synthetic local repository exercises object reads without
 providing an HTTPS advertisement or a remote publication. The
-[shared instructions](../README.md#generating-and-reading-examples) include
+[shared instructions](../federation/samples/README.md#generating-and-reading-examples) include
 Linux paths and the other named examples.
 
 `GitStore(git_dir, revision, path="xregistry")` exposes the resolved `pin`,

@@ -769,7 +769,7 @@ The Registry content comes from the `first` example in
 [examples.json](../federation/samples/examples.json). Protocol observations and
 expected outcomes remain in the tests. These cases do not contact the public
 hub or establish runtime interoperability. The shared
-[generator](../README.md#generating-and-reading-examples) can export that
+[generator](../federation/samples/README.md#generating-and-reading-examples) can export that
 Registry through File, Git or OCI without starting an HTTP service.
 
 The examples cover read-only capabilities but omit older releases and many

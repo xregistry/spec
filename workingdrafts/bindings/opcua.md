@@ -3241,7 +3241,7 @@ The `first` and `second` examples in
 content. They keep Registry contexts separate, including equal asset XIDs
 with different document bytes.
 
-The [shared generator](../README.md#generating-and-reading-examples) exports
+The [shared generator](../federation/samples/README.md#generating-and-reading-examples) exports
 these examples through File, Git or OCI. It neither creates a UA AddressSpace
 nor compiles a NodeSet.
 

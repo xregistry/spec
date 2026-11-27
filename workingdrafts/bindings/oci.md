@@ -956,7 +956,7 @@ omitted argument. The `offline` fixture matches `/dirs/main`, and the CLI
 returns that XID as `target` and the selected Group as `value`, not a
 collection map. Run the commands from the
 repository root with the Python dependencies listed in the
-[shared instructions](../README.md#generating-and-reading-examples).
+[shared instructions](../federation/samples/README.md#generating-and-reading-examples).
 Each output directory is new or empty and outside the checkout:
 
 ```powershell

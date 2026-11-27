@@ -139,7 +139,7 @@ and digest values describe those exact bytes. If you change the document,
 recalculate its size and digest in the Version descriptor.
 
 To generate this project instead, select `walkthrough` from the
-[shared examples](../README.md#generating-and-reading-examples):
+[shared examples](../federation/samples/README.md#generating-and-reading-examples):
 
 ```text
 python -B -m workingdrafts.federation.tools.generate_examples file --example walkthrough --output D:\temp\xregistry-walkthrough
@@ -1023,7 +1023,7 @@ python -B -m workingdrafts.bindings.tools.mapping_examples entity D:\temp\xregis
 python -B -m workingdrafts.bindings.tools.mapping_examples document D:\temp\xregistry-portable /documents/main/assets/item/versions/v1
 ```
 
-The [shared instructions](../README.md#generating-and-reading-examples) list
+The [shared instructions](../federation/samples/README.md#generating-and-reading-examples) list
 prerequisites, the other named examples and equivalent Linux paths. The
 [mapping walkthrough tests](tools/test_mapping_examples.py) show
 how metadata can be added around existing project files without moving or
