@@ -138,5 +138,8 @@ makeschema: loadpython
 	@echo
 
 docker:
-	@docker run -t -v $(PWD):/tmp/spec -w /tmp/spec python:3.11 \
+	@# Trust only the checkout mounted from the host for this verification run.
+	@docker run -t -v $(PWD):/tmp/spec -w /tmp/spec \
+	    -e GIT_CONFIG_COUNT=1 -e GIT_CONFIG_KEY_0=safe.directory \
+	    -e GIT_CONFIG_VALUE_0=/tmp/spec python:3.11 \
 	    make -f tools/Makefile verify
