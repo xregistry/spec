@@ -4,6 +4,7 @@
 <!-- words: applicationerror correlationdata messageexpiryinterval payloadformatindicator puback qos responsetopic userproperties -->
 <!-- words: capabilitiesoffered contentlocation setdefaultversionid xregcorrelationid -->
 <!-- words: nextoffset ywi -->
+<!-- words: aperr assetid maxchunkbytes maxcontrolbytes propname propval protver stmsg upsert -->
 
 ## Abstract
 

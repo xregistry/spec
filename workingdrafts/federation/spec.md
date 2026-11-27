@@ -1006,8 +1006,8 @@ does not establish that the source target is absent.
 If the alias cannot be represented under these rules, the resolver MUST
 fail the result that requires the projected alias under
 [Local Resources and Ordered Sources](#local-resources-and-ordered-sources).
-It MUST NOT retarget the alias, expose it as an ordinary Resource, or make
-the reference appear dangling to hide the conflict. It MUST NOT omit the
+It MUST NOT change the alias target, expose it as an ordinary Resource, or
+make the reference appear dangling to hide the conflict. It MUST NOT omit the
 alias from a collection and report the collection as complete. This does
 not change Core's handling of a genuinely dangling source reference or
 the [`cannot_doc_xref` failure](#representations). Reads that do not require
