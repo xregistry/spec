@@ -401,15 +401,25 @@ path, a tie among mapped Resources at that exact path in a later source
 does not affect its result.
 
 After applying explicit mappings or exclusions and ordinary precedence at
-exact paths, the resolver MUST enforce Core's case-insensitive sibling ID
-uniqueness in the composed view. If distinct projected Group or Resource IDs
-in the same collection differ only in case, the resolver MUST report
-`ambiguous` for a read of either path or its descendants, or for a collection
-read or selector that covers the colliding siblings. A selector MUST NOT
-remove the collision by filtering before this check. Precedence at one exact
-path does not shadow a differently spelled path. Lookups remain
-case-sensitive; the resolver MUST NOT match an unexposed spelling or fail
-an unrelated read because of the collision.
+exact paths, the resolver MUST enforce
+[Core's case-insensitive sibling ID uniqueness](../../core/spec.md#singularid-id-attribute)
+in the composed view. Precedence at one exact path does not shadow a
+differently spelled path. The composition policy can avoid a case-only
+collision by explicitly excluding a candidate or mapping it to a path
+where it no longer collides. If distinct projected Group or Resource IDs
+in the same collection still differ only in case, the resolver MUST
+report `ambiguous` for a read of either path or its descendants and for
+any collection read or selector that covers the colliding siblings.
+The resolver MUST check for collisions before filtering by selector.
+Lookups remain case-sensitive; the resolver MUST NOT match an unexposed
+spelling or fail an unrelated read because of the collision.
+
+For example, source A supplies `/documents/main/assets/Pump` and source B
+supplies `/documents/main/assets/pump`. Even if A precedes B, an exact
+read of either Resource and a read of `/documents/main/assets` return
+`ambiguous` while both spellings are visible. If the policy excludes
+B's `pump` from this collection, the collection can return A's `Pump`.
+An exact read of `pump` does not resolve to `Pump`.
 
 For an exact Group or Resource read, or a read below one of those paths, the
 resolver MUST check the applicable Group and Resource siblings on the
@@ -886,9 +896,12 @@ resolver maps the abstract operations to native reads as follows:
 | --- | --- | --- |
 | `model` | `/` | `{"surface":"model"}` and, when available, a separate `{"surface":"modelsource"}` read. |
 | `capabilities` | `/` | `{"surface":"capabilities"}`. |
-| `collection` | The typed collection path | `{}` for a complete collection, or `page` arguments when supported. |
-| `entity` | The entity XID | `{}` for Core API view. |
+| `collection` | The typed collection path | Empty payload or `{}` for a complete collection, or `page` arguments when supported. |
+| `entity` | The entity XID | Empty payload or `{}` for Core API view. |
 | `document` | The Resource or Version XID | `{"view":"document"}`. |
+
+Use the binding's [request property rules](../bindings/mqtt.md#mqtt-publish-properties)
+for both payload forms.
 
 The resolver MUST keep these reads in the selected Registry context. A
 producer-resolved view applies composition before serving the reads.

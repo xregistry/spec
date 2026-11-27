@@ -103,10 +103,15 @@ the request topic, and the client needs one on the Response Topic.
 | Response Topic | REQUIRED. A concrete Topic Name different from the request topic, authorized as described in [Security and Conformance](#security-and-conformance). | MUST be absent. Publish the reply to the request's Response Topic. |
 | Correlation Data | REQUIRED. For each newly initiated logical request, the client MUST generate a fresh UUID version 4 ([RFC 9562][uuid]) and encode it as 16 octets in network byte order, not as UUID text. | REQUIRED. The same 16 octets, unchanged. |
 | Message Expiry Interval | REQUIRED. The requested lifetime in whole seconds, from 1 through 4294967295. | REQUIRED. The reply lifetime in whole seconds, in the same range. |
-| Content Type | REQUIRED: `application/json`. | REQUIRED for `200`: `application/json`. MUST be absent for every other status. |
-| Payload Format Indicator | REQUIRED: `1` for UTF-8 character data. | REQUIRED for `200`: `1`. MUST be absent for every other status. |
+| Content Type | REQUIRED for a nonempty payload: `application/json`. MUST be absent for an empty payload. | REQUIRED for `200`: `application/json`. MUST be absent for every other status. |
+| Payload Format Indicator | REQUIRED for a nonempty payload: `1`. MUST be absent for an empty payload. | REQUIRED for `200`: `1`. MUST be absent for every other status. |
 | User Property `mrpc-version` | REQUIRED with value `mrpc/1.0` after alias handling. | REQUIRED with value `mrpc/1.0` after alias handling. |
 | User Property `mrpc-status` | MUST be absent. | REQUIRED after alias handling, with one of the values below. |
+
+The serving Registry MUST validate the request's Content Type and Payload
+Format Indicator against the payload length during envelope validation.
+Violating either property rule makes the envelope invalid, even if the
+payload is empty.
 
 Replies use three decimal digits for `mrpc-status`:
 `200`, `204`, `400`, `408`, `415`, `500`, `503`, or `505`. Only `200`
@@ -253,9 +258,10 @@ metadata or mutation objects, and does not apply to opaque domain bytes.
 After envelope validation and reply-route authorization, the Registry
 MUST apply these checks in order to requests delivered under its base:
 
-1. The topic MUST have a nonempty action level. The payload MUST be one
-   UTF-8 JSON object, with no duplicate top-level names and no `operation`
-   or `target` member. Use `{}` when no arguments apply. A failure at this
+1. The topic MUST have a nonempty action level. The Registry MUST process
+   a zero-length payload admitted by envelope validation exactly as `{}`.
+   A nonempty payload MUST be one UTF-8 JSON object, with no duplicate
+   top-level names and no `operation` or `target` member. A failure at this
    step produces `bad_request`.
 2. An unrecognized action produces `unsupported_operation`. A Registry
    needs a matching subscription to report this outcome for a request
@@ -267,6 +273,10 @@ MUST apply these checks in order to requests delivered under its base:
 When possible, the Registry MUST report these errors in a conforming
 `200` [error reply](#reply-payload). A request outside the configured
 base is not addressed to this Registry.
+
+An empty payload and `{}` both carry no arguments. A client that does not
+know whether the Registry accepts the empty form can send `{}` with the
+properties required for a nonempty payload.
 
 <a id="read-replies"></a>
 
@@ -384,11 +394,32 @@ non-string `contenttype` does not establish an xRegistry outcome.
 
 ## Read Examples
 
-The following JSON is notation for two MQTT publications, not an
-additional wire format. `correlationdata` is shown as hexadecimal octets,
-`userproperties` is an ordered list of pairs, and only the objects under
-`payload` are UTF-8 JSON payloads. The example uses the Registry advertised
-above. Assume the client has an authoritative configured model and the
+These examples use JSON notation for MQTT publications, not an additional
+wire format. `correlationdata` is shown as hexadecimal octets and
+`userproperties` is an ordered list of pairs. An object under `payload`
+represents a UTF-8 JSON payload; `""` denotes zero bytes, not a JSON string
+sent on the wire.
+
+This request reads the advertised Registry root with no arguments. It
+omits both content properties. Sending `{}` with both properties requests
+the same read and produces the same result under the same Registry state
+and access conditions.
+
+```json
+{
+  "topic": "registries/supplier/read/",
+  "qos": 1,
+  "retain": 0,
+  "responsetopic": "example/replies/client-7",
+  "correlationdata": "2f1e0d9c8b7a4968a5b4c3d2e1f0a987",
+  "messageexpiryinterval": 10,
+  "userproperties": [["mrpc-version", "mrpc/1.0"]],
+  "payload": ""
+}
+```
+
+The following exchange reads an exact Version's document from the same
+Registry. Assume the client has an authoritative configured model and the
 deployment guarantees that it applies to the selected view and this
 reply. The example does not assume an immutable revision. The reply omits
 other Core metadata attributes for brevity. The `self` value is a
@@ -682,9 +713,9 @@ the common [reply payload](#reply-payload).
 ### A.1. Native Requests and Targets
 
 The request topic supplies the action and target under
-[Request Topics and Validation](#request-topics-and-validation). The payload
-object permits only `surface`, `view`, `flags`, `body`, and `page`, as
-defined below.
+[Request Topics and Validation](#request-topics-and-validation). After
+applying that section's empty-payload rule, the request object permits only
+`surface`, `view`, `flags`, `body`, and `page`, as defined below.
 
 - `surface` selects a Registry service instead of an entity at `/`: use
   `capabilities`, `capabilitiesoffered`, `model`, `modelsource`, `export`,
@@ -973,7 +1004,8 @@ one authorized Registry's known `<topicbase>/read` followed by a valid
 target path beginning with `/`. The authorized route comes from catalog
 selection or configuration, not from searching for a `read` level in an
 untrusted URL. A client MUST NOT publish a navigation request to a
-mutation topic. It sends `{}` when the URI has no query.
+mutation topic. When the URI has no query, the client sends an empty payload
+or `{}` under the [request property rules](#mqtt-publish-properties).
 
 An MQTT navigation URI MUST NOT contain a fragment. Its query takes
 one of these forms for a valid read address:

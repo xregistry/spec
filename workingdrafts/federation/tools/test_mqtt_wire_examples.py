@@ -1,5 +1,6 @@
-"""Offline checks for the MQTT draft's URI and User Property rules."""
+"""Offline checks for the MQTT draft's URIs and request/reply envelopes."""
 
+import json
 from pathlib import Path
 import re
 from urllib.parse import quote, unquote, urlsplit
@@ -143,3 +144,35 @@ def test_alias_reply_matches_canonical_reply():
 def test_aliases_do_not_weaken_existing_envelope_constraints(extra, reply):
     with pytest.raises(ValueError):
         envelope_properties([["mrpc-version", "mrpc/1.0"], *extra], reply=reply)
+
+
+def request_arguments(payload, properties):
+    """Check the content properties before decoding the example payload."""
+    expected = {"contenttype": "application/json", "payloadformatindicator": 1} if payload else {}
+    if properties != expected:
+        raise ValueError("Invalid content properties in request envelope")
+    return json.loads(payload.decode("utf-8")) if payload else {}
+
+
+def test_published_empty_root_read_matches_json_empty_object():
+    examples = DRAFT.split("\n## Read Examples\n", 1)[1].split("\n## ", 1)[0]
+    packets = (json.loads(body) for body in re.findall(r"^```json\n(.*?)\n```$", examples, re.M | re.S))
+    root = next(packet for packet in packets if packet.get("topic") == "registries/supplier/read/")
+    assert root["payload"] == ""
+    properties = {
+        name: root[name] for name in ("contenttype", "payloadformatindicator") if name in root
+    }
+    assert request_arguments(root["payload"].encode("utf-8"), properties) == request_arguments(
+        b"{}", {"contenttype": "application/json", "payloadformatindicator": 1},
+    ) == {}
+    assert envelope_properties(root["userproperties"]) == {"mrpc-version": "mrpc/1.0"}
+
+
+@pytest.mark.parametrize("properties", [
+    {"contenttype": "application/json"},
+    {"payloadformatindicator": 1},
+    {"contenttype": "application/json", "payloadformatindicator": 1},
+])
+def test_empty_request_with_content_properties_fails_envelope_validation(properties):
+    with pytest.raises(ValueError, match="Invalid content properties in request envelope"):
+        request_arguments(b"", properties)
