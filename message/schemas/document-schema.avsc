@@ -75,7 +75,7 @@
                 "int",
                 "null"
               ],
-              "doc": "Epoch time of the object creation"
+              "doc": "Optimistic concurrency update counter"
             },
             {
               "name": "self",
@@ -184,7 +184,7 @@
                         "int",
                         "null"
                       ],
-                      "doc": "Epoch time of the object creation"
+                      "doc": "Optimistic concurrency update counter"
                     },
                     {
                       "name": "self",

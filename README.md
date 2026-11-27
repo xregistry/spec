@@ -66,7 +66,22 @@ Avro (`document-schema.avsc`), and OpenAPI (`openapi.json`) in the
 `schemas/` subdirectory of each domain spec
 ([endpoint](endpoint/schemas/), [message](message/schemas/),
 [schema](schema/schemas/)). The core model has its own JSON Schema at
-[core/model.schema.json](core/model.schema.json).
+[core/model.schema.json](core/model.schema.json), which describes the
+`modelsource` document.
+
+Generated request, response and JSON Structure types changed, so consumers
+should regenerate any bindings built from these schemas.
+
+Generated OpenAPI request types distinguish replacement and partial inputs
+from completed responses, Resource Meta types use model-specific IDs, and the
+`$details` suffix rather than the media type selects Resource metadata.
+Strict scalar `enum` value sets and statically resolvable Group constraints
+are now expressed in both generated dialects, so data that previously passed
+validation may start failing it.
+
+JSON Structure uses maps for wildcard-only dynamic objects and zero-entry maps
+with explicit validation-feature support for closed-empty objects. Named
+objects retain their structured schemas and typed wildcard value constraints.
 
 Additional release related information:
   [Historical releases and changelogs](docs/RELEASES.md)

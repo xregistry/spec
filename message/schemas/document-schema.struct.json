@@ -19,6 +19,28 @@
   "additionalProperties": false,
   "definitions": {
     "Messagegroups": {
+      "MessageEnvelopemetadataAdditionalProperty": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "The value type"
+          },
+          "value": {
+            "type": "string",
+            "description": "The value constraint"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether the extension is required"
+          }
+        },
+        "additionalProperties": false,
+        "description": "CloudEvent extension property"
+      },
       "MessageProtocoloptionsApplicationPropertiesValue": {
         "type": "object",
         "properties": {
@@ -134,6 +156,28 @@
           }
         },
         "additionalProperties": false
+      },
+      "MessageVersionEnvelopemetadataAdditionalProperty": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "description": "The value type"
+          },
+          "value": {
+            "type": "string",
+            "description": "The value constraint"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether the extension is required"
+          }
+        },
+        "additionalProperties": false,
+        "description": "CloudEvent extension property"
       },
       "MessageVersionProtocoloptionsApplicationPropertiesValue": {
         "type": "object",
@@ -267,8 +311,8 @@
             "description": "Name of the object"
           },
           "epoch": {
-            "type": "integer",
-            "description": "Epoch of the object"
+            "type": "uint32",
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "uri",
@@ -534,7 +578,11 @@
                 "description": "CloudEvents datacontenttype https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#datacontenttype."
               }
             },
-            "additionalProperties": false,
+            "additionalProperties": {
+              "type": {
+                "$ref": "#/definitions/Messagegroups/MessageVersionEnvelopemetadataAdditionalProperty"
+              }
+            },
             "description": "CloudEvents attribute declarations, adding constraints to the CloudEvents envelope not yet covered by the CloudEvents spec https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md"
           },
           "envelopeoptions": {
@@ -1035,8 +1083,8 @@
             "description": "Name of the object"
           },
           "epoch": {
-            "type": "integer",
-            "description": "Epoch of the object"
+            "type": "uint32",
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "uri",
@@ -1302,7 +1350,11 @@
                 "description": "CloudEvents datacontenttype https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md#datacontenttype."
               }
             },
-            "additionalProperties": false,
+            "additionalProperties": {
+              "type": {
+                "$ref": "#/definitions/Messagegroups/MessageEnvelopemetadataAdditionalProperty"
+              }
+            },
             "description": "CloudEvents attribute declarations, adding constraints to the CloudEvents envelope not yet covered by the CloudEvents spec https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md"
           },
           "envelopeoptions": {
@@ -1890,8 +1942,8 @@
             "description": "Name of the object"
           },
           "epoch": {
-            "type": "integer",
-            "description": "Epoch of the object"
+            "type": "uint32",
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "uri",

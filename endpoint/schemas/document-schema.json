@@ -2,17 +2,111 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://xregistry.io/xreg/xregistryspecs/endpoint-v1/schemas/document-schema.json",
   "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the object"
+    },
+    "epoch": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Optimistic concurrency update counter"
+    },
+    "self": {
+      "type": "string",
+      "format": "uri-reference",
+      "description": "URL of the object"
+    },
+    "xid": {
+      "type": "string",
+      "format": "xid",
+      "description": "Relative URL of the object"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the object"
+    },
+    "documentation": {
+      "type": "string",
+      "format": "uri-reference",
+      "description": "URI of the documentation of the object"
+    },
+    "labels": {
+      "type": "object",
+      "description": "Labels for the object"
+    },
+    "createdat": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Time of the object creation"
+    },
+    "modifiedat": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Time of the object modification"
+    },
+    "shortself": {},
+    "icon": {
+      "type": "string",
+      "format": "uri"
+    },
+    "$schema": {
+      "type": "string",
+      "format": "uri-reference"
+    },
+    "registryid": {
+      "type": "string"
+    },
+    "specversion": {
+      "type": "string"
+    },
+    "capabilities": {},
+    "model": {},
+    "modelsource": {},
     "messagegroups": {
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/definitions/messagegroup-schema/messagegroup"
+        "allOf": [
+          {
+            "$ref": "#/definitions/messagegroup-schema/messagegroup"
+          },
+          {
+            "not": {
+              "required": [
+                "$schema"
+              ]
+            }
+          }
+        ]
       }
+    },
+    "messagegroupsurl": {
+      "type": "string"
+    },
+    "messagegroupscount": {
+      "type": "integer"
     },
     "endpoints": {
       "type": "object",
       "additionalProperties": {
-        "$ref": "#/definitions/endpoint-schema/endpoint"
+        "allOf": [
+          {
+            "$ref": "#/definitions/endpoint-schema/endpoint"
+          },
+          {
+            "not": {
+              "required": [
+                "$schema"
+              ]
+            }
+          }
+        ]
       }
+    },
+    "endpointsurl": {
+      "type": "string"
+    },
+    "endpointscount": {
+      "type": "integer"
     }
   },
   "definitions": {
@@ -21,8 +115,7 @@
         "type": "object",
         "properties": {
           "versionid": {
-            "type": "string",
-            "description": "ID of the message version"
+            "type": "string"
           },
           "messageid": {
             "type": "string",
@@ -34,7 +127,8 @@
           },
           "epoch": {
             "type": "integer",
-            "description": "Epoch time of the object creation"
+            "minimum": 0,
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "string",
@@ -69,10 +163,51 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
+          "shortself": {},
+          "icon": {
+            "type": "string",
+            "format": "uri"
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "isdefault": {
+            "type": "boolean"
+          },
+          "contenttype": {
+            "type": "string"
+          },
+          "format": {
+            "type": "string"
+          },
+          "formatvalidated": {
+            "type": "boolean"
+          },
+          "formatvalidatedreason": {
+            "type": "string"
+          },
+          "compatibilityvalidated": {
+            "type": "boolean"
+          },
+          "compatibilityvalidatedreason": {
+            "type": "string"
+          },
           "basemessage": {
             "type": "string",
             "format": "uri-reference",
             "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
+          },
+          "envelope": {
+            "type": "string",
+            "description": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups. The predefined envelope format is 'CloudEvents/1.0'"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups"
           },
           "dataschemaformat": {
             "type": "string",
@@ -94,7 +229,10 @@
           "datacontenttype": {
             "type": "string",
             "description": "The content type for the message payload"
-          }
+          },
+          "envelopemetadata": {},
+          "envelopeoptions": {},
+          "protocoloptions": {}
         },
         "allOf": [
           {
@@ -104,9 +242,7 @@
                   "envelope": {
                     "type": "string",
                     "description": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups. The predefined envelope format is 'CloudEvents/1.0'",
-                    "enum": [
-                      "CloudEvents/1.0"
-                    ]
+                    "pattern": "^(?:C|c)(?:L|l)(?:O|o)(?:U|u)(?:D|d)(?:E|e)(?:V|v)(?:E|e)(?:N|n)(?:T|t)(?:S|s|\u017f)/1\\.0(?![\\s\\S])"
                   },
                   "envelopemetadata": {
                     "type": "object",
@@ -120,17 +256,27 @@
                             "type": "string"
                           },
                           "type": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "string"
+                            ]
                           },
                           "value": {
                             "type": "string",
+                            "enum": [
+                              "1.0"
+                            ],
                             "description": "CloudEvents spec version (fixed to '1.0')"
                           },
                           "required": {
                             "type": "boolean",
+                            "enum": [
+                              true
+                            ],
                             "description": "CloudEvents specversion is always required"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "id": {
                         "type": "object",
@@ -140,7 +286,11 @@
                             "type": "string"
                           },
                           "type": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "uritemplate",
+                              "string"
+                            ]
                           },
                           "value": {
                             "type": "string",
@@ -148,9 +298,13 @@
                           },
                           "required": {
                             "type": "boolean",
+                            "enum": [
+                              true
+                            ],
                             "description": "CloudEvents id is always required"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "type": {
                         "type": "object",
@@ -168,9 +322,13 @@
                           },
                           "required": {
                             "type": "boolean",
+                            "enum": [
+                              true
+                            ],
                             "description": "CloudEvents type is always required"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "source": {
                         "type": "object",
@@ -180,7 +338,11 @@
                             "type": "string"
                           },
                           "type": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "uritemplate",
+                              "string"
+                            ]
                           },
                           "value": {
                             "type": "string",
@@ -188,9 +350,13 @@
                           },
                           "required": {
                             "type": "boolean",
+                            "enum": [
+                              true
+                            ],
                             "description": "CloudEvents source is always required"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "subject": {
                         "type": "object",
@@ -200,7 +366,11 @@
                             "type": "string"
                           },
                           "type": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "uritemplate",
+                              "string"
+                            ]
                           },
                           "value": {
                             "type": "string",
@@ -210,7 +380,8 @@
                             "type": "boolean",
                             "description": "CloudEvents subject required"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "time": {
                         "type": "object",
@@ -220,7 +391,10 @@
                             "type": "string"
                           },
                           "type": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "timestamp"
+                            ]
                           },
                           "value": {
                             "type": "string",
@@ -229,7 +403,8 @@
                           "required": {
                             "type": "boolean"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "dataschema": {
                         "type": "object",
@@ -249,7 +424,8 @@
                           "required": {
                             "type": "boolean"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "datacontenttype": {
                         "type": "object",
@@ -268,7 +444,8 @@
                           "required": {
                             "type": "boolean"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       }
                     },
                     "additionalProperties": {
@@ -290,7 +467,8 @@
                           "type": "boolean",
                           "description": "Whether the extension is required"
                         }
-                      }
+                      },
+                      "additionalProperties": false
                     }
                   },
                   "envelopeoptions": {
@@ -299,6 +477,10 @@
                     "properties": {
                       "mode": {
                         "type": "string",
+                        "enum": [
+                          "binary",
+                          "structured"
+                        ],
                         "description": "Whether CloudEvents 'binary' or 'structured' mode will be used"
                       },
                       "format": {
@@ -313,29 +495,21 @@
                 ]
               },
               {
-                "anyOf": [
-                  {
-                    "not": {
-                      "required": [
-                        "envelope"
+                "not": {
+                  "properties": {
+                    "envelope": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^(?:C|c)(?:L|l)(?:O|o)(?:U|u)(?:D|d)(?:E|e)(?:V|v)(?:E|e)(?:N|n)(?:T|t)(?:S|s|\u017f)/1\\.0(?![\\s\\S])"
+                        }
                       ]
                     }
                   },
-                  {
-                    "properties": {
-                      "envelope": {
-                        "not": {
-                          "enum": [
-                            "CloudEvents/1.0"
-                          ]
-                        }
-                      }
-                    },
-                    "required": [
-                      "envelope"
-                    ]
-                  }
-                ]
+                  "required": [
+                    "envelope"
+                  ]
+                }
               }
             ]
           },
@@ -346,9 +520,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
-                    "enum": [
-                      "AMQP/1.0"
-                    ]
+                    "pattern": "^(?:A|a)(?:M|m)(?:Q|q)(?:P|p)/1\\.0(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -367,6 +539,13 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "ulong",
+                                  "uuid",
+                                  "binary",
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.message-id declaration type from the AMQP type model"
                               },
                               "value": {
@@ -376,7 +555,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.message-id required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "user-id": {
                             "type": "object",
@@ -387,6 +567,11 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "binary",
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.user-id value type"
                               },
                               "value": {
@@ -397,7 +582,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.user-id required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "to": {
                             "type": "object",
@@ -408,6 +594,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.to value type"
                               },
                               "value": {
@@ -418,7 +608,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.to required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "subject": {
                             "type": "object",
@@ -429,6 +620,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.subject value type"
                               },
                               "value": {
@@ -439,7 +634,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.subject required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "reply-to": {
                             "type": "object",
@@ -450,6 +646,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.reply-to value type"
                               },
                               "value": {
@@ -460,7 +660,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.reply-to required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "correlation-id": {
                             "type": "object",
@@ -471,6 +672,11 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate",
+                                  "binary"
+                                ],
                                 "description": "AMQP correlation-id value type"
                               },
                               "value": {
@@ -481,7 +687,8 @@
                                 "type": "boolean",
                                 "description": "AMQP correlation-id required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "content-type": {
                             "type": "object",
@@ -492,6 +699,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.content-type value type"
                               },
                               "value": {
@@ -502,7 +713,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.content-type required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "content-encoding": {
                             "type": "object",
@@ -513,6 +725,9 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string"
+                                ],
                                 "description": "AMQP properties.content-encoding value type"
                               },
                               "value": {
@@ -523,7 +738,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.content-encoding required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "absolute-expiry-time": {
                             "type": "object",
@@ -534,6 +750,9 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "timestamp"
+                                ],
                                 "description": "AMQP properties.absolute-expiry-time value type"
                               },
                               "value": {
@@ -544,7 +763,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.absolute-expiry-time required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "creation-time": {
                             "type": "object",
@@ -555,6 +775,9 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "timestamp"
+                                ],
                                 "description": "AMQP properties.creation-time value type"
                               },
                               "value": {
@@ -565,7 +788,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.creation-time required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "group-id": {
                             "type": "object",
@@ -576,6 +800,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.group-id value type"
                               },
                               "value": {
@@ -586,7 +814,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.group-id required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "group-sequence": {
                             "type": "object",
@@ -597,6 +826,9 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "integer"
+                                ],
                                 "description": "AMQP group-sequence value type"
                               },
                               "value": {
@@ -607,7 +839,8 @@
                                 "type": "boolean",
                                 "description": "AMQP group-sequence required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "reply-to-group-id": {
                             "type": "object",
@@ -618,6 +851,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.reply-to-group-id value type"
                               },
                               "value": {
@@ -628,9 +865,11 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.reply-to-group-id required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "application-properties": {
                         "type": "object",
@@ -643,6 +882,14 @@
                             },
                             "type": {
                               "type": "string",
+                              "enum": [
+                                "string",
+                                "uritemplate",
+                                "integer",
+                                "decimal",
+                                "number",
+                                "boolean"
+                              ],
                               "description": "The application property type"
                             },
                             "value": {
@@ -652,7 +899,8 @@
                               "type": "boolean",
                               "description": "Application property required"
                             }
-                          }
+                          },
+                          "additionalProperties": false
                         }
                       },
                       "message-annotations": {
@@ -666,6 +914,14 @@
                             },
                             "type": {
                               "type": "string",
+                              "enum": [
+                                "string",
+                                "uritemplate",
+                                "integer",
+                                "decimal",
+                                "number",
+                                "boolean"
+                              ],
                               "description": "The message annotation type"
                             },
                             "value": {
@@ -675,7 +931,8 @@
                               "type": "boolean",
                               "description": "Annotation required"
                             }
-                          }
+                          },
+                          "additionalProperties": false
                         }
                       },
                       "delivery-annotations": {
@@ -689,6 +946,14 @@
                             },
                             "type": {
                               "type": "string",
+                              "enum": [
+                                "string",
+                                "uritemplate",
+                                "integer",
+                                "decimal",
+                                "number",
+                                "boolean"
+                              ],
                               "description": "The annotation type"
                             },
                             "value": {
@@ -698,7 +963,8 @@
                               "type": "boolean",
                               "description": "Annotation required"
                             }
-                          }
+                          },
+                          "additionalProperties": false
                         }
                       },
                       "header": {
@@ -725,7 +991,8 @@
                             "type": "integer",
                             "description": "AMQP delivery-count"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "footer": {
                         "type": "object",
@@ -738,6 +1005,14 @@
                             },
                             "type": {
                               "type": "string",
+                              "enum": [
+                                "string",
+                                "uritemplate",
+                                "integer",
+                                "decimal",
+                                "number",
+                                "boolean"
+                              ],
                               "description": "AMQP footer type"
                             },
                             "value": {
@@ -747,10 +1022,12 @@
                               "type": "boolean",
                               "description": "Footer required"
                             }
-                          }
+                          },
+                          "additionalProperties": false
                         }
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": [
@@ -762,9 +1039,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
-                    "enum": [
-                      "MQTT/3.1.1"
-                    ]
+                    "pattern": "^(?:M|m)(?:Q|q)(?:T|t)(?:T|t)/3\\.1\\.1(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -783,7 +1058,8 @@
                         "format": "uri-template",
                         "description": "MQTT topic name"
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": [
@@ -795,9 +1071,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
-                    "enum": [
-                      "MQTT/5.0"
-                    ]
+                    "pattern": "^(?:M|m)(?:Q|q)(?:T|t)(?:T|t)/5\\.0(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -818,6 +1092,10 @@
                       },
                       "payload_format_indicator": {
                         "type": "integer",
+                        "enum": [
+                          0,
+                          1
+                        ],
                         "description": "MQTT payload format indicator"
                       },
                       "message_expiry_interval": {
@@ -864,10 +1142,12 @@
                           },
                           "required": [
                             "name"
-                          ]
+                          ],
+                          "additionalProperties": false
                         }
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": [
@@ -879,9 +1159,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
-                    "enum": [
-                      "KAFKA"
-                    ]
+                    "pattern": "^(?:K|k|\u212a)(?:A|a)(?:F|f)(?:K|k|\u212a)(?:A|a)(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -930,10 +1208,12 @@
                           },
                           "required": [
                             "name"
-                          ]
+                          ],
+                          "additionalProperties": false
                         }
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": [
@@ -945,9 +1225,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
-                    "enum": [
-                      "HTTP"
-                    ]
+                    "pattern": "^(?:H|h)(?:T|t)(?:T|t)(?:P|p)(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -977,7 +1255,8 @@
                           },
                           "required": [
                             "name"
-                          ]
+                          ],
+                          "additionalProperties": false
                         }
                       },
                       "query": {
@@ -1004,7 +1283,8 @@
                           },
                           "required": [
                             "name"
-                          ]
+                          ],
+                          "additionalProperties": false
                         }
                       },
                       "path": {
@@ -1020,7 +1300,8 @@
                         "type": "string",
                         "description": "The HTTP status code (e.g., \"200\")"
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": [
@@ -1032,9 +1313,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
-                    "enum": [
-                      "NATS"
-                    ]
+                    "pattern": "^(?:N|n)(?:A|a)(?:T|t)(?:S|s|\u017f)(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -1071,10 +1350,12 @@
                               "type": "boolean",
                               "description": "The NATS header required"
                             }
-                          }
+                          },
+                          "additionalProperties": false
                         }
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": [
@@ -1082,38 +1363,167 @@
                 ]
               },
               {
-                "anyOf": [
-                  {
-                    "not": {
-                      "required": [
-                        "protocol"
+                "not": {
+                  "properties": {
+                    "protocol": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^(?:A|a)(?:M|m)(?:Q|q)(?:P|p)/1\\.0(?![\\s\\S])"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:M|m)(?:Q|q)(?:T|t)(?:T|t)/3\\.1\\.1(?![\\s\\S])"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:M|m)(?:Q|q)(?:T|t)(?:T|t)/5\\.0(?![\\s\\S])"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:K|k|\u212a)(?:A|a)(?:F|f)(?:K|k|\u212a)(?:A|a)(?![\\s\\S])"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:H|h)(?:T|t)(?:T|t)(?:P|p)(?![\\s\\S])"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:N|n)(?:A|a)(?:T|t)(?:S|s|\u017f)(?![\\s\\S])"
+                        }
                       ]
                     }
                   },
-                  {
-                    "properties": {
-                      "protocol": {
-                        "not": {
-                          "enum": [
-                            "AMQP/1.0",
-                            "MQTT/3.1.1",
-                            "MQTT/5.0",
-                            "KAFKA",
-                            "HTTP",
-                            "NATS"
-                          ]
-                        }
-                      }
-                    },
-                    "required": [
-                      "protocol"
-                    ]
+                  "required": [
+                    "protocol"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "not": {
+                  "required": [
+                    "envelopemetadata"
+                  ]
+                }
+              },
+              {
+                "properties": {
+                  "envelope": {
+                    "type": "string",
+                    "pattern": "^(?:C|c)(?:L|l)(?:O|o)(?:U|u)(?:D|d)(?:E|e)(?:V|v)(?:E|e)(?:N|n)(?:T|t)(?:S|s|\u017f)/1\\.0(?![\\s\\S])"
                   }
+                },
+                "required": [
+                  "envelope"
+                ]
+              }
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "not": {
+                  "required": [
+                    "envelopeoptions"
+                  ]
+                }
+              },
+              {
+                "properties": {
+                  "envelope": {
+                    "type": "string",
+                    "pattern": "^(?:C|c)(?:L|l)(?:O|o)(?:U|u)(?:D|d)(?:E|e)(?:V|v)(?:E|e)(?:N|n)(?:T|t)(?:S|s|\u017f)/1\\.0(?![\\s\\S])"
+                  }
+                },
+                "required": [
+                  "envelope"
+                ]
+              }
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "not": {
+                  "required": [
+                    "protocoloptions"
+                  ]
+                }
+              },
+              {
+                "properties": {
+                  "protocol": {
+                    "type": "string",
+                    "pattern": "^(?:A|a)(?:M|m)(?:Q|q)(?:P|p)/1\\.0(?![\\s\\S])"
+                  }
+                },
+                "required": [
+                  "protocol"
+                ]
+              },
+              {
+                "properties": {
+                  "protocol": {
+                    "type": "string",
+                    "pattern": "^(?:M|m)(?:Q|q)(?:T|t)(?:T|t)/3\\.1\\.1(?![\\s\\S])"
+                  }
+                },
+                "required": [
+                  "protocol"
+                ]
+              },
+              {
+                "properties": {
+                  "protocol": {
+                    "type": "string",
+                    "pattern": "^(?:M|m)(?:Q|q)(?:T|t)(?:T|t)/5\\.0(?![\\s\\S])"
+                  }
+                },
+                "required": [
+                  "protocol"
+                ]
+              },
+              {
+                "properties": {
+                  "protocol": {
+                    "type": "string",
+                    "pattern": "^(?:K|k|\u212a)(?:A|a)(?:F|f)(?:K|k|\u212a)(?:A|a)(?![\\s\\S])"
+                  }
+                },
+                "required": [
+                  "protocol"
+                ]
+              },
+              {
+                "properties": {
+                  "protocol": {
+                    "type": "string",
+                    "pattern": "^(?:H|h)(?:T|t)(?:T|t)(?:P|p)(?![\\s\\S])"
+                  }
+                },
+                "required": [
+                  "protocol"
+                ]
+              },
+              {
+                "properties": {
+                  "protocol": {
+                    "type": "string",
+                    "pattern": "^(?:N|n)(?:A|a)(?:T|t)(?:S|s|\u017f)(?![\\s\\S])"
+                  }
+                },
+                "required": [
+                  "protocol"
                 ]
               }
             ]
           }
-        ]
+        ],
+        "additionalProperties": false
       },
       "message": {
         "type": "object",
@@ -1128,7 +1538,8 @@
           },
           "epoch": {
             "type": "integer",
-            "description": "Epoch time of the object creation"
+            "minimum": 0,
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "string",
@@ -1163,10 +1574,140 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
+          "shortself": {},
+          "icon": {
+            "type": "string",
+            "format": "uri"
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "versionid": {
+            "type": "string"
+          },
+          "ancestorid": {
+            "type": "string"
+          },
+          "isdefault": {
+            "type": "boolean"
+          },
+          "contenttype": {
+            "type": "string"
+          },
+          "format": {
+            "type": "string"
+          },
+          "formatvalidated": {
+            "type": "boolean"
+          },
+          "formatvalidatedreason": {
+            "type": "string"
+          },
+          "compatibilityvalidated": {
+            "type": "boolean"
+          },
+          "compatibilityvalidatedreason": {
+            "type": "string"
+          },
+          "versionsurl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "versionscount": {
+            "type": "integer"
+          },
+          "versions": {
+            "type": "object",
+            "additionalProperties": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/messagegroup-schema/messageVersion"
+                },
+                {
+                  "not": {
+                    "required": [
+                      "$schema"
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "meta": {
+            "allOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "self": {
+                    "type": "string",
+                    "format": "uri-reference",
+                    "description": "URL of the object"
+                  },
+                  "xid": {
+                    "type": "string",
+                    "format": "xid",
+                    "description": "Relative URL of the object"
+                  },
+                  "epoch": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Optimistic concurrency update counter"
+                  },
+                  "labels": {
+                    "type": "object",
+                    "description": "Labels for the object"
+                  },
+                  "createdat": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Time of the object creation"
+                  },
+                  "modifiedat": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Time of the object modification"
+                  },
+                  "messageid": {},
+                  "shortself": {},
+                  "xref": {},
+                  "readonly": {},
+                  "compatibility": {},
+                  "deprecated": {},
+                  "defaultversionid": {},
+                  "defaultversionurl": {},
+                  "defaultversionsticky": {},
+                  "$schema": {
+                    "type": "string",
+                    "format": "uri-reference"
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "not": {
+                  "required": [
+                    "$schema"
+                  ]
+                }
+              }
+            ]
+          },
+          "metaurl": {
+            "type": "string"
+          },
           "basemessage": {
             "type": "string",
             "format": "uri-reference",
             "description": "Reference to a base definition for this definition. Relative references are XIDs within the same registry. Absolute URIs reference message definitions in external registries. The base definition is overridden by this definition. If not present, this definition does not override any base definition"
+          },
+          "envelope": {
+            "type": "string",
+            "description": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups. The predefined envelope format is 'CloudEvents/1.0'"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups"
           },
           "dataschemaformat": {
             "type": "string",
@@ -1189,19 +1730,9 @@
             "type": "string",
             "description": "The content type for the message payload"
           },
-          "versionsurl": {
-            "type": "string",
-            "format": "uri"
-          },
-          "versionscount": {
-            "type": "integer"
-          },
-          "versions": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/definitions/messagegroup-schema/messageVersion"
-            }
-          }
+          "envelopemetadata": {},
+          "envelopeoptions": {},
+          "protocoloptions": {}
         },
         "allOf": [
           {
@@ -1211,9 +1742,7 @@
                   "envelope": {
                     "type": "string",
                     "description": "Message envelope format identifier. This attribute MUST be the same as the 'envelope' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups. The predefined envelope format is 'CloudEvents/1.0'",
-                    "enum": [
-                      "CloudEvents/1.0"
-                    ]
+                    "pattern": "^(?:C|c)(?:L|l)(?:O|o)(?:U|u)(?:D|d)(?:E|e)(?:V|v)(?:E|e)(?:N|n)(?:T|t)(?:S|s|\u017f)/1\\.0(?![\\s\\S])"
                   },
                   "envelopemetadata": {
                     "type": "object",
@@ -1227,17 +1756,27 @@
                             "type": "string"
                           },
                           "type": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "string"
+                            ]
                           },
                           "value": {
                             "type": "string",
+                            "enum": [
+                              "1.0"
+                            ],
                             "description": "CloudEvents spec version (fixed to '1.0')"
                           },
                           "required": {
                             "type": "boolean",
+                            "enum": [
+                              true
+                            ],
                             "description": "CloudEvents specversion is always required"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "id": {
                         "type": "object",
@@ -1247,7 +1786,11 @@
                             "type": "string"
                           },
                           "type": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "uritemplate",
+                              "string"
+                            ]
                           },
                           "value": {
                             "type": "string",
@@ -1255,9 +1798,13 @@
                           },
                           "required": {
                             "type": "boolean",
+                            "enum": [
+                              true
+                            ],
                             "description": "CloudEvents id is always required"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "type": {
                         "type": "object",
@@ -1275,9 +1822,13 @@
                           },
                           "required": {
                             "type": "boolean",
+                            "enum": [
+                              true
+                            ],
                             "description": "CloudEvents type is always required"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "source": {
                         "type": "object",
@@ -1287,7 +1838,11 @@
                             "type": "string"
                           },
                           "type": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "uritemplate",
+                              "string"
+                            ]
                           },
                           "value": {
                             "type": "string",
@@ -1295,9 +1850,13 @@
                           },
                           "required": {
                             "type": "boolean",
+                            "enum": [
+                              true
+                            ],
                             "description": "CloudEvents source is always required"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "subject": {
                         "type": "object",
@@ -1307,7 +1866,11 @@
                             "type": "string"
                           },
                           "type": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "uritemplate",
+                              "string"
+                            ]
                           },
                           "value": {
                             "type": "string",
@@ -1317,7 +1880,8 @@
                             "type": "boolean",
                             "description": "CloudEvents subject required"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "time": {
                         "type": "object",
@@ -1327,7 +1891,10 @@
                             "type": "string"
                           },
                           "type": {
-                            "type": "string"
+                            "type": "string",
+                            "enum": [
+                              "timestamp"
+                            ]
                           },
                           "value": {
                             "type": "string",
@@ -1336,7 +1903,8 @@
                           "required": {
                             "type": "boolean"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "dataschema": {
                         "type": "object",
@@ -1356,7 +1924,8 @@
                           "required": {
                             "type": "boolean"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "datacontenttype": {
                         "type": "object",
@@ -1375,7 +1944,8 @@
                           "required": {
                             "type": "boolean"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       }
                     },
                     "additionalProperties": {
@@ -1397,7 +1967,8 @@
                           "type": "boolean",
                           "description": "Whether the extension is required"
                         }
-                      }
+                      },
+                      "additionalProperties": false
                     }
                   },
                   "envelopeoptions": {
@@ -1406,6 +1977,10 @@
                     "properties": {
                       "mode": {
                         "type": "string",
+                        "enum": [
+                          "binary",
+                          "structured"
+                        ],
                         "description": "Whether CloudEvents 'binary' or 'structured' mode will be used"
                       },
                       "format": {
@@ -1420,29 +1995,21 @@
                 ]
               },
               {
-                "anyOf": [
-                  {
-                    "not": {
-                      "required": [
-                        "envelope"
+                "not": {
+                  "properties": {
+                    "envelope": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^(?:C|c)(?:L|l)(?:O|o)(?:U|u)(?:D|d)(?:E|e)(?:V|v)(?:E|e)(?:N|n)(?:T|t)(?:S|s|\u017f)/1\\.0(?![\\s\\S])"
+                        }
                       ]
                     }
                   },
-                  {
-                    "properties": {
-                      "envelope": {
-                        "not": {
-                          "enum": [
-                            "CloudEvents/1.0"
-                          ]
-                        }
-                      }
-                    },
-                    "required": [
-                      "envelope"
-                    ]
-                  }
-                ]
+                  "required": [
+                    "envelope"
+                  ]
+                }
               }
             ]
           },
@@ -1453,9 +2020,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
-                    "enum": [
-                      "AMQP/1.0"
-                    ]
+                    "pattern": "^(?:A|a)(?:M|m)(?:Q|q)(?:P|p)/1\\.0(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -1474,6 +2039,13 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "ulong",
+                                  "uuid",
+                                  "binary",
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.message-id declaration type from the AMQP type model"
                               },
                               "value": {
@@ -1483,7 +2055,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.message-id required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "user-id": {
                             "type": "object",
@@ -1494,6 +2067,11 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "binary",
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.user-id value type"
                               },
                               "value": {
@@ -1504,7 +2082,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.user-id required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "to": {
                             "type": "object",
@@ -1515,6 +2094,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.to value type"
                               },
                               "value": {
@@ -1525,7 +2108,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.to required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "subject": {
                             "type": "object",
@@ -1536,6 +2120,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.subject value type"
                               },
                               "value": {
@@ -1546,7 +2134,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.subject required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "reply-to": {
                             "type": "object",
@@ -1557,6 +2146,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.reply-to value type"
                               },
                               "value": {
@@ -1567,7 +2160,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.reply-to required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "correlation-id": {
                             "type": "object",
@@ -1578,6 +2172,11 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate",
+                                  "binary"
+                                ],
                                 "description": "AMQP correlation-id value type"
                               },
                               "value": {
@@ -1588,7 +2187,8 @@
                                 "type": "boolean",
                                 "description": "AMQP correlation-id required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "content-type": {
                             "type": "object",
@@ -1599,6 +2199,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.content-type value type"
                               },
                               "value": {
@@ -1609,7 +2213,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.content-type required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "content-encoding": {
                             "type": "object",
@@ -1620,6 +2225,9 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string"
+                                ],
                                 "description": "AMQP properties.content-encoding value type"
                               },
                               "value": {
@@ -1630,7 +2238,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.content-encoding required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "absolute-expiry-time": {
                             "type": "object",
@@ -1641,6 +2250,9 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "timestamp"
+                                ],
                                 "description": "AMQP properties.absolute-expiry-time value type"
                               },
                               "value": {
@@ -1651,7 +2263,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.absolute-expiry-time required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "creation-time": {
                             "type": "object",
@@ -1662,6 +2275,9 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "timestamp"
+                                ],
                                 "description": "AMQP properties.creation-time value type"
                               },
                               "value": {
@@ -1672,7 +2288,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.creation-time required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "group-id": {
                             "type": "object",
@@ -1683,6 +2300,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.group-id value type"
                               },
                               "value": {
@@ -1693,7 +2314,8 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.group-id required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "group-sequence": {
                             "type": "object",
@@ -1704,6 +2326,9 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "integer"
+                                ],
                                 "description": "AMQP group-sequence value type"
                               },
                               "value": {
@@ -1714,7 +2339,8 @@
                                 "type": "boolean",
                                 "description": "AMQP group-sequence required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           },
                           "reply-to-group-id": {
                             "type": "object",
@@ -1725,6 +2351,10 @@
                               },
                               "type": {
                                 "type": "string",
+                                "enum": [
+                                  "string",
+                                  "uritemplate"
+                                ],
                                 "description": "AMQP properties.reply-to-group-id value type"
                               },
                               "value": {
@@ -1735,9 +2365,11 @@
                                 "type": "boolean",
                                 "description": "AMQP properties.reply-to-group-id required"
                               }
-                            }
+                            },
+                            "additionalProperties": false
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "application-properties": {
                         "type": "object",
@@ -1750,6 +2382,14 @@
                             },
                             "type": {
                               "type": "string",
+                              "enum": [
+                                "string",
+                                "uritemplate",
+                                "integer",
+                                "decimal",
+                                "number",
+                                "boolean"
+                              ],
                               "description": "The application property type"
                             },
                             "value": {
@@ -1759,7 +2399,8 @@
                               "type": "boolean",
                               "description": "Application property required"
                             }
-                          }
+                          },
+                          "additionalProperties": false
                         }
                       },
                       "message-annotations": {
@@ -1773,6 +2414,14 @@
                             },
                             "type": {
                               "type": "string",
+                              "enum": [
+                                "string",
+                                "uritemplate",
+                                "integer",
+                                "decimal",
+                                "number",
+                                "boolean"
+                              ],
                               "description": "The message annotation type"
                             },
                             "value": {
@@ -1782,7 +2431,8 @@
                               "type": "boolean",
                               "description": "Annotation required"
                             }
-                          }
+                          },
+                          "additionalProperties": false
                         }
                       },
                       "delivery-annotations": {
@@ -1796,6 +2446,14 @@
                             },
                             "type": {
                               "type": "string",
+                              "enum": [
+                                "string",
+                                "uritemplate",
+                                "integer",
+                                "decimal",
+                                "number",
+                                "boolean"
+                              ],
                               "description": "The annotation type"
                             },
                             "value": {
@@ -1805,7 +2463,8 @@
                               "type": "boolean",
                               "description": "Annotation required"
                             }
-                          }
+                          },
+                          "additionalProperties": false
                         }
                       },
                       "header": {
@@ -1832,7 +2491,8 @@
                             "type": "integer",
                             "description": "AMQP delivery-count"
                           }
-                        }
+                        },
+                        "additionalProperties": false
                       },
                       "footer": {
                         "type": "object",
@@ -1845,6 +2505,14 @@
                             },
                             "type": {
                               "type": "string",
+                              "enum": [
+                                "string",
+                                "uritemplate",
+                                "integer",
+                                "decimal",
+                                "number",
+                                "boolean"
+                              ],
                               "description": "AMQP footer type"
                             },
                             "value": {
@@ -1854,10 +2522,12 @@
                               "type": "boolean",
                               "description": "Footer required"
                             }
-                          }
+                          },
+                          "additionalProperties": false
                         }
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": [
@@ -1869,9 +2539,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
-                    "enum": [
-                      "MQTT/3.1.1"
-                    ]
+                    "pattern": "^(?:M|m)(?:Q|q)(?:T|t)(?:T|t)/3\\.1\\.1(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -1890,7 +2558,8 @@
                         "format": "uri-template",
                         "description": "MQTT topic name"
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": [
@@ -1902,9 +2571,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
-                    "enum": [
-                      "MQTT/5.0"
-                    ]
+                    "pattern": "^(?:M|m)(?:Q|q)(?:T|t)(?:T|t)/5\\.0(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -1925,6 +2592,10 @@
                       },
                       "payload_format_indicator": {
                         "type": "integer",
+                        "enum": [
+                          0,
+                          1
+                        ],
                         "description": "MQTT payload format indicator"
                       },
                       "message_expiry_interval": {
@@ -1971,10 +2642,12 @@
                           },
                           "required": [
                             "name"
-                          ]
+                          ],
+                          "additionalProperties": false
                         }
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": [
@@ -1986,9 +2659,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
-                    "enum": [
-                      "KAFKA"
-                    ]
+                    "pattern": "^(?:K|k|\u212a)(?:A|a)(?:F|f)(?:K|k|\u212a)(?:A|a)(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -2037,10 +2708,12 @@
                           },
                           "required": [
                             "name"
-                          ]
+                          ],
+                          "additionalProperties": false
                         }
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": [
@@ -2052,9 +2725,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
-                    "enum": [
-                      "HTTP"
-                    ]
+                    "pattern": "^(?:H|h)(?:T|t)(?:T|t)(?:P|p)(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -2084,7 +2755,8 @@
                           },
                           "required": [
                             "name"
-                          ]
+                          ],
+                          "additionalProperties": false
                         }
                       },
                       "query": {
@@ -2111,7 +2783,8 @@
                           },
                           "required": [
                             "name"
-                          ]
+                          ],
+                          "additionalProperties": false
                         }
                       },
                       "path": {
@@ -2127,7 +2800,8 @@
                         "type": "string",
                         "description": "The HTTP status code (e.g., \"200\")"
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": [
@@ -2139,9 +2813,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Protocol identifier. This attribute MUST be the same as the 'protocol' attribute of the definition group, but is not automatically inherited because definitions may be cross-referenced across groups",
-                    "enum": [
-                      "NATS"
-                    ]
+                    "pattern": "^(?:N|n)(?:A|a)(?:T|t)(?:S|s|\u017f)(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -2178,10 +2850,12 @@
                               "type": "boolean",
                               "description": "The NATS header required"
                             }
-                          }
+                          },
+                          "additionalProperties": false
                         }
                       }
-                    }
+                    },
+                    "additionalProperties": false
                   }
                 },
                 "required": [
@@ -2189,38 +2863,167 @@
                 ]
               },
               {
-                "anyOf": [
-                  {
-                    "not": {
-                      "required": [
-                        "protocol"
+                "not": {
+                  "properties": {
+                    "protocol": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^(?:A|a)(?:M|m)(?:Q|q)(?:P|p)/1\\.0(?![\\s\\S])"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:M|m)(?:Q|q)(?:T|t)(?:T|t)/3\\.1\\.1(?![\\s\\S])"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:M|m)(?:Q|q)(?:T|t)(?:T|t)/5\\.0(?![\\s\\S])"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:K|k|\u212a)(?:A|a)(?:F|f)(?:K|k|\u212a)(?:A|a)(?![\\s\\S])"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:H|h)(?:T|t)(?:T|t)(?:P|p)(?![\\s\\S])"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:N|n)(?:A|a)(?:T|t)(?:S|s|\u017f)(?![\\s\\S])"
+                        }
                       ]
                     }
                   },
-                  {
-                    "properties": {
-                      "protocol": {
-                        "not": {
-                          "enum": [
-                            "AMQP/1.0",
-                            "MQTT/3.1.1",
-                            "MQTT/5.0",
-                            "KAFKA",
-                            "HTTP",
-                            "NATS"
-                          ]
-                        }
-                      }
-                    },
-                    "required": [
-                      "protocol"
-                    ]
+                  "required": [
+                    "protocol"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "not": {
+                  "required": [
+                    "envelopemetadata"
+                  ]
+                }
+              },
+              {
+                "properties": {
+                  "envelope": {
+                    "type": "string",
+                    "pattern": "^(?:C|c)(?:L|l)(?:O|o)(?:U|u)(?:D|d)(?:E|e)(?:V|v)(?:E|e)(?:N|n)(?:T|t)(?:S|s|\u017f)/1\\.0(?![\\s\\S])"
                   }
+                },
+                "required": [
+                  "envelope"
+                ]
+              }
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "not": {
+                  "required": [
+                    "envelopeoptions"
+                  ]
+                }
+              },
+              {
+                "properties": {
+                  "envelope": {
+                    "type": "string",
+                    "pattern": "^(?:C|c)(?:L|l)(?:O|o)(?:U|u)(?:D|d)(?:E|e)(?:V|v)(?:E|e)(?:N|n)(?:T|t)(?:S|s|\u017f)/1\\.0(?![\\s\\S])"
+                  }
+                },
+                "required": [
+                  "envelope"
+                ]
+              }
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "not": {
+                  "required": [
+                    "protocoloptions"
+                  ]
+                }
+              },
+              {
+                "properties": {
+                  "protocol": {
+                    "type": "string",
+                    "pattern": "^(?:A|a)(?:M|m)(?:Q|q)(?:P|p)/1\\.0(?![\\s\\S])"
+                  }
+                },
+                "required": [
+                  "protocol"
+                ]
+              },
+              {
+                "properties": {
+                  "protocol": {
+                    "type": "string",
+                    "pattern": "^(?:M|m)(?:Q|q)(?:T|t)(?:T|t)/3\\.1\\.1(?![\\s\\S])"
+                  }
+                },
+                "required": [
+                  "protocol"
+                ]
+              },
+              {
+                "properties": {
+                  "protocol": {
+                    "type": "string",
+                    "pattern": "^(?:M|m)(?:Q|q)(?:T|t)(?:T|t)/5\\.0(?![\\s\\S])"
+                  }
+                },
+                "required": [
+                  "protocol"
+                ]
+              },
+              {
+                "properties": {
+                  "protocol": {
+                    "type": "string",
+                    "pattern": "^(?:K|k|\u212a)(?:A|a)(?:F|f)(?:K|k|\u212a)(?:A|a)(?![\\s\\S])"
+                  }
+                },
+                "required": [
+                  "protocol"
+                ]
+              },
+              {
+                "properties": {
+                  "protocol": {
+                    "type": "string",
+                    "pattern": "^(?:H|h)(?:T|t)(?:T|t)(?:P|p)(?![\\s\\S])"
+                  }
+                },
+                "required": [
+                  "protocol"
+                ]
+              },
+              {
+                "properties": {
+                  "protocol": {
+                    "type": "string",
+                    "pattern": "^(?:N|n)(?:A|a)(?:T|t)(?:S|s|\u017f)(?![\\s\\S])"
+                  }
+                },
+                "required": [
+                  "protocol"
                 ]
               }
             ]
           }
-        ]
+        ],
+        "additionalProperties": false
       },
       "messagegroup": {
         "type": "object",
@@ -2235,7 +3038,8 @@
           },
           "epoch": {
             "type": "integer",
-            "description": "Epoch time of the object creation"
+            "minimum": 0,
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "string",
@@ -2270,6 +3074,63 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
+          "shortself": {},
+          "icon": {
+            "type": "string",
+            "format": "uri"
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "deprecated": {
+            "type": "object",
+            "properties": {
+              "effective": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "removal": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "alternative": {
+                "type": "string",
+                "format": "uri-reference"
+              },
+              "documentation": {
+                "type": "string",
+                "format": "uri-reference"
+              }
+            },
+            "additionalProperties": false
+          },
+          "constraints": {
+            "type": "object"
+          },
+          "messages": {
+            "type": "object",
+            "additionalProperties": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/messagegroup-schema/message"
+                },
+                {
+                  "not": {
+                    "required": [
+                      "$schema"
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "messagesurl": {
+            "type": "string"
+          },
+          "messagescount": {
+            "type": "integer"
+          },
           "envelope": {
             "type": "string",
             "description": "Envelope format identifier that defines the common metadata information for the message. All definitions in this group share this envelope format. Mixed-envelope-format groups are not permitted. The predefined envelope format is CloudEvents/1.0"
@@ -2277,13 +3138,10 @@
           "protocol": {
             "type": "string",
             "description": "Protocol identifier that defines the transport message protocol. All definitions in this group share this protocol type. Mixed-protocol groups are not permitted. Predefined protocol formats are 'AMQP/1.0', 'MQTT/3.1.1', 'MQTT/5.0', 'KAFKA', 'HTTP', and 'NATS'"
-          },
-          "messages": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/definitions/messagegroup-schema/message"
-            }
           }
+        },
+        "additionalProperties": {
+          "description": "Any other attribute that is common to all definitions in this group"
         }
       }
     },
@@ -2301,7 +3159,8 @@
           },
           "epoch": {
             "type": "integer",
-            "description": "Epoch time of the object creation"
+            "minimum": 0,
+            "description": "Optimistic concurrency update counter"
           },
           "self": {
             "type": "string",
@@ -2336,21 +3195,14 @@
             "format": "date-time",
             "description": "Time of the object modification"
           },
-          "usage": {
-            "type": "array",
-            "description": "Client's expected usage of this endpoint. A single role is required, except `subscriber` and `consumer` may be combined for AMQP/1.0, MQTT/3.1.1, MQTT/5.0, or NATS.",
-            "items": {
-              "type": "string",
-              "enum": [
-                "subscriber",
-                "consumer",
-                "producer"
-              ]
-            }
-          },
-          "channel": {
+          "shortself": {},
+          "icon": {
             "type": "string",
-            "description": "The name of the channel"
+            "format": "uri"
+          },
+          "$schema": {
+            "type": "string",
+            "format": "uri-reference"
           },
           "deprecated": {
             "type": "object",
@@ -2378,6 +3230,56 @@
               }
             }
           },
+          "constraints": {
+            "type": "object"
+          },
+          "messages": {
+            "type": "object",
+            "additionalProperties": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/messagegroup-schema/message"
+                },
+                {
+                  "not": {
+                    "required": [
+                      "$schema"
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "messagesurl": {
+            "type": "string"
+          },
+          "messagescount": {
+            "type": "integer"
+          },
+          "usage": {
+            "type": "array",
+            "description": "Client's expected usage of this endpoint. A single role is required, except `subscriber` and `consumer` may be combined for AMQP/1.0, MQTT/3.1.1, MQTT/5.0, or NATS.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "subscriber",
+                "consumer",
+                "producer"
+              ]
+            }
+          },
+          "channel": {
+            "type": "string",
+            "description": "The name of the channel"
+          },
+          "envelope": {
+            "type": "string",
+            "description": "Envelope metadata format identifier. If set, all definitions MUST use this format value"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "Endpoint protocol identifier. If set, all definitions MUST use this protocol value"
+          },
           "messagegroups": {
             "type": "array",
             "description": "The message groups that are supported by this endpoint. Relative references are XIDs within the same registry. Absolute URIs reference message groups in external registries.",
@@ -2386,12 +3288,8 @@
               "format": "uri-reference"
             }
           },
-          "messages": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/definitions/messagegroup-schema/message"
-            }
-          }
+          "envelopeoptions": {},
+          "protocoloptions": {}
         },
         "required": [
           "usage"
@@ -2404,16 +3302,18 @@
                   "envelope": {
                     "type": "string",
                     "description": "Envelope metadata format identifier. If set, all definitions MUST use this format value",
-                    "enum": [
-                      "CloudEvents/1.0"
-                    ]
+                    "pattern": "^(?:C|c)(?:L|l)(?:O|o)(?:U|u)(?:D|d)(?:E|e)(?:V|v)(?:E|e)(?:N|n)(?:T|t)(?:S|s|\u017f)/1\\.0(?![\\s\\S])"
                   },
                   "envelopeoptions": {
                     "type": "object",
                     "description": "Envelope metadata constraints",
                     "properties": {
                       "mode": {
-                        "type": "string"
+                        "type": "string",
+                        "enum": [
+                          "binary",
+                          "structured"
+                        ]
                       },
                       "format": {
                         "type": "string"
@@ -2426,29 +3326,21 @@
                 ]
               },
               {
-                "anyOf": [
-                  {
-                    "not": {
-                      "required": [
-                        "envelope"
+                "not": {
+                  "properties": {
+                    "envelope": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^(?:C|c)(?:L|l)(?:O|o)(?:U|u)(?:D|d)(?:E|e)(?:V|v)(?:E|e)(?:N|n)(?:T|t)(?:S|s|\u017f)/1\\.0(?![\\s\\S])"
+                        }
                       ]
                     }
                   },
-                  {
-                    "properties": {
-                      "envelope": {
-                        "not": {
-                          "enum": [
-                            "CloudEvents/1.0"
-                          ]
-                        }
-                      }
-                    },
-                    "required": [
-                      "envelope"
-                    ]
-                  }
-                ]
+                  "required": [
+                    "envelope"
+                  ]
+                }
               }
             ]
           },
@@ -2459,9 +3351,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Endpoint protocol identifier. If set, all definitions MUST use this protocol value",
-                    "enum": [
-                      "AMQP/1.0"
-                    ]
+                    "pattern": "^(?:A|a)(?:M|m)(?:Q|q)(?:P|p)/1\\.0(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -2536,6 +3426,10 @@
                       },
                       "distribution-mode": {
                         "type": "string",
+                        "enum": [
+                          "move",
+                          "copy"
+                        ],
                         "description": "The AMQP source distribution mode. 'move' means a transferred message is removed from the node and is therefore seen by only one receiver. 'copy' means the message remains at the node after transfer and may also be transferred to other receivers. This does not describe message locking"
                       },
                       "connection-capabilities": {
@@ -2563,10 +3457,21 @@
                       },
                       "terminus-durability": {
                         "type": "string",
+                        "enum": [
+                          "none",
+                          "configuration",
+                          "unsettled-state"
+                        ],
                         "description": "Durability mode for the applicable source/target terminus"
                       },
                       "expiry-policy": {
                         "type": "string",
+                        "enum": [
+                          "link-detach",
+                          "session-end",
+                          "connection-close",
+                          "never"
+                        ],
                         "description": "Expiry policy for the applicable source/target terminus"
                       },
                       "timeout": {
@@ -2576,10 +3481,19 @@
                       },
                       "sender-settle-mode": {
                         "type": "string",
+                        "enum": [
+                          "unsettled",
+                          "settled",
+                          "mixed"
+                        ],
                         "description": "AMQP sender settle mode requested for the link. It constrains the party that sends transfers over the link: the client for a producer endpoint, the remote node for a consumer endpoint"
                       },
                       "receiver-settle-mode": {
                         "type": "string",
+                        "enum": [
+                          "first",
+                          "second"
+                        ],
                         "description": "AMQP receiver settle mode requested for the link. It constrains the party that receives transfers over the link: the remote node for a producer endpoint, the client for a consumer endpoint"
                       }
                     }
@@ -2594,9 +3508,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Endpoint protocol identifier. If set, all definitions MUST use this protocol value",
-                    "enum": [
-                      "MQTT/5.0"
-                    ]
+                    "pattern": "^(?:M|m)(?:Q|q)(?:T|t)(?:T|t)/5\\.0(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -2654,6 +3566,11 @@
                       "qos": {
                         "type": "integer",
                         "minimum": 0,
+                        "enum": [
+                          0,
+                          1,
+                          2
+                        ],
                         "description": "The MQTT QoS level. May be 0, 1, or 2"
                       },
                       "retain": {
@@ -2688,6 +3605,11 @@
                       "retainhandling": {
                         "type": "integer",
                         "minimum": 0,
+                        "enum": [
+                          0,
+                          1,
+                          2
+                        ],
                         "description": "MQTT 5 retain-handling subscription mode"
                       },
                       "willtopic": {
@@ -2711,9 +3633,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Endpoint protocol identifier. If set, all definitions MUST use this protocol value",
-                    "enum": [
-                      "MQTT/3.1.1"
-                    ]
+                    "pattern": "^(?:M|m)(?:Q|q)(?:T|t)(?:T|t)/3\\.1\\.1(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -2771,6 +3691,11 @@
                       "qos": {
                         "type": "integer",
                         "minimum": 0,
+                        "enum": [
+                          0,
+                          1,
+                          2
+                        ],
                         "description": "The MQTT QoS level. May be 0, 1, or 2"
                       },
                       "retain": {
@@ -2806,9 +3731,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Endpoint protocol identifier. If set, all definitions MUST use this protocol value",
-                    "enum": [
-                      "HTTP"
-                    ]
+                    "pattern": "^(?:H|h)(?:T|t)(?:T|t)(?:P|p)(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -2880,7 +3803,8 @@
                           },
                           "required": [
                             "name"
-                          ]
+                          ],
+                          "additionalProperties": false
                         }
                       },
                       "query": {
@@ -2922,9 +3846,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Endpoint protocol identifier. If set, all definitions MUST use this protocol value",
-                    "enum": [
-                      "KAFKA"
-                    ]
+                    "pattern": "^(?:K|k|\u212a)(?:A|a)(?:F|f)(?:K|k|\u212a)(?:A|a)(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -3022,6 +3944,11 @@
                       },
                       "autooffsetreset": {
                         "type": "string",
+                        "enum": [
+                          "earliest",
+                          "latest",
+                          "none"
+                        ],
                         "description": "Consumer offset reset behavior when no valid committed offset exists"
                       },
                       "enableautocommit": {
@@ -3040,9 +3967,7 @@
                   "protocol": {
                     "type": "string",
                     "description": "Endpoint protocol identifier. If set, all definitions MUST use this protocol value",
-                    "enum": [
-                      "NATS"
-                    ]
+                    "pattern": "^(?:N|n)(?:A|a)(?:T|t)(?:S|s|\u017f)(?![\\s\\S])"
                   },
                   "protocoloptions": {
                     "type": "object",
@@ -3113,39 +4038,48 @@
                 ]
               },
               {
-                "anyOf": [
-                  {
-                    "not": {
-                      "required": [
-                        "protocol"
+                "not": {
+                  "properties": {
+                    "protocol": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^(?:A|a)(?:M|m)(?:Q|q)(?:P|p)/1\\.0(?![\\s\\S])"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:M|m)(?:Q|q)(?:T|t)(?:T|t)/5\\.0(?![\\s\\S])"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:M|m)(?:Q|q)(?:T|t)(?:T|t)/3\\.1\\.1(?![\\s\\S])"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:H|h)(?:T|t)(?:T|t)(?:P|p)(?![\\s\\S])"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:K|k|\u212a)(?:A|a)(?:F|f)(?:K|k|\u212a)(?:A|a)(?![\\s\\S])"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^(?:N|n)(?:A|a)(?:T|t)(?:S|s|\u017f)(?![\\s\\S])"
+                        }
                       ]
                     }
                   },
-                  {
-                    "properties": {
-                      "protocol": {
-                        "not": {
-                          "enum": [
-                            "AMQP/1.0",
-                            "MQTT/5.0",
-                            "MQTT/3.1.1",
-                            "HTTP",
-                            "KAFKA",
-                            "NATS"
-                          ]
-                        }
-                      }
-                    },
-                    "required": [
-                      "protocol"
-                    ]
-                  }
-                ]
+                  "required": [
+                    "protocol"
+                  ]
+                }
               }
             ]
           }
         ]
       }
     }
-  }
+  },
+  "type": "object",
+  "additionalProperties": false
 }
