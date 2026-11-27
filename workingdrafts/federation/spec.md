@@ -418,8 +418,9 @@ For example, source A supplies `/documents/main/assets/Pump` and source B
 supplies `/documents/main/assets/pump`. Even if A precedes B, an exact
 read of either Resource and a read of `/documents/main/assets` return
 `ambiguous` while both spellings are visible. If the policy excludes
-B's `pump` from this collection, the collection can return A's `Pump`.
-An exact read of `pump` does not resolve to `Pump`.
+B's `pump` from the composed view, the collection includes A's `Pump`.
+An exact read of `Pump` returns that Resource; an exact read of `pump`
+returns `not_found`.
 
 For an exact Group or Resource read, or a read below one of those paths, the
 resolver MUST check the applicable Group and Resource siblings on the
