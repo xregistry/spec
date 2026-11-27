@@ -1,39 +1,98 @@
 # WoT Registry Samples
 
-<!-- words: WoT thingdescriptiongroups thingmodelgroups schemagroups messagegroups fabrikam lamp smartlamp -->
-<!-- words: wotid derivedfrom byom contoso standardsbody maturity -->
+<!-- words: WoT thingdescriptiongroups thingmodelgroups fabrikam wotid derivedfrom byom contoso standardsbody maturity affordance minversion versionorigin -->
+<!-- words: factoryfloor inletpressure py -->
+<!-- words: cloudevents descriptorid describedby thingdescription thingdescriptions affordances standalone affordanceselector -->
 
-This directory contains illustrative sample documents that exercise the
-WoT Registry model defined in [../model.json](../model.json):
+[registry.json](registry.json) illustrates document identity, compatible
+Versions and provenance metadata using the [WoT Registry model](../model.json).
+It contains the following lamp and vendor-model examples:
 
-- [lamp-tm.xreg.json](lamp-tm.xreg.json) — a minimal `thingmodelgroups`
-  document containing a single Thing Model for a generic dimmable lamp. Its
-  authored identifier `urn:fabrikam:lamp` is carried in `wotid`, while
-  `urn.fabrikam.lamp` is the Resource id the client chose for it; a Consumer
-  holding the authored identifier finds the Resource by querying `wotid`.
-- [lamp-td.xreg.json](lamp-td.xreg.json) — a `thingdescriptiongroups` document
-  containing a Thing Description (`urn:fabrikam:lamp:42`) that conforms to the
-  lamp Thing Model above. Its `links[].rel = "type"` entry references the TM
-  by absolute document-view URL, and its `derivedfrom` attribute records the
-  TM's authored `wotid`.
-- [byom-pump-tm.xreg.json](byom-pump-tm.xreg.json) — a bring-your-own-model
-  example. Two vendor-supplied Thing Models are stored exactly as authored:
-  their `id` members and the `tm:extends` link between them are untouched, and
-  the authored identifiers are carried alongside the documents in `wotid` and
-  `derivedfrom`. Both are marked `"maturity": "Vendor"` and carry no
-  `standardsbody`, because Contoso publishes them itself; a `standardsbody` is
-  a claim about who defines a document, not about who wrote it. The pump has
-  two Versions, with `2` as the default, so retrieving the Resource yields the
-  latest while `.../versions/1` yields the earlier one. Because the pump
-  supplies an explicit `versions` collection, its attributes — including the
-  provenance attributes an agent uses to prefer an official model — are
-  carried on each Version rather than on the Resource; the device, which has a
-  single implicit Version, carries them on the Resource directly. Showing both
-  shapes in one file is deliberate: the `versions` collection is only needed
-  when a Resource has more than one Version.
+| Group | Content |
+| --- | --- |
+| `Fabrikam.Lighting` | A complete dimmable lamp Thing Model. Its authored `urn:fabrikam:lamp:v1` appears in `wotid`; its client-chosen Resource id is `urn.fabrikam.lamp.v1`. |
+| `Fabrikam.FactoryFloor.01` | Lamp #42, a Thing Description with an absolute `rel: "type"` link to the lamp model. The TD's `derivedfrom` records the model's `wotid`. |
+| `Contoso.Pumps` | Vendor-supplied pump and device Thing Models, including two compatible pump Versions. |
 
-- [smartlamp-wot.xreg.json](smartlamp-wot.xreg.json) — an end-to-end scenario
-  combining a Thing Model and a Thing Description that conforms to it in a
-  single registry document, showing how `thingmodelgroups` and
-  `thingdescriptiongroups` compose: the instance carries `derivedfrom` and a
-  `links[].rel = "type"` reference to the Thing Model Resource.
+The Registry contains both the complete lamp model and its conforming Thing
+Description. A Consumer holding either document's authored identifier queries
+`wotid` to find the Resource.
+
+Contoso stores its models as authored. Their `id` members and the pump's
+`tm:extends` link remain unchanged. Both models have `"maturity": "Vendor"`
+and omit `standardsbody`: Contoso publishes them, while `standardsbody`
+records an organization that defines or endorses a document, not its author.
+
+The pump defaults to `1.1.0` and retains `1.0.0` in its explicit `versions`
+collection. Maturity and other metadata appear on each Version. The device has
+one implicit Version, so those attributes appear on the Resource. Pump revision
+`1.1.0` adds the OPTIONAL `inletPressure` affordance and no mandatory member.
+
+Each TM's `versionid` matches its document's SemVer `version.model`, and its
+`wotid` includes the major version. The lamp TD's `versionid` instead
+matches `version.instance`. The pump's `tm:minVersion: "1.0.0"` requires a
+device-model revision at or above 1.0.0. This is a proposed WoT extension,
+not a member defined by the published WoT 1.1 Recommendation.
+
+The [registry sample](registry.json) illustrates document and Version
+metadata, not a series of write requests. Clients can omit `versionorigin`
+from a write: the Registry assigns it under the
+[versioning rules](../spec.md#13-versioning).
+
+[publication-closure.json](publication-closure.json) separately illustrates the
+[proposed closure envelope](../../../publication/design/design.md#selection-and-acceptance).
+It is neither Registry content nor a complete snapshot.
+[Checking the sample against the closure schema](../tests/test_wot_examples.py)
+establishes its shape, not snapshot coverage or correct target selection.
+
+[cloudevents.json](cloudevents.json) contains two standalone CloudEvents as
+sample data, not a transport batch. Using the
+[proposed WoT profile](../spec.md#531-cloudevents-wot-source-resolution),
+they identify the same lamp TD Version and optionally an event affordance.
+The first event's `source` is absolute and the second event's `source` is
+relative. The profile does not prescribe a URI scheme. Their `subject` values
+label the Thing for filtering, not document selection. Each event's
+`describedby` URL selects the exact Version of `lamp-42-temperature` or
+`lamp-42`, respectively. The Descriptor examples omit other Core metadata:
+
+```json
+[
+  {
+    "descriptorid": "lamp-42-temperature",
+    "versionid": "1",
+    "entries": {
+      "lamp42": {
+        "class": "thingdescription",
+        "url": "https://registry.example/thingdescriptiongroups/Fabrikam.FactoryFloor.01/thingdescriptions/urn.fabrikam.lamp.42/versions/1.0.0",
+        "affordanceselector": "/events/overheated"
+      }
+    }
+  },
+  {
+    "descriptorid": "lamp-42",
+    "versionid": "1",
+    "entries": {
+      "lamp42": {
+        "class": "thingdescription",
+        "url": "https://registry.example/thingdescriptiongroups/Fabrikam.FactoryFloor.01/thingdescriptions/urn.fabrikam.lamp.42/versions/1.0.0"
+      }
+    }
+  }
+]
+```
+
+Each entry's `url` identifies the lamp TD Version's document. The first
+Descriptor's plain JSON Pointer selects `/events/overheated`; the second
+omits the selector for the whole Thing. The sample TD declares that event
+affordance directly.
+
+Both events use `com.fabrikam.lamp.overheated.v1` as their `type`. Their payload contract
+defines a numeric `temperature` member; the different values and TD selection
+do not change that contract. The example's naming convention uses the final
+`v1` for the payload contract revision, independently of the TD's
+`version.instance` or Registry `versionid`. Under that convention, adding a
+payload member, even one whose presence is not mandatory, would use a new
+contract revision.
+
+The closure sample does not demonstrate that the proposed envelope can
+reconstruct a composed TD. The event version does not verify content integrity.

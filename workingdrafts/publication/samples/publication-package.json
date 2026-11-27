@@ -1,0 +1,111 @@
+{
+  "format": "xregistry-publication-package/1",
+  "context": {
+    "format": "xregistry-open/1",
+    "scope": "urn:example:manual-publication",
+    "snapshot": {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/team/snapshots/9d0bf066f7e96e942f07ad978bfb59f74cf791afc34db3d386bc94b4f155749b/versions/manifest"
+      },
+      "digest": "sha256:9d0bf066f7e96e942f07ad978bfb59f74cf791afc34db3d386bc94b4f155749b",
+      "size": 1143
+    },
+    "registry": {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/team/objects/registry-capture/versions/content"
+      },
+      "digest": "sha256:d7e50157645e98260f0fa754e6940c59ab5b4f2d36e79b8fa3b08130b4e7a3e6",
+      "size": 790
+    },
+    "completeness": "offline-complete",
+    "channel": {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "resource": "/publications/team/channels/stable"
+      },
+      "epoch": 12
+    }
+  },
+  "objects": [
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/team/snapshots/9d0bf066f7e96e942f07ad978bfb59f74cf791afc34db3d386bc94b4f155749b/versions/manifest"
+      },
+      "path": "manifest.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/publications/team/objects/registry-capture/versions/content"
+      },
+      "path": "registry.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "http",
+          "endpoint": "https://publisher.example.test"
+        },
+        "version": "/sets/manual/documents/intro/versions/7"
+      },
+      "path": "intro.txt"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "opcua",
+          "endpoint": "opc.tcp://ua.example.test:4840",
+          "parameters": {
+            "registryroot": "nsu=urn:example:publication;s=Registry"
+          }
+        },
+        "version": "/publications/team/snapshots/d6d2945cbeb4b8a83117dd6e1b74edbe7eb7c19a8d122add3362314d8d4cd531/versions/manifest"
+      },
+      "path": "opcua-manifest.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "opcua",
+          "endpoint": "opc.tcp://ua.example.test:4840",
+          "parameters": {
+            "registryroot": "nsu=urn:example:publication;s=Registry"
+          }
+        },
+        "version": "/publications/team/objects/registry-capture/versions/content"
+      },
+      "path": "registry.json"
+    },
+    {
+      "reference": {
+        "registry": {
+          "binding": "opcua",
+          "endpoint": "opc.tcp://ua.example.test:4840",
+          "parameters": {
+            "registryroot": "nsu=urn:example:publication;s=Registry"
+          }
+        },
+        "version": "/sets/manual/documents/intro/versions/7"
+      },
+      "path": "intro.txt"
+    }
+  ]
+}

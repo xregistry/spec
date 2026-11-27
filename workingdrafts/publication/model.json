@@ -1,0 +1,78 @@
+{
+  "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
+  "groups": {
+    "publications": {
+      "singular": "publication",
+      "description": "Organizational storage only; a Group is not a channel or snapshot.",
+      "resources": {
+        "channels": {
+          "singular": "channel",
+          "hasdocument": false,
+          "maxversions": 1,
+          "versionmode": "manual",
+          "metaattributes": {
+            "scope": {
+              "type": "uri",
+              "required": true,
+              "description": "Immutable publication scope; not a Group identity."
+            },
+            "head": {
+              "type": "object",
+              "required": true,
+              "description": "One authoritative manifest reference; requires an epoch-checked Meta update.",
+              "attributes": {
+                "reference": {
+                  "type": "object",
+                  "required": true,
+                  "attributes": {
+                    "registry": {
+                      "type": "object",
+                      "required": true,
+                      "attributes": {
+                        "binding": {"type": "string", "required": true},
+                        "endpoint": {"type": "uri", "required": true},
+                        "parameters": {"type": "object"}
+                      }
+                    },
+                    "version": {"type": "xid", "required": true}
+                  }
+                },
+                "digest": {
+                  "type": "string",
+                  "required": true
+                },
+                "size": {
+                  "type": "uinteger",
+                  "required": true
+                }
+              }
+            }
+          }
+        },
+        "objects": {
+          "singular": "object",
+          "maxversions": 1,
+          "setversionid": true,
+          "versionmode": "manual",
+          "description": "Captured Registry JSON, extension documents or copied domain bytes at an explicit Version; adapter enforces retained byte immutability."
+        },
+        "snapshots": {
+          "singular": "snapshot",
+          "maxversions": 1,
+          "setversionid": true,
+          "versionmode": "manual",
+          "attributes": {
+            "contenttype": {
+              "type": "string",
+              "required": true,
+              "default": "application/json",
+              "enum": ["application/json"],
+              "strict": true
+            }
+          },
+          "description": "Manifest at Version manifest; adapter enforces digest identity and prohibits replacement."
+        }
+      }
+    }
+  }
+}

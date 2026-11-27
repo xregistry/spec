@@ -68,6 +68,11 @@ for fn in `find . -name \*model.json`; do
         $XR model group delete $list
     fi
 
+    # Registry attributes also belong to the loaded model. Restart the
+    # in-memory backend so they cannot leak into the next model's Registry.
+    docker restart xrserver > /dev/null
+    while ! curl --silent --fail $XR_SERVER > /dev/null; do sleep .1; done
+
 echo
 done
 

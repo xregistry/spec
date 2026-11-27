@@ -1,0 +1,62 @@
+{
+  "$schema": "https://xregistry.io/xregistryspecs/core-v1/schemas/model.schema.json",
+  "attributes": {
+    "wotversionprofile": {
+      "type": "string",
+      "required": true,
+      "readonly": true,
+      "strict": true,
+      "enum": ["incremental"],
+      "default": "incremental"
+    }
+  },
+  "groups": {
+    "thingdescriptiongroups": {
+      "$include": "model.json#/groups/thingdescriptiongroups",
+      "resources": {
+        "thingdescriptions": {
+          "$include": "model.json#/groups/thingdescriptiongroups/resources/thingdescriptions",
+          "versionmode": "manual",
+          "singleversionroot": false,
+          "description": "A Thing Description stored under incremental Version IDs.",
+          "attributes": {
+            "$include": "model.json#/groups/thingdescriptiongroups/resources/thingdescriptions/attributes",
+            "versionorigin": {
+              "$include": "model.json#/groups/thingdescriptiongroups/resources/thingdescriptions/attributes/versionorigin",
+              "description": "Server-set origin of the numeric Version ID."
+            },
+            "compatibilityline": {
+              "type": "uri",
+              "immutable": true,
+              "description": "The optional, authorized compatibility line fixed at creation."
+            }
+          }
+        }
+      }
+    },
+    "thingmodelgroups": {
+      "$include": "model.json#/groups/thingmodelgroups",
+      "resources": {
+        "thingmodels": {
+          "$include": "model.json#/groups/thingmodelgroups/resources/thingmodels",
+          "versionmode": "manual",
+          "singleversionroot": false,
+          "metaattributes": {},
+          "description": "A Thing Model stored under incremental Version IDs.",
+          "attributes": {
+            "$include": "model.json#/groups/thingmodelgroups/resources/thingmodels/attributes",
+            "versionorigin": {
+              "$include": "model.json#/groups/thingmodelgroups/resources/thingmodels/attributes/versionorigin",
+              "description": "Server-set origin of the numeric Version ID."
+            },
+            "compatibilityline": {
+              "type": "uri",
+              "immutable": true,
+              "description": "The optional, authorized compatibility line fixed at creation."
+            }
+          }
+        }
+      }
+    }
+  }
+}

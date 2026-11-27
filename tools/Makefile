@@ -1,11 +1,11 @@
 all: docker models
-	@git diff --name-status --exit-code */schemas > /dev/null 2>&1 || \
+	@git diff --name-status --exit-code -- ':(glob)**/schemas/**' > /dev/null 2>&1 || \
 		( echo "schema files have been updated, make sure you commit them" ; \
 		  exit 1 )
 	@echo "All good!"
 
 verify: spellcheck ticks badhrefs tabcheck errorcheck hrefs \
-	testpython links website makeschema
+	testpython examplescheck links website makeschema
 
 spellcheck:
 	@echo "Checking for spelling mistakes:"
@@ -32,6 +32,18 @@ errorcheck:
 	tools/errorcheck core/spec.md core/model.md core/http.md
 	@echo
 
+samplescheck:
+	@echo "Check for too verbose samples:"
+	tools/samplescheck */model.json workingdrafts/models/*/model.json \
+		*/samples/*json */samples/*/*json \
+		workingdrafts/models/*/samples/*.json
+	@echo
+
+examplescheck: loadpython
+	@echo "Validating shared federation examples:"
+	@python -B -m workingdrafts.federation.tools.generate_examples validate
+	@echo
+
 hrefs:
 	@if which go > /dev/null ; then \
 	  echo "Verifying links in our docs:" ; \
@@ -46,7 +58,7 @@ loadpython:
 
 testpython: loadpython
 	@echo "Testing our python tools:"
-	@pytest tools/
+	@python -m pytest
 
 links: loadpython
 	@echo "Verifying links in our docs:"
@@ -103,8 +115,31 @@ makeschema: loadpython
 	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/xreg/xregistryspecs/cloudevents-v1/schemas/document-schema.struct.json --schema-name CloudEventsRegistryDocument --output cloudevents/schemas/document-schema.struct.json endpoint/model.json message/model.json schema/model.json
 	@python tools/schema-generator.py --type avro-schema --output cloudevents/schemas/document-schema.avsc endpoint/model.json message/model.json schema/model.json
 	@python tools/schema-generator.py --type openapi --output cloudevents/schemas/openapi.json endpoint/model.json message/model.json schema/model.json
+	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/workingdrafts/models/registry/schemas/document-schema.json --output workingdrafts/models/registry/schemas/document-schema.json workingdrafts/models/registry/model.json
+	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/workingdrafts/models/registry/schemas/document-schema.struct.json --schema-name RegistryOfRegistriesDocument --output workingdrafts/models/registry/schemas/document-schema.struct.json workingdrafts/models/registry/model.json
+	@python tools/schema-generator.py --type avro-schema --output workingdrafts/models/registry/schemas/document-schema.avsc workingdrafts/models/registry/model.json
+	@python tools/schema-generator.py --type openapi --output workingdrafts/models/registry/schemas/openapi.json workingdrafts/models/registry/model.json
+	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/workingdrafts/models/openusd/schemas/document-schema.json --output workingdrafts/models/openusd/schemas/document-schema.json workingdrafts/models/openusd/model.json
+	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/workingdrafts/models/openusd/schemas/document-schema.struct.json --schema-name OpenUsdRegistryDocument --output workingdrafts/models/openusd/schemas/document-schema.struct.json workingdrafts/models/openusd/model.json
+	@python tools/schema-generator.py --type avro-schema --output workingdrafts/models/openusd/schemas/document-schema.avsc workingdrafts/models/openusd/model.json
+	@python tools/schema-generator.py --type openapi --output workingdrafts/models/openusd/schemas/openapi.json workingdrafts/models/openusd/model.json
+	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/workingdrafts/models/wot/schemas/document-schema.json --output workingdrafts/models/wot/schemas/document-schema.json workingdrafts/models/wot/model.json
+	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/workingdrafts/models/wot/schemas/document-schema.struct.json --schema-name WoTRegistryDocument --output workingdrafts/models/wot/schemas/document-schema.struct.json workingdrafts/models/wot/model.json
+	@python tools/schema-generator.py --type avro-schema --output workingdrafts/models/wot/schemas/document-schema.avsc workingdrafts/models/wot/model.json
+	@python tools/schema-generator.py --type openapi --output workingdrafts/models/wot/schemas/openapi.json workingdrafts/models/wot/model.json
+	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/workingdrafts/models/wot/schemas/incremental/document-schema.json --output workingdrafts/models/wot/schemas/incremental/document-schema.json workingdrafts/models/wot/model-incremental.json
+	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/workingdrafts/models/wot/schemas/incremental/document-schema.struct.json --schema-name WoTIncrementalRegistryDocument --output workingdrafts/models/wot/schemas/incremental/document-schema.struct.json workingdrafts/models/wot/model-incremental.json
+	@python tools/schema-generator.py --type avro-schema --output workingdrafts/models/wot/schemas/incremental/document-schema.avsc workingdrafts/models/wot/model-incremental.json
+	@python tools/schema-generator.py --type openapi --output workingdrafts/models/wot/schemas/incremental/openapi.json workingdrafts/models/wot/model-incremental.json
+	@python tools/schema-generator.py --type json-schema --schema-id https://xregistry.io/workingdrafts/publication/schemas/document-schema.json --output workingdrafts/publication/schemas/document-schema.json workingdrafts/publication/model.json
+	@python tools/schema-generator.py --type json-structure --schema-id https://xregistry.io/workingdrafts/publication/schemas/document-schema.struct.json --schema-name PublicationRegistryDocument --output workingdrafts/publication/schemas/document-schema.struct.json workingdrafts/publication/model.json
+	@python tools/schema-generator.py --type avro-schema --output workingdrafts/publication/schemas/document-schema.avsc workingdrafts/publication/model.json
+	@python tools/schema-generator.py --type openapi --output workingdrafts/publication/schemas/openapi.json workingdrafts/publication/model.json
 	@echo
 
 docker:
-	@docker run -t -v $(PWD):/tmp/spec -w /tmp/spec python:3.11 \
+	@# Trust only the checkout mounted from the host for this verification run.
+	@docker run -t -v $(PWD):/tmp/spec -w /tmp/spec \
+	    -e GIT_CONFIG_COUNT=1 -e GIT_CONFIG_KEY_0=safe.directory \
+	    -e GIT_CONFIG_VALUE_0=/tmp/spec python:3.11 \
 	    make -f tools/Makefile verify

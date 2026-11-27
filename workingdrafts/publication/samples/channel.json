@@ -1,0 +1,15 @@
+{
+  "scope": "urn:example:manual-publication",
+  "epoch": 12,
+  "head": {
+    "reference": {
+      "registry": {
+        "binding": "http",
+        "endpoint": "https://publisher.example.test"
+      },
+      "version": "/publications/team/snapshots/9d0bf066f7e96e942f07ad978bfb59f74cf791afc34db3d386bc94b4f155749b/versions/manifest"
+    },
+    "digest": "sha256:9d0bf066f7e96e942f07ad978bfb59f74cf791afc34db3d386bc94b4f155749b",
+    "size": 1143
+  }
+}
