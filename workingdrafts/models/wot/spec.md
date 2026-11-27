@@ -63,13 +63,13 @@ storing, managing, and discovering W3C
     - [5.2. Preserving Customer Documents](#52-preserving-customer-documents)
     - [5.3. Lookup](#53-lookup)
       - [5.3.1. CloudEvents WoT Source Resolution](#531-cloudevents-wot-source-resolution)
-      - [5.3.2. Optional Retention of Descriptor-Linked Versions](#532-optional-retention-of-descriptor-linked-versions)
+      - [5.3.2. Retention of Descriptor-Linked Versions](#532-retention-of-descriptor-linked-versions)
     - [5.4. Versioned Reference Resolution](#54-versioned-reference-resolution)
       - [5.4.1. Floors and Pins](#541-floors-and-pins)
       - [5.4.2. Resolver Algorithm](#542-resolver-algorithm)
       - [5.4.3. Errors and Test Vectors](#543-errors-and-test-vectors)
       - [5.4.4. Publication closure](#544-publication-closure)
-      - [5.4.5. Optional Payload Schema Capture](#545-optional-payload-schema-capture)
+      - [5.4.5. Payload Schema Capture](#545-payload-schema-capture)
     - [5.5. Incremental Profile](#55-incremental-profile)
   - [6. Relationships and Cross-References](#6-relationships-and-cross-references)
     - [6.1. Thing Description to Thing Model](#61-thing-description-to-thing-model)
@@ -730,7 +730,7 @@ manufacturer object MUST explicitly have the type
 `https://schema.org/Organization`. A Registry that exposes these attributes
 MUST take each value verbatim from the bytes of that Version. It MUST omit
 the corresponding attribute if the source is missing, empty or ambiguous,
-is an identifier or object where a string is required, or needs a language
+is an identifier or object instead of a string, or needs a language
 choice. It MUST NOT dereference an Organization or model identifier, read an
 affordance, or infer a value from a publisher, title or Thing Model. If the
 Registry cannot interpret the context without fetching it, it MUST omit the
@@ -887,9 +887,9 @@ identity or a claim about who owns the Thing.
 | `observerid` | String | OPTIONAL | A nonempty deployment-assigned identifier for the observing service or system, not a person's identity. |
 | `sourcekey` | String | OPTIONAL | A nonempty opaque key the observer assigns to the discovered source. The key stays the same across observations of that source by that observer. |
 
-The Registry MUST omit the object if either required value is unknown or
+The Registry MUST omit the object if either REQUIRED value is unknown or
 not authorized for disclosure to the reader, or if the URL discloses
-credentials. It MUST omit either optional value when unknown or not
+credentials. It MUST omit either OPTIONAL value when unknown or not
 authorized for disclosure, and MUST omit `sourcekey` unless it also
 exposes `observerid`. The same restrictions apply to collection views
 and filters. Compare a key only within the scope of its observer in the
@@ -1229,7 +1229,7 @@ alias; it does not bring a remote Version's bytes into the Consumer's Registry.
 The [CloudEvents samples](samples/cloudevents.json) address an affordance and
 the whole TD through Descriptors that reference an explicit Version.
 
-#### 5.3.2. Optional Retention of Descriptor-Linked Versions
+#### 5.3.2. Retention of Descriptor-Linked Versions
 
 A deployment MAY enable a retention policy for Descriptor-linked WoT
 Versions outside Publication snapshots. This policy does not change the
@@ -1622,7 +1622,7 @@ structure shown in the [closure example](samples/publication-closure.json).
 It does not verify that a publication covers every in-scope reference or
 binds it to the correct Version.
 
-#### 5.4.5. Optional Payload Schema Capture
+#### 5.4.5. Payload Schema Capture
 
 A Publisher MAY include a payload schema in a WoT snapshot for
 replay under an accepted publication profile. This option uses the
@@ -1648,7 +1648,7 @@ One reference source does not serve as a fallback for another.
   expanded IRI. For example, a binding profile can recognize a message
   schema URI in a Form for subscribing to one event. The profile MUST
   define how to select exactly one Form in the original TD, whether the
-  member is required, and how to determine its reference base. Read the
+  member is REQUIRED, and how to determine its reference base. Read the
   member from the verified TD bytes using captured or supported immutable
   contexts. Its value MUST be a single URI-reference string. For a
   relative reference, use the original TD base under [WoT-TD 1.1][WoT-TD-1.1]
@@ -1680,7 +1680,7 @@ Replay MUST fail if the selected Form or the reference base needed to
 resolve its schema URI is missing, selection is invalid or ambiguous, or
 the profile requires a schema and none is selected. If a schema is selected,
 replay MUST fail unless there is one matching captured Version, its bytes
-pass verification, and the Consumer supports the required schema
+pass verification, and the Consumer supports the profile's schema
 interpretation. Replay MUST NOT fetch a live reference URL, use a bundled
 substitute, or fall back to a default Version. Authorization and retrieval
 limits still apply to captured content.

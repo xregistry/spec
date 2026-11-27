@@ -276,7 +276,7 @@ base is not addressed to this Registry.
 
 An empty payload and `{}` both carry no arguments. A client that does not
 know whether the Registry accepts the empty form can send `{}` with the
-properties required for a nonempty payload.
+content properties for a nonempty payload.
 
 <a id="read-replies"></a>
 
@@ -1152,9 +1152,7 @@ page exists and MUST be absent on the last page. Use the
 Link objects MAY also contain `count`, `offset`, `limit`, and
 `expires`. When present, `count`, `offset`, and `limit` use the decimal
 token syntax above and MUST be in the unsigned 64-bit range, subject to
-the Pagination constraints on [`count`](../../pagination/spec.md#count),
-[`offset`](../../pagination/spec.md#offset), and
-[`limit`](../../pagination/spec.md#limit-1).
+the [Pagination server attribute constraints][page-links] for those fields.
 Pagination [`expires`](../../pagination/spec.md#expires), if present, is a
 JSON string in the [Core timestamp][core-types] format. The server
 does not send an HTTP `Link` header, and a cursor does not imply an

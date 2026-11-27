@@ -101,7 +101,7 @@ Dockerfile or container-image tar wrapper is involved.
 
 The input has `exampleformat: 1` and an `examples` map. Each example contains
 neutral `records` with `kind` and `entity`, a `snapshot` class (`linked` or
-`offline-complete`), an optional `resolvedmodelsource`, and `documents`
+`offline-complete`), `resolvedmodelsource` if supplied, and `documents`
 keyed by full Version XID. Each document declares exactly one of `text`,
 `base64`, `url`, or `none: true` for a metadata-only Version. Only captured
 `text` or `base64` documents can include `origin` or `base`, both absolute

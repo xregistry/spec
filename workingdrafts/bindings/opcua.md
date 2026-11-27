@@ -269,7 +269,7 @@ requirements. OPC 30460-1 governs their OPC UA representation and processing.
 This working draft describes those mappings without changing their governing
 sources. Its Method and field summaries do not replace the exact native
 signatures, type and encoding identifiers, or profiles in OPC 30460-1.
-The optional [downstream deployment profile](#107-downstream-deployment)
+The OPTIONAL [downstream deployment profile](#107-downstream-deployment)
 defines its own Methods and argument mapping. The
 [conformance claims](#12-conformance) apply to this working draft.
 Section 9.1 records the draft's mapping of canonical `deprecated` events from
@@ -2584,7 +2584,7 @@ For a Federation `document` result that returns bytes or a locator, the
 resolver MUST identify the exact supplying Version XID. A logical `Open`
 selects the default at Open time, but the FileType handle alone does not
 identify that Version. Verify the association of the handle with the
-Version through a documented mapping, or resolve the required default
+Version through a documented mapping, or resolve the applicable default
 selection under a verified pin or documented guarantee and open the exact
 Version's file. For an exact Version file read, verify that the file belongs
 to that Version. For a Core alias, apply the authorized one-hop
@@ -3039,7 +3039,7 @@ or Method result.
 | Unsupported advertisement or transport | `unsupported_binding` |
 | Unsupported returned Core SpecVersion | `unsupported_version` |
 | Missing mapping, `Bad_NotSupported` or `Bad_MethodInvalid` for a requested operation | `unsupported_operation` |
-| Otherwise valid document result without exact supplier evidence, or required Group comparison scope that cannot be verified | `unsupported_operation` |
+| Cannot verify the exact Version supplying an otherwise valid document result, or cannot verify Group comparison scope when the read depends on it | `unsupported_operation` |
 | Model has `hasdocument: false` for a document request | `unsupported_operation`, before Open |
 | `Bad_NodeIdUnknown` or `Bad_NotFound` for the requested existing-context target | `not_found` |
 | Valid advertised root is confirmed absent | `not_found` at root selection, not a miss for the requested entity |

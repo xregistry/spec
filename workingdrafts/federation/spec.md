@@ -581,7 +581,7 @@ for that Group.
 A resolver exposing a combined Group or Resource collection MUST
 enumerate all eligible source collections needed for that view and apply the
 Group and Resource precedence rules before returning members. A returned
-Group entity carries Group metadata even if it has only the required fields.
+Group entity carries Group metadata even if it has only the REQUIRED fields.
 Apply the same-source Group metadata rule for each Group path whose metadata
 the collection read or selector requires. For each Resource path, the resolver
 MUST apply the same-source Resource selection rule before returning a

@@ -446,7 +446,7 @@ records or changed declared totals. It MAY coalesce identical repeats but
 MUST count each member only once, both for selection and for completeness.
 When the sequence ends, any declared sequence total MUST agree with the
 number of distinct members returned, not just those that match the local
-selector. The optional Pagination [`count`](../../pagination/spec.md#count)
+selector. The OPTIONAL Pagination [`count`](../../pagination/spec.md#count)
 parameter on a `Link` declares the total for that sequence, including any
 server-side filter applied to it. It is not a Core collection count or the
 number of matches found by a local selector. A mismatch produces
