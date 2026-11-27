@@ -59,6 +59,7 @@ storing, managing, and discovering W3C
     - [5.2. Preserving Customer Documents](#52-preserving-customer-documents)
     - [5.3. Lookup](#53-lookup)
       - [5.3.1. CloudEvents WoT Source Resolution](#531-cloudevents-wot-source-resolution)
+      - [5.3.2. Optional Retention of Descriptor-Linked Versions](#532-optional-retention-of-descriptor-linked-versions)
     - [5.4. Versioned Reference Resolution](#54-versioned-reference-resolution)
       - [5.4.1. Floors and Pins](#541-floors-and-pins)
       - [5.4.2. Resolver Algorithm](#542-resolver-algorithm)
@@ -1127,6 +1128,41 @@ Resource or TD Version; its revision is independent of `version.instance`,
 
 The [CloudEvents samples](samples/cloudevents.json) address an affordance and
 the whole TD through Descriptors that reference an explicit Version.
+
+#### 5.3.2. Optional Retention of Descriptor-Linked Versions
+
+A deployment MAY enable a retention policy for Descriptor-linked WoT
+Versions outside Publication snapshots. This policy does not change the
+[Publication retention rules](../../publication/spec.md#workflows-and-lifecycle)
+for current channel heads or retained snapshots.
+
+The deployment MUST declare which published Descriptor Versions it retains
+under this policy and the scope of the WoT Versions it controls. For each
+retained Descriptor Version, the policy protects the WoT document Versions
+in that scope named by exact Version document URLs in its entries. It also
+protects Thing Model Versions in that scope that the Publisher has pinned
+as dependencies of those documents, including transitive Thing Model
+dependencies. The Publisher MUST record each pin outside the authored
+documents and identify the supplying Registry, Resource and exact Version.
+A Resource URL, including one with a sticky default, does not pin a Version.
+The policy does not select unpinned dependencies or fetch remote documents.
+A remote Version whose bytes the deployment does not control is outside
+the policy, even if it is visible through Federation.
+
+While any retained Descriptor Version protects a Version, ordinary
+operations MUST NOT delete that Version or remove or replace its document
+bytes. A server MUST reject an entire ordinary delete request
+that would remove a protected Version, including a request that names its
+owning Resource or Group or deletes multiple entities at once.
+See Core's [Deleting Entities](../../../core/spec.md#deleting-entities).
+
+Retention does not grant discovery or read access and does not prevent an
+authorized emergency revocation. If a protected Version becomes unavailable,
+an exact read fails rather than returning a substitute Version. This policy
+does not impose Registry-wide referential integrity or require reference
+checks during ordinary storage. Enrollment, release, retention periods and
+emergency revocation procedures are deployment policy; this section defines
+no configuration or error format.
 
 ### 5.4. Versioned Reference Resolution
 
