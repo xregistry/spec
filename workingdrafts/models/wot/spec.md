@@ -16,6 +16,9 @@
 <!-- words: marcschier namespace sourcename uav viewversion iri jsonld -->
 <!-- words: percent dereferenceable affordanceselector -->
 <!-- words: compatibilityline wotversionprofile wotversion vn -->
+<!-- words: curated observedat observerid sourcekey -->
+<!-- words: modelname -->
+<!-- words: originversion -->
 
 ## Abstract
 
@@ -53,6 +56,7 @@ storing, managing, and discovering W3C
       - [4.5.1. WoT Thing Description](#451-wot-thing-description)
       - [4.5.2. WoT Thing Model](#452-wot-thing-model)
     - [4.6. Provenance and Selection Metadata](#46-provenance-and-selection-metadata)
+    - [4.7. Discovery Provenance](#47-discovery-provenance)
   - [5. Identity and Resolution](#5-identity-and-resolution)
     - [5.1. WoT Identifiers and Registry Ids](#51-wot-identifiers-and-registry-ids)
       - [5.1.1. Breaking Changes and Successor Identifiers](#511-breaking-changes-and-successor-identifiers)
@@ -65,6 +69,7 @@ storing, managing, and discovering W3C
       - [5.4.2. Resolver Algorithm](#542-resolver-algorithm)
       - [5.4.3. Errors and Test Vectors](#543-errors-and-test-vectors)
       - [5.4.4. Publication closure](#544-publication-closure)
+      - [5.4.5. Optional Payload Schema Capture](#545-optional-payload-schema-capture)
     - [5.5. Incremental Profile](#55-incremental-profile)
   - [6. Relationships and Cross-References](#6-relationships-and-cross-references)
     - [6.1. Thing Description to Thing Model](#61-thing-description-to-thing-model)
@@ -502,6 +507,14 @@ attribute `compatibilityline` (Section 5.5.2).
           "format": "<STRING>",                    # MUST be "JSON-LD/1.1"
           "wotid": "<STRING>",                     # the document's authored 'id'
           "derivedfrom": [ "<STRING>" * ], ?       # advisory index of referenced TM wotids
+          "manufacturer": "<STRING>", ?           # name from the TD
+          "modelname": "<STRING>", ?              # textual model from the TD
+          "discovery": {                           # discovery provenance
+            "url": "<URL>",
+            "observedat": "<TIMESTAMP>",
+            "observerid": "<STRING>", ?
+            "sourcekey": "<STRING>" ?
+          }, ?
           "license": "<STRING>", ?                 # provenance metadata
           "publisher": "<STRING>", ?
           "standardsbody": "<STRING>", ?
@@ -704,6 +717,32 @@ use that setting to pin the default to a Version other than the newest.
 This specification does not redefine default-Version selection. See
 [Version IDs][xRegistry version-ids] for more information.
 
+A Registry MAY expose the following read-only string attributes on a
+Thing Description Version. Both are OPTIONAL and describe the stored TD:
+
+| Attribute | Source on the TD's root Thing |
+| --- | --- |
+| `manufacturer` | One inline Organization under [`https://schema.org/manufacturer`][Schema.org manufacturer], with one plain string value for `https://schema.org/name`. |
+| `modelname` | One plain string value for [`https://schema.org/model`][Schema.org model]. |
+
+Use the expanded terms under the applicable JSON-LD context. The
+manufacturer object MUST explicitly have the type
+`https://schema.org/Organization`. A Registry that exposes these attributes
+MUST take each value verbatim from the bytes of that Version. It MUST omit
+the corresponding attribute if the source is missing, empty or ambiguous,
+is an identifier or object where a string is required, or needs a language
+choice. It MUST NOT dereference an Organization or model identifier, read an
+affordance, or infer a value from a publisher, title or Thing Model. If the
+Registry cannot interpret the context without fetching it, it MUST omit the
+affected attributes rather than fetch the context for indexing.
+If a permitted write replaces the Version's document, the Registry MUST
+recompute or omit these attributes. Extraction does not change the TD.
+
+These attributes use Core [filter comparisons][Core filters]. For example,
+`GET /thingdescriptiongroups/shop/thingdescriptions/pump/versions?filter=manufacturer=Fabrikam`
+filters the Version collection. On a Resource collection, the same filter
+inspects the exposed default Version, not all historical Versions.
+
 ### 4.3. Thing Model Groups
 
 A Thing Model Group is a collection of Thing Models related in some
@@ -834,6 +873,49 @@ a unique Resource across Groups.
 Each Version carries these attributes alongside the document they describe,
 just as it carries `format` and `wotid`. The xRegistry Core rules for writing
 and updating Version attributes apply.
+
+### 4.7. Discovery Provenance
+
+A Registry MAY expose `discovery`, a read-only object on a Thing Description
+Version. It records an observation of the stored TD bytes, not a Publisher's
+identity or a claim about who owns the Thing.
+
+| Member | Type | Presence | Meaning |
+| --- | --- | --- | --- |
+| `url` | URL | REQUIRED | The absolute HTTP(S) URL from which the observer obtained these TD bytes, after any permitted redirects. It has no user information or fragment. |
+| `observedat` | Timestamp | REQUIRED | When the observer obtained the bytes, using the Core timestamp type. |
+| `observerid` | String | OPTIONAL | A nonempty deployment-assigned identifier for the observing service or system, not a person's identity. |
+| `sourcekey` | String | OPTIONAL | A nonempty opaque key the observer assigns to the discovered source. The key stays the same across observations of that source by that observer. |
+
+The Registry MUST omit the object if either required value is unknown or
+not authorized for disclosure to the reader, or if the URL discloses
+credentials. It MUST omit either optional value when unknown or not
+authorized for disclosure, and MUST omit `sourcekey` unless it also
+exposes `observerid`. The same restrictions apply to collection views
+and filters. Compare a key only within the scope of its observer in the
+assigning deployment. Equal values across deployments do not identify the
+same observer or source. Neither field identifies the Thing or its
+Registry Version.
+
+The observation does not make the URL an exact Version address or a
+retrieval instruction. It does not grant read or write access. If the
+stored bytes are replaced, the Registry MUST remove the observation unless
+it has an observation of the replacement bytes.
+
+**Example (informative).** A discovery service reads a TD from an authorized
+[WoT Discovery][WoT-Discovery] service and stores it in an intake Group with
+the observed URL and time, its service identifier, and its stable source
+key. A curator in the same deployment reviews that Version and uses an
+authorized publishing process to copy its bytes and the observation fields
+that the curated audience is authorized to see. The copy keeps the
+original observer and key when both can be disclosed, not the curator's
+identity. It keeps the same TD `id` and `wotid`, but has its own Registry
+path and Version identity. If the intake Version came from a
+federated Registry, the curator can also preserve the exact source identity
+and byte digest using the existing
+[Publication document association](../../publication/spec.md#registry-json-and-document-associations).
+The curated Group applies its own access policy. Later discoveries do not
+automatically change a curated Version or its Resource's default Version.
 
 ## 5. Identity and Resolution
 
@@ -1540,6 +1622,69 @@ structure shown in the [closure example](samples/publication-closure.json).
 It does not verify that a publication covers every in-scope reference or
 binds it to the correct Version.
 
+#### 5.4.5. Optional Payload Schema Capture
+
+A Publisher MAY include a payload schema in a WoT snapshot for
+replay under an accepted publication profile. This option uses the
+[captured Registry JSON and document associations](../../publication/spec.md#registry-json-and-document-associations).
+It does not extend the closure bindings in Section 5.4.4 or make payload
+schemas part of baseline WoT closure.
+
+The Publisher and Consumer MUST apply the same immutable profile. It MUST
+identify the supported schema format and the authorized source Registry
+contexts, and specify when to use each applicable selection below. The
+caller identifies the exact captured Version that supplies the reference.
+One reference source does not serve as a fallback for another.
+
+- **Descriptor entry.** When a CloudEvent does not supply `dataschema`,
+  select the `schema` entry from the selected Descriptor Version's captured
+  metadata using the [CloudEvents WoT profile][CE WoT schema selection].
+  Use the entry's `url`. The Descriptor is metadata in the checked Registry
+  JSON; it does not acquire a Version document. An event with `dataschema`
+  uses that attribute as the sole schema input under the CloudEvents WoT
+  profile. Capturing an event's `dataschema` is outside this option.
+- **TD Form member.** The profile identifies a Form for the operation in
+  one exact captured TD Version and names the schema URI member by its
+  expanded IRI. For example, a binding profile can recognize a message
+  schema URI in a Form for subscribing to one event. The profile MUST
+  define how to select exactly one Form in the original TD, whether the
+  member is required, and how to determine its reference base. Read the
+  member from the verified TD bytes using captured or supported immutable
+  contexts. Its value MUST be a single URI-reference string. For a
+  relative reference, use the original TD base under [WoT-TD 1.1][WoT-TD-1.1]
+  (the TD's `base`, or the TD document association's `base` if absent),
+  unless the profile defines a Form-specific base derived from captured
+  data. Resolve the URI-reference under [RFC 3986][RFC3986]. A Form's
+  `href` is not the reference base unless the profile says to use it.
+  Do not use the snapshot's retrieval URL as the base.
+
+The resulting URL MUST be fragment-free and identify the exact HTTP
+document URL of a non-alias [Schema Resource Version][xRegistry Schema].
+No default Version URL or metadata URL qualifies. In the captured Registry
+view, the Publisher and Consumer MUST find exactly one Schema Version
+whose document association identifies that source. Match the URL against
+the explicit Version document URL at the authorized HTTP Registry root
+named in the profile for that association's `originRegistry`, using the
+association's `originVersion`. Compare the URLs exactly. Neither an origin
+identifier nor a reference occurrence is an instruction to fetch content.
+
+The Publisher MUST include the schema's exact bytes through that
+association's [byte descriptor](../../publication/spec.md#byte-descriptors).
+The Consumer MUST verify those bytes and use the association's `base` for
+relative references. This option supports only schemas whose references
+can be resolved within the verified schema document under the selected
+format. It does not cover other Descriptor classes, unrecognized TD
+members, or chains of references to other schema documents.
+
+Replay MUST fail if the selected Form or the reference base needed to
+resolve its schema URI is missing, selection is invalid or ambiguous, or
+the profile requires a schema and none is selected. If a schema is selected,
+replay MUST fail unless there is one matching captured Version, its bytes
+pass verification, and the Consumer supports the required schema
+interpretation. Replay MUST NOT fetch a live reference URL, use a bundled
+substitute, or fall back to a default Version. Authorization and retrieval
+limits still apply to captured content.
+
 ### 5.5. Incremental Profile
 
 #### 5.5.1. Publication
@@ -1809,13 +1954,17 @@ The document-preservation and selection rules introduce the following risks:
 [Core strictvalidation]: ../../../core/model.md#groupsstringresourcesstringstrictvalidation
 [Core defaultversionsticky]: ../../../core/spec.md#defaultversionsticky-attribute
 [Core defaults]: ../../../core/spec.md#default-version-of-a-resource
+[Core filters]: ../../../core/spec.md#filter-flag
 [WoT-TD-1.1]: https://www.w3.org/TR/wot-thing-description11/
 [WoT-TM-1.1]: https://www.w3.org/TR/wot-thing-description11#thing-model
 [WoT-TD media]: https://www.w3.org/TR/wot-thing-description11#media-type-section
 [WoT-TM media]: https://www.w3.org/TR/wot-thing-description11#media-type-section-tm
 [JSON-LD]: https://www.w3.org/TR/json-ld11/
 [SemVer]: https://semver.org/spec/v2.0.0.html
+[Schema.org manufacturer]: https://schema.org/manufacturer
+[Schema.org model]: https://schema.org/model
 [CE WoT profile]: https://github.com/cloudevents/spec/blob/278dcbde5f51b65e62863c5d0d144c7f366fec74/cloudevents/extensions/wot.md
+[CE WoT schema selection]: https://github.com/cloudevents/spec/blob/278dcbde5f51b65e62863c5d0d144c7f366fec74/cloudevents/extensions/wot.md#dataschema-and-datacontenttype
 [WoT reference proposal]: https://github.com/marcschier/wot-thing-description/blob/f66f89ab59196be3d19b088692f9ce7c22e7785e/proposals/td-versioned-references/spec.md
 [WoT-Discovery]: https://www.w3.org/TR/wot-discovery/
 [WoT-Security]: https://www.w3.org/TR/wot-security/

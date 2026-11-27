@@ -262,6 +262,16 @@
                     },
                     {
                       "type": "string",
+                      "doc": "Manufacturer name derived from the stored Thing Description.",
+                      "name": "manufacturer"
+                    },
+                    {
+                      "type": "string",
+                      "doc": "Textual model identifier derived from the stored Thing Description.",
+                      "name": "modelname"
+                    },
+                    {
+                      "type": "string",
                       "doc": "The license the document is offered under, as an SPDX license expression or a URL. Advisory provenance metadata",
                       "name": "license"
                     },
@@ -284,6 +294,11 @@
                       "type": "string",
                       "doc": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document",
                       "name": "maturity"
+                    },
+                    {
+                      "type": "io.xregistry.GenericRecord",
+                      "name": "discovery",
+                      "doc": "An observation of the stored Thing Description bytes."
                     },
                     {
                       "name": "Extensions",

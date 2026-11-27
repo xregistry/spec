@@ -102,6 +102,14 @@
             },
             "description": "The authored WoT identifiers of the Thing Models this Thing Description extends or composes - authored identifiers, not xids, so a resolver matches them against the document's own references directly"
           },
+          "manufacturer": {
+            "type": "string",
+            "description": "Manufacturer name derived from the stored Thing Description."
+          },
+          "modelname": {
+            "type": "string",
+            "description": "Textual model identifier derived from the stored Thing Description."
+          },
           "license": {
             "type": "string",
             "description": "The license the document is offered under, as an SPDX license expression or a URL. Advisory provenance metadata"
@@ -127,6 +135,33 @@
               "Community",
               "Experimental"
             ]
+          },
+          "discovery": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "uri",
+                "description": "The effective source URL at which the stored bytes were observed."
+              },
+              "observedat": {
+                "type": "datetime",
+                "description": "When the observer obtained the stored bytes."
+              },
+              "observerid": {
+                "type": "string",
+                "description": "A deployment-assigned identifier for the observing service or system."
+              },
+              "sourcekey": {
+                "type": "string",
+                "description": "An opaque stable source key scoped to the identified observer."
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "url",
+              "observedat"
+            ],
+            "description": "An observation of the stored Thing Description bytes."
           },
           "thingdescription": {
             "type": "any"
@@ -214,6 +249,14 @@
             },
             "description": "The authored WoT identifiers of the Thing Models this Thing Description extends or composes - authored identifiers, not xids, so a resolver matches them against the document's own references directly"
           },
+          "manufacturer": {
+            "type": "string",
+            "description": "Manufacturer name derived from the stored Thing Description."
+          },
+          "modelname": {
+            "type": "string",
+            "description": "Textual model identifier derived from the stored Thing Description."
+          },
           "license": {
             "type": "string",
             "description": "The license the document is offered under, as an SPDX license expression or a URL. Advisory provenance metadata"
@@ -239,6 +282,33 @@
               "Community",
               "Experimental"
             ]
+          },
+          "discovery": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "uri",
+                "description": "The effective source URL at which the stored bytes were observed."
+              },
+              "observedat": {
+                "type": "datetime",
+                "description": "When the observer obtained the stored bytes."
+              },
+              "observerid": {
+                "type": "string",
+                "description": "A deployment-assigned identifier for the observing service or system."
+              },
+              "sourcekey": {
+                "type": "string",
+                "description": "An opaque stable source key scoped to the identified observer."
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "url",
+              "observedat"
+            ],
+            "description": "An observation of the stored Thing Description bytes."
           },
           "meta": {
             "type": "object",

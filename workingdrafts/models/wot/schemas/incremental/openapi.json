@@ -1829,6 +1829,12 @@
               "xRegistry-wotid": {
                 "$ref": "#/components/headers/xRegistry-wotid"
               },
+              "xRegistry-manufacturer": {
+                "$ref": "#/components/headers/xRegistry-manufacturer"
+              },
+              "xRegistry-modelname": {
+                "$ref": "#/components/headers/xRegistry-modelname"
+              },
               "xRegistry-license": {
                 "$ref": "#/components/headers/xRegistry-license"
               },
@@ -2065,6 +2071,12 @@
               "xRegistry-wotid": {
                 "$ref": "#/components/headers/xRegistry-wotid"
               },
+              "xRegistry-manufacturer": {
+                "$ref": "#/components/headers/xRegistry-manufacturer"
+              },
+              "xRegistry-modelname": {
+                "$ref": "#/components/headers/xRegistry-modelname"
+              },
               "xRegistry-license": {
                 "$ref": "#/components/headers/xRegistry-license"
               },
@@ -2296,6 +2308,12 @@
               },
               "xRegistry-wotid": {
                 "$ref": "#/components/headers/xRegistry-wotid"
+              },
+              "xRegistry-manufacturer": {
+                "$ref": "#/components/headers/xRegistry-manufacturer"
+              },
+              "xRegistry-modelname": {
+                "$ref": "#/components/headers/xRegistry-modelname"
               },
               "xRegistry-license": {
                 "$ref": "#/components/headers/xRegistry-license"
@@ -3506,6 +3524,12 @@
               "xRegistry-wotid": {
                 "$ref": "#/components/headers/xRegistry-wotid"
               },
+              "xRegistry-manufacturer": {
+                "$ref": "#/components/headers/xRegistry-manufacturer"
+              },
+              "xRegistry-modelname": {
+                "$ref": "#/components/headers/xRegistry-modelname"
+              },
               "xRegistry-license": {
                 "$ref": "#/components/headers/xRegistry-license"
               },
@@ -4504,6 +4528,14 @@
               "type": "string"
             }
           },
+          "manufacturer": {
+            "type": "string",
+            "description": "Manufacturer name derived from the stored Thing Description."
+          },
+          "modelname": {
+            "type": "string",
+            "description": "Textual model identifier derived from the stored Thing Description."
+          },
           "license": {
             "type": "string",
             "description": "The license the document is offered under, as an SPDX license expression or a URL. Advisory provenance metadata"
@@ -4524,6 +4556,34 @@
           "maturity": {
             "type": "string",
             "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document"
+          },
+          "discovery": {
+            "type": "object",
+            "description": "An observation of the stored Thing Description bytes.",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri-reference",
+                "description": "The effective source URL at which the stored bytes were observed."
+              },
+              "observedat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When the observer obtained the stored bytes."
+              },
+              "observerid": {
+                "type": "string",
+                "description": "A deployment-assigned identifier for the observing service or system."
+              },
+              "sourcekey": {
+                "type": "string",
+                "description": "An opaque stable source key scoped to the identified observer."
+              }
+            },
+            "required": [
+              "url",
+              "observedat"
+            ]
           },
           "compatibilityline": {
             "type": "string",
@@ -4667,6 +4727,14 @@
               "type": "string"
             }
           },
+          "manufacturer": {
+            "type": "string",
+            "description": "Manufacturer name derived from the stored Thing Description."
+          },
+          "modelname": {
+            "type": "string",
+            "description": "Textual model identifier derived from the stored Thing Description."
+          },
           "license": {
             "type": "string",
             "description": "The license the document is offered under, as an SPDX license expression or a URL. Advisory provenance metadata"
@@ -4687,6 +4755,34 @@
           "maturity": {
             "type": "string",
             "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document"
+          },
+          "discovery": {
+            "type": "object",
+            "description": "An observation of the stored Thing Description bytes.",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri-reference",
+                "description": "The effective source URL at which the stored bytes were observed."
+              },
+              "observedat": {
+                "type": "string",
+                "format": "date-time",
+                "description": "When the observer obtained the stored bytes."
+              },
+              "observerid": {
+                "type": "string",
+                "description": "A deployment-assigned identifier for the observing service or system."
+              },
+              "sourcekey": {
+                "type": "string",
+                "description": "An opaque stable source key scoped to the identified observer."
+              }
+            },
+            "required": [
+              "url",
+              "observedat"
+            ]
           },
           "compatibilityline": {
             "type": "string",
@@ -5219,6 +5315,18 @@
       },
       "xRegistry-wotid": {
         "description": "The wotid attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-manufacturer": {
+        "description": "The manufacturer attribute.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "xRegistry-modelname": {
+        "description": "The modelname attribute.",
         "schema": {
           "type": "string"
         }

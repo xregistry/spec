@@ -72,6 +72,16 @@
               },
               "description": "The authored WoT identifiers of the Thing Models this Thing Description extends or composes - authored identifiers, not xids, so a resolver matches them against the document's own references directly"
             },
+            "manufacturer": {
+              "type": "string",
+              "readonly": true,
+              "description": "Manufacturer name derived from the stored Thing Description."
+            },
+            "modelname": {
+              "type": "string",
+              "readonly": true,
+              "description": "Textual model identifier derived from the stored Thing Description."
+            },
             "license": {
               "name": "license",
               "type": "string",
@@ -98,6 +108,31 @@
               "enum": [ "Standard", "Vendor", "Community", "Experimental" ],
               "strict": true,
               "description": "How established the document is, letting a Consumer prefer an official definition over an ad hoc one. Advisory provenance metadata that does not affect the semantic identity of the document"
+            },
+            "discovery": {
+              "type": "object",
+              "readonly": true,
+              "description": "An observation of the stored Thing Description bytes.",
+              "attributes": {
+                "url": {
+                  "type": "url",
+                  "required": true,
+                  "description": "The effective source URL at which the stored bytes were observed."
+                },
+                "observedat": {
+                  "type": "timestamp",
+                  "required": true,
+                  "description": "When the observer obtained the stored bytes."
+                },
+                "observerid": {
+                  "type": "string",
+                  "description": "A deployment-assigned identifier for the observing service or system."
+                },
+                "sourcekey": {
+                  "type": "string",
+                  "description": "An opaque stable source key scoped to the identified observer."
+                }
+              }
             },
             "*": {
               "name": "*",
