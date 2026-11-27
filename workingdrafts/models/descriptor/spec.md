@@ -212,6 +212,13 @@ URNs are permitted. The model declares scalar `entityid` with
 `matchversions: true`; its presence and value MUST agree across retained
 Versions.
 
+When a CloudEvents publication profile explicitly declares that `source`
+identifies the described entity, the event's `source` MUST match the
+`entityid` in that entity's description exactly, without normalization.
+The event's `describedby`, not `source`, selects the description used for
+the event. This profile rule does not change Core behavior or require the
+Processing Descriptor to carry `entityid`.
+
 `entitytype` is OPTIONAL xRegistry metadata describing the entity's type
 under an applicable vocabulary. It requires a non-null `entityid` and a
 URI with a scheme. A fragment MAY identify an ontology class. Its comparison
