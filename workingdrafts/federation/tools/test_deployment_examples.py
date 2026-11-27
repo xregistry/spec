@@ -50,9 +50,10 @@ class Stage:
 class ExampleReceiver:
     """Atomic transitions are single steps here; no transport or persistence."""
 
-    def __init__(self, *, hasdocument=True, maxversions=0):
+    def __init__(self, *, hasdocument=True, maxversions=0, retain_failed_stage=True):
         self.hasdocument = hasdocument
         self.maxversions = maxversions
+        self.retain_failed_stage = retain_failed_stage
         self.clock = 0
         self.grant = 1
         self.stages = {}
@@ -106,15 +107,24 @@ class ExampleReceiver:
         return stage
 
     def append(self, stage_id, offset, data):
+        if not data:
+            reject("invalid_request")
         stage = self.live(stage_id)
         if offset != len(stage.data):
             raise FederationError("offset_mismatch", str(len(stage.data)))
-        if not data or len(data) > 2:
+        if stage.descriptor is None:
+            reject("unsupported_operation")
+        if len(data) > 2 or offset + len(data) > int(stage.descriptor["size"]):
             reject("limit_exceeded")
-        if stage.descriptor is None or offset + len(data) > int(stage.descriptor["size"]):
-            reject("integrity_error")
         stage.data.extend(data)
         return {"nextOffset": str(len(stage.data))}
+
+    def inspect_stage(self, target, stage_id):
+        self.authorize(target)
+        stage = self.stages.get(stage_id)
+        if stage is None or stage.target != target or stage.grant != self.grant:
+            reject("stage_unavailable")
+        return {"stage": stage_id, "target": target, "nextOffset": str(len(self.live(stage_id).data))}
 
     def abort(self, target, stage_id):
         self.authorize(target)
@@ -124,15 +134,20 @@ class ExampleReceiver:
         del self.stages[stage_id]
         return {"removed": True}
 
+    def _reject_commit(self, stage_id, code):
+        if not self.retain_failed_stage:
+            del self.stages[stage_id]
+        reject(code)
+
     def commit(self, stage_id, expected, metadata=None):
         stage = self.live(stage_id)
         if expected != self.inspect(stage.target) or expected[2] != stage.mode:
             reject("stale_precondition")
         if stage.descriptor is not None and describe(stage.data) != stage.descriptor:
-            reject("integrity_error")
+            self._reject_commit(stage_id, "integrity_error")
         metadata = metadata or {}
         if set(metadata) - {"name"}:
-            reject("validation_error")
+            self._reject_commit(stage_id, "validation_error")
         previous = self.versions.get(stage.target)
         data = bytes(stage.data) if stage.descriptor is not None else None
         result = (data, {**(previous[1] if previous else {}), **metadata})
@@ -228,8 +243,9 @@ def test_replacement_guard_covers_absence_and_same_xid_recreation():
     assert receiver.versions[V1] == (b"", {})
 
 
-def test_concurrent_append_requires_a_new_inspection_without_reuploading():
-    receiver = ExampleReceiver()
+@pytest.mark.parametrize("retain", [True, False], ids=["retain-stage", "end-stage"])
+def test_concurrent_append_requires_a_new_inspection_without_reuploading(retain):
+    receiver = ExampleReceiver(retain_failed_stage=retain)
     receiver.write(V1, b"one", name="first")
     stage = receiver.begin(V2, "create", describe(b"two"))
     receiver.append(stage, 0, b"tw")
@@ -294,6 +310,76 @@ def test_metadata_only_and_empty_documents_are_distinct():
     assert receiver.write(V1, None, name="first") == (None, {"name": "first"})
     assert receiver.write(V1, None) == (None, {"name": "first"})
     assert ExampleReceiver().write(V1, b"") == (b"", {})
+
+
+@pytest.mark.parametrize(("document", "error"), [
+    pytest.param(None, "unsupported_operation", id="metadata-only"),
+    pytest.param(b"", "limit_exceeded", id="zero-byte-document"),
+])
+def test_append_rejects_bytes_after_checking_offset_when_stage_has_no_capacity(document, error):
+    receiver = ExampleReceiver(hasdocument=document is not None)
+    stage = receiver.begin(V1, "create", describe(document) if document is not None else None)
+
+    with pytest.raises(FederationError, match="^0$") as offset:
+        receiver.append(stage, 1, b"a")
+    assert offset.value.code == "offset_mismatch"
+    with pytest.raises(FederationError) as rejected:
+        receiver.append(stage, 0, b"a")
+    assert rejected.value.code == error
+
+    assert receiver.inspect_stage(V1, stage)["nextOffset"] == "0"
+    assert receiver.commit(stage, receiver.inspect(V1)) == (document, {})
+
+
+def test_append_over_document_size_preserves_existing_progress():
+    receiver = ExampleReceiver()
+    stage = receiver.begin(V1, "create", describe(b"ab"))
+    receiver.append(stage, 0, b"a")
+    with pytest.raises(FederationError) as rejected:
+        receiver.append(stage, 1, b"bc")
+    assert rejected.value.code == "limit_exceeded"
+    assert receiver.inspect_stage(V1, stage)["nextOffset"] == "1"
+    receiver.append(stage, 1, b"b")
+    assert receiver.commit(stage, receiver.inspect(V1)) == (b"ab", {})
+
+
+def test_empty_append_fails_validation_before_offset_check():
+    receiver = ExampleReceiver()
+    stage = receiver.begin(V1, "create", describe(b"a"))
+    with pytest.raises(FederationError) as rejected:
+        receiver.append(stage, 1, b"")
+    assert rejected.value.code == "invalid_request"
+    assert receiver.inspect_stage(V1, stage)["nextOffset"] == "0"
+
+
+@pytest.mark.parametrize("retain", [True, False], ids=["retain-stage", "end-stage"])
+@pytest.mark.parametrize("error", ["integrity_error", "validation_error"])
+def test_definitive_commit_failure_stage_policy_and_inspected_reuse(retain, error):
+    receiver = ExampleReceiver(retain_failed_stage=retain)
+    token = receiver.inspect(V1)
+    stage = receiver.begin(V1, "create", describe(b"ab"))
+    uploaded = b"a" if error == "integrity_error" else b"ab"
+    receiver.append(stage, 0, uploaded)
+    metadata = {} if error == "integrity_error" else {"unknown": "value"}
+    with pytest.raises(FederationError) as rejected:
+        receiver.commit(stage, token, metadata)
+
+    assert rejected.value.code == error
+    assert receiver.inspect(V1) == token
+    assert V1 not in receiver.versions
+    if retain:
+        inspected = receiver.inspect_stage(V1, stage)
+        assert inspected == {"stage": stage, "target": V1, "nextOffset": str(len(uploaded))}
+        if error == "integrity_error":
+            receiver.append(stage, int(inspected["nextOffset"]), b"b")
+        assert receiver.commit(stage, receiver.inspect(V1), {"name": "corrected"}) == (
+            b"ab", {"name": "corrected"},
+        )
+    else:
+        with pytest.raises(FederationError, match="stage_unavailable"):
+            receiver.inspect_stage(V1, stage)
+        with pytest.raises(FederationError, match="stage_unavailable"):
+            receiver.commit(stage, token, {})
 
 
 @pytest.mark.parametrize("sticky", [False, True])

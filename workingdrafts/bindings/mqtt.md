@@ -83,7 +83,8 @@ configuration. The native API works without catalog discovery.
 
 The table uses PUBLISH properties from [MQTT 5.0][mqtt5]. Fields with the
 `mrpc-` prefix are MQTT User Properties, not MQTT Reason Codes. Their names
-and literal values are case-sensitive.
+and literal values are case-sensitive. Alias handling in the table refers to
+the [User Property aliases](#user-property-aliases), not MQTT Topic Alias.
 
 Both senders MUST publish with QoS 1 and set `RETAIN` to `0`. A receiver
 MUST silently discard a delivery whose QoS is not 1 or whose `RETAIN`
@@ -109,9 +110,11 @@ the request topic, and the client needs one on the Response Topic.
 Replies use three decimal digits for `mrpc-status`:
 `200`, `204`, `400`, `408`, `415`, `500`, `503`, or `505`. Only `200`
 carries a nonempty payload. Other statuses, including `204`, carry an
-empty payload and do not establish an xRegistry outcome. This binding
-does not specify when to send `204` or assign envelope failure
-conditions to individual non-`200` statuses.
+empty payload and do not establish an xRegistry outcome. The serving
+Registry MUST NOT send `204` under this binding. Clients recognize it as
+an empty reply with no confirmed xRegistry outcome and no diagnostic
+properties. This binding does not assign envelope failure conditions to
+individual envelope error statuses.
 
 The serving Registry MUST validate the request's Correlation Data length,
 UUID version and variant. It does not have to verify freshness or detect
@@ -148,6 +151,8 @@ application processing supplies a valid outcome. That property MUST be
 absent from all other replies. Requests MUST NOT carry envelope
 diagnostic properties.
 
+<a id="user-property-aliases"></a>
+
 The following case-sensitive User Property names are aliases:
 
 | xRegistry name | Alias | Alias value |
@@ -171,6 +176,10 @@ After checking MQTT encoding and size limits, implementations MUST
 ignore unrecognized User Properties, whether supplied by the publisher
 or the broker. Only the names defined by this binding have envelope
 semantics; the `mrpc-` prefix is reserved.
+
+A request containing the `xregcorrelationid` User Property has an invalid
+envelope. Apply the authorized-error-or-discard rules below. The Registry
+MUST NOT echo the property or reflect its value in an error reply.
 
 The client MUST NOT interpret a reply as an xRegistry outcome unless
 the actual Topic Name matches the request's Response Topic, the
@@ -228,10 +237,10 @@ base plus `/` exactly, takes the next level as the action, and takes the
 remaining suffix, including its initial `/`, as the target. It MUST NOT
 percent-decode or normalize the topic. The target MUST NOT contain empty
 levels other than the root, `.` or `..` levels, a query, fragment, or
-HTTP suffix. Resolve names against the selected model and use Core's
-[case-sensitive ID lookup][ids]. The full topic MUST satisfy the MQTT
-Topic Name length and encoding rules. A Registry MUST NOT dispatch a
-request to more than one view; deployments sharing a broker MUST avoid
+HTTP suffix such as `$details`. Resolve names against the selected model
+and use Core's [case-sensitive ID lookup][ids]. The full topic MUST satisfy
+the MQTT Topic Name length and encoding rules. A Registry MUST NOT dispatch
+a request to more than one view; deployments sharing a broker MUST avoid
 overlapping request routes.
 
 In request and reply payloads, the receiver MUST reject duplicate member
@@ -310,11 +319,12 @@ reply does not establish an xRegistry outcome, such as a Federation
 
 ## Result Provenance
 
-An ordinary native result MAY include `origin`. A collection result MAY
-also include `memberorigins`. If supplied, `memberorigins` MUST contain
-exactly the keys in the returned collection `value`. For a page or
-collection mutation, this is the returned subset, not the entire
-collection. `memberorigins` MUST be absent from non-collection results.
+An ordinary native result MAY include `origin`. An ordinary native
+collection result MAY include `memberorigins` whether or not it includes
+`origin`. If supplied, `memberorigins` MUST contain exactly the keys in
+the returned collection `value`. For a page or collection mutation, this
+is the returned subset, not the entire collection. `memberorigins` MUST
+be absent from non-collection results.
 
 A producer-resolved Federation view MUST provide `origin` for each
 successful read result and `memberorigins` for collection results. These
@@ -362,10 +372,12 @@ In a `document` object, `base64` carries the exact bytes in standard
 [RFC 4648][base64] Base64, with padding where applicable and no line
 breaks. `""` denotes zero bytes, not a missing document.
 
-When present, `contenttype` MUST be a JSON string with the media-type
-semantics of [Core `contenttype`][media-type]. `null` and numbers are
-not valid. A malformed request produces `bad_request`; a reply with a
-malformed `contenttype` does not establish an xRegistry outcome.
+When present, `contenttype` MUST be a JSON string and SHOULD conform to
+the media-type syntax in
+[RFC 9110, Section 8.3.1](https://www.rfc-editor.org/rfc/rfc9110#section-8.3.1),
+as specified for [Core `contenttype`][media-type]. A non-string value,
+including `null`, produces `bad_request` in a request. A reply with a
+non-string `contenttype` does not establish an xRegistry outcome.
 
 <a id="example"></a>
 
@@ -378,7 +390,8 @@ additional wire format. `correlationdata` is shown as hexadecimal octets,
 above. Assume the client has an authoritative configured model and the
 deployment guarantees that it applies to the selected view and this
 reply. The example does not assume an immutable revision. The reply omits
-other Core metadata attributes for brevity.
+other Core metadata attributes for brevity. The `self` value is a
+[navigation URI](#navigation-uris), not the advertised broker endpoint.
 
 ```json
 {
@@ -444,9 +457,9 @@ property rules, including `mrpc-status=200`, with this payload:
 {"error": {"code": "not_found"}}
 ```
 
-If an existing collection does not fit in one reply, the serving Registry
-does not return a truncated collection. If it can send a conforming
-reply, the payload is:
+If an unpaginated read of an existing collection does not fit in one reply,
+the serving Registry does not return a truncated collection. If it can
+send a conforming reply, the payload is:
 
 ```json
 {"error": {"code": "limit_exceeded"}}
@@ -533,11 +546,20 @@ root read URI and `subject` is the entity's XID. Replacing the root `/`
 at the end of `source` with the `subject` path, escaped according to
 [Navigation URIs](#navigation-uris), yields the entity's read URI.
 
-If events from an MQTT RPC interaction include `xregcorrelationid`, its
-`200` reply MUST carry the same value in exactly one `xregcorrelationid`
-User Property. Otherwise, that property MUST be absent from RPC
-publications. MQTT Correlation Data still matches the request to its
-reply; it does not identify the Registry interaction in an event.
+In RPC publications, the `xregcorrelationid` User Property is reply-only.
+If events from the interaction include `xregcorrelationid`, its `200` reply
+MUST carry the same value in exactly one `xregcorrelationid` User Property.
+The property MUST be absent from other RPC replies.
+The client MUST reject a reply as an xRegistry outcome if it contains
+the property on a non-`200` reply, repeats it, supplies an empty value,
+or observably violates the presence or value rule. The client does not
+have to establish whether events it did not observe were emitted.
+
+For a mutation that will include this identifier in its
+events, the Registry MUST include the matching User Property when
+[checking whether the final success reply fits](#security-and-conformance).
+MQTT Correlation Data still matches the request to its reply; it does not
+identify the Registry interaction in an event.
 
 ## Downstream Deployment
 
@@ -568,10 +590,22 @@ to `1`. The broker configuration MUST prevent storage of retained
 deployment messages. A receiver MUST NOT act on a retained message.
 
 A request MUST include the configured reply topic as `Response Topic` and
-fresh, unpredictable `Correlation Data` of 16 bytes. The receiver MUST
-reject a request with another Response Topic and MUST NOT publish to it.
-Replies MUST omit `Response Topic`, carry the same `Correlation Data`,
-and have a positive expiry no greater than the request's remaining expiry.
+fresh, unpredictable `Correlation Data` of 16 bytes.
+
+Before admitting the request to operation processing, the receiver MUST
+check the delivered PUBLISH envelope. The delivered QoS MUST be 1,
+`RETAIN` MUST be `0`, `Content Type` MUST be `application/json`, and
+`Payload Format Indicator` MUST be `1`. The `Message Expiry Interval`
+MUST be present and positive. The `Response Topic` MUST exactly match
+the configured reply topic for the grant, and `Correlation Data` MUST
+be present and exactly 16 bytes. If any of these checks fails, the
+receiver MUST silently discard the request without validating the control
+data, executing an operation, or sending a reply.
+
+Replies MUST omit `Response Topic` and carry the same `Correlation Data`.
+The published reply's `Message Expiry Interval` MUST be positive and no
+greater than the interval on the delivered request. Use the delivered
+interval as the upper bound without subtracting request processing time.
 The receiver sends a reply only through the configured reply topic while
 authorized. The sender MUST check the topic, profile, correlation, and
 properties before interpreting the result. Delivery acknowledgments and
@@ -582,13 +616,21 @@ The UTF-8 JSON request contains exactly `profile` with value
 same `profile` and exactly one of `result` or `error`. `result` is the
 success record and `error` is the
 [shared error data](../federation/spec.md#deployment-errors), with its
-error code returned directly.
+error code returned directly. For malformed control data in an admitted
+request, the receiver MUST report `invalid_request` if it can send a
+conforming reply.
 An `append` carries `data` as [RFC4648][base64] standard Base64. The
 encoding MUST include applicable padding and MUST NOT contain whitespace.
-The decoder MUST reject noncanonical encodings. Applicable control, chunk,
-and maximum packet sizes MUST account for JSON, PUBLISH overhead, and
-Base64 expansion. A document can span `append` requests, but an individual
-control message cannot span packets.
+The decoder MUST reject noncanonical encodings.
+
+For a control request or reply subject to `maxControlBytes`, count the
+bytes of the complete UTF-8 JSON payload, including the Base64 `data`
+string in an `append` request. Do not count MQTT headers or properties
+against `maxControlBytes`. The `maxChunkBytes` limit counts only decoded
+chunk bytes. Apply transport packet limits to the entire PUBLISH packet,
+including headers, properties and payload. A document can span `append`
+requests, but each control message, including any chunk it carries, MUST
+fit in one PUBLISH packet.
 
 The [MQTT deployment request schema](../federation/schemas/deployment-request.json)
 validates JSON shape. The binding and model govern size, byte decoding,
@@ -687,10 +729,12 @@ this order:
    applicability under Core. Malformed entity XIDs and typed target
    paths produce `malformed_xid`. An invalid combination of operation,
    target, `surface`, or `view` produces `bad_request` unless a specific
-   Core error applies. Check target-dependent `body` absence rules here
-   once the target kind is known. For example, `body` MUST be absent on
-   a single-entity `delete`. Use `bad_flag` where Core defines it for
-   an inapplicable flag. See Section A.4 for `page` applicability.
+   Core error applies. Check target-dependent `body` rules here once
+   the target kind is known, including model-dependent document field
+   placement under [Section A.2](#a2-inputs-and-results). For example,
+   `body` MUST be absent on a single-entity `delete`. Use `bad_flag`
+   where Core defines it for an inapplicable flag. See Section A.4 for
+   `page` applicability.
 3. Check support for the requested operation and features. An
    otherwise valid request for a mapping or feature that is not
    implemented produces `unsupported_operation`. A Registry that omits
@@ -730,7 +774,8 @@ with `flags: {"doc": true, "inline": ["*", "capabilities", "modelsource"]}`.
 A native read at `/` using those flags can request the same result
 without `surface`. As for [HTTP export][http-export], a supported
 explicit `inline` overrides the corresponding default. `doc` is implicit
-and cannot be disabled: `doc: false` is malformed. Apply the validation
+and cannot be disabled: `doc: false` fails
+[shape validation](#a1-native-requests-and-targets). Apply the validation
 rules in [Section A.3](#a3-request-flags) to explicitly supplied flags,
 including `inline`. Other valid, supported flags apply normally.
 `discovery` returns the Core Registry discovery document with its
@@ -780,16 +825,21 @@ For a domain-document `replace` or `upsert`, `body` MUST be an object
 with `document` and at most one other member, the OPTIONAL `metadata`
 object. The `document` object MUST contain exactly one of `base64`
 (exact bytes) or `url` (a Core external document reference). It MAY
-also contain `contenttype`, but no other member. An unknown member in
-either wrapper makes the request malformed (`bad_request`). Core
-extension attributes in `metadata` are governed by Core, not by these
-wrapper rules. Use the shared [byte and media-type rules](#document-bytes).
+also contain `contenttype`, but no other member. A malformed wrapper,
+including an unknown member of `body` or `document`, produces
+`bad_request` during shape validation. Core extension attributes in
+`metadata` are governed by Core. Use the shared
+[byte and media-type rules](#document-bytes).
 An empty Base64 string supplies a zero-byte document, not a URL or
 missing input. The `metadata` object
 carries the xRegistry attributes accompanying the document,
-including any supplied IDs and epoch, in their Core JSON types. Document
-content, content type, and external document URL belong in `document`,
-not in `metadata`. A partial update of domain bytes is not supported.
+including any supplied IDs and epoch, in their Core JSON types. Only
+`document` supplies the bytes, media type, or external document locator.
+At applicability validation, the Registry MUST reject `body.metadata`
+with `bad_request` if it supplies any of those inputs under the selected
+model. Do not reject an attribute by spelling alone; a name with a
+different meaning under that model still follows Core rules. A partial
+update of domain bytes is not supported.
 
 For example, the following replaces the bytes of an exact Version, provided
 its epoch is still `3`. The request topic is
@@ -856,14 +906,19 @@ Successful mutations return the corresponding result after processing;
 collection `update` and `upsert` return only the processed members, not
 the entire collection. A successful `delete` returns `value: null`.
 
-- `location` MUST be present if the corresponding HTTP mutation
-  would report entity creation with `Location`. Its value is the new
-  entity's API-view `self` URI, even when `value` uses document view.
-- `contentlocation` MUST be present if the corresponding HTTP
-  mutation would report Version creation with `Content-Location`. Its
-  value is the exact new Version's API-view `self` URI.
+- For `replace` or `update` corresponding to a single-entity `PUT` or
+  `PATCH`, `location` MUST be present if the operation creates that
+  entity. If the address is a single Resource or Version and the
+  operation creates a Version, `contentlocation` MUST be present.
+- For a Resource `upsert` that creates a Version, both `location` and
+  `contentlocation` MUST be present and identify the new Version. For
+  a Resource `upsert` that updates an existing Version, both MUST be
+  absent.
 
-Otherwise, the corresponding member MUST be absent. A client MUST
+In other cases, the corresponding member MUST be absent. The value of
+`location` is the new entity's API-view `self` URI; the value of
+`contentlocation` is the exact new Version's API-view `self` URI. Use
+these URIs even when `value` uses document view. A client MUST
 reject a reply whose inclusion or omission of either member violates
 these rules when the violation can be established from the operation
 or known outcome. The client does not have to infer whether a mutation
@@ -937,8 +992,9 @@ locates the Registry. The URI
 `mqtts://broker.example.com/registries/supplier/read/documents/main/assets/item`
 locates Resource metadata. The `self` URI contains the Registry's read
 address followed by the Resource XID, with URI escaping as above.
-Adding `?view=document` selects the document view, not a different XID.
-Core's document-view pointers retain their usual meaning.
+Adding `?view=document` requests domain-document retrieval without changing
+the XID. It does not set the Core `flags.doc` flag. Core's document-view
+pointers retain their usual meaning.
 
 ### A.3. Request Flags
 
@@ -1040,6 +1096,12 @@ continuation, the server MUST reject an invalid, expired, or
 out-of-scope cursor with `bad_request`. It MUST NOT silently start a
 new sequence.
 
+For a Federation continuation, `bad_request` alone does not establish
+inconsistency in the page chain. Preserve the specific native failure and
+any safe diagnostic. Report `inconsistent_snapshot` only when evidence
+establishes a conflict in the chain. A failed continuation is not evidence
+of absence and does not permit a silent restart.
+
 The serving Registry MUST NOT start pagination unless the client
 requests it. A successful native collection read with `page.limit`
 or `page.cursor` MUST return a `page` object in `result`, even for
@@ -1052,11 +1114,15 @@ The number of members MUST NOT exceed the original `limit`, including
 on continuations. `page` contains `links`, an array of objects with a
 string `rel` and `cursor`. A `next` link MUST be present if another
 page exists and MUST be absent on the last page. Use the
-[Pagination link relations and attributes][page-links].
+[Pagination link relations and attributes][page-links], including its
+[`rel`](../../pagination/spec.md#rel) semantics.
 Link objects MAY also contain `count`, `offset`, `limit`, and
 `expires`. When present, `count`, `offset`, and `limit` use the decimal
 token syntax above and MUST be in the unsigned 64-bit range, subject to
-the applicable Pagination constraints. `expires`, if present, is a
+the Pagination constraints on [`count`](../../pagination/spec.md#count),
+[`offset`](../../pagination/spec.md#offset), and
+[`limit`](../../pagination/spec.md#limit-1).
+Pagination [`expires`](../../pagination/spec.md#expires), if present, is a
 JSON string in the [Core timestamp][core-types] format. The server
 does not send an HTTP `Link` header, and a cursor does not imply an
 immutable snapshot. Single messages still obey MQTT packet limits,

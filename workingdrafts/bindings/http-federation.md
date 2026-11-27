@@ -72,7 +72,7 @@ catalog entry, or a federating API server can read the service on behalf of
 its HTTP clients.
 
 For example, a source advertised at
-`https://first.example.com/services/xreg/` can supply
+`https://first.example.com/services/xreg/` can supply the Resource at XID
 `/documents/main/assets/item`. The resolver reads metadata from that
 Resource's `$details` URL, obtains the explicit default Version choice and
 reads the selected document through its Version URL. The server hosting
@@ -90,10 +90,21 @@ authorization boundaries.
 
 An HTTP advertisement has `binding: "http"` as defined by the
 [Registry domain](../models/registry/spec.md#511-binding), an absolute
-HTTP(S) Registry-root `endpoint`, and no parameters in this version.
-Its endpoint MUST NOT have
-embedded credentials, a query or a fragment. Unknown parameters on the
-selected advertisement MUST produce `unsupported_operation`.
+HTTP(S) Registry-root `endpoint`, and no recognized parameter keys in this
+version. An omitted `parameters` object is equivalent to an empty one.
+Its endpoint MUST NOT have embedded credentials, a query or a fragment.
+An invalid advertisement produces `invalid_package`. Unknown parameters
+on the selected advertisement MUST produce `unsupported_operation`.
+An otherwise valid endpoint denied by caller policy produces
+`policy_denied`. The resolver MUST NOT contact a denied endpoint.
+
+The [Registry domain's selection procedure](../models/registry/spec.md#62-advertisement-selection)
+validates common advertisement fields before ranking, including whether
+each HTTP endpoint satisfies the endpoint rules above. An invalid HTTP
+endpoint makes the catalog input invalid even if that advertisement would
+not be selected. Binding-specific parameter validation applies only to the
+selected advertisement. These checks do not require contacting unselected
+endpoints.
 
 ```json
 {
@@ -130,26 +141,57 @@ The advertised root can have an arbitrary base path. For example, XID
 `/documents/main/assets/item` at
 `https://first.example.com/services/xreg/` is below
 `/services/xreg/documents/main/assets/item`, not `/documents/main/assets/item`.
-The root request uses the advertised root itself. Descendant construction
-MUST retain its complete base path, preserve case-sensitive Core IDs and
-encode URI path segments without double encoding. A resolver MUST NOT
-derive global entity identity by splitting an arbitrary URL.
+The initial root request uses the advertised root itself. When constructing
+descendant URLs from typed XIDs, the resolver MUST retain the complete base
+path of the selected root `B`, preserve case-sensitive Core IDs and encode
+path segments without double encoding. A resolver MUST NOT derive global
+entity identity by splitting an arbitrary URL.
 
 The HTTP binding's
 [`Link` with `rel=xregistry-root`](../../core/http.md#xregistry-root-http-header)
-identifies the serving
-Registry root when provided. A resolver MUST interpret it in the response
-context and apply the same locator policy as for other links. A relocated
-root does not silently authorize access to a different origin.
+identifies the Registry root for the received representation. The resolver
+MUST resolve the link in its HTTP response context under
+[RFC 8288](https://www.rfc-editor.org/rfc/rfc8288#section-3) and apply the
+same locator policy as for other links.
 
-Before interpreting model-dependent entities, the resolver MUST obtain
-`specversion` from the Registry representation. The version needs to be
-known and explicitly supported; successful JSON parsing does not establish
+Consider only `xregistry-root` assertions applicable to that
+representation under RFC 8288. After resolving those references, the
+resolver MUST compare the resulting URL strings exactly, without further
+equivalence normalization. Treat identical strings as one assertion. An
+HTTPS URL with an explicit `:443` is distinct from the otherwise identical
+URL that omits the port. If an applicable assertion is malformed, or
+applicable assertions resolve to distinct root URLs, the resolver MUST
+report `invalid_package` rather than choose a root.
+If no applicable assertion is present, use the effective URL of the verified
+Registry-root response.
+
+Before using a linked root as `B`, the resolver MUST establish that it
+serves the same selected Registry and view and passes the caller's
+destination and access checks. The resolver MUST use the verified linked
+root for subsequent requests. The caller's trust policy determines what
+evidence is sufficient, such as a trusted configured mapping from the
+advertised root to the serving root. An authenticated link, permission to
+contact its destination, and matching `registryid` and model do not, on
+their own or together, prove that the roots serve the same Registry and view.
+
+If a single well-formed assertion indicates a relocation but
+the evidence is insufficient, the resolver MUST report
+`unsupported_operation`. If policy denies access, retrieval fails, or a
+check establishes contradictory state, report the specific failure under
+[Live Capture and Errors](#live-capture-and-errors). Do not assume the
+roots are interchangeable or try another advertisement. A relocated root
+MUST preserve any selected Publication context or other revision pin. It
+does not authorize forwarding credentials across a trust boundary.
+
+Before interpreting model-dependent entities, the resolver MUST obtain a
+valid `specversion` from the Registry representation. A missing or malformed
+value produces `invalid_package`. Successful JSON parsing does not establish
 compatibility. An unsupported version MUST produce `unsupported_version`.
-Where supported, Core's
-[`specversion` flag](../../core/spec.md#specversion-flag) requests a compatible
-representation. The resolver MUST verify the returned version and MUST NOT
-treat a silently ignored query parameter as successful negotiation.
+Where supported, the resolver MAY use Core's
+[`specversion` flag](../../core/spec.md#specversion-flag) to request a
+compatible representation. The resolver MUST verify the returned version
+and MUST NOT treat a silently ignored query parameter as successful
+negotiation.
 
 `GET B/model` retrieves the interpreted model. When available,
 `GET B/modelsource` retrieves the client-provided source, preserving
@@ -166,7 +208,13 @@ or writes are enabled.
 Before composing the selected view, the resolver MUST apply the shared
 [resolution-owner signal](../federation/spec.md#signaling-who-performs-resolution).
 `federation.resolution: "producer"` means read the view directly without
-traversing its catalog. An absent signal defaults to consumer resolution.
+traversing its catalog. Default to consumer resolution only after obtaining
+the enabled capabilities for the selected view and finding that they omit
+`federation`. An unavailable capabilities API does not establish absence.
+If the API is unsupported and no equivalent enabled representation is
+available, report `unsupported_operation`. If retrieving the enabled
+capabilities fails, report that failure rather than assume consumer
+resolution.
 
 An absent capabilities API, an absent flag, or `flags: null` provides no
 positive evidence for that flag.
@@ -200,8 +248,8 @@ abstract target of `model` and `capabilities` is `/`; the `/model` and
 | `collection`, `R/versions` | `GET B + R/versions` | Map keyed by Version ID, containing Version metadata. |
 | `entity`, `V`, document-bearing type | `GET B + V$details` | That Version's metadata. |
 | `entity`, `V`, metadata-only type | `GET B + V` | That Version's metadata. |
-| `document`, `R`, document-bearing type | `GET B + R` | Default Version document or Core external-document redirect. |
-| `document`, `V`, document-bearing type | `GET B + V` | Explicit Version document or Core external-document redirect. |
+| `document`, `R`, document-bearing type | `GET B + R` | Default Version document. If HTTP returns a Core external-document redirect, apply the [redirect rules](#redirects-and-authorization-boundaries). |
+| `document`, `V`, document-bearing type | `GET B + V` | Explicit Version document. If HTTP returns a Core external-document redirect, apply the [redirect rules](#redirects-and-authorization-boundaries). |
 | `document`, metadata-only `R` or `V` | No document request | `unsupported_operation`. The unsuffixed URL would return metadata. |
 | `model`, `/` | `GET B/model`. `GET B/modelsource` when available | Effective model and available source, kept distinct. |
 | `capabilities`, `/` | `GET B/capabilities` or equivalent enabled map | Enabled capabilities for this endpoint and caller. |
@@ -213,7 +261,8 @@ document can itself be JSON.
 The existing `GET B/export` convenience path, if supported, is precisely
 `GET B?doc&inline=*,capabilities,modelsource` with Core's flag semantics.
 It is not a federation-specific snapshot API. A resolver consuming an
-export MUST resolve document-local pointers within that returned document.
+export MUST resolve document-local pointers within that returned document,
+not against `B` or a request URL.
 
 ## Metadata, Documents and Versions
 
@@ -230,7 +279,8 @@ resolver SHOULD record the selected default Version ID and use its explicit
 Version URLs for subsequent requests.
 
 A resolver reporting a capture as consistent MUST detect changes to the
-selection. A live Version can change without its Version ID changing. See
+selection. A live Version can change without its Version ID changing.
+Rechecks can reveal changes but do not prove snapshot consistency. See
 [Live Capture and Errors](#live-capture-and-errors) for the limits of
 revalidating individual responses.
 
@@ -245,14 +295,14 @@ sequenceDiagram
     participant H as HTTP service
     R->>H: GET /services/xreg/documents/main/assets/item$details
     H-->>R: Resource metadata, projected versionid = v1
-    opt Read the authoritative selection separately
+    opt Confirm the selection in Resource Meta
         R->>H: GET /services/xreg/documents/main/assets/item/meta
         H-->>R: Meta, defaultversionid = v1
     end
     R->>R: Retain selected Version v1
     R->>H: GET /services/xreg/documents/main/assets/item/versions/v1
     H-->>R: Exact domain bytes, even when the document is JSON
-    opt Consistent-capture recheck
+    opt Recheck for changes during capture
         R->>H: Recheck selection and dependent representations
         H-->>R: Current metadata or HTTP revalidation response
         R->>R: Report inconsistent_snapshot if the selection or representation changed
@@ -264,9 +314,9 @@ the document without resolving the default again. Version metadata instead
 uses that Version URL with `$details`, not another mandatory request in this
 sequence.
 
-A metadata-only type has no document request. If the selection changes
-during capture, the operation produces `inconsistent_snapshot` rather than
-continuing with newer bytes. See
+A metadata-only type has no document request. If the resolver detects a
+selection change while trying to capture the selected state, it reports
+`inconsistent_snapshot` rather than continuing with newer bytes. See
 [Live Capture and Errors](#live-capture-and-errors) and the checked
 [concrete read sequences](#concrete-read-sequences).
 
@@ -278,10 +328,36 @@ MUST preserve Core navigation semantics rather than replace `self` with an
 endpoint label.
 
 Raw document reads use the domain media type and bytes. Core's
-`xRegistry-` headers carry accompanying metadata. `Content-Location`, when
-present on a default read, identifies the default Version as Core specifies.
+`xRegistry-` headers carry accompanying metadata.
 A zero-byte document is a successful empty byte sequence, not a missing
 document. Absent content and metadata-only types MUST remain distinguishable.
+
+For a Federation `document` result that returns bytes or a locator, the
+resolver MUST identify the exact supplying Version XID. For a non-alias
+Resource read, the checked `xRegistry-versionid` in the same Core `200`
+or `303` response can identify that Version under the verified Resource XID.
+`Content-Location`, when present, identifies the default Version as Core
+specifies; use it as supplier evidence only after verifying that it names
+the actual Version in the selected source context. An exact-Version read
+from the supplying Resource identifies the supplier when the response is
+verified to belong to that Version.
+
+For an alias, the resolver can establish the supplier by verifying the
+authorized one-hop Core `meta.xref` target and obtaining the result from
+that target's exact selected Version. A resolver can use a producer-resolved
+service's documented origin information if it verifies that the information
+applies to the response. An alias-facing URI or header, a redirect
+destination, or a later observation of the default does not identify the
+supplier of a response already obtained. Keep the selected Registry, view,
+Version selection and any revision pin. Apply the
+[redirect and authorization rules](#redirects-and-authorization-boundaries)
+on every retrieval path.
+
+If an otherwise valid document result lacks evidence of its exact supplier,
+the resolver MUST report `unsupported_operation`. Preserve more specific
+failures and verified conflicts in the selected state. Lack of supplier
+evidence does not establish absence or permit fallback to another source
+or advertisement.
 
 For byte-preserving capture, raw Version reads or supported Core `binary`
 serialization are appropriate. Reparsing and pretty-printing JSON is not
@@ -308,7 +384,10 @@ MUST NOT require a language label, impose NFC normalization, infer a locale
 from a category, or interpret the caller's `*` as a wildcard.
 
 A supported [HTTP filter](../../core/spec.md#filter-flag) can reduce the
-candidate set. The resolver MUST construct
+candidate set only if using it preserves
+[source precedence and case-sibling checks](../federation/spec.md#local-resources-and-ordered-sources)
+and the [shared selector outcome](../federation/spec.md#selectors). The
+resolver MUST construct
 [Core dot notation](../../core/spec.md#dot-notation-in-filters) relative to
 the requested collection while preserving the selector's literal meaning.
 It MUST escape a literal wildcard using Core's backslash escape
@@ -353,11 +432,25 @@ credential and locator policy checks as redirects.
 
 To establish a unique label match, the resolver needs the complete relevant
 candidate set. A first-page match alone is insufficient. Complete enumeration
-with no match yields `not_found`; a second match yields `ambiguous`.
+with no match yields `not_found`; a second distinct visible match yields
+`ambiguous` under the [shared selector rules](../federation/spec.md#selectors).
 An unavailable later page or a traversal limit MUST NOT become either a
-unique result or `not_found`. The resolver MUST report conflicting
-duplicates, changed declared totals or an incomplete capture, and MUST NOT
-silently merge them.
+unique result or `not_found`.
+
+Within one page sequence, the resolver MUST identify members by exact XID
+in the selected Registry context. Compare repeated members' decoded metadata
+under the selected view, not their JSON spelling or label values alone.
+The resolver MUST report `inconsistent_snapshot` for conflicting member
+records or changed declared totals. It MAY coalesce identical repeats but
+MUST count each member only once, both for selection and for completeness.
+When the sequence ends, any declared sequence total MUST agree with the
+number of distinct members returned, not just those that match the local
+selector. The optional Pagination [`count`](../../pagination/spec.md#count)
+parameter on a `Link` declares the total for that sequence, including any
+server-side filter applied to it. It is not a Core collection count or the
+number of matches found by a local selector. A mismatch produces
+`inconsistent_snapshot`, even if no `next` link remains. Report other failures
+under [Live Capture and Errors](#live-capture-and-errors).
 
 If filtering is unavailable, the resolver MUST enumerate the relevant
 unfiltered collection and apply the common selector locally. This applies
@@ -368,9 +461,9 @@ Neither filtering nor inlining is a prerequisite for HTTP federation.
 An endpoint that advertises `pagination: false` normally supplies its
 complete collection in one response. If a next link is nevertheless
 returned, the resolver handles it under the pagination and locator-policy
-rules or reports the conflict. Reporting a conflict does not establish
-completeness. A collection `count` alone
-is not a replacement for the members or next links.
+rules or reports `inconsistent_snapshot` for the conflict. Reporting a
+conflict does not establish completeness. A collection `count` alone is not
+a replacement for the members or next links.
 
 ## HTTP Validators and Partial Content
 
@@ -383,9 +476,9 @@ representation, respecting `Vary`, cache directives and authorization scope.
 
 Conditional `GET` with `If-None-Match` uses HTTP's weak comparison to
 revalidate a cached response. A `304 Not Modified` response supplies no
-replacement body. The resolver MUST use an applicable stored response and
-update it according to RFC 9111 section 4.3.4. If no such response is
-available, the resolver needs an unconditional read or an explicit failure.
+replacement body. If an applicable stored response is available, the resolver
+MUST use it and update it according to RFC 9111 section 4.3.4. Otherwise, the
+resolver MUST make an unconditional read or report an explicit failure.
 `If-Modified-Since` and `Last-Modified` follow HTTP semantics and precedence,
 independently of Core timestamp semantics.
 
@@ -403,9 +496,10 @@ the resolver MUST replace, not append to, its partial bytes.
 
 A `206` response is not a complete document merely because the transfer
 ended successfully. Missing ranges, truncation, changed validators, or
-unverified joins MUST NOT produce a complete snapshot. A failed conditional
-read used to hold a capture stable, including `412`, yields
-`inconsistent_snapshot`.
+unverified joins MUST NOT produce a complete snapshot. A failed precondition
+on a conditional read used to hold a capture stable, such as `412`, yields
+`inconsistent_snapshot`. Other retrieval failures keep their specific
+outcomes.
 
 If a gateway transforms a representation, it MUST NOT forward the upstream
 strong ETag unchanged as the validator for different bytes. The gateway
@@ -415,11 +509,24 @@ upstream ETag.
 
 ## Redirects and Authorization Boundaries
 
-Redirect processing follows RFC 9110 section 15.4 and Core HTTP. In
-particular, a Core external document can yield `303 See Other` with an
-empty body and `Location` matching `<RESOURCE>url`. The destination is
-domain content, not another Registry root. Other redirects can relocate
-an endpoint or representation. The resolver MUST distinguish these cases.
+Redirect processing follows RFC 9110 section 15.4 and Core HTTP. A Core
+external-document response to an unsuffixed document request uses
+`303 See Other`, an empty body and the accompanying Core `xRegistry-`
+metadata. Its `Location` has the same value as `<RESOURCE>url`. The
+destination is domain content, not another Registry root. Other redirects
+can relocate an endpoint or representation. The resolver MUST distinguish
+these cases.
+A generic redirect does not establish that its destination supplies the
+selected Version's document. Before accepting bytes from such a redirect,
+the resolver MUST establish that they belong to the selected Version, for
+example through a trusted mapping or by checking a digest already bound to
+that Version. If the evidence is insufficient, the resolver MUST report
+`unsupported_operation`. Preserve specific failures such as policy denial,
+failed retrieval, malformed Core metadata, or a verified digest mismatch
+under [Live Capture and Errors](#live-capture-and-errors).
+
+A document redirect does not select another Registry root. For a Registry
+relocation, apply the [Registry root checks](#registry-root-and-version-discovery).
 
 Every redirect, advertised endpoint, next link, and external document URL
 MUST pass caller policy. That policy includes scheme, destination, network
@@ -492,41 +599,56 @@ snapshot guarantee, and producer-guaranteed snapshots.
 
 A resolver requiring a stronger guarantee MUST fail explicitly when the endpoint
 cannot provide it. If the necessary capture operation is unsupported, the outcome
-is `unsupported_operation`. If an attempted capture is inconsistent or
-incomplete, the outcome is `inconsistent_snapshot`.
+is `unsupported_operation`. If a specific failure prevents completion, the
+resolver MUST report that failure and record that the capture is incomplete.
+The resolver MUST report `inconsistent_snapshot` for conflicting
+observations of the selected state, or for incomplete capture when no more
+specific failure is known.
 
 For a multi-request capture, the resolver SHOULD recheck the default
 selection and the representations on which the capture depends. This
 recheck alone does not establish a Registry-wide consistency guarantee.
 
-If a default or representation changes, membership conflicts, or a page/byte
-sequence is interrupted, the resolver MUST report `inconsistent_snapshot`
-and not present the capture as consistent.
-It MAY start a new, separately identified operation; that fresh capture does
-not continue the previous operation with mixed old and new state.
+If a default or representation changes or membership conflicts, the
+resolver MUST report `inconsistent_snapshot`. An interrupted page or byte
+sequence MUST NOT be presented as complete or consistent. For example, if
+the next page is denied, report `policy_denied`; if retrieving it times
+out, report `unavailable`.
+The resolver MAY start a new, separately identified operation; that fresh
+capture does not continue the previous operation with mixed old and new state.
 
 Common errors are resolver outcomes, not additional Core HTTP errors:
 
 | Observed condition | Resolver outcome |
 | --- | --- |
-| No executable HTTP advertisement | `unsupported_binding` |
+| No supported HTTP advertisement matches the caller's choice | `unsupported_binding` |
 | Incompatible returned `specversion` or Core `unsupported_specversion` | `unsupported_version` |
-| Unsupported selected parameter, unavailable API, or document of a metadata-only type | `unsupported_operation` |
+| Unsupported selected parameter, unsupported API with no equivalent read, document of a metadata-only type, or insufficient evidence for a well-formed root relocation or generic document redirect | `unsupported_operation` |
+| Otherwise valid document result without evidence of the exact supplying Version | `unsupported_operation` |
 | Missing requested entity or complete selector with no match | `not_found` |
 | More than one matching entity | `ambiguous` |
 | Authentication, authorization or destination policy prevents the read | `policy_denied` |
 | A promised digest or representation-integrity check fails | `integrity_error` |
 | Malformed metadata, wrong XID/model type or invalid advertisement | `invalid_package` |
-| Conflicting or incomplete multi-read capture | `inconsistent_snapshot` |
+| Conflicting selected state, or incomplete capture with no more specific failure | `inconsistent_snapshot` |
 | Page, byte or redirect budget exhausted | `limit_exceeded` |
-| Transport failure, rate limit or transient server failure outside a completed capture | `unavailable` |
+| Transport failure, rate limit, transient server failure or unclassified `404` | `unavailable` |
 
-The resolver MUST retain the HTTP status and any Core error detail.
-`api_not_found` is not an absent entity. Without enough context to interpret
-a generic `404`, the resolver MUST NOT report an empty collection.
+The resolver MUST retain the original HTTP status and any safe Core error
+detail without exposing credentials or protected data. `api_not_found`
+indicates an unsupported API, not an absent entity. For a lookup, report
+`not_found` only when the response or other evidence establishes that the
+requested target is absent in the selected Registry context. If the
+resolver cannot classify a `404` from the available evidence, it MUST
+report `unavailable`, not `not_found` or an empty collection.
 
-Failure of a previously identified member during capture is also evidence of
-incomplete capture, not proof of a consistent deletion history.
+Failure to retrieve a previously identified member during capture leaves
+the capture incomplete. It does not by itself prove a deletion. When
+selecting a Group or Resource origin, advance to another eligible source
+only on confirmed absence at the Group or owning Resource path. A root,
+page, Version or document retrieval failure does not establish that
+absence. The resolver MUST NOT try another advertisement after a selected
+advertisement fails.
 
 ## Downstream Deployment
 
@@ -556,14 +678,26 @@ byte count. The sender MUST NOT interpret either field as another path.
 | `commit` | `POST /stages/{stage}/commit` | Argument object without `stage`. |
 | `abort` | `POST /stages/{stage}/abort` | Argument object without `stage`. |
 
+An `append` request's query MUST contain only a single `offset` parameter.
+Split the query into parameters before percent-decoding each name and
+value once. The decoded name is case-sensitive. The decoded offset MUST
+be `0` or match `[1-9][0-9]*` in its entirety, with a value at most
+18446744073709551615. For example, `offset=%30` denotes zero. A missing or
+repeated offset, an unrecognized parameter name, malformed percent encoding,
+or an invalid offset value such as `00` or `+0` produces `400 Bad Request`
+with `invalid_request` and does not append any bytes. A valid offset that
+differs from `nextOffset` produces `offset_mismatch`.
+
 Control request bodies and operation replies use `application/json`.
 An `append` request MUST use `application/octet-stream` and MUST NOT
 apply a non-identity content coding. The receiver MUST enforce body
 bounds as it reads. A declared length alone does not establish that the
 sender supplied that many bytes.
 
-A successful reply has status `200`, or `201` when `commit` creates
-the destination Version. Its body is the corresponding success object.
+A successful `commit` with `outcome: "created"` MUST return `200` or `201`.
+All other successful replies MUST return `200`. In both cases the body
+MUST be the corresponding success object. The sender MUST accept either
+status for `created` when the response otherwise conforms.
 An operation error reply contains a JSON object with one `error` member
 carrying the [shared error data](../federation/spec.md#deployment-errors).
 The following table maps the error code to an HTTPS status. Operation
@@ -579,7 +713,11 @@ successful response outside this contract is not a deployment result.
 | `stale_precondition`, `conflict`, `offset_mismatch` | `409 Conflict` |
 | `unsupported_operation` | `422 Unprocessable Content` |
 | `integrity_error`, `validation_error` | `422 Unprocessable Content` |
-| `limit_exceeded` | `413 Content Too Large` for size; `429 Too Many Requests` for quota |
+| `limit_exceeded` | `413 Content Too Large` for a known applicable size violation, even when quota is also exceeded; `429 Too Many Requests` for quota-only rejection |
+
+After deciding to reject a request, the receiver need not check remaining
+limits. This rule does not change transport-level rejection before an
+operation result can be sent.
 
 For example, the following exchange appends the first two bytes of a
 3-byte staged document. The request body is `ab`, without a newline.
@@ -599,9 +737,10 @@ Cache-Control: no-store
 {"nextOffset":"2"}
 ```
 
-The example omits authentication. A repeat with offset `0` returns
-`409 Conflict` with `{"error":{"code":"offset_mismatch","nextOffset":"2"}}`
-and does not append another `ab`.
+The example omits authentication. A repeat with offset `0` for the same
+authorized, live stage returns `409 Conflict` with
+`{"error":{"code":"offset_mismatch","nextOffset":"2"}}` and does not
+append another `ab`.
 
 ## Conformance and Offline Examples
 
@@ -638,8 +777,10 @@ behavior. A saved model-file hash is not an observed HTTP ETag.
 
 ### Concrete Read Sequences
 
-The `no-filter-catalog` case reads enabled capabilities containing
-`flags: null`, then the complete unfiltered catalog collection:
+After discovery of the catalog's Core version and model (omitted here), the
+`no-filter-catalog` case reads enabled capabilities containing `flags: null`,
+then the complete unfiltered catalog collection. `specversions` advertises
+supported versions; it is not the root's returned `specversion`.
 
 ```http
 GET /catalog/capabilities HTTP/1.1
@@ -657,7 +798,8 @@ Host: catalog.example.com
 ```
 
 The test supplies the complete second response. Its literal selector
-`stage=PRODUCTION` selects `bridge`, whose label value is `production`.
+`stage=PRODUCTION` selects the entry with `registryid` `bridge`, whose label
+value is `production`.
 `website` has no matching label and supplies a `weburl`. No `filter` or
 `inline` request is sent, and no domain document is read.
 
@@ -678,9 +820,9 @@ print(value["registryid"], result["pages"], len(result["trace"]))
 bridge 1 2
 ```
 
-The two requests obtain one complete collection page. The
-`later-page-ambiguity` case shows how a subsequent page can establish that
-the initial match is not unique.
+The capabilities read and collection read yield one complete collection
+page. The `later-page-ambiguity` case shows how a subsequent page can
+establish that the initial match is not unique.
 
 The `document-revalidation` case preserves cached document bytes across this
 conditional request:

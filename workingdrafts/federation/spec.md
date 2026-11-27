@@ -17,9 +17,10 @@ This specification defines how a consumer reads entities and documents across
 independently administered xRegistries. A catalog is an xRegistry that uses
 the Registry domain to describe how to access other Registries. It describes
 those Registries rather than containing their data. A resolver uses the
-composition policy to order candidate sources and selects an access method
-for each catalog-based source it tries. It uses xRegistry Core to
-interpret identifiers and metadata in that source's Registry context.
+[composition policy](#local-resources-and-ordered-sources) to order candidate
+sources and selects an access method for each catalog-based source it tries.
+It uses xRegistry Core to interpret identifiers and metadata in that
+source's Registry context.
 Protocol bindings define how the resolver retrieves the data. Federation
 resolution is read-only.
 An independent, OPTIONAL deployment capability lets an authorized sender
@@ -122,7 +123,7 @@ edition, a catalog-description Version ID, or a target Resource's Version ID.
 | Registry context | The selected logical Registry, model, and access context in which an XID is interpreted. |
 | Revision pin | A binding's immutable snapshot selection, when supported. See [Snapshots and Completeness](#snapshots-and-completeness). |
 | Origin | The selected context and revision, when pinned, from which a result was obtained. See [Read Operations](#read-operations). |
-| Resolver | The client-side or server-side component selecting the source and retrieving a requested entity or document. |
+| Resolver | The component that selects a source and retrieves a requested entity or document. It can run in a consumer, in an API server, or when a producer assembles a stored view. |
 | Resolution owner | The side responsible for producing the selected Registry view: its consumer or its producer. See [Signaling Who Performs Resolution](#signaling-who-performs-resolution). |
 | Federating Registry | The consumer-visible Registry whose view combines local Resources and explicitly configured source Registries. |
 | Source Registry | A Registry selected as a source by the federating Registry's composition policy. |
@@ -133,7 +134,7 @@ edition, a catalog-description Version ID, or a target Resource's Version ID.
 | Package | A stored representation of a snapshot's metadata and declared documents, using the document-tree or OCI format. |
 | Linked snapshot | A snapshot that contains all records its package references internally and allows explicit external document references. |
 | Offline-complete snapshot | A snapshot also carrying all declared xRegistry documents in its selected scope. |
-| Deployment sender | The component acting for a parent Registry that explicitly selects content and pushes it to one destination Registry. |
+| Deployment sender | The component acting for a source Registry that explicitly selects content and pushes it to one destination Registry. |
 | Deployment receiver | The component that enforces the destination Registry's grant and commits authorized writes to its local store. |
 | Deployment grant | Receiver policy that reserves a destination scope and authorizes one principal to deploy there. See [Deployment Authority and Discovery](#deployment-authority-and-discovery). |
 
@@ -396,7 +397,8 @@ resolver MUST return `ambiguous` without trying another source or binding.
 A preference breaks a tie; it does not make other mapped Resources
 ineligible. Only the winning Resource contributes Versions, labels, and
 origin. If a local Resource or an earlier source already supplies the
-path, a collision in a later source does not affect that path's result.
+path, a tie among mapped Resources at that exact path in a later source
+does not affect its result.
 
 After applying explicit mappings or exclusions and ordinary precedence at
 exact paths, the resolver MUST enforce Core's case-insensitive sibling ID
@@ -408,6 +410,24 @@ remove the collision by filtering before this check. Precedence at one exact
 path does not shadow a differently spelled path. Lookups remain
 case-sensitive; the resolver MUST NOT match an unexposed spelling or fail
 an unrelated read because of the collision.
+
+For an exact Group or Resource read, or a read below one of those paths, the
+resolver MUST check the applicable Group and Resource siblings on the
+requested path before returning the result. For each of those paths that
+is present in the composed view, establish whether a differently spelled,
+case-equivalent sibling is also visible. Check Group ancestors even if
+the requested descendant is absent.
+
+The resolver MAY use the composition policy or complete membership
+information that applies to the selected view and access context. Otherwise,
+it MUST check eligible sources that can still contribute a colliding
+sibling, even after an exact path has a winner. Use the same source
+context and revision pin, if selected, for related checks. If the resolver
+establishes a collision, it MUST return `ambiguous`. If a check fails
+before the resolver can establish the outcome, it MUST report that failure
+rather than assume the sibling is absent. An exact-spelling miss does not
+establish that another spelling is absent. These checks do not change the
+winning origin or require reading unrelated content.
 
 After shadowing, a selector can still match several distinct visible
 Resources. The resolver reports `ambiguous` rather than choosing between
@@ -440,7 +460,9 @@ Resource, including all of its Versions:
    metadata can be interpreted under the selected source context and
    composition policy. A successful empty collection, a reachable
    endpoint, or a catalog entry alone is not a found Resource.
-5. Stop at the first found Resource. Select its requested Version, or its
+5. Stop selecting an origin at the first found Resource. Apply the
+   case-sibling checks above before returning its result or a Version or
+   document error from that origin. Select its requested Version, or its
    Core default Version, and obtain the requested representation. Within
    this operation, all Meta, Version, and document reads for the Resource
    MUST use that origin and retain the revision pin if one was selected.
@@ -456,13 +478,19 @@ Resource, including all of its Versions:
    Resource is absent.
    The resolver MUST report other failures, including a timeout,
    authorization denial, unsupported binding or version, malformed data,
-   and integrity failure, rather than treat them as absence. An
-   incompatible projection is not evidence that the source lacks the
-   Resource. This specification does not define a general compatibility
-   test or assign a distinct error code for incompatible projections.
+   and integrity failure, rather than treat them as absence. If a valid
+   source result cannot be represented under the consumer-visible model
+   and composition policy, report `unsupported_operation` for that result.
+   Preserve more specific failures established while retrieving or
+   validating the source result. An incompatible projection is not
+   evidence that the source lacks the Resource and does not permit trying
+   another source or advertisement. This specification does not define
+   a general compatibility test.
 
-The resolver advances to the next configured source Registry only on
-confirmed absence at the requested path. If it cannot retrieve the selected
+When selecting the Resource's origin, the resolver advances to the next
+configured source Registry only on confirmed absence at the requested
+path. Checking for case-equivalent siblings is not a search for another
+origin for that path. If the resolver cannot retrieve the selected
 Resource's Version or document, it reports that failure rather than
 selecting a lower-priority origin. Source traversal follows the configured
 projection policy, not arbitrary Registries or descriptive catalog
@@ -479,23 +507,32 @@ sequenceDiagram
     C->>R: Read Resource or Version by typed XID
     R->>L: Find owning Resource
     alt Local Resource exists
-        L-->>R: Local Resource and default/Versions
-        R-->>C: Requested local representation or its error
-    else Local Resource is absent
+        L-->>R: Local Resource metadata
+    else Local Resource is confirmed absent
         R->>K: Read eligible source entries in policy order
         K-->>R: Versioned binding advertisements
         loop Until a Resource is found, a non-miss error occurs, or sources end
             R->>S: Read candidate Resource metadata through selected binding
             S-->>R: Resource metadata, not_found, or another error
-            Note over R,S: Multiple present candidates need one explicit winner or return ambiguous
+            Note over R,S: Multiple present candidates at this exact path in this source need one explicit winner or return ambiguous
         end
-        Note over R,S: Advance only on confirmed absence at the visible path in this source
-        alt A Resource was found
-            R->>S: Read chosen Version or document at selected origin and revision, if pinned
-            S-->>R: Requested representation or its error
-            R-->>C: Result in consumer view with separate origin context
-        else No Resource or another error
-            R-->>C: not_found or the specific failure
+        Note over R,S: Advance origin selection only on confirmed absence at this exact path
+    end
+    alt Origin selection failed
+        R-->>C: Specific failure
+    else A Resource won or the exact path is absent
+        R->>R: Check relevant case-equivalent siblings using policy or applicable membership
+        opt More evidence is needed
+            R->>S: Check eligible sources that can still supply a colliding sibling
+            S-->>R: Membership evidence or failure
+        end
+        alt Collision or check failed before establishing the outcome
+            R-->>C: ambiguous or the specific failure
+        else Resource found
+            R->>R: Obtain requested representation at winning origin and revision, if pinned
+            R-->>C: Result in consumer view with separate origin context, or its error
+        else Exact path absent
+            R-->>C: not_found
         end
     end
 ```
@@ -504,26 +541,43 @@ sequenceDiagram
 
 For a Group path, the resolver MUST use the local Group's metadata if
 present. Otherwise it MUST use metadata from the first eligible source in
-the total order that supplies the Group. For an exact Group metadata read,
-the resolver MUST advance from the local view or an eligible source only if
-the Group lookup confirms absence in that Registry context. If the local
-lookup and all eligible sources confirm absence, the resolver MUST return
-`not_found`. Failure to establish the source Registry root or access
-context does not confirm Group absence, even if it reports `not_found`.
-The resolver MUST report that failure or another lookup failure, such as
-a timeout, access denial, or invalid response, rather than advance.
+the total order that supplies the Group. If more than one eligible mapped
+Group in that source is present at the path, the composition policy MAY
+explicitly select one of those Groups to supply its metadata. If it does
+not select exactly one present Group, the resolver MUST report `ambiguous`
+for a read that requires that metadata. If the preferred Group is
+confirmed absent, apply the rule to the remaining eligible mapped Groups.
+
+For an exact Group metadata read, the resolver MUST advance from the local
+view or an eligible source only on confirmed absence of all eligible Groups
+mapped to that path in that Registry context. If the local lookup and all
+eligible sources confirm absence, the Group is absent. Failure to establish
+the source Registry root or access context does not confirm Group absence,
+even if it reports `not_found`. The resolver MUST report that failure or
+another lookup failure, such as a timeout, access denial, or invalid
+response, rather than advance. Apply the
+[case-sibling checks](#local-resources-and-ordered-sources) before returning
+the exact Group result or reporting the Group absent as `not_found`.
 
 The choice of Group metadata does not shadow the whole Group: the resolver
 MUST combine its child collections from the local view and eligible
-sources, applying Resource precedence at each Resource path. If a selector
-tests Group metadata, it uses the metadata selected for that Group.
+sources, applying Resource precedence at each Resource path. A metadata tie
+does not exclude any otherwise eligible child collection. A child read
+that does not require the Group's metadata can proceed without resolving
+that tie. If a selector tests Group metadata, it uses the metadata selected
+for that Group.
 
 A resolver exposing a combined Group or Resource collection MUST
 enumerate all eligible source collections needed for that view and apply the
-Group and Resource precedence rules before returning members. For each
-Resource path, the resolver MUST apply the same-source selection rule
-before returning a member or evaluating a selector. A shadowed source
-Resource contributes no additional Versions or alternate label values.
+Group and Resource precedence rules before returning members. A returned
+Group entity carries Group metadata even if it has only the required fields.
+Apply the same-source Group metadata rule for each Group path whose metadata
+the collection read or selector requires. For each Resource path, the resolver
+MUST apply the same-source Resource selection rule before returning a
+member or evaluating a selector. Apply the
+[case-sibling checks](#local-resources-and-ordered-sources) before filtering
+the visible collection. A shadowed source Resource contributes no additional
+Versions or alternate label values.
 When the policy maps source types, the mappings MUST account for
 the consumer-visible collection's model as well as the mapped member
 paths.
@@ -679,7 +733,11 @@ zero, after explicit advertisements for tie-breaking. This applies even if
 an explicit advertisement names the same endpoint at another priority. If
 explicit HTTP advertisements exist, at least one endpoint MUST equal
 `xregurl` exactly. This exact comparison is a consistency rule, not a
-definition of URI identity.
+definition of URI identity. If explicit HTTP advertisements exist and
+none matches, the entry is contradictory during
+[advertisement selection](../models/registry/spec.md#62-advertisement-selection)
+and produces `invalid_package` under the
+[catalog error rules](../models/registry/spec.md#8-error-handling).
 
 An explicitly selected advertisement denied by policy, or denial of all
 otherwise supported candidates matching the caller's choice, produces
@@ -706,9 +764,10 @@ The implicit HTTP advertisement has priority zero even when an explicit
 HTTP advertisement has priority 20. The catalog entry's selected description
 Version is not the target Registry's snapshot revision. With
 [Resource shadowing](#local-resources-and-ordered-sources), a local hit
-needs no advertisement. Otherwise, the resolver tries sources in policy
-order, using the selected binding for each one. The first source to supply
-the Resource determines its origin.
+needs no advertisement to select its origin. A case-sibling check can
+still need one. If the Resource is absent locally, the resolver tries
+sources in policy order, using the selected binding for each one. The
+first source to supply the Resource determines its origin.
 
 ## Read Operations
 
@@ -729,12 +788,11 @@ define behavior, not URLs, HTTP verbs, or a transport-level request envelope:
 | `entity` | Registry, Group, Resource, Meta, or Version XID | xRegistry metadata, not raw domain content. |
 | `document` | Resource or Version XID | Domain bytes, an external-document locator where permitted by the binding, or Core metadata for a metadata-only target where the binding specifies it. Otherwise, an explicit failure. |
 
-For a document-bearing Resource, a `document` request selects its Core
-[default Version](../../core/spec.md#default-version-of-a-resource). An explicit
-Version request selects exactly that Version, case-sensitively. Neither
-operation selects the greatest Version string, latest OCI tag, newest Git
-commit or most recently modified file. Metadata-only Resources have no domain
-document. A `document` read of a metadata-only Resource or Version MUST
+For a document-bearing Resource, a `document` request uses Core's
+[default Version](../../core/spec.md#default-version-of-a-resource)
+or the [exact Version XID](../../core/spec.md#xid-attribute) named in the
+request. A binding's snapshot revision does not select a Resource Version.
+A `document` read of a metadata-only Resource or Version MUST
 produce `unsupported_operation` unless the selected binding specifies
 returning Core metadata for that target, as the
 [MQTT binding](#mqtt-native-reads) does. This exception does
@@ -745,8 +803,9 @@ For each single-source binding read a resolver MUST:
 1. Establish the selected Registry root and any revision pin.
 2. Obtain the model needed to interpret the target and check supported Core
    and binding versions before interpreting entities.
-3. Obtain or derive the binding's declared capabilities without inventing
-   support for filters, writes, atomic snapshots, or inline representations.
+3. Obtain or derive the enabled capabilities of the selected Registry view
+   through the binding without inventing support for filters, writes, atomic
+   snapshots, or inline representations.
    Read the exposed view without traversing the selected source's own catalog
    as part of this operation.
 4. Resolve the typed target and any selector in that Registry context.
@@ -762,18 +821,28 @@ The model and capabilities acquired in steps 2 and 3 supply the results for
 `model` and `capabilities` reads. These operations do not require recursive
 requests for those same results.
 
-Origin information MUST identify the selected source context, target XID,
+Origin information MUST identify the selected source context, origin XID,
 and revision pin or the absence of an immutable pin. For catalog-based
 access, it MUST also identify the chosen advertisement and catalog-description
 Version. A standalone endpoint or local data has no selected catalog
 advertisement unless the resolver obtained it through the catalog. Origin
 information MUST be returned separately from Core identity attributes.
 
+For a successful `document` result that returns domain bytes or an external
+document locator, the origin XID MUST be that of the exact Version that
+supplied the bytes or locator in the selected source context. This applies
+when the request selects a default Version or reaches the supplying Version
+through a Core alias. It does not change the alias's visible identity or
+the origin XID for a metadata result, including metadata returned for a
+metadata-only target.
+
 A composed collection result MUST provide this origin information for each
-returned member, including a member returned by a selector. A Group
-member's metadata uses the origin chosen for that Group, not the origins
-of its children. The member's exposed XID remains in the composed Registry
-context; its origin identifies the member in the selected source context.
+returned member, including a member returned by a selector. A returned Group
+entity uses the origin of its selected metadata, not the origins of its
+children. A read that does not return or use Group metadata does not need
+to select that metadata or its origin. The member's exposed XID remains in
+the composed Registry context; its origin identifies the member in the
+selected source context.
 
 A library can return origin information alongside the value. A
 producer-resolved service MUST document how an authorized consumer obtains
@@ -831,21 +900,36 @@ the origin information defined above. Ordinary independent Registry replies
 need not report origins; the Consumer MUST NOT invent a revision or a
 catalog selection on behalf of the serving Registry.
 
-The resolver MUST evaluate selectors over the complete visible collection
-under [Selectors](#selectors). A selector is not an MQTT payload member.
-The resolver MUST honor native pagination, if used, and MUST NOT
-interpret a partial or failed traversal as an empty collection or a
-unique match. A detected inconsistency in a page chain MUST produce
-`inconsistent_snapshot`; other retrieval failures retain their specific
-outcomes. A complete live traversal does not establish a snapshot.
+The resolver MUST apply [Selectors](#selectors) to the visible collection.
+A selector is not an MQTT payload member. The resolver MUST honor native
+pagination, if used, and MUST finish evaluating the visible collection
+before reporting no match or a unique match. It MAY stop fetching pages
+when it has established ambiguity under [Selectors](#selectors), including
+the relevant visibility and case-sibling checks. The resolver MUST NOT
+treat a partial or failed traversal as an empty collection. A detected
+inconsistency in a page chain MUST produce `inconsistent_snapshot`; other
+retrieval failures retain their specific outcomes. A complete live
+traversal does not establish a snapshot.
 
 Before accepting a `document` result, the resolver MUST establish that
 the model applies to the exposed view and the reply. A deployment
 guarantee covering both, or an independently verified immutable snapshot
 pin covering the model and reply under the same Registry and binding,
-satisfies this rule. Reading the model immediately before the document,
+satisfies this rule. Trusted deployment configuration can supply the
+guarantee if it establishes that the specific model, whether configured
+or obtained by a model read, applies to the selected exposed Registry view
+and the document reply. Reading the model immediately before the document,
 or matching MQTT Correlation Data, does not establish that relationship.
 The resolver MUST NOT infer the model from the result's member names.
+
+If the resolver receives an otherwise conforming successful `document`
+reply but lacks evidence that the model applies to it, it MUST reject the
+result and report `unsupported_operation`. If a read needed to establish
+model applicability fails, the resolver MUST report that failure instead.
+If verification establishes that the model and reply do not belong to the
+same claimed immutable state, the resolver MUST report
+`inconsistent_snapshot`. These rules do not replace an otherwise applicable
+native operation error.
 
 On a document-bearing type, the native reply contains separate metadata
 and document content. When that content is a locator, the resolver MUST
@@ -867,59 +951,26 @@ An [XID](../../core/spec.md#xid-attribute) identifies an entity within one
 Registry. Resolvers MUST preserve both its Registry context and typed
 collection path. The same XID in unrelated Registries does not establish
 that the entities or their bytes are identical.
-Core [IDs](../../core/spec.md#singularid-id-attribute) are unique
-case-insensitively within their parent, but are looked up
-case-sensitively. Storage bindings MUST NOT weaken either rule.
+Storage bindings MUST preserve [Core's ID rules](../../core/spec.md#singularid-id-attribute)
+for uniqueness and lookup.
 
 ### Local Cross-References
 
-Core [`meta.xref`](../../core/spec.md#cross-referencing-resources) remains
-an intra-Registry Resource XID. Federation chooses a source Registry through
-the catalog and composition policy, rather than adding a remote meaning to
-this Core attribute. The referencing Resource and its target MUST have the
-same Resource model type. Structurally identical independent definitions
-are insufficient. Sharing between Group types uses
-[`ximportresources`](../../core/model.md#reuse-of-resource-definitions).
+Apply [Core's cross-reference rules](../../core/spec.md#cross-referencing-resources)
+to `meta.xref`, including [Resource type sharing](../../core/model.md#reuse-of-resource-definitions)
+when the source and target are in different Group types. Federation selects
+a source Registry through its catalog and composition policy; it does not
+give `meta.xref` a remote meaning or add remote writes to aliases.
 
-An [alias](#notations-and-terminology) is the source Resource in that Core
-cross-reference. In the example below, the `mirrors` Group type imports the
-`assets` Resource type. Its name does not identify a standard mirror-Group
-feature or a replication mechanism. The shared Resource type permits a
-local alias in this Group to reference an asset in a `documents` Group:
+For example, a `mirrors` Group type that imports `/documents/assets` can
+expose `/mirrors/local/assets/copy` as an alias of
+`/documents/main/assets/item` in the same Registry. The name `mirrors` does
+not imply replication.
 
-```json
-{
-  "groups": {
-    "documents": {
-      "singular": "document",
-      "resources": {
-        "assets": {
-          "singular": "asset"
-        }
-      }
-    },
-    "mirrors": {
-      "singular": "mirror",
-      "ximportresources": ["/documents/assets"]
-    }
-  }
-}
-```
-
-An alias in `/mirrors/local/assets/copy` can then carry
-`meta.xref: "/documents/main/assets/item"`. Even when Core includes metadata
-from the target, IDs and navigation MUST remain relative to the alias.
-If the target is itself an alias, a resolver MUST NOT follow another `xref`.
-If the target does not exist or is not visible to the client,
-[Core's minimal alias serialization](../../core/spec.md#cross-referencing-resources)
-applies. This is not automatically `not_found` for the alias and does not
-turn an unrelated transport failure into a dangling reference.
-
-Core's malformed-reference rules distinguish a malformed XID or nonexistent
-model type from a dangling entity instance. In document view, the resolver
-MUST NOT expand the target. A document-view request for an alias's Versions
-or an individual Version MUST retain Core's `cannot_doc_xref` behavior. This
-specification does not add remote writes to aliases.
+A resolver MUST NOT treat a dangling reference as absence of the alias
+Resource or treat a transport failure as a dangling reference. See
+[Representations](#representations) for how bindings report unsupported
+views and alias reads.
 
 ### Remote References and Composition
 
@@ -933,9 +984,46 @@ external content. Any `xref` it exposes MUST satisfy Core within that
 Registry. A projection MUST NOT treat Resources as identical solely because
 their XIDs collide. When projecting source Registries into a federated view,
 use the [composition policy](#local-resources-and-ordered-sources) to select
-the Resource and its origin for a visible path. For other projections,
-report `ambiguous` if competing origins remain unresolved rather than
-choosing one implicitly.
+the Resource and its origin for a visible path. A projected Registry that
+exposes locally modeled Resources for external content without using that
+ordered source selection MUST report `ambiguous` if competing eligible
+origins for one exposed path remain unresolved.
+
+When projecting a winning alias whose target exists in the source,
+the outward `meta.xref` MUST identify that same target Resource. If the
+original target path is shadowed, the resolver MAY use another outward
+path only when the composition policy explicitly maps the actual target
+there, the mapping is authorized, and the target is visible there and
+has the same Core Resource model type as the alias. Keep Core's one-hop
+behavior.
+
+If the target is confirmed absent in the source, the resolver MUST
+preserve the dangling reference when it remains dangling under the
+ordinary outward mapping. If another Resource occupies that outward
+path, the projection fails. A denied lookup or insufficient evidence
+does not establish that the source target is absent.
+
+If the alias cannot be represented under these rules, the resolver MUST
+fail the result that requires the projected alias under
+[Local Resources and Ordered Sources](#local-resources-and-ordered-sources).
+It MUST NOT retarget the alias, expose it as an ordinary Resource, or make
+the reference appear dangling to hide the conflict. It MUST NOT omit the
+alias from a collection and report the collection as complete. This does
+not change Core's handling of a genuinely dangling source reference or
+the [`cannot_doc_xref` failure](#representations). Reads that do not require
+that projection are unaffected, including direct reads of the source
+Registry under its own Core alias rules.
+
+For example, suppose source A's `copy` refers to A's `item`, but the local
+view supplies a different `item` at the same outward path. The composed
+view cannot point `copy` at the local `item`. An explicit, authorized
+mapping can expose A's `item` at another visible path of the same Core
+Resource model type. The projected alias then refers to that path.
+If A has no `item`, a direct metadata read of A's `copy` instead retains its
+dangling reference. The composed result that needs to represent `copy`
+fails with `unsupported_operation` if the local `item` occupies the
+outward target path.
+
 A domain can define a shared logical-identity policy without altering XID
 scope.
 
@@ -946,20 +1034,23 @@ copy registries, establish trust, or synchronize changes.
 
 | Reference | Resolution base |
 | --- | --- |
-| Core XID or `meta.xref` | Selected Registry root, never the current file's directory. |
+| Core [XID](../../core/spec.md#xid-attribute) or [`meta.xref`](../../core/spec.md#xref-attribute) | Selected Registry root, never the current file's directory. |
 | Registry-domain `relationships.target` starting with `/` | Containing catalog Registry root. |
 | Absolute Registry-domain `relationships.target` | The URI identifies an entry in another catalog, not that catalog's root. See the [Registry domain](../models/registry/spec.md#72-target). |
 | Package storage reference | The selected package root or record base defined by its format. |
 | Relative domain-document URI | The document's declared origin/base under its binding. Not an inferred catalog URL. |
-| Model include | The model source document containing the include, following Core. |
-| `#` JSON Pointer navigation | The returned JSON document. |
+| [Model include](../../core/model.md#includes-in-the-xregistry-model-data) | The model source document containing the include. |
+| [Document-view navigation](../../core/spec.md#doc-flag) | The returned JSON document. |
 
 A resolver MUST NOT substitute one of these bases for another. Some bindings
 cannot preserve or supply the base needed to interpret a relative document
-URI. If that base is missing, the resolver MUST report `invalid_package`
-or `unsupported_operation` rather than guess. Where the selected binding
-specifies the outcome, its rules apply. For example, a relative external
-locator in the [directory mapping](../bindings/mapping.md#documents)
+URI. If the base is missing, the resolver MUST NOT guess. Apply the selected
+binding's rules first. If the binding does not specify the outcome, report
+`invalid_package` when the input violates an applicable base requirement,
+or `unsupported_operation` when valid input cannot supply the base needed
+for the operation. Preserve more specific retrieval or validation failures.
+For example, a relative external locator in the
+[directory mapping](../bindings/mapping.md#documents)
 requires an absolute `base`; without it, the descriptor is invalid.
 The [OCI binding](../bindings/oci.md#53-version-documents-and-placeholders)
 requires an absolute external locator and allows a separate base for
@@ -1003,12 +1094,12 @@ a selector with this JSON:
 The [request schema](schemas/request.json) constrains these example envelopes.
 The operation table and Core constrain typed paths and semantics.
 
-The `label` names a map key. `value` is a literal string. Labels MAY be absent,
-and an empty string value is valid. An absent key does not match an empty
-value. Comparison MUST follow Core's case-insensitive string filtering.
-En-US Unicode collation is STRONGLY RECOMMENDED by Core. This specification
-adds neither mandatory language keys nor NFC normalization. Map-key selection
-remains exact. Comparison applies to the selected value.
+The `label` names an exact key in the Core
+[`labels` map](../../core/spec.md#labels-attribute). `value` is a literal
+string, including an empty string; an absent key does not match it.
+Comparison MUST follow Core's [string filtering](../../core/spec.md#filter-flag)
+rules for the selected value. This specification adds neither mandatory
+language keys nor NFC normalization.
 
 A resolver using a transport filter MUST escape its literal value and
 attribute path under that binding. `*`, `\`, `.`, or an operator in a selector
@@ -1020,8 +1111,9 @@ With no matches, the outcome is `not_found`. If complete evaluation of the
 visible collection yields exactly one match, the result is that member.
 Multiple matches produce `ambiguous`.
 A resolver MUST inspect all necessary continuation pages before reporting
-a unique match. It MAY report ambiguity as soon as it establishes a
-second distinct, unshadowed visible match, without reading further pages.
+no match or a unique match. It MAY report ambiguity without reading
+further pages only after establishing two distinct, unshadowed visible
+matches and completing the relevant case-sibling checks.
 A resolver MUST NOT report a request limit,
 incomplete page chain, or unstable collection as a unique selection.
 Resource selectors examine the effective metadata of their default Versions
@@ -1042,38 +1134,30 @@ operation, the requirements in
 
 ## Representations
 
-Metadata and domain documents are distinct results, even when both are JSON.
-`self`, `metaurl`, and `defaultversionurl` locate metadata under the relevant
-Core binding. A consumer MUST NOT automatically treat them as raw-byte
-locations.
+Use Core's distinction between [metadata and domain documents](../../core/spec.md#resource-metadata-vs-resource-document).
+A consumer MUST NOT treat metadata navigation URLs as raw-byte locations.
 
 Native access to a [snapshot](#snapshots-and-completeness) uses Core
 [document view](../../core/spec.md#doc-flag), with storage descriptors and
 transport context outside the Core entity. A binding MAY also offer an
-API view with the navigation contract below. Document view removes duplicated
-default-Version attributes, Version validation-result attributes, and
-`shortself`, and suppresses alias-target expansion. Core navigation attributes
-(`self`, `<COLLECTION>url`, `metaurl`, and `defaultversionurl`) MUST use
-document-local JSON Pointers when their targets are included in the returned
-document. If a target is omitted, its navigation URL MUST NOT be rewritten
-to a local pointer. Reassembling records into a larger document requires rebasing
-their pointers to that document. Concatenating records whose pointers are
-relative to each individual record does not preserve those targets.
+API view with the navigation contract below. When reassembling records
+into a larger document, a resolver MUST rebase document-local pointers
+under Core's [Doc Flag rules](../../core/spec.md#doc-flag). Concatenating
+records without rebasing does not preserve their targets.
 
 The Registry domain's
 [view comparison](../models/registry/spec.md#33-document-view)
-shows a partial inclusion: only links whose targets are present become
-local pointers. Core's [Inline flag](../../core/spec.md#inline-flag)
-determines inclusion for API representations. Document view does not
-make an omitted target present.
+shows which navigation links change when only some targets are included.
+See Core's [Inline flag](../../core/spec.md#inline-flag) for inclusion in
+API representations.
 
 Native bindings MUST distinguish document-view metadata from the operation
 that retrieves an alias's target document under Core. If a binding does
 not support the requested view, the resolver MUST report it as unsupported.
 If the binding supports document view and the request in that view is for
 an alias's Versions collection or one of its Versions, the resolver MUST
-retain Core's `cannot_doc_xref` failure. It MUST NOT silently substitute
-a different representation.
+retain Core's [`cannot_doc_xref` failure](../../core/spec.md#cannot_doc_xref).
+It MUST NOT silently substitute a different representation.
 
 A binding offering API-view results MUST define Core-conforming `self` and
 navigation URLs that clients can retrieve. An implementation-defined URI
@@ -1239,10 +1323,10 @@ credentials to a source. The receiver MUST authenticate the caller using
 the selected binding's rules and authorize each operation. In particular:
 
 - The receiver MUST validate and resolve the exact typed Version XID
-  under the destination model and Core ID rules before applying a grant.
+  under the destination model and [Core ID rules](../../core/spec.md#singularid-id-attribute)
+  before applying a grant.
   Authorization MUST use the validated components, not a string-prefix
-  comparison. Case-insensitive uniqueness does not allow different-case
-  lookup or creation of another entity at a colliding path.
+  comparison.
 - The receiver MUST record ownership for each Resource and Version created
   by deployment. Ownership MUST be bound to the entity's incarnation, its
   lifetime from creation to deletion. A scope reservation alone does not
@@ -1292,15 +1376,11 @@ A stage is a bounded pending upload outside the live Registry. A
 precondition token is an opaque comparison value for a later write.
 Neither one confers authorization.
 
-| Operation | Target and arguments | Result |
-| --- | --- | --- |
-| `limits` | Configured deployment entry point | Active profile and bounds for documents, chunks, control messages, tokens, and staging. |
-| `inspectTarget` | Exact destination Version XID and OPTIONAL requested Version fields | Live target state, eligible mode, and a comparison token, expiration, and state marker if writable. For an existing managed Version, the document descriptor and requested readable fields. |
-| `begin` | Exact destination Version XID, mode `create` or `replace`, and document descriptor | Identifier and current progress of the active stage for that request. |
-| `inspectStage` | Exact destination Version XID and OPTIONAL stage ID | Metadata and current progress of the matching live stage, without document bytes. |
-| `append` | Stage ID, byte offset, and a nonempty byte chunk | Next accepted byte offset. |
-| `commit` | Stage ID, precondition token, and Version metadata | Exact destination XID, `created` or `replaced`, Version epoch, and document descriptor. |
-| `abort` | Exact destination Version XID and stage ID | Whether this operation removed the matching live stage. No future commit of that stage can take effect. |
+A sender uses `limits` to confirm the configured profile and bounds,
+then `inspectTarget` to check the destination. It uses `begin` to open a
+stage, `append` to transfer any document bytes, and `commit` to write the
+Version. `inspectStage` reports progress without returning document bytes.
+`abort` ends a live stage and prevents any later commit of that stage.
 
 For a document-bearing Version, the descriptor MUST specify the size in
 bytes, the SHA-256 digest of those exact bytes, and the media type or
@@ -1334,15 +1414,22 @@ live stage without extending its lifetime. A different mode or descriptor
 for that stage produces `conflict`. A sender that loses a `begin` reply
 can inspect the stage by target and compare the mode and descriptor.
 
-The receiver MUST serialize appends on a stage and accept a chunk only at
-the current next offset, initially zero. If the offset differs, it MUST
-return `offset_mismatch` with the current offset and accept no bytes. It
-MUST reject an append that exceeds the declared total or the configured
-chunk limit without advancing the offset. The sender can inspect the
-stage after a lost reply. Offsets report progress, not the identity of
-accepted bytes. The receiver MUST verify the total length and exact digest
-before publishing. Verification MUST NOT require buffering the entire
-document in memory.
+The receiver MUST serialize appends on a stage. After validating the
+request and establishing an authorized live stage, it MUST check the
+following conditions in order:
+
+1. If the supplied offset differs from the current `nextOffset`, initially
+   zero, return `offset_mismatch` with the current `nextOffset`.
+2. If the stage's descriptor is `null`, return `unsupported_operation`.
+   A metadata-only stage does not accept document bytes.
+3. If the chunk would exceed the declared document size, including a size
+   of zero, or exceeds the configured chunk limit, return `limit_exceeded`.
+
+None of these failures accepts bytes or advances `nextOffset`. The sender
+can inspect the stage after a lost reply. Offsets report progress, not the
+identity of accepted bytes. The receiver MUST verify the total length and
+exact digest before publishing. Verification MUST NOT require buffering
+the entire document in memory.
 
 ### Deployment Operation Data
 
@@ -1416,9 +1503,12 @@ The following records are successful results:
 - `commit`: `outcome` (`created` or `replaced`), `target`, `epoch` (the
   destination Version epoch encoded as an unsigned decimal string), and
   `descriptor` describing the committed Version.
-- `abort`: `removed` (Boolean). `true` means this operation removed a
-  matching live stage. `false` means it found no matching live stage.
-  Both values confirm that the stage cannot commit after this response.
+- `abort`: `removed` (Boolean). An authorized `abort` matches a live stage
+  by Registry, binding context, principal, grant generation, exact target,
+  and stage ID. `true` means this operation removed that matching live
+  stage. `false` means it found no live stage in that exact context. The
+  receiver MUST NOT change or disclose a nonmatching stage. Both values
+  confirm that no stage matching that context can commit after this response.
 
 ### Conditional Commit
 
@@ -1458,8 +1548,8 @@ expired or whose state changed, it MUST return `stale_precondition` without
 changing Core state. It MUST NOT discard the stage solely for that error.
 Expired, aborted, consumed, and revoked stages MUST NOT commit.
 
-The receiver MUST apply Core create and update semantics, including format,
-Group, `matchversions`, lineage, and compatibility checks. It MUST use
+The receiver MUST apply [Core Resource and Version write rules](../../core/spec.md#creating-or-updating-resources-and-versions)
+and the destination model. It MUST use
 the supplied exact Version ID, or reject creation if the target model
 does not permit client-assigned IDs. It MUST NOT commit if the complete
 Core transition would evict a Version, affect protected content, or
@@ -1471,12 +1561,10 @@ require an unauthorized change. For metadata, the receiver MUST:
   a second time in the metadata object. A Version using an external
   document or proxy URL is not replaceable through deployment.
 - Preserve omitted metadata fields on replace. On create, apply the
-  destination model's field requirements and defaults. Interpret supplied
-  values, including `null`, under Core and the model.
-- Let Core determine default selection, epochs, timestamps, and ancestry.
-  A new Version can become the Core default. A replacement of the
-  current default changes ordinary Resource reads without moving a
-  Publication channel.
+  destination model's field requirements and defaults.
+- Apply Core's [default-Version rules](../../core/spec.md#default-version-of-a-resource).
+  Deployment can change what an ordinary Resource read returns without
+  moving a Publication channel.
 
 The Core write and consumption of the stage MUST take effect in the same
 durable transaction. A successful response MUST describe the committed
@@ -1498,13 +1586,28 @@ an error from another delivery of the same exchange.
 
 If a commit outcome is indeterminate, the sender MUST NOT blindly replay
 it or change bindings. Before another commit attempt, the sender MUST
-obtain an authorized `abort` result for the exact target and stage, then
-inspect the exact target. The receiver MUST serialize `abort` with
-commit. Both `removed: true` and `removed: false` guarantee that this
-stage cannot commit in the future. Only `true` establishes that the
-receiver removed the matching live stage and that the stage never
-committed. A later `false` does not recover a lost `true` result and
-does not distinguish consumption from expiration or other removal.
+obtain an authorized `abort` result for the exact stage in the original
+commit's Registry, binding context, principal, grant generation, and
+target, then inspect that exact target. A result for a different context
+does not establish that the original stage cannot still commit. The
+receiver MUST serialize `abort` with commit. Both `removed: true` and
+`removed: false` guarantee that the matching stage cannot commit in that
+context in the future. Only `true` establishes that the receiver removed
+the matching live stage and that the stage never committed. A later
+`false` does not recover a lost `true` result and does not distinguish
+consumption from expiration or other removal.
+
+When a `commit` has definitively failed with `integrity_error` or
+`validation_error`, the receiver MAY retain or end the stage according to
+its staging policy. Before reusing it, the sender MUST obtain an authorized
+`inspectStage` result in the original commit's Registry, binding context,
+principal, and grant generation, for the exact target and stage ID. The
+result MUST confirm that the stage is still live. The sender MUST correct
+the failure and satisfy the current policy and token checks before another
+commit. Inspection does not replace the exact-context `abort` and target
+inspection when the commit outcome is indeterminate.
+
+<a id="deployment-state-comparison"></a>
 
 The sender compares document presence, byte length, digest, media type,
 and requested metadata using model-aware equality. Generated fields are
@@ -1513,6 +1616,9 @@ does not identify the writer. The receiver MUST associate any reported
 document fingerprint with the same Version state as the inspection.
 If a current fingerprint is not available, it MUST report that comparison
 is unavailable rather than return a stale descriptor.
+
+A one-off deployment uses the same commit and recovery rules without
+running the synchronization workflow below.
 
 A sender using this specification's synchronization workflow runs it only
 on explicit invocation. A local scheduler or Core event consumer can
@@ -1524,8 +1630,12 @@ or model does not permit the sender both to read and to write every
 selected metadata field, the sender MUST report the item as blocked
 without uploading or reporting convergence.
 
-For that workflow the sender MUST inspect the target again after upload
-and apply its policy with a current token before requesting commit.
+For the synchronization workflow, the sender MUST call `inspectTarget`
+again after each stage is ready for commit and before requesting commit.
+This applies even when no `append` was needed, such as for a `null`
+descriptor or a zero-byte document. The sender MUST reapply its policy
+using the new inspection and a current token.
+
 The sender initializes a job for one configured destination. It records
 attempts before dispatch and retains mapping history locally. It MUST treat
 missing or restored history as uncertain unless it has independently
@@ -1534,12 +1644,16 @@ indeterminate, the sender MUST obtain the authorized `abort` result and
 inspect the target as described above before reporting convergence from
 an inspection.
 
-The default policy is:
+Use the [document and metadata comparison](#deployment-state-comparison)
+when comparing the target with its verified baseline. This comparison does
+not require equal `stateMarker` values. The current token still protects
+the inspected state at commit. The default policy is:
 
 | Observation | Result |
 | --- | --- |
 | Target is absent and trusted history identifies a new mapping. | Create conditionally if authorized. |
 | Authorized inspection confirms the managed target matches the desired state, with or without a comparable baseline. | Report convergence without a write. This inspection can establish a baseline. |
+| Inspection cannot establish the state needed to compare a managed target. | Report the item for review. Do not report convergence or replace the Version based on that inspection. |
 | Managed target differs from the desired state but matches its last verified baseline for the same mapping and selected fields. | Replace conditionally if authorized. |
 | Managed target differs from the desired state and either differs from its last verified baseline for the same mapping and selected fields or lacks a comparable baseline. | Report the item for review rather than replace it. |
 | Target is absent and history is uncertain or identifies an earlier deployment. | Report the item for review rather than recreate it. |
@@ -1595,12 +1709,16 @@ include that member for an unauthorized caller.
 | `not_found` | The provisioned destination Group is absent. |
 | `stage_unavailable` | The matching stage is not live. An authorized `abort` does not use this error. |
 | `stale_precondition` | A correctly bound token for the live stage expired or the expected state changed. |
-| `conflict` | The requested mode cannot use the current target, or a different stage is active. |
+| `conflict` | The requested mode cannot use the current target, or a different stage is active. For a correctly bound token on a live stage whose guarded state changed, see [`stale_precondition` under Conditional Commit](#conditional-commit). |
 | `offset_mismatch` | The byte offset is not the next accepted byte offset. |
-| `unsupported_operation` | The receiver or target does not support the requested operation. |
+| `unsupported_operation` | The receiver or target does not support the requested operation, or `append` addresses a metadata-only stage. |
 | `integrity_error` | The staged bytes do not match the declared length or digest. |
 | `validation_error` | The proposed change does not satisfy Core or the model, or would cause eviction. |
-| `limit_exceeded` | The request exceeds a size or quota bound. |
+| `limit_exceeded` | The request exceeds a size or quota bound, including an `append` exceeding the declared document size or chunk limit. |
+
+A well-formed stage ID with no live match in an otherwise valid and
+authorized `abort` request is not an `invalid_request` error. Malformed
+requests and authorization failures remain errors.
 
 The receiver MUST retain a safe Core diagnostic when available without
 disclosing protected data or credentials. A transport acknowledgment or
@@ -1620,7 +1738,7 @@ or mandates for new HTTP status codes:
 | --- | --- |
 | `unsupported_binding` | No selected supported access method. |
 | `unsupported_version` | Unsupported Core, binding, or package format version. |
-| `unsupported_operation` | Unsupported view, parameter, or read operation. |
+| `unsupported_operation` | Unsupported view, parameter, or read operation, including a valid source result that cannot be projected under the consumer-visible model and composition policy. |
 | `not_found` | No selected entity, Version, root, or label match. |
 | `ambiguous` | More than one eligible result without disambiguation. |
 | `policy_denied` | Access, credential, trust, or traversal policy rejected the operation. |
@@ -1628,12 +1746,13 @@ or mandates for new HTTP status codes:
 | `invalid_package` | Malformed advertisement, metadata, or containment structure. |
 | `inconsistent_snapshot` | Data cannot be read as the selected state. |
 | `limit_exceeded` | A resource or traversal bound prevents completion. |
-| `unavailable` | A transport or backing object is temporarily unavailable. |
+| `unavailable` | The transport or backing object did not supply the requested data, as specified by the binding. |
 
 When an underlying Core error or transport diagnostic is available, the
 resolver error MUST retain it without exposing credentials. A resolver
 MUST NOT return an incomplete retrieval as a successful empty collection.
-Core's dangling-alias exception still applies.
+Core's [dangling-alias exception](../../core/spec.md#cross-referencing-resources)
+still applies.
 
 ## Security Considerations
 
@@ -1670,8 +1789,10 @@ API facade requires separate protocol-binding conformance.
 
 A deployment sender or receiver MUST conform to
 [Downstream Deployment](#downstream-deployment) and identify each
-profile it implements. For each claimed profile, it MUST implement all
-operations and security rules for its role. Support for reads, generic
+profile it implements. A receiver MUST support all operations for each
+claimed profile. A sender MUST follow that profile's security, operation,
+and recovery rules for its transfers; a one-off sender need not implement
+upload resumption or the synchronization workflow. Support for reads, generic
 Core writes, or Publication writes does not establish deployment
 conformance. Deployment support does not imply support for all read
 bindings. The [offline deployment examples](tools/test_deployment_examples.py)
