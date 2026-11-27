@@ -1126,6 +1126,24 @@ The CloudEvents `type` identifies the payload contract, not the Registry
 Resource or TD Version; its revision is independent of `version.instance`,
 `version.model`, `versionid`, and the Descriptor Version.
 
+**Example (informative).** A site publishes a resolved TD for a pump to
+an authorized audience. The event's `describedby` selects a Descriptor
+Version for that audience. Its `thingdescription` entry uses this document
+URL:
+
+```text
+https://site.example/thingdescriptiongroups/shared/thingdescriptions/pump/versions/2.1.0
+```
+
+A Consumer can read the document directly from the site or use the
+[HTTP Federation binding](../../bindings/http-federation.md#metadata-documents-and-versions)
+to read that exact Version from the same authorized source. Both paths
+return the same published bytes and identify the same supplying Registry,
+Resource and Version. The TD keeps its `id`, and the Version metadata keeps
+its `wotid`. The Descriptor, TD and exposed Registry metadata omit private
+source names. A Core [`xref`][xRegistry xref] is a same-Registry Resource
+alias; it does not bring a remote Version's bytes into the Consumer's Registry.
+
 The [CloudEvents samples](samples/cloudevents.json) address an affordance and
 the whole TD through Descriptors that reference an explicit Version.
 
