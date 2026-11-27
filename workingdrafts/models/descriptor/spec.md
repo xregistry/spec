@@ -282,6 +282,40 @@ check status, media type and shape, then apply the entry profiles needed for
 its operation. Entry URLs are used as supplied, subject to retrieval policy.
 Core-only fields do not supply missing profile inputs.
 
+For catalog discovery on a server that supports the [HTTP `filter`
+flag][HTTP filter], the following requests search the `devices` Group in
+the [sample](samples/descriptor.json). The first looks up a Descriptor by
+`entityid`; the second looks for a Descriptor with a matching entry `url`.
+
+```http
+GET /descriptorgroups/devices/descriptors?filter=entityid=urn%3Aexample%3Aasset%3Apump7 HTTP/1.1
+Host: registry.example
+Accept: application/json
+```
+
+```http
+GET /descriptorgroups/devices/descriptors?filter=entries.*.url=https%3A%2F%2Fassets.example%2Fusdassetgroups%2Fline1%2Fusdassets%2Fpump7%2Fversions%2F2 HTTP/1.1
+Host: registry.example
+Accept: application/json
+```
+
+These queries filter the default Version fields exposed in Resource metadata,
+not the `/meta` entity or all retained Versions. With the sample's Version `1`
+as the default, both responses include the `pump7` Descriptor, and the URL
+filter matches its `geometry` entry. The `*` in `entries.*.url` searches
+across entry names; the response contains matching Descriptors, not entries.
+
+Core filters compare URI and URL values without regard to case and support
+`*` wildcards in filter values. For a literal `*` in a value, escape it as `\*`
+before URL encoding (`%5C%2A` in the request). Compare each returned
+`entityid` or entry `url` to the sought value exactly, without normalization.
+Neither lookup establishes uniqueness, so do not select the first result.
+An entry URL is a retrieval location, not an entity identifier.
+
+To search retained Versions of a known Descriptor, apply the filter to its
+`versionsurl`. To check a specific Version, use that Version's URL and
+verify the value there. Neither lookup replaces the event's `describedby`.
+
 ### 5.2. Writes and Null Values
 
 Publishers use ordinary Core metadata operations to create or update a
@@ -489,6 +523,7 @@ a description does not establish execution evidence.
 
 [Core]: ../../../core/spec.md
 [Core extensions]: ../../../core/spec.md#extensions
+[HTTP filter]: ../../../core/http.md#filter-flag
 [HTTP processing]: ../../../core/http.md#creating-or-updating-entities
 [HTTP errors]: ../../../core/http.md#error-processing
 [Descriptor format]: https://github.com/cloudevents/spec/pull/1406
