@@ -1,6 +1,8 @@
 """
 Tests for schema-generator.py to validate JSON Schema and Avro output conformance.
 """
+import copy
+import io
 import json
 import os
 import re
@@ -9,6 +11,8 @@ import tempfile
 from pathlib import Path
 
 import avro.schema
+import avro.io
+import avro.errors
 import jsonschema
 import pytest
 from jsonpointer import resolve_pointer
@@ -38,14 +42,14 @@ class TestSchemaGenerator:
         """Path to the schema model.json."""
         return tools_dir.parent / "schema" / "model.json"
 
-    def generate_schema(self, model_path: Path, schema_type: str, tools_dir: Path) -> dict:
+    def generate_schema(self, model_path: Path, schema_type: str, tools_dir: Path, *options) -> dict:
         """Generate a schema using schema-generator.py."""
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as tmp:
             tmp_path = tmp.name
 
         try:
             result = subprocess.run(
-                ['python', 'schema-generator.py', '--type', schema_type, str(model_path), '--output', tmp_path],
+                ['python', 'schema-generator.py', '--type', schema_type, str(model_path), '--output', tmp_path, *options],
                 cwd=str(tools_dir),
                 capture_output=True,
                 text=True,
@@ -60,6 +64,207 @@ class TestSchemaGenerator:
         finally:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)
+
+    @pytest.fixture
+    def optional_avro_model(self, tmp_path):
+        model = {
+            "groups": {
+                "items": {
+                    "singular": "item",
+                    "attributes": {
+                        "identity": {"type": "uri"},
+                        "links": {
+                            "type": "map", "required": True,
+                            "item": {
+                                "type": "object",
+                                "attributes": {
+                                    "target": {"type": "urlabsolute", "required": True},
+                                    "provenance": {"type": "urlabsolute"}
+                                }
+                            }
+                        },
+                        "samples": {
+                            "type": "array",
+                            "item": {
+                                "type": "object",
+                                "attributes": {
+                                    "value": {"type": "integer", "required": True},
+                                    "label": {"type": "string"}
+                                }
+                            }
+                        },
+                        "choice": {
+                            "type": "string",
+                            "ifvalues": {
+                                "one": {"siblingattributes": {
+                                    "left": {"type": "integer", "required": True}
+                                }},
+                                "two": {"siblingattributes": {
+                                    "right": {"type": "string", "required": True}
+                                }}
+                            }
+                        },
+                        "*": {"type": "any"}
+                    }
+                }
+            }
+        }
+        path = tmp_path / "optional-model.json"
+        path.write_text(json.dumps(model), encoding="utf-8")
+        return path
+
+    @staticmethod
+    def avro_roundtrip(schema, datum, reader_schema=None):
+        buffer = io.BytesIO()
+        avro.io.DatumWriter(schema).write(datum, avro.io.BinaryEncoder(buffer))
+        buffer.seek(0)
+        return avro.io.DatumReader(schema, reader_schema).read(
+            avro.io.BinaryDecoder(buffer)
+        )
+
+    @pytest.mark.parametrize("explicit_null", [False, True], ids=["omitted", "null"])
+    def test_avro_nullable_optionals_encode_absent_values(
+        self, optional_avro_model, tools_dir, explicit_null
+    ):
+        generated = self.generate_schema(
+            optional_avro_model, "avro-schema", tools_dir, "--avro-nullable-optionals"
+        )
+        schema = avro.schema.parse(json.dumps(generated))
+        item = schema.fields_dict["items"].type.values
+        datum = {
+            "itemid": "a", "self": "https://example.com/a", "xid": "/items/a",
+            "labels": {}, "links": {"a": {"target": "https://example.com/target"}}
+        }
+        if explicit_null:
+            datum.update(identity=None, samples=None, choice=None, Extensions=None)
+            datum["links"]["a"]["provenance"] = None
+        result = self.avro_roundtrip(item, datum)
+        assert result["identity"] is None
+        assert result["links"]["a"]["provenance"] is None
+        assert result["samples"] is None
+        assert result["choice"] is None
+        assert result["Extensions"] is None
+        assert item.fields_dict["identity"].default is None
+        assert item.fields_dict["links"].type.values.fields_dict["provenance"].default is None
+
+        legacy = avro.schema.parse(json.dumps(
+            self.generate_schema(optional_avro_model, "avro-schema", tools_dir)
+        )).fields_dict["items"].type.values
+        with pytest.raises(avro.errors.AvroTypeException):
+            self.avro_roundtrip(legacy, datum)
+
+    def test_avro_nullable_optionals_preserve_complex_types(
+        self, optional_avro_model, tools_dir
+    ):
+        generated = self.generate_schema(
+            optional_avro_model, "avro-schema", tools_dir, "--avro-nullable-optionals"
+        )
+        item = avro.schema.parse(json.dumps(generated)).fields_dict["items"].type.values
+        datum = {
+            "itemid": "a", "self": "https://example.com/a", "xid": "/items/a",
+            "labels": {}, "identity": "urn:example:a",
+            "links": {"a": {
+                "target": "https://example.com/target",
+                "provenance": "https://example.com/plan"
+            }},
+            "samples": [{"value": 42, "label": "reading"}],
+            "choice": {"left": 7},
+            "Extensions": {"custom": {"object": {"key": "value"}}}
+        }
+        result = self.avro_roundtrip(item, datum)
+        for name in ("identity", "links", "samples", "choice", "Extensions"):
+            assert result[name] == datum[name]
+        choice_types = item.fields_dict["choice"].type.schemas
+        assert [branch.type for branch in choice_types] == ["null", "record", "record"]
+        assert choice_types[1].fullname != choice_types[2].fullname
+        datum["choice"] = {"right": "other"}
+        assert self.avro_roundtrip(item, datum)["choice"] == {"right": "other"}
+
+    @pytest.mark.parametrize("missing", [False, True], ids=["null", "omitted"])
+    @pytest.mark.parametrize("field", ["links", "target"])
+    def test_avro_nullable_optionals_keep_required_fields(
+        self, optional_avro_model, tools_dir, field, missing
+    ):
+        generated = self.generate_schema(
+            optional_avro_model, "avro-schema", tools_dir, "--avro-nullable-optionals"
+        )
+        item = avro.schema.parse(json.dumps(generated)).fields_dict["items"].type.values
+        datum = {
+            "itemid": "a", "self": "https://example.com/a", "xid": "/items/a",
+            "labels": {}, "links": {"a": {"target": "https://example.com/target"}}
+        }
+        owner = datum if field == "links" else datum["links"]["a"]
+        if missing:
+            del owner[field]
+        else:
+            owner[field] = None
+        with pytest.raises(avro.errors.AvroTypeException):
+            self.avro_roundtrip(item, datum)
+
+    def test_avro_nullable_optionals_preserve_scalar_defaults(self, tools_dir, tmp_path):
+        model_path = tmp_path / "defaults.json"
+        model_path.write_text(json.dumps({
+            "groups": {"items": {"singular": "item", "attributes": {
+                "retries": {"type": "integer", "required": True, "default": 0},
+                "enabled": {"type": "boolean", "required": True, "default": False},
+                "title": {"type": "string", "required": True, "default": "configured"},
+                "note": {"type": "string"}
+            }}}
+        }), encoding="utf-8")
+        generated = self.generate_schema(
+            model_path, "avro-schema", tools_dir, "--avro-nullable-optionals"
+        )
+        reader = avro.schema.parse(json.dumps(generated))
+        writer_data = copy.deepcopy(generated)
+        fields = writer_data["fields"][0]["type"]["values"]["fields"]
+        fields[:] = [f for f in fields if f["name"] not in ("retries", "enabled", "title", "note")]
+        writer = avro.schema.parse(json.dumps(writer_data))
+        datum = {"items": {"a": {
+            "itemid": "a", "self": "https://example.com/a", "xid": "/items/a", "labels": {}
+        }}}
+        result = self.avro_roundtrip(writer, datum, reader)["items"]["a"]
+        assert result["retries"] == 0
+        assert result["enabled"] is False
+        assert result["title"] == "configured"
+        assert result["note"] is None
+        item = reader.fields_dict["items"].type.values
+        assert item.fields_dict["retries"].type.type == "int"
+        assert item.fields_dict["enabled"].type.type == "boolean"
+        assert item.fields_dict["title"].type.type == "string"
+        self.avro_roundtrip(reader, {"items": {"a": result}})
+        result["title"] = None
+        with pytest.raises(avro.errors.AvroTypeException):
+            self.avro_roundtrip(reader, {"items": {"a": result}})
+
+    @pytest.mark.parametrize("domain", ["schema", "message", "endpoint", "cloudevents"])
+    def test_avro_default_generation_preserves_published_bytes(self, tools_dir, tmp_path, domain):
+        root = tools_dir.parent
+        models = ["endpoint", "message", "schema"] if domain == "cloudevents" else [domain]
+        output = tmp_path / "document-schema.avsc"
+        result = subprocess.run(
+            ["python", str(tools_dir / "schema-generator.py"), "--type", "avro-schema",
+             "--output", str(output), *[str(root / model / "model.json") for model in models]],
+            capture_output=True, text=True, timeout=30
+        )
+        assert result.returncode == 0, result.stderr
+        # Text-mode CLI output uses the host newline; Git stores LF on every host.
+        actual = output.read_bytes().replace(b"\r\n", b"\n")
+        published = (root / domain / "schemas" / output.name).read_bytes().replace(b"\r\n", b"\n")
+        assert actual == published
+
+    @pytest.mark.parametrize("schema_type", ["json-schema", "json-structure", "openapi"])
+    def test_avro_nullable_optionals_reject_other_formats(
+        self, schema_model, tools_dir, tmp_path, schema_type
+    ):
+        output = tmp_path / "unexpected.json"
+        result = subprocess.run(
+            ["python", str(tools_dir / "schema-generator.py"), "--type", schema_type,
+             "--avro-nullable-optionals", "--output", str(output), str(schema_model)],
+            capture_output=True, text=True, timeout=30
+        )
+        assert result.returncode == 2
+        assert "--avro-nullable-optionals requires --type avro-schema" in result.stderr
+        assert not output.exists()
 
     def assert_json_structure(self, schema_data: dict):
         """Validate the structural invariants of generated JSON Structure."""

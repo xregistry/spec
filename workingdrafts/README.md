@@ -9,6 +9,7 @@ specification.
 
 ## Models
 
+- [Descriptor Registry](models/descriptor/README.md)
 - [OpenUSD Artifact Registry](models/openusd/README.md)
 - [WoT Registry](models/wot/README.md)
 

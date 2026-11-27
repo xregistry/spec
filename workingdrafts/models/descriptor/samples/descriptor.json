@@ -1,0 +1,77 @@
+{
+  "descriptorgroups": {
+    "devices": {
+      "descriptorgroupid": "devices",
+      "descriptors": {
+        "pump7": {
+          "descriptorid": "pump7",
+          "versionid": "1",
+          "entityid": "urn:example:asset:pump7",
+          "entitytype": "https://models.example/classes/device",
+          "entries": {
+            "pump7": {
+              "class": "thingdescription",
+              "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3.0.0"
+            },
+            "geometry": {
+              "class": "usdasset",
+              "url": "https://assets.example/usdassetgroups/line1/usdassets/pump7/versions/2"
+            }
+          }
+        }
+      }
+    },
+    "actors": {
+      "descriptorgroupid": "actors",
+      "descriptors": {
+        "planner7": {
+          "descriptorid": "planner7",
+          "versionid": "1",
+          "entityid": "urn:example:actor:planner7",
+          "entitytype": "https://models.example/classes/software-actor",
+          "entries": {
+            "description": {
+              "class": "com.example.actorinfo",
+              "acme_servicekind": "maintenance-planner"
+            }
+          }
+        }
+      }
+    },
+    "streams": {
+      "descriptorgroupid": "streams",
+      "descriptors": {
+        "pump7-telemetry": {
+          "descriptorid": "pump7-telemetry",
+          "versionid": "1",
+          "entries": {
+            "pump7": {
+              "class": "thingdescription",
+              "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/pump7/versions/3.0.0",
+              "affordanceselector": "/properties/processData"
+            },
+            "gateway1": {
+              "class": "thingdescription",
+              "url": "https://registry.example/thingdescriptiongroups/factory/thingdescriptions/gateway1/versions/1.0.0"
+            },
+            "payload": {
+              "class": "schema",
+              "url": "https://schemas.example/pump-process-data/versions/3"
+            },
+            "geometry": {
+              "class": "usdasset",
+              "url": "https://assets.example/usdassetgroups/line1/usdassets/pump7/versions/2"
+            },
+            "writer": {
+              "class": "opcuawriter",
+              "opcuapublisherid": "UInt16:12",
+              "opcuadatasetwriterid": 17,
+              "opcuadatasetwritername": "pump7-process",
+              "opcuadatasetname": "PumpProcessData"
+            }
+          }
+        }
+      }
+    }
+  }
+}
